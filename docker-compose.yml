@@ -1,0 +1,17 @@
+# Local Postgres for development. `docker compose up -d` then `npm run db:migrate`.
+services:
+  db:
+    image: postgres:16
+    container_name: whitesvan-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: whitesvan
+      POSTGRES_PASSWORD: whitesvan
+      POSTGRES_DB: whitesvan
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
