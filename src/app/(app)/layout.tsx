@@ -18,7 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             href="/dashboard"
             className="text-base font-semibold tracking-tight text-slate-900"
           >
-            SVAN<span className="text-blue-700"> Trust OS</span>
+            Trust<span className="text-blue-700">SVAN</span>
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link href="/dashboard" className="text-slate-600 hover:text-slate-900">

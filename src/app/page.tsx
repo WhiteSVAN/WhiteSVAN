@@ -12,7 +12,7 @@ export default function Home() {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <span className="text-base font-semibold tracking-tight text-slate-900">
-            SVAN<span className="text-blue-700"> Trust OS</span>
+            Trust<span className="text-blue-700">SVAN</span>
           </span>
           <div className="flex items-center gap-3 text-sm">
             <Link href="/login" className="text-slate-600 hover:text-slate-900">
@@ -33,7 +33,7 @@ export default function Home() {
           Turn your trading history into an investor-ready client portal.
         </h1>
         <p className="mt-5 max-w-2xl text-lg text-slate-600">
-          Upload your broker or prop-firm CSV. SVAN Trust OS generates verified performance
+          Upload your broker or prop-firm CSV. TrustSVAN generates verified performance
           dashboards, risk analytics, AI monthly reports, and a private client link in minutes.
         </p>
 
@@ -58,7 +58,7 @@ export default function Home() {
 
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-4 py-4 text-xs text-slate-400">
-          SVAN Trust OS is reporting and analytics software. It does not manage money, execute
+          TrustSVAN is reporting and analytics software. It does not manage money, execute
           trades, provide investment advice, or guarantee performance.
         </div>
       </footer>

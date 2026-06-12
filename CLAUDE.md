@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# WhiteSVAN — SVAN Trust OS
+# WhiteSVAN — TrustSVAN
 
 AI-powered client reporting & risk intelligence for serious traders and emerging portfolio managers.
 Traders upload broker / prop-firm history (CSV) and get verified performance dashboards, risk

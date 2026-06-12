@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="w-full max-w-sm">
         <Link href="/" className="mb-8 flex items-center justify-center">
           <span className="text-xl font-semibold tracking-tight text-slate-900">
-            SVAN<span className="text-blue-700"> Trust OS</span>
+            Trust<span className="text-blue-700">SVAN</span>
           </span>
         </Link>
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">

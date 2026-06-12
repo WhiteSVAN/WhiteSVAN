@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SVAN Trust OS — trader reporting & risk analytics",
+  title: "TrustSVAN — trader reporting & risk analytics",
   description:
     "Upload your trading history and get verified performance dashboards, AI risk reports, and a private client portal.",
 };
