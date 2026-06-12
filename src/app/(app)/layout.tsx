@@ -24,6 +24,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Link href="/dashboard" className="text-slate-600 hover:text-slate-900">
               Dashboard
             </Link>
+            <Link href="/upload" className="text-slate-600 hover:text-slate-900">
+              Import
+            </Link>
             <span className="hidden text-slate-500 sm:inline">{user.name ?? user.email}</span>
             <form action={logout}>
               <button
