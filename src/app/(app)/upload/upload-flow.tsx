@@ -4,7 +4,7 @@ import { type ChangeEvent, useActionState, useMemo, useState } from "react";
 import {
   CANONICAL_FIELDS,
   REQUIRED_FIELDS,
-  detectPreset,
+  autoMap,
   parseTradesCsv,
   type CanonicalField,
   type ColumnMapping,
@@ -48,7 +48,7 @@ export function UploadFlow({ accounts }: { accounts: Account[] }) {
     setFileName(file.name);
     setCsvText(text);
     setHeaders(parsed.headers);
-    setMapping(detectPreset(parsed.headers)?.mapping ?? {});
+    setMapping(autoMap(parsed.headers));
   }
 
   const result = useMemo(
@@ -96,43 +96,54 @@ export function UploadFlow({ accounts }: { accounts: Account[] }) {
         </div>
       </div>
 
-      {/* Column mapping */}
+      {/* Column mapping — collapsed once everything is recognized */}
       {headers.length > 0 && (
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="text-sm font-medium text-slate-800">Map columns</h3>
-          <p className="mt-0.5 text-xs text-slate-500">
-            We auto-detected what we could. Required fields are marked
-            <span className="text-red-500"> *</span>.
-          </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {CANONICAL_FIELDS.map((field) => (
-              <div key={field}>
-                <label className="text-xs font-medium text-slate-600">
-                  {FIELD_LABELS[field]}
-                  {REQUIRED.has(field) && <span className="text-red-500"> *</span>}
-                </label>
-                <select
-                  value={mapping[field] ?? ""}
-                  onChange={(e) =>
-                    setMapping((m) => ({ ...m, [field]: e.target.value || undefined }))
-                  }
-                  className={inputClass}
-                >
-                  <option value="">— none —</option>
-                  {headers.map((h) => (
-                    <option key={h} value={h}>
-                      {h}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
-          </div>
-          {missingRequired.length > 0 && (
-            <p className="mt-3 text-xs text-amber-600">
-              Map these required fields: {missingRequired.map((f) => FIELD_LABELS[f]).join(", ")}
-            </p>
-          )}
+          <details open={missingRequired.length > 0}>
+            <summary className="flex cursor-pointer list-none items-center gap-2 text-sm">
+              {missingRequired.length === 0 ? (
+                <>
+                  <span className="text-emerald-600">✓</span>
+                  <span className="font-medium text-slate-800">
+                    Columns auto-mapped from your file
+                  </span>
+                  <span className="text-slate-400">— click to review or adjust</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-amber-600">⚠</span>
+                  <span className="font-medium text-slate-800">Map columns</span>
+                  <span className="text-slate-400">
+                    — still need: {missingRequired.map((f) => FIELD_LABELS[f]).join(", ")}
+                  </span>
+                </>
+              )}
+            </summary>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {CANONICAL_FIELDS.map((field) => (
+                <div key={field}>
+                  <label className="text-xs font-medium text-slate-600">
+                    {FIELD_LABELS[field]}
+                    {REQUIRED.has(field) && <span className="text-red-500"> *</span>}
+                  </label>
+                  <select
+                    value={mapping[field] ?? ""}
+                    onChange={(e) =>
+                      setMapping((m) => ({ ...m, [field]: e.target.value || undefined }))
+                    }
+                    className={inputClass}
+                  >
+                    <option value="">— none —</option>
+                    {headers.map((h) => (
+                      <option key={h} value={h}>
+                        {h}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </details>
         </div>
       )}
 

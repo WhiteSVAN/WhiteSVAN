@@ -1,9 +1,11 @@
 /**
- * CSV import — flexible column mapping with broker presets.
+ * CSV import — automatic column detection with broker-aware aliases.
  *
- * Strategy: parse with PapaParse (header mode), then map the user's columns onto
- * our canonical fields. Ship an Interactive Brokers preset plus a universal
- * manual template; users can always override the mapping in the UI.
+ * Strategy: parse with PapaParse (header mode), then auto-map the user's columns
+ * onto our canonical fields by matching header names (case/space/punctuation
+ * insensitive) against known aliases. This recognizes IBKR Flex Query exports
+ * ("select all" included), IBKR Activity statements, and our manual template
+ * without the user mapping anything. The UI still lets them override.
  */
 import Papa from "papaparse";
 
@@ -52,67 +54,61 @@ export interface ParseResult {
   errors: ParseError[];
 }
 
-export interface Preset {
-  id: string;
-  label: string;
-  mapping: ColumnMapping;
-}
+/** Lowercase, strip non-alphanumerics — so "Realized P/L", "realized_pnl" and
+ *  "FifoPnlRealized" can be compared on equal footing. */
+const norm = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-/** Interactive Brokers Activity/Flex "Trades" style headers. */
-export const IBKR_PRESET: Preset = {
-  id: "ibkr",
-  label: "Interactive Brokers",
-  mapping: {
-    tradeDate: "Date/Time",
-    symbol: "Symbol",
-    assetType: "Asset Category",
-    quantity: "Quantity",
-    entryPrice: "T. Price",
-    exitPrice: "C. Price",
-    realizedPnl: "Realized P/L",
-    fees: "Comm/Fee",
-  },
+/**
+ * Known header aliases per canonical field, in priority order. Stored in
+ * normalized form (see `norm`). Covers IBKR Flex field names (e.g.
+ * `FifoPnlRealized`, `IBCommission`, `Buy/Sell`, `ClosePrice`), IBKR Activity
+ * statement names (`Realized P/L`, `Comm/Fee`, `T. Price`), and the manual
+ * template (`realized_pnl`, `trade_date`, …).
+ */
+const FIELD_ALIASES: Record<CanonicalField, string[]> = {
+  tradeDate: ["tradedate", "tradedatetime", "date", "datetime"],
+  symbol: ["symbol", "ticker", "instrument", "localsymbol"],
+  assetType: ["assetclass", "assetcategory", "assettype", "sectype", "securitytype"],
+  side: ["buysell", "side", "action", "bs", "direction"],
+  quantity: ["quantity", "qty", "shares", "size", "filledquantity"],
+  entryPrice: ["tradeprice", "tprice", "price", "entryprice", "avgprice", "fillprice"],
+  exitPrice: ["closeprice", "cprice", "exitprice"],
+  realizedPnl: ["fifopnlrealized", "realizedpnl", "realizedpl", "realizedplmtm", "realizedpandl"],
+  fees: ["ibcommission", "commission", "commfee", "commissionfee", "fees", "fee", "commissions"],
+  accountName: ["clientaccountid", "accountalias", "accountid", "accountname", "account"],
 };
 
-/** Universal manual template: headers equal canonical field names. */
-export const MANUAL_PRESET: Preset = {
-  id: "manual",
-  label: "Manual template",
-  mapping: {
-    tradeDate: "trade_date",
-    symbol: "symbol",
-    assetType: "asset_type",
-    side: "side",
-    quantity: "quantity",
-    entryPrice: "entry_price",
-    exitPrice: "exit_price",
-    realizedPnl: "realized_pnl",
-    fees: "fees",
-    accountName: "account_name",
-  },
-};
-
-export const PRESETS: Preset[] = [IBKR_PRESET, MANUAL_PRESET];
-
-/** Guess a preset by how many of its source headers are present. */
-export function detectPreset(headers: string[]): Preset | null {
-  const set = new Set(headers.map((h) => h.trim().toLowerCase()));
-  let best: { preset: Preset; hits: number } | null = null;
-  for (const preset of PRESETS) {
-    const sources = Object.values(preset.mapping).filter(Boolean) as string[];
-    const hits = sources.filter((s) => set.has(s.toLowerCase())).length;
-    if (hits >= 2 && (!best || hits > best.hits)) best = { preset, hits };
+/** Auto-detect a column mapping from CSV headers. First alias match wins. */
+export function autoMap(headers: string[]): ColumnMapping {
+  const byNorm = new Map<string, string>();
+  for (const h of headers) {
+    const n = norm(h);
+    if (n && !byNorm.has(n)) byNorm.set(n, h); // first header wins on collision
   }
-  return best?.preset ?? null;
+
+  const mapping: ColumnMapping = {};
+  for (const field of CANONICAL_FIELDS) {
+    for (const alias of FIELD_ALIASES[field]) {
+      const header = byNorm.get(alias);
+      if (header) {
+        mapping[field] = header;
+        break;
+      }
+    }
+  }
+  return mapping;
 }
 
 /** Normalize broker date formats to `YYYY-MM-DD`. Returns null if unparseable. */
 export function normalizeDate(value: string): string | null {
   if (!value) return null;
-  // IBKR uses "YYYY-MM-DD, HH:MM:SS"; also handle space-separated time.
-  const datePart = value.trim().split(/[,\sT]/)[0];
+  // Date portion before any time separator: space, comma, 'T', or IBKR's ';'.
+  const datePart = value.trim().split(/[,\sT;]/)[0];
+  // Compact YYYYMMDD (IBKR Flex)
+  let m = datePart.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
   // ISO YYYY-MM-DD
-  let m = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  m = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (m) return `${m[1]}-${m[2]}-${m[3]}`;
   // US M/D/YYYY or MM/DD/YYYY
   m = datePart.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
@@ -188,7 +184,9 @@ export function parseTradesCsv(text: string, mapping: ColumnMapping): ParseResul
       entryPrice: parseNumber(get(row, "entryPrice")) ?? undefined,
       exitPrice: parseNumber(get(row, "exitPrice")) ?? undefined,
       realizedPnl: realizedPnl!,
-      fees: parseNumber(get(row, "fees")) ?? 0,
+      // Brokers report commissions as negative cash (IBKR) or positive cost
+      // (manual). Store the magnitude as a cost so net = gross − fees is correct.
+      fees: Math.abs(parseNumber(get(row, "fees")) ?? 0),
       accountName: get(row, "accountName")?.trim() || undefined,
       raw: row,
     });
