@@ -134,22 +134,22 @@ function buildVerdict(t: {
   const parts: string[] = [];
   parts.push(
     profitable
-      ? `The account ended the period positive across ${m.tradingDays} trading days.`
-      : `The account ended the period negative across ${m.tradingDays} trading days.`,
+      ? `The account finished the period in profit across ${m.tradingDays} trading days.`
+      : `The account finished the period at a loss across ${m.tradingDays} trading days.`,
   );
   if (t.severity === "severe") {
-    parts.push(`It gave back more than ${Math.round(m.maxDrawdownPct)}% of its peak before recovering — a severe drawdown.`);
+    parts.push(`It declined more than ${Math.round(m.maxDrawdownPct)}% from its peak before recovering — a severe drawdown.`);
   } else if (t.severity === "high") {
-    parts.push(`Its worst drop reached ${m.maxDrawdownPct.toFixed(0)}% of peak equity, which is high.`);
+    parts.push(`Its largest decline reached ${m.maxDrawdownPct.toFixed(0)}% of peak equity, which is considered high.`);
   }
   if ((t.bestDayShare ?? 0) > 0.4) {
-    parts.push(`About ${Math.round((t.bestDayShare ?? 0) * 100)}% of profit came from a single day, so results may be outlier-driven.`);
+    parts.push(`Approximately ${Math.round((t.bestDayShare ?? 0) * 100)}% of total profit came from a single day, so the results may be outlier-driven.`);
   }
   if ((t.badToGoodRatio ?? 0) > 1.3) {
-    parts.push(`A typical losing day is ${t.badToGoodRatio!.toFixed(1)}x larger than a typical winning day.`);
+    parts.push(`A typical losing day is about ${t.badToGoodRatio!.toFixed(1)} times the size of a typical winning day.`);
   }
   if (m.tradingDays < 20) {
-    parts.push(`This is an early record (${m.tradingDays} trading days), so read it with caution.`);
+    parts.push(`This is an early track record (${m.tradingDays} trading days) and should be interpreted with caution.`);
   }
   return { headline, body: parts.join(" ") };
 }

@@ -8,9 +8,9 @@ const QUESTIONS = [
 ];
 
 const STEPS = [
-  { n: "1", t: "Upload your history", d: "Drop a broker or prop-firm CSV. IBKR and others auto-map — no spreadsheet wrangling." },
-  { n: "2", t: "Get a verified dashboard", d: "Equity curve, risk analytics, and an AI-written monthly report you review and approve." },
-  { n: "3", t: "Share a private portal", d: "A clean, read-only link for clients and allocators. Print or save as PDF in one click." },
+  { n: "1", t: "Upload your history", d: "Upload a broker or prop-firm CSV. IBKR and other formats are detected automatically — no manual mapping." },
+  { n: "2", t: "Review your dashboard", d: "An equity curve, risk analytics, and an AI-written monthly report that you review and approve." },
+  { n: "3", t: "Share a private portal", d: "A clean, read-only link for clients and allocators. Print or save it as a PDF in one click." },
 ];
 
 const PRICING = [
@@ -72,9 +72,9 @@ export default function Home() {
 
           <ul className="mt-10 space-y-2">
             {[
-              "Verified-looking performance reports without spreadsheets",
-              "AI risk and discipline recaps for clients",
-              "Private share link for serious followers, clients, and allocators",
+              "Verified performance reports, without the spreadsheets",
+              "AI-written risk and discipline summaries for your clients",
+              "A private, shareable link for clients, allocators, and followers",
             ].map((b) => (
               <li key={b} className="flex items-start gap-2 text-sm text-slate-700">
                 <span className="mt-0.5 text-blue-700">✓</span>

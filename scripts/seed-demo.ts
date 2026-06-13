@@ -38,23 +38,23 @@ function tradingDates(startISO: string, n: number): string[] {
 
 const SAMPLE_REPORT = {
   executive_summary:
-    "Over the reporting period the account finished positive across roughly eight weeks of trading, with steady daily participation and a mid-period drawdown that was later recovered.",
+    "Over the reporting period, the account finished in profit across roughly eight weeks of trading, with consistent daily participation and a mid-period drawdown that was subsequently recovered.",
   performance_summary:
-    "The net result was positive on a $25,000 starting base. There were more winning days than losing days, with gains concentrated in a handful of stronger sessions.",
+    "The net result was positive on a $25,000 starting base. Winning days outnumbered losing days, with gains concentrated in a handful of stronger sessions.",
   risk_summary:
-    "The largest peak-to-trough decline was meaningful and took several sessions to recover. A single day contributed a notable share of total profit, so results were partly outlier-influenced.",
+    "The largest peak-to-trough decline was material and took several sessions to recover. A single day contributed a notable share of total profit, so the results were partly outlier-influenced.",
   discipline_review:
-    "Position sizing stayed broadly consistent through the period. Losing days were, on average, somewhat larger than winning days, which is worth monitoring.",
+    "Position sizing remained broadly consistent throughout the period. Losing days were, on average, somewhat larger than winning days, which is worth monitoring.",
   notable_days: [
-    "The best day produced the single largest gain of the period.",
-    "The worst stretch was a short cluster of losing sessions mid-period.",
+    "The strongest day produced the single largest gain of the period.",
+    "The weakest stretch was a short cluster of losing sessions in the middle of the period.",
   ],
   warnings: [
-    "A large share of total profit came from one day.",
-    "Losing days averaged larger than winning days.",
+    "A large share of total profit came from a single day.",
+    "Losing days were, on average, larger than winning days.",
   ],
   client_disclaimer:
-    "This is a historical performance summary for informational purposes. Past performance does not guarantee future results.",
+    "This is a historical performance summary provided for informational purposes only. Past performance does not guarantee future results.",
 };
 
 async function main() {

@@ -44,20 +44,20 @@ export function ClientView({
         />
         <Snapshot
           label="Growth Rate"
-          hint="Profit vs starting size"
+          hint="Profit relative to account size"
           value={m.returnPct != null ? formatPercent(m.returnPct, 1) : "—"}
           tone={(m.returnPct ?? 0) >= 0 ? "pos" : "neg"}
         />
         <Snapshot
           label="Biggest Drop"
-          hint="Worst fall from a high"
+          hint="Largest fall from a previous high"
           value={`${m.maxDrawdownPct.toFixed(1)}%`}
           badge={sev.label}
           badgeClass={`${sev.bg} ${sev.text}`}
         />
         <Snapshot
           label="TrustSVAN Score"
-          hint="Transparency, not advice"
+          hint="A transparency measure, not advice"
           value={`${trust.scores.transparency}`}
           suffix="/100"
         />
@@ -108,7 +108,7 @@ export function ClientView({
                 ? `${Math.round(trust.bestDayShare * 100)}% from one day`
                 : "—"
             }
-            note="Whether profit leaned on a single lucky day."
+            note="Whether profit relied on a single strong day."
             warn={concentrated}
           />
           <Plain
