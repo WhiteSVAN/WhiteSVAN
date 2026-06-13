@@ -4,18 +4,25 @@ Things to come back to. MVP (M1–M6) and the first round of trust features are 
 
 ## Next up (highest value)
 
-- [ ] **FIFO round-trip matcher.** Pair buys ↔ sells (FIFO) to compute realized P&L per close. This
-      is the real unlock for **Robinhood / Webull / Fidelity activity** exports, whose transaction
-      CSVs have no per-row realized P&L. Output should feed the existing `ParsedTrade[]` →
-      `importTrades()` path. Handle partial fills, shorts, multiple symbols, and fees.
+- [x] **FIFO round-trip matcher.** Pairs buys ↔ sells (FIFO) to compute realized P&L per close —
+      [src/lib/csv/fifo.ts](src/lib/csv/fifo.ts). Handles partial fills, shorts, multiple symbols, and
+      fees; feeds the existing `ParsedTrade[]` → `importTrades()` path. Broker adapters in
+      [src/lib/csv/brokers.ts](src/lib/csv/brokers.ts): **Fidelity Activity History** (P&L from net
+      `Amount`) and **Webull Orders** (P&L from `Avg Price` × multiplier; Webull omits fees → $0).
+      Surfaced via the **Broker / import format** dropdown on `/upload` (auto-detect still default).
+      Still TODO: Robinhood/Schwab/tastytrade adapters (dropdown shows them as "coming soon").
 - [ ] **Multi-account portal.** The dashboard already has an account selector; extend `/p/[slug]`
       (and reports/evidence) to support more than the primary account — a selector or per-account
       sections.
 
 ## Brokers / ingestion
 
-- [ ] Verify the **Fidelity** and **E\*TRADE** realized gain/loss aliases against real exports
-      (added from public docs; user to confirm column names).
+- [x] **Fidelity Activity History** import via FIFO matcher (verified against a real YTD export).
+- [ ] Verify the **E\*TRADE** realized gain/loss aliases against a real export (Fidelity gain/loss
+      aliases still added-from-docs; confirm column names).
+- [ ] Verify the **Webull Orders** column names against a real export — adapter targets the standard
+      US format (`Name, Symbol, Side, Status, Filled, Total Qty, Price, Avg Price, …, Filled Time`)
+      with tolerant aliases; option symbol/multiplier handling needs a real-file check.
 - [ ] **IBKR Flex Web Service auto-pull** — token + query ID → server-side fetch; thin adapter that
       emits `ParsedTrade[]` (import core is already source-agnostic).
 - [ ] **Manual daily P&L entry** — fallback form (plan §4) for users without a clean CSV.

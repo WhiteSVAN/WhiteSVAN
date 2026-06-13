@@ -8,7 +8,14 @@ import {
   parseTradesCsv,
   type CanonicalField,
   type ColumnMapping,
+  type ParseResult,
 } from "@/lib/csv/parse";
+import {
+  BROKER_FORMATS,
+  detectBrokerFormat,
+  parseBrokerCsv,
+  type BrokerParseResult,
+} from "@/lib/csv/brokers";
 import { confirmImport } from "./actions";
 import { btnPrimary, FormError, inputClass, labelClass } from "@/components/form";
 
@@ -32,36 +39,93 @@ interface Account {
   accountName: string;
 }
 
+/** A broker FIFO result also satisfies the preview's needs (trades + errors). */
+type PreviewResult = ParseResult | BrokerParseResult;
+const isBrokerResult = (r: PreviewResult): r is BrokerParseResult => "fills" in r;
+
 export function UploadFlow({ accounts }: { accounts: Account[] }) {
   const [state, action, pending] = useActionState(confirmImport, undefined);
   const [accountId, setAccountId] = useState(accounts[0]?.id ?? "");
+  const [format, setFormat] = useState("auto");
   const [fileName, setFileName] = useState("");
   const [csvText, setCsvText] = useState("");
   const [headers, setHeaders] = useState<string[]>([]);
   const [mapping, setMapping] = useState<ColumnMapping>({});
 
-  async function onFile(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const text = await file.text();
+  const isAuto = format === "auto";
+
+  /** Auto-detect path needs the column headers + a default mapping. */
+  function refreshAutoMapping(text: string) {
     const parsed = parseTradesCsv(text, {});
-    setFileName(file.name);
-    setCsvText(text);
     setHeaders(parsed.headers);
     setMapping(autoMap(parsed.headers));
   }
 
-  const result = useMemo(
-    () => (csvText ? parseTradesCsv(csvText, mapping) : null),
-    [csvText, mapping],
-  );
+  async function onFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    setFileName(file.name);
+    setCsvText(text);
 
-  const missingRequired = CANONICAL_FIELDS.filter((f) => REQUIRED.has(f) && !mapping[f]);
+    // If the user left it on auto-detect, try to recognize the broker for them.
+    let fmt = format;
+    if (format === "auto") {
+      const detected = detectBrokerFormat(text);
+      if (detected) {
+        fmt = detected;
+        setFormat(detected);
+      }
+    }
+
+    if (fmt === "auto") refreshAutoMapping(text);
+    else setHeaders([]);
+  }
+
+  function onFormatChange(next: string) {
+    setFormat(next);
+    if (!csvText) return;
+    if (next === "auto") refreshAutoMapping(csvText);
+    else setHeaders([]);
+  }
+
+  const result = useMemo<PreviewResult | null>(() => {
+    if (!csvText) return null;
+    return isAuto ? parseTradesCsv(csvText, mapping) : parseBrokerCsv(format, csvText);
+  }, [csvText, isAuto, format, mapping]);
+
+  const missingRequired = isAuto
+    ? CANONICAL_FIELDS.filter((f) => REQUIRED.has(f) && !mapping[f])
+    : [];
   const canImport =
     !!accountId && !!result && result.trades.length > 0 && missingRequired.length === 0;
 
   return (
     <div className="space-y-5">
+      {/* Broker / import format */}
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <label htmlFor="format" className={labelClass}>
+          Broker / import format
+        </label>
+        <select
+          id="format"
+          value={format}
+          onChange={(e) => onFormatChange(e.target.value)}
+          className={inputClass}
+        >
+          {BROKER_FORMATS.map((f) => (
+            <option key={f.id} value={f.id} disabled={f.status === "soon"}>
+              {f.label}
+              {f.status === "soon" ? " (coming soon)" : ""}
+            </option>
+          ))}
+        </select>
+        <p className="mt-2 text-xs text-slate-500">
+          Pick your broker, or leave it on auto-detect. More brokers coming soon — Fidelity and
+          Webull transaction exports are matched into closed trades for you.
+        </p>
+      </div>
+
       {/* Account + file */}
       <div className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
         <div>
@@ -96,8 +160,8 @@ export function UploadFlow({ accounts }: { accounts: Account[] }) {
         </div>
       </div>
 
-      {/* Column mapping — collapsed once everything is recognized */}
-      {headers.length > 0 && (
+      {/* Column mapping — auto-detect path only, collapsed once recognized */}
+      {isAuto && headers.length > 0 && (
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <details open={missingRequired.length > 0}>
             <summary className="flex cursor-pointer list-none items-center gap-2 text-sm">
@@ -146,12 +210,34 @@ export function UploadFlow({ accounts }: { accounts: Account[] }) {
           </details>
           {!mapping.realizedPnl && (
             <p className="mt-3 text-xs text-slate-500">
-              No <strong>realized P&amp;L</strong> column found. Robinhood, Webull, and Fidelity
-              transaction exports list buys/sells without P&amp;L — upload your broker&apos;s{" "}
-              <strong>Realized Gain/Loss</strong> report instead. (Automatic P&amp;L from buy/sell
-              pairs is coming soon.)
+              No <strong>realized P&amp;L</strong> column found. If this is a Robinhood, Webull, or
+              Fidelity <em>transaction</em> export, pick your broker above and we&apos;ll pair
+              buys/sells into closed trades for you.
             </p>
           )}
+        </div>
+      )}
+
+      {/* FIFO summary — broker transaction-export path */}
+      {!isAuto && result && isBrokerResult(result) && (
+        <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-emerald-600">✓</span>
+            <span className="font-medium text-slate-800">Matched buys &amp; sells (FIFO)</span>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">
+            Paired <strong>{result.fills}</strong> fills into <strong>{result.matched}</strong>{" "}
+            closed trades with realized P&amp;L.
+            {result.openPositions > 0 && (
+              <>
+                {" "}
+                <strong>{result.openPositions}</strong> position
+                {result.openPositions === 1 ? "" : "s"} still open (no realized P&amp;L yet — they&apos;ll
+                count once closed).
+              </>
+            )}
+            {format === "webull" && " Webull omits commissions/fees, so fees show as $0."}
+          </p>
         </div>
       )}
 
@@ -227,6 +313,7 @@ export function UploadFlow({ accounts }: { accounts: Account[] }) {
       {/* Import */}
       <form action={action} className="space-y-3">
         <input type="hidden" name="accountId" value={accountId} />
+        <input type="hidden" name="format" value={format} />
         <input type="hidden" name="csvText" value={csvText} />
         <input type="hidden" name="mapping" value={JSON.stringify(mapping)} />
         <FormError message={state?.message} />
