@@ -7,6 +7,7 @@ import { computeTrustMetrics } from "@/lib/trust";
 import { toISODate } from "@/lib/format";
 import { DashboardControls } from "@/components/dashboard/controls";
 import { ViewToggle } from "@/components/dashboard/view-toggle";
+import { BalanceEditor } from "@/components/dashboard/balance-editor";
 import { ClientView } from "@/components/dashboard/client-view";
 import { TraderView } from "@/components/dashboard/trader-view";
 
@@ -76,6 +77,10 @@ export default async function DashboardPage({
           </Link>
         </div>
       </div>
+
+      {account && (
+        <BalanceEditor accountId={account.id} startingBalance={Number(account.startingBalance)} />
+      )}
 
       {imported && (
         <div className="rounded-lg bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
