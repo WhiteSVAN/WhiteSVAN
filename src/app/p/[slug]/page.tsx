@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { computeTrustMetrics } from "@/lib/trust";
 import { accountProofLevel } from "@/lib/proof";
@@ -8,6 +10,7 @@ import { ClientView } from "@/components/dashboard/client-view";
 import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
 import { ReportSections } from "@/components/report-sections";
 import { PrintButton } from "./print-button";
+import { BackButton } from "./back-button";
 
 const DEFAULT_DISCLAIMER =
   "TrustSVAN is reporting and analytics software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
@@ -39,6 +42,8 @@ function dateLabel(iso: string): string {
 
 export default async function PortalPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const session = await auth();
+  const loggedIn = !!session?.user;
 
   const profile = await prisma.traderProfile.findUnique({
     where: { slug },
@@ -117,11 +122,30 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
   return (
     <div className="min-h-full bg-slate-50">
+      {/* Slim nav — hidden when printing / saving the report as PDF. */}
+      <nav className="border-b border-slate-200 bg-white print:hidden">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
+          <BackButton />
+          <Link
+            href={loggedIn ? "/dashboard" : "/explore"}
+            className="text-sm font-medium text-blue-700 hover:text-blue-800"
+          >
+            {loggedIn ? "Dashboard" : "Explore traders"}
+          </Link>
+        </div>
+      </nav>
+
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-              Trust<span className="text-blue-700">SVAN</span> · verified report
+              <Link
+                href={loggedIn ? "/dashboard" : "/"}
+                className="transition hover:text-slate-600"
+              >
+                Trust<span className="text-blue-700">SVAN</span>
+              </Link>{" "}
+              · verified report
             </p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
               {profile.displayName}
