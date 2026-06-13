@@ -130,9 +130,11 @@ On branch `feat/foundation-and-auth`.
   publish (blocked on banned phrases) / delete.
 - ✅ **M5 Client portal** — public `/p/[slug]` (Client view + published reports + disclaimer), public/private
   toggle + share link in the dashboard, Print / Save-PDF.
+- ✅ **M6 Launch** — polished landing (hero + waitlist), `WaitlistEntry` capture, seeded demo at `/p/demo`
+  (`npm run db:seed`). **MVP complete (M1–M6).**
 
-**Next:**
-- **M6 Launch** — landing polish, sanitized demo data, beta.
+**Deferred / next:** redaction settings, proof levels beyond CSV, evidence locker, trader directory, IBKR
+Flex Web Service auto-pull (import core is already source-agnostic), multi-account portal, hosting/deploy.
 - **Deferred (need schema/product work):** redaction settings, proof levels beyond CSV, evidence locker,
   trader directory, IBKR Flex Web Service auto-pull (the import core is already source-agnostic).
 
