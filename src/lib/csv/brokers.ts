@@ -28,17 +28,24 @@ export interface BrokerFormat {
   label: string;
   /** "ready" → selectable; "soon" → shown disabled as a "coming soon" teaser. */
   status: "ready" | "soon";
+  /** Short broker name, used to pre-fill a new account's broker from the format. */
+  broker?: string;
 }
 
 /** Drives the upload-page dropdown. `auto` is handled by parse.ts, not here. */
 export const BROKER_FORMATS: BrokerFormat[] = [
   { id: "auto", label: "Auto-detect — IBKR Flex, E*TRADE / Fidelity Gain-Loss, manual", status: "ready" },
-  { id: "fidelity", label: "Fidelity — Activity History", status: "ready" },
-  { id: "webull", label: "Webull — Orders", status: "ready" },
-  { id: "robinhood", label: "Robinhood", status: "soon" },
-  { id: "schwab", label: "Charles Schwab / thinkorswim", status: "soon" },
-  { id: "tastytrade", label: "tastytrade", status: "soon" },
+  { id: "fidelity", label: "Fidelity — Activity History", status: "ready", broker: "Fidelity" },
+  { id: "webull", label: "Webull — Orders", status: "ready", broker: "Webull" },
+  { id: "robinhood", label: "Robinhood", status: "soon", broker: "Robinhood" },
+  { id: "schwab", label: "Charles Schwab / thinkorswim", status: "soon", broker: "Charles Schwab" },
+  { id: "tastytrade", label: "tastytrade", status: "soon", broker: "tastytrade" },
 ];
+
+/** Short broker name for a format id (for pre-filling a new account). */
+export function brokerForFormat(format: string): string {
+  return BROKER_FORMATS.find((f) => f.id === format)?.broker ?? "";
+}
 
 const empty = (message: string): BrokerParseResult => ({
   trades: [],
