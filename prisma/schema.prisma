@@ -163,3 +163,11 @@ enum ReportStatus {
   DRAFT
   PUBLISHED
 }
+
+// Beta waitlist captured from the landing page.
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  note      String?
+  createdAt DateTime @default(now())
+}
