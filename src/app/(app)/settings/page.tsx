@@ -5,6 +5,7 @@ import { accountProofLevel } from "@/lib/proof";
 import { PROOF_LEVELS, type ProofLevel } from "@/lib/trust";
 import { PortalSettingsForm } from "./portal-settings-form";
 import { EvidenceUploader } from "./evidence-uploader";
+import { AccountData } from "./account-data";
 import { toggleEvidencePublic, deleteEvidence } from "./actions";
 
 const KIND_LABEL: Record<string, string> = {
@@ -24,7 +25,12 @@ export default async function SettingsPage() {
 
   const accounts = await prisma.tradingAccount.findMany({
     where: { userId },
-    select: { id: true, accountName: true },
+    select: {
+      id: true,
+      accountName: true,
+      broker: true,
+      _count: { select: { trades: true } },
+    },
     orderBy: { createdAt: "asc" },
   });
 
@@ -83,7 +89,9 @@ export default async function SettingsPage() {
         </div>
 
         <div className="mt-5">
-          <EvidenceUploader accounts={accounts} />
+          <EvidenceUploader
+            accounts={accounts.map((a) => ({ id: a.id, accountName: a.accountName }))}
+          />
         </div>
 
         <div className="mt-6">
@@ -135,6 +143,24 @@ export default async function SettingsPage() {
               ))}
             </ul>
           )}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-base font-medium text-slate-800">Trading accounts &amp; data</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Imported the wrong CSV? Clear an account&apos;s trades and re-import, delete an account
+          entirely, or reset everything. These actions can&apos;t be undone.
+        </p>
+        <div className="mt-4">
+          <AccountData
+            accounts={accounts.map((a) => ({
+              id: a.id,
+              accountName: a.accountName,
+              broker: a.broker,
+              tradeCount: a._count.trades,
+            }))}
+          />
         </div>
       </section>
     </div>
