@@ -106,3 +106,64 @@ export async function deleteEvidence(formData: FormData) {
     revalidatePath("/dashboard");
   }
 }
+
+/**
+ * Wipe imported trades + daily rollup for one account, keeping the account
+ * itself (and its reports/evidence). For undoing a wrong-CSV import.
+ */
+export async function clearAccountTrades(formData: FormData) {
+  const userId = await requireUserId();
+  const accountId = String(formData.get("accountId") ?? "");
+  const owned = await prisma.tradingAccount.findFirst({
+    where: { id: accountId, userId },
+    select: { id: true },
+  });
+  if (!owned) return;
+
+  await prisma.$transaction([
+    prisma.trade.deleteMany({ where: { accountId } }),
+    prisma.dailyPnl.deleteMany({ where: { accountId } }),
+  ]);
+  revalidatePath("/dashboard");
+  revalidatePath("/settings");
+}
+
+/**
+ * Delete a trading account entirely. Cascades trades, daily rollup, and reports;
+ * evidence is unlinked (SetNull) so uploaded statements are kept in the locker.
+ */
+export async function deleteAccount(formData: FormData) {
+  const userId = await requireUserId();
+  const accountId = String(formData.get("accountId") ?? "");
+  const owned = await prisma.tradingAccount.findFirst({
+    where: { id: accountId, userId },
+    select: { id: true },
+  });
+  if (!owned) return;
+
+  await prisma.tradingAccount.delete({ where: { id: accountId } });
+  revalidatePath("/dashboard");
+  revalidatePath("/settings");
+}
+
+/**
+ * Clear ALL imported trades + daily rollups across every account, keeping the
+ * accounts (and reports/evidence) intact — a "reset my numbers" without losing
+ * account setup. A full account purge is per-account via deleteAccount.
+ */
+export async function clearAllData() {
+  const userId = await requireUserId();
+  const accounts = await prisma.tradingAccount.findMany({
+    where: { userId },
+    select: { id: true },
+  });
+  const ids = accounts.map((a) => a.id);
+  if (ids.length === 0) return;
+
+  await prisma.$transaction([
+    prisma.trade.deleteMany({ where: { accountId: { in: ids } } }),
+    prisma.dailyPnl.deleteMany({ where: { accountId: { in: ids } } }),
+  ]);
+  revalidatePath("/dashboard");
+  revalidatePath("/settings");
+}
