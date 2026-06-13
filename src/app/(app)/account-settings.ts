@@ -34,3 +34,20 @@ export async function setStartingBalance(
   revalidatePath("/dashboard");
   return { saved: true };
 }
+
+export type VisibilityState = { isPublic?: boolean } | undefined;
+
+/** Toggle the trader's public portal (`/p/[slug]`) on or off. */
+export async function setPortalVisibility(
+  _prev: VisibilityState,
+  formData: FormData,
+): Promise<VisibilityState> {
+  const userId = await requireUserId();
+  const makePublic = formData.get("isPublic") === "true";
+  await prisma.traderProfile.update({
+    where: { userId },
+    data: { isPublic: makePublic },
+  });
+  revalidatePath("/dashboard");
+  return { isPublic: makePublic };
+}

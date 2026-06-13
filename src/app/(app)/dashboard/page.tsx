@@ -8,6 +8,7 @@ import { toISODate } from "@/lib/format";
 import { DashboardControls } from "@/components/dashboard/controls";
 import { ViewToggle } from "@/components/dashboard/view-toggle";
 import { BalanceEditor } from "@/components/dashboard/balance-editor";
+import { PortalShare } from "@/components/dashboard/portal-share";
 import { ClientView } from "@/components/dashboard/client-view";
 import { TraderView } from "@/components/dashboard/trader-view";
 
@@ -62,9 +63,7 @@ export default async function DashboardPage({
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
             {user.profile.displayName}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Public portal: <span className="font-mono text-slate-700">/p/{user.profile.slug}</span>
-          </p>
+          <PortalShare slug={user.profile.slug} isPublic={user.profile.isPublic} />
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <ViewToggle view={view} />
