@@ -4,9 +4,15 @@ import { prisma } from "@/lib/db";
 import { CreateAccountForm } from "./create-account-form";
 import { UploadFlow } from "./upload-flow";
 
-export default async function UploadPage() {
+export default async function UploadPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ account?: string }>;
+}) {
   const user = await requireUser();
   if (!user.profile) redirect("/onboarding");
+
+  const { account: selectedAccountId } = await searchParams;
 
   const accounts = await prisma.tradingAccount.findMany({
     where: { userId: user.id },
@@ -21,7 +27,11 @@ export default async function UploadPage() {
         Upload a CSV from your broker or prop firm. Map the columns, preview the rows, then import.
       </p>
       <div className="mt-6">
-        {accounts.length === 0 ? <CreateAccountForm /> : <UploadFlow accounts={accounts} />}
+        {accounts.length === 0 ? (
+          <CreateAccountForm />
+        ) : (
+          <UploadFlow accounts={accounts} selectedAccountId={selectedAccountId} />
+        )}
       </div>
     </div>
   );
