@@ -23,7 +23,7 @@ against what's here:
 | Database | Supabase Postgres   | Local **Postgres 16** via Docker Compose                     |
 | ORM      | (raw SQL)           | **Prisma 7** (client generated to `src/generated/prisma`)    |
 | Auth     | Supabase Auth       | **NextAuth v5 (Auth.js)** — credentials + adapter models     |
-| AI       | OpenAI              | **Anthropic SDK** (`@anthropic-ai/sdk`) — Claude             |
+| AI       | OpenAI              | **OpenAI (default) + Anthropic/Claude**, switchable via `AI_PROVIDER` |
 | Charts   | Recharts            | Recharts ✓                                                   |
 | UI       | shadcn/ui           | Tailwind v4 only so far (no component lib added yet)          |
 | Hosting  | Vercel              | TBD                                                           |
@@ -45,8 +45,11 @@ CSV / manual entry  →  parse + auto-map (src/lib/csv)  →  trades  →  daily
   Biggest-Drop severity, Bounce-Back Time, five sub-scores + the weighted Transparency Score, and a
   plain-English verdict. Drives the dashboard **Client view** (the **Trader view** shows raw metrics).
 - [src/lib/csv/parse.ts](src/lib/csv/parse.ts) — PapaParse + **alias-based auto-detection** that maps
-  IBKR Flex (`FifoPnlRealized`/`IBCommission`/`Buy/Sell`/`TradeDate` YYYYMMDD), IBKR Activity, and the
-  manual template with no manual mapping. Tolerant date/number parsing; fees stored as magnitude.
+  IBKR Flex (`FifoPnlRealized`/`IBCommission`/`Buy/Sell`/`TradeDate` YYYYMMDD), IBKR Activity, the
+  manual template, and the **realized gain/loss exports** from Fidelity (`Total Gain/Loss`) and E*TRADE
+  (`Gain/Loss`) — no manual mapping. Retail *transaction* exports (Robinhood/Webull/Fidelity activity)
+  carry no per-row realized P&L, so the importer flags them and they await a FIFO round-trip matcher.
+  Tolerant date/number parsing; fees stored as magnitude.
 - [src/lib/ai/](src/lib/ai/) — provider-agnostic report generator. One `(ReportInput) => AiReport`
   contract; `AI_PROVIDER` picks **OpenAI** (default) or **Claude**. The strict system prompt + the
   banned-language filter ([compliance.ts](src/lib/ai/compliance.ts)) are the guardrail. It receives
@@ -137,10 +140,12 @@ On branch `feat/foundation-and-auth`.
   `hideAmounts`, disclaimer, evidence upload/serve at `/api/evidence/[id]`); public trader directory
   `/explore`. Files stored under `storage/` (git-ignored).
 
-**Deferred / next:** Proof Levels 4–5 (broker connection / third-party verification), IBKR Flex Web Service
-auto-pull (import core is source-agnostic), multi-account portal, calendar heatmap, hosting/deploy.
-- **Deferred (need schema/product work):** redaction settings, proof levels beyond CSV, evidence locker,
-  trader directory, IBKR Flex Web Service auto-pull (the import core is already source-agnostic).
+- ✅ **Transparency Score breakdown** (weighted sub-scores in the UI) + **monthly calendar heatmap**.
+
+**Deferred / next:** more broker CSV formats (Fidelity, Webull, Robinhood, E*TRADE — note most retail
+transaction exports lack per-row realized P&L, so they need a FIFO round-trip matcher), Proof Levels 4–5
+(broker connection / third-party verification), IBKR Flex Web Service auto-pull, multi-account portal,
+hosting/deploy.
 
 Planned routes: `/login`, `/onboarding`, `/upload`, `/dashboard`, `/reports`, `/p/[slug]`,
 `/settings`. Planned APIs: `/api/profile`, `/api/accounts`, `/api/import/{preview,confirm}`,

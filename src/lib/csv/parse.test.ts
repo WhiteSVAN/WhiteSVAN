@@ -81,3 +81,35 @@ describe("parseTradesCsv (IBKR Flex, auto-mapped)", () => {
     expect(result.errors[0].row).toBe(3);
   });
 });
+
+describe("autoMap (broker gain/loss + transaction exports)", () => {
+  it("maps Fidelity Realized Gain/Loss columns", () => {
+    const headers = [
+      "Symbol", "Security Description", "Quantity", "Date Acquired", "Date Sold",
+      "Proceeds", "Cost Basis", "Total Gain/Loss",
+    ];
+    const m = autoMap(headers);
+    expect(m.symbol).toBe("Symbol");
+    expect(m.tradeDate).toBe("Date Sold"); // not "Date Acquired"
+    expect(m.realizedPnl).toBe("Total Gain/Loss");
+  });
+
+  it("maps E*TRADE Gains & Losses columns", () => {
+    const headers = ["Symbol", "Quantity", "Date Acquired", "Date Sold", "Proceeds", "Total Cost", "Gain/Loss"];
+    const m = autoMap(headers);
+    expect(m.tradeDate).toBe("Date Sold");
+    expect(m.realizedPnl).toBe("Gain/Loss");
+  });
+
+  it("recognizes Robinhood transaction columns but finds no realized P&L", () => {
+    const headers = [
+      "Activity Date", "Process Date", "Settle Date", "Account Type", "Instrument",
+      "Description", "Trans Code", "Quantity", "Price", "Amount",
+    ];
+    const m = autoMap(headers);
+    expect(m.symbol).toBe("Instrument");
+    expect(m.tradeDate).toBe("Activity Date");
+    expect(m.side).toBe("Trans Code");
+    expect(m.realizedPnl).toBeUndefined(); // transaction export → needs a FIFO matcher
+  });
+});

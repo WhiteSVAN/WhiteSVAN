@@ -144,6 +144,14 @@ export function UploadFlow({ accounts }: { accounts: Account[] }) {
               ))}
             </div>
           </details>
+          {!mapping.realizedPnl && (
+            <p className="mt-3 text-xs text-slate-500">
+              No <strong>realized P&amp;L</strong> column found. Robinhood, Webull, and Fidelity
+              transaction exports list buys/sells without P&amp;L — upload your broker&apos;s{" "}
+              <strong>Realized Gain/Loss</strong> report instead. (Automatic P&amp;L from buy/sell
+              pairs is coming soon.)
+            </p>
+          )}
         </div>
       )}
 

@@ -3,9 +3,14 @@
  *
  * Strategy: parse with PapaParse (header mode), then auto-map the user's columns
  * onto our canonical fields by matching header names (case/space/punctuation
- * insensitive) against known aliases. This recognizes IBKR Flex Query exports
- * ("select all" included), IBKR Activity statements, and our manual template
- * without the user mapping anything. The UI still lets them override.
+ * insensitive) against known aliases. Recognizes IBKR Flex Query ("select all"),
+ * IBKR Activity statements, the manual template, and the realized gain/loss
+ * exports from Fidelity / E*TRADE (which carry per-row realized P&L).
+ *
+ * Note: retail *transaction* exports (Robinhood, Webull order history, Fidelity
+ * activity) list buys/sells without realized P&L, so they won't import until a
+ * FIFO round-trip matcher exists — see the upload UI hint. The UI lets users
+ * override the auto-detected mapping in all cases.
  */
 import Papa from "papaparse";
 
@@ -66,16 +71,29 @@ const norm = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]/g, "");
  * template (`realized_pnl`, `trade_date`, …).
  */
 const FIELD_ALIASES: Record<CanonicalField, string[]> = {
-  tradeDate: ["tradedate", "tradedatetime", "date", "datetime"],
+  // Prefer trade/realized dates; "Date Sold" (Fidelity/E*TRADE gain-loss),
+  // "Activity Date" (Robinhood), "Run Date" (Fidelity activity), Webull "Time".
+  tradeDate: [
+    "tradedate", "tradedatetime", "datesold", "datesoldclosed", "dateclosed",
+    "closeddate", "activitydate", "rundate", "transactiondate", "date",
+    "datetime", "filledtime", "placedtime", "time",
+  ],
   symbol: ["symbol", "ticker", "instrument", "localsymbol"],
   assetType: ["assetclass", "assetcategory", "assettype", "sectype", "securitytype"],
-  side: ["buysell", "side", "action", "bs", "direction"],
-  quantity: ["quantity", "qty", "shares", "size", "filledquantity"],
-  entryPrice: ["tradeprice", "tprice", "price", "entryprice", "avgprice", "fillprice"],
+  side: ["buysell", "side", "action", "transcode", "bs", "direction"],
+  quantity: ["quantity", "qty", "filledqty", "totalqty", "shares", "size", "filledquantity"],
+  entryPrice: [
+    "tradeprice", "tprice", "price", "entryprice", "avgprice", "averagefillprice", "fillprice",
+  ],
   exitPrice: ["closeprice", "cprice", "exitprice"],
-  realizedPnl: ["fifopnlrealized", "realizedpnl", "realizedpl", "realizedplmtm", "realizedpandl"],
+  // IBKR Flex first, then the realized gain-loss exports (Fidelity "Total Gain/Loss",
+  // E*TRADE "Gain/Loss"). Retail *transaction* exports have no realized P&L column.
+  realizedPnl: [
+    "fifopnlrealized", "realizedpnl", "realizedpl", "realizedplmtm", "realizedpandl",
+    "totalgainloss", "realizedgainloss", "gainloss", "realizedgain", "gainlossamount",
+  ],
   fees: ["ibcommission", "commission", "commfee", "commissionfee", "fees", "fee", "commissions"],
-  accountName: ["clientaccountid", "accountalias", "accountid", "accountname", "account"],
+  accountName: ["clientaccountid", "accountalias", "accountid", "accountname", "accounttype", "account"],
 };
 
 /** Auto-detect a column mapping from CSV headers. First alias match wins. */
