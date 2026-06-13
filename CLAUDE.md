@@ -132,9 +132,13 @@ On branch `feat/foundation-and-auth`.
   toggle + share link in the dashboard, Print / Save-PDF.
 - ✅ **M6 Launch** — polished landing (hero + waitlist), `WaitlistEntry` capture, seeded demo at `/p/demo`
   (`npm run db:seed`). **MVP complete (M1–M6).**
+- ✅ **Trust features** — evidence locker + dynamic **Proof Levels** (CSV data = L2, uploaded broker
+  statement = L3) via [src/lib/proof.ts](src/lib/proof.ts); `/settings` (visibility, $-redaction via
+  `hideAmounts`, disclaimer, evidence upload/serve at `/api/evidence/[id]`); public trader directory
+  `/explore`. Files stored under `storage/` (git-ignored).
 
-**Deferred / next:** redaction settings, proof levels beyond CSV, evidence locker, trader directory, IBKR
-Flex Web Service auto-pull (import core is already source-agnostic), multi-account portal, hosting/deploy.
+**Deferred / next:** Proof Levels 4–5 (broker connection / third-party verification), IBKR Flex Web Service
+auto-pull (import core is source-agnostic), multi-account portal, calendar heatmap, hosting/deploy.
 - **Deferred (need schema/product work):** redaction settings, proof levels beyond CSV, evidence locker,
   trader directory, IBKR Flex Web Service auto-pull (the import core is already source-agnostic).
 
