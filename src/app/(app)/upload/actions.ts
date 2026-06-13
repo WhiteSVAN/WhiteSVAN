@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { requireUserId } from "@/lib/auth/dal";
 import { parseTradesCsv, type ColumnMapping } from "@/lib/csv/parse";
+import { parseBrokerCsv } from "@/lib/csv/brokers";
 import { importTrades } from "@/lib/ingest/import";
 
 export type AccountFormState =
@@ -51,6 +52,7 @@ export async function confirmImport(
 
   const accountId = String(formData.get("accountId") ?? "");
   const csvText = String(formData.get("csvText") ?? "");
+  const format = String(formData.get("format") ?? "auto");
   const mappingRaw = String(formData.get("mapping") ?? "{}");
 
   const account = await prisma.tradingAccount.findFirst({
@@ -59,16 +61,28 @@ export async function confirmImport(
   });
   if (!account) return { message: "Choose an account to import into." };
 
-  let mapping: ColumnMapping;
-  try {
-    mapping = JSON.parse(mappingRaw);
-  } catch {
-    return { message: "Could not read the column mapping. Try again." };
+  // Auto-detect path uses the user's column mapping; broker transaction-export
+  // formats (Fidelity, Webull) FIFO-match buys/sells into realized P&L instead.
+  let trades;
+  if (format === "auto") {
+    let mapping: ColumnMapping;
+    try {
+      mapping = JSON.parse(mappingRaw);
+    } catch {
+      return { message: "Could not read the column mapping. Try again." };
+    }
+    trades = parseTradesCsv(csvText, mapping).trades;
+  } else {
+    trades = parseBrokerCsv(format, csvText).trades;
   }
 
-  const { trades } = parseTradesCsv(csvText, mapping);
   if (trades.length === 0) {
-    return { message: "No valid rows to import — check your column mapping." };
+    return {
+      message:
+        format === "auto"
+          ? "No valid rows to import — check your column mapping."
+          : "No closed trades found to import — check the file matches the selected broker.",
+    };
   }
 
   const result = await importTrades(accountId, trades);
