@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { computeTrustMetrics, type DrawdownSeverity } from "@/lib/trust";
 import { accountProofLevel } from "@/lib/proof";
 import { toISODate, formatPercent } from "@/lib/format";
+import { BackButton } from "./back-button";
 
 export const metadata: Metadata = { title: "Explore traders — TrustSVAN" };
 
@@ -15,6 +17,9 @@ const SEVERITY: Record<DrawdownSeverity, { label: string; cls: string }> = {
 };
 
 export default async function ExplorePage() {
+  const session = await auth();
+  const loggedIn = !!session?.user;
+
   const profiles = await prisma.traderProfile.findMany({
     where: { isPublic: true },
     select: { slug: true, displayName: true, strategy: true, instruments: true, userId: true },
@@ -45,15 +50,30 @@ export default async function ExplorePage() {
     <div className="min-h-full bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <Link href="/" className="text-base font-semibold tracking-tight text-slate-900">
-            Trust<span className="text-blue-700">SVAN</span>
-          </Link>
-          <Link
-            href="/signup"
-            className="rounded-lg bg-blue-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-800"
-          >
-            Get started
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href={loggedIn ? "/dashboard" : "/"}
+              className="text-base font-semibold tracking-tight text-slate-900"
+            >
+              Trust<span className="text-blue-700">SVAN</span>
+            </Link>
+            <BackButton />
+          </div>
+          {loggedIn ? (
+            <Link
+              href="/dashboard"
+              className="text-sm font-medium text-blue-700 hover:text-blue-800"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/signup"
+              className="rounded-lg bg-blue-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-800"
+            >
+              Get started
+            </Link>
+          )}
         </div>
       </header>
 
