@@ -28,6 +28,9 @@ export default function Home() {
             Trust<span className="text-blue-700">SVAN</span>
           </span>
           <div className="flex items-center gap-3 text-sm">
+            <Link href="/explore" className="text-slate-600 hover:text-slate-900">
+              Explore
+            </Link>
             <Link href="/login" className="text-slate-600 hover:text-slate-900">
               Sign in
             </Link>
