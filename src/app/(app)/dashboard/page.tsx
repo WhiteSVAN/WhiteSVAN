@@ -12,6 +12,7 @@ import { BalanceEditor } from "@/components/dashboard/balance-editor";
 import { PortalShare } from "@/components/dashboard/portal-share";
 import { ClientView } from "@/components/dashboard/client-view";
 import { TraderView } from "@/components/dashboard/trader-view";
+import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
 
 function rangeStartDate(range: string): Date | null {
   const now = new Date();
@@ -113,6 +114,8 @@ export default async function DashboardPage({
           </Link>
         </div>
       )}
+
+      {trust && <CalendarHeatmap data={dailySeries} />}
     </div>
   );
 }

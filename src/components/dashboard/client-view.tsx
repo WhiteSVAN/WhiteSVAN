@@ -134,17 +134,26 @@ export function ClientView({
 
       {/* Trust scores */}
       <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="text-sm font-medium text-slate-800">TrustSVAN Transparency Score</h2>
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-medium text-slate-800">TrustSVAN Transparency Score</h2>
+          <span className="text-2xl font-semibold text-slate-900">
+            {trust.scores.transparency}
+            <span className="text-base font-normal text-slate-400">/100</span>
+          </span>
+        </div>
+        <p className="mt-0.5 text-xs text-slate-400">
+          A weighted blend of five factors — proof and risk control carry the most weight.
+        </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <ScoreBar label="Profit" value={trust.scores.profit} />
-          <ScoreBar label="Risk Control" value={trust.scores.riskControl} />
-          <ScoreBar label="Consistency" value={trust.scores.consistency} />
-          <ScoreBar label="Discipline" value={trust.scores.discipline} />
-          <ScoreBar label="Proof" value={trust.scores.proof} />
+          <ScoreBar label="Proof" weight="25%" value={trust.scores.proof} />
+          <ScoreBar label="Risk Control" weight="25%" value={trust.scores.riskControl} />
+          <ScoreBar label="Consistency" weight="20%" value={trust.scores.consistency} />
+          <ScoreBar label="Profit" weight="15%" value={trust.scores.profit} />
+          <ScoreBar label="Discipline" weight="15%" value={trust.scores.discipline} />
         </div>
         <p className="mt-4 text-xs text-slate-400">
-          The TrustSVAN Transparency Score is not an investment recommendation. It measures data
-          quality, risk visibility, and reporting discipline.
+          Not an investment recommendation. It measures data quality, risk visibility, and reporting
+          discipline.
         </p>
       </div>
 
@@ -235,13 +244,16 @@ function Plain({
   );
 }
 
-function ScoreBar({ label, value }: { label: string; value: number }) {
+function ScoreBar({ label, value, weight }: { label: string; value: number; weight?: string }) {
   const pct = Math.round(value);
   const color = pct >= 67 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-red-500";
   return (
     <div>
       <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-slate-600">{label}</span>
+        <span className="font-medium text-slate-600">
+          {label}
+          {weight && <span className="font-normal text-slate-400"> · {weight}</span>}
+        </span>
         <span className="tabular-nums text-slate-400">{pct}</span>
       </div>
       <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">

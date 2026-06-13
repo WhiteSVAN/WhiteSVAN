@@ -5,6 +5,7 @@ import { accountProofLevel } from "@/lib/proof";
 import { toISODate } from "@/lib/format";
 import { aiReportSchema } from "@/lib/ai/schema";
 import { ClientView } from "@/components/dashboard/client-view";
+import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
 import { ReportSections } from "@/components/report-sections";
 import { PrintButton } from "./print-button";
 
@@ -149,6 +150,8 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             No published performance yet.
           </div>
         )}
+
+        {trust && <CalendarHeatmap data={dailySeries} hideAmounts={profile.hideAmounts} />}
 
         {reports.length > 0 && (
           <section className="space-y-4">
