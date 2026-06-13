@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(prisma migrate deploy)",
+      "Bash(prisma migrate deploy:*)",
+      "Bash(npx prisma migrate deploy)",
+      "Bash(npx prisma migrate deploy:*)",
+      "Bash(npm run db:deploy)",
+      "Bash(npm run db:deploy:*)",
+      "Bash(npm run db:seed)",
+      "Bash(npm run db:seed:*)"
+    ]
+  }
+}
