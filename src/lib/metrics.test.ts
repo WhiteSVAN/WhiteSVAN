@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { aggregateDaily, computeMetrics } from "./metrics";
+import { aggregateDaily, computeMetrics, summarizeByBroker, type BrokerDailyRow } from "./metrics";
 
 describe("aggregateDaily", () => {
   it("groups trades by date and nets out fees", () => {
@@ -63,5 +63,43 @@ describe("computeMetrics", () => {
     expect(m.consistencyScore).toBeLessThanOrEqual(100);
     // Half the days are red and one day is 60% of gross profit → not a perfect 100.
     expect(m.consistencyScore).toBeLessThan(100);
+  });
+});
+
+describe("summarizeByBroker", () => {
+  const rows: BrokerDailyRow[] = [
+    // Fidelity: two accounts, one shared day → 2 distinct days, 2 accounts.
+    { broker: "Fidelity", date: "2026-06-01", netPnl: 100, grossPnl: 110, fees: 10, tradeCount: 3, accountId: "f1" },
+    { broker: "Fidelity", date: "2026-06-01", netPnl: 50, grossPnl: 55, fees: 5, tradeCount: 2, accountId: "f2" },
+    { broker: "Fidelity", date: "2026-06-02", netPnl: -50, grossPnl: -50, fees: 0, tradeCount: 1, accountId: "f1" },
+    // Webull: one account, net loss.
+    { broker: "Webull", date: "2026-06-01", netPnl: -100, grossPnl: -100, fees: 0, tradeCount: 4, accountId: "w1" },
+  ];
+
+  it("groups by broker with distinct day/account counts and a signed total", () => {
+    const { brokers, totalNet } = summarizeByBroker(rows);
+    expect(totalNet).toBe(0); // 100 + 50 − 50 − 100
+
+    const fidelity = brokers.find((b) => b.broker === "Fidelity")!;
+    expect(fidelity).toMatchObject({
+      netPnl: 100, // 100 + 50 − 50
+      grossPnl: 115,
+      fees: 15,
+      tradeCount: 6,
+      tradingDays: 2, // 06-01 (twice) collapses to one day
+      accounts: 2,
+    });
+  });
+
+  it("computes share as |net| over total |net| and sorts best first", () => {
+    const { brokers } = summarizeByBroker(rows);
+    // total |net| = |100| + |−100| = 200 → each is 0.5
+    expect(brokers[0].broker).toBe("Fidelity"); // +100 sorts above −100
+    expect(brokers[0].share).toBeCloseTo(0.5, 5);
+    expect(brokers[1].share).toBeCloseTo(0.5, 5);
+  });
+
+  it("returns an empty split for no rows", () => {
+    expect(summarizeByBroker([])).toEqual({ brokers: [], totalNet: 0 });
   });
 });
