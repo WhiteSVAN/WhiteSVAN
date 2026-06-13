@@ -4,8 +4,10 @@ import { subDays } from "date-fns";
 import { requireUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { computeTrustMetrics } from "@/lib/trust";
+import { summarizeByBroker } from "@/lib/metrics";
 import { accountProofLevel } from "@/lib/proof";
 import { toISODate } from "@/lib/format";
+import { BrokerageSplit } from "@/components/dashboard/brokerage-split";
 import { DashboardControls } from "@/components/dashboard/controls";
 import { ViewToggle } from "@/components/dashboard/view-toggle";
 import { BalanceEditor } from "@/components/dashboard/balance-editor";
@@ -36,12 +38,36 @@ export default async function DashboardPage({
 
   const accounts = await prisma.tradingAccount.findMany({
     where: { userId: user.id },
-    select: { id: true, accountName: true, startingBalance: true },
+    select: { id: true, accountName: true, startingBalance: true, broker: true },
     orderBy: { createdAt: "asc" },
   });
   const account = accounts.find((a) => a.id === accountParam) ?? accounts[0];
 
   const start = rangeStartDate(range);
+
+  // Brokerage-wise split — net P&L grouped by broker across every account, for
+  // the same date range. Only worth a query (and the section) with 2+ accounts.
+  let brokerSummary: ReturnType<typeof summarizeByBroker> | null = null;
+  if (accounts.length > 1) {
+    const brokerByAccount = new Map(
+      accounts.map((a) => [a.id, a.broker?.trim() || a.accountName]),
+    );
+    const allDays = await prisma.dailyPnl.findMany({
+      where: { account: { userId: user.id }, ...(start ? { tradeDate: { gte: start } } : {}) },
+      select: { accountId: true, tradeDate: true, netPnl: true, grossPnl: true, fees: true, tradeCount: true },
+    });
+    brokerSummary = summarizeByBroker(
+      allDays.map((d) => ({
+        broker: brokerByAccount.get(d.accountId) ?? "Unknown",
+        date: toISODate(d.tradeDate),
+        netPnl: Number(d.netPnl),
+        grossPnl: Number(d.grossPnl),
+        fees: Number(d.fees),
+        tradeCount: d.tradeCount,
+        accountId: d.accountId,
+      })),
+    );
+  }
   const days = account
     ? await prisma.dailyPnl.findMany({
         where: { accountId: account.id, ...(start ? { tradeDate: { gte: start } } : {}) },
@@ -88,6 +114,10 @@ export default async function DashboardPage({
         <div className="rounded-lg bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
           Imported {imported} trades. Your metrics are updated below.
         </div>
+      )}
+
+      {brokerSummary && (
+        <BrokerageSplit brokers={brokerSummary.brokers} totalNet={brokerSummary.totalNet} />
       )}
 
       {trust ? (

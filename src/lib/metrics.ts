@@ -102,6 +102,84 @@ export function consistencyScore(input: {
 /**
  * Compute all dashboard metrics from per-day P&L. `days` need not be sorted.
  */
+/** One daily rollup row tagged with the broker it belongs to. */
+export interface BrokerDailyRow {
+  broker: string;
+  date: string;
+  netPnl: number;
+  grossPnl: number;
+  fees: number;
+  tradeCount: number;
+  accountId: string;
+}
+
+export interface BrokerSummary {
+  broker: string;
+  netPnl: number;
+  grossPnl: number;
+  fees: number;
+  tradeCount: number;
+  /** Distinct calendar days traded across this broker's accounts. */
+  tradingDays: number;
+  /** Distinct accounts grouped under this broker. */
+  accounts: number;
+  /** |netPnl| as a fraction of total |netPnl| across brokers (0..1). */
+  share: number;
+}
+
+const round2 = (n: number): number => Math.round(n * 100) / 100;
+
+/**
+ * Roll daily P&L up by broker for the brokerage-wise split. `share` is each
+ * broker's |net P&L| over the summed |net P&L| of all brokers, so the parts add
+ * to 1 even when some brokers are red and others green (a plain net % would be
+ * meaningless with mixed signs). Sorted by net P&L, best first.
+ */
+export function summarizeByBroker(rows: BrokerDailyRow[]): {
+  brokers: BrokerSummary[];
+  totalNet: number;
+} {
+  interface Acc {
+    netPnl: number;
+    grossPnl: number;
+    fees: number;
+    tradeCount: number;
+    days: Set<string>;
+    accts: Set<string>;
+  }
+  const groups = new Map<string, Acc>();
+  for (const r of rows) {
+    let g = groups.get(r.broker);
+    if (!g) {
+      g = { netPnl: 0, grossPnl: 0, fees: 0, tradeCount: 0, days: new Set(), accts: new Set() };
+      groups.set(r.broker, g);
+    }
+    g.netPnl += r.netPnl;
+    g.grossPnl += r.grossPnl;
+    g.fees += r.fees;
+    g.tradeCount += r.tradeCount;
+    g.days.add(r.date);
+    g.accts.add(r.accountId);
+  }
+
+  const totalAbs = [...groups.values()].reduce((s, g) => s + Math.abs(g.netPnl), 0);
+  const brokers = [...groups.entries()]
+    .map(([broker, g]) => ({
+      broker,
+      netPnl: round2(g.netPnl),
+      grossPnl: round2(g.grossPnl),
+      fees: round2(g.fees),
+      tradeCount: g.tradeCount,
+      tradingDays: g.days.size,
+      accounts: g.accts.size,
+      share: totalAbs > 0 ? Math.abs(g.netPnl) / totalAbs : 0,
+    }))
+    .sort((a, b) => b.netPnl - a.netPnl);
+
+  const totalNet = round2([...groups.values()].reduce((s, g) => s + g.netPnl, 0));
+  return { brokers, totalNet };
+}
+
 export function computeMetrics(
   days: Array<Pick<DailyPnl, "date" | "netPnl">>,
   startingBalance: number,
