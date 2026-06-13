@@ -34,17 +34,23 @@ against what's here:
 drawdown. The flow is strictly one-directional:
 
 ```
-CSV / manual entry  →  parse + map (src/lib/csv)  →  trades  →  daily rollup
-   →  metrics engine (src/lib/metrics, pure TS)  →  metrics JSON (code-of-record)
-   →  AI layer (src/lib/ai, Claude)  →  written report sections  →  review/publish  →  /p/[slug]
+CSV / manual entry  →  parse + auto-map (src/lib/csv)  →  trades  →  daily rollup
+   →  metrics engine (src/lib/metrics) + trust engine (src/lib/trust)  →  metrics JSON
+   →  AI layer (src/lib/ai)  →  written report sections  →  review/publish  →  /p/[slug]
 ```
 
-- [src/lib/metrics.ts](src/lib/metrics.ts) — pure, dependency-free metrics. Keep it that way so it's
-  trivially testable and runs on server or client. This is the source of truth for every number.
-- [src/lib/csv/parse.ts](src/lib/csv/parse.ts) — PapaParse + canonical column mapping with broker
-  presets (IBKR, manual template), tolerant date/number parsing, per-row error reporting.
-- `src/lib/ai/` — *to build.* Feeds the metrics JSON to Claude; the model writes, classifies, warns.
-  It must never receive raw trades to "do math" with.
+- [src/lib/metrics.ts](src/lib/metrics.ts) — pure, dependency-free metrics. The source of truth for
+  every number; runs on server or client.
+- [src/lib/trust.ts](src/lib/trust.ts) — TrustSVAN client layer over metrics: Big-Win Dependency,
+  Biggest-Drop severity, Bounce-Back Time, five sub-scores + the weighted Transparency Score, and a
+  plain-English verdict. Drives the dashboard **Client view** (the **Trader view** shows raw metrics).
+- [src/lib/csv/parse.ts](src/lib/csv/parse.ts) — PapaParse + **alias-based auto-detection** that maps
+  IBKR Flex (`FifoPnlRealized`/`IBCommission`/`Buy/Sell`/`TradeDate` YYYYMMDD), IBKR Activity, and the
+  manual template with no manual mapping. Tolerant date/number parsing; fees stored as magnitude.
+- [src/lib/ai/](src/lib/ai/) — provider-agnostic report generator. One `(ReportInput) => AiReport`
+  contract; `AI_PROVIDER` picks **OpenAI** (default) or **Claude**. The strict system prompt + the
+  banned-language filter ([compliance.ts](src/lib/ai/compliance.ts)) are the guardrail. It receives
+  the computed metrics as text — never raw trades to "do math" with.
 
 `metrics` JSON is persisted verbatim on `Report.metrics` so a published report is reproducible even
 if trades change later. AI output lives separately on `Report.aiReport`.
@@ -79,8 +85,9 @@ npm run lint
 ```
 
 **Env:** `cp .env.example .env` and fill in. Vars: `DATABASE_URL` (Docker default in the example),
-`AUTH_SECRET` (`npx auth secret`), `ANTHROPIC_API_KEY`, `AI_MODEL` (defaults to a Haiku model for
-cheap v1 report generation). `prisma.config.ts` loads `.env` via `dotenv` and reads `DATABASE_URL`.
+`AUTH_SECRET` (`npx auth secret`), and AI provider config — `AI_PROVIDER` (`openai` default or
+`anthropic`), `OPENAI_API_KEY`/`OPENAI_MODEL`, `ANTHROPIC_API_KEY`/`ANTHROPIC_MODEL`. Report
+generation needs a key for whichever provider is active. `prisma.config.ts` loads `.env` via `dotenv`.
 
 ## Conventions
 
@@ -112,23 +119,22 @@ AUM/performance fees, custody, full RIA/CTA compliance workflow.
 
 ## Build status & roadmap
 
-**Done (uncommitted on `main`):** Prisma schema + generated client, metrics engine + tests, CSV
-parse/mapping + tests, Docker Postgres, vitest. Dependencies installed (NextAuth, Anthropic SDK,
-recharts, zod, papaparse, bcryptjs, date-fns).
+On branch `feat/foundation-and-auth`.
 
-**Not built yet:** auth wiring (`auth.ts` + route handler), the `src/lib/ai` layer, and every app
-route beyond the default home page.
+- ✅ **M1 App shell** — NextAuth (Credentials + JWT), DAL, `/login` `/signup` `/onboarding`, protected layout.
+- ✅ **M2 CSV import** — `/upload`: account → file → auto-mapped preview → import → `DailyPnl` rebuild.
+- ✅ **M3 Metrics + dashboard** — equity-curve & daily-P&L charts, account/range filters, risk panel.
+- ✅ **TrustSVAN dashboard** — plain-English **Client view** (trust metrics, severity, verdict, Transparency
+  Score, Proof Level) ⇄ technical **Trader view**, via `?view`. Editable starting balance.
+- ✅ **M4 AI reports** — `/reports`: generate (OpenAI default / Claude) → editor with live compliance →
+  publish (blocked on banned phrases) / delete.
 
-Roadmap (PDF §14, milestones M1–M6):
-1. **M1 App shell** — auth, protected layout, `/onboarding` trader profile.
-2. **M2 CSV import** — `/upload`: file → map columns → preview → `/api/import/{preview,confirm}`;
-   rebuild `DailyPnl`. Manual daily-P&L fallback form.
-3. **M3 Metrics** — `/dashboard`: metric cards, equity curve, daily-P&L bars, date/account filters,
-   `/api/metrics`.
-4. **M4 AI reports** — `/reports`: `/api/reports/generate` (Claude), editor, save draft.
-5. **M5 Client portal** — `/p/[slug]` read-only, `/api/reports/publish`, `/api/public/[slug]`, PDF
-   export (print-to-PDF first), disclaimers.
-6. **M6 Launch** — landing page, sanitized demo data, beta.
+**Next:**
+- **M5 Client portal** — `/p/[slug]` read-only (Client view + published reports), public access, PDF export
+  (print-to-PDF first), disclaimers.
+- **M6 Launch** — landing polish, sanitized demo data, beta.
+- **Deferred (need schema/product work):** redaction settings, proof levels beyond CSV, evidence locker,
+  trader directory, IBKR Flex Web Service auto-pull (the import core is already source-agnostic).
 
 Planned routes: `/login`, `/onboarding`, `/upload`, `/dashboard`, `/reports`, `/p/[slug]`,
 `/settings`. Planned APIs: `/api/profile`, `/api/accounts`, `/api/import/{preview,confirm}`,
