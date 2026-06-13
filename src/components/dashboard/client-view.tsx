@@ -18,16 +18,19 @@ export function ClientView({
   trust,
   equitySeries,
   dailySeries,
+  hideAmounts,
 }: {
   trust: TrustMetrics;
   equitySeries: EquityPoint[];
   dailySeries: DailyPoint[];
+  hideAmounts?: boolean;
 }) {
   const m = trust.metrics;
   const sev = SEVERITY[trust.drawdownSeverity];
   const proof = PROOF_LEVELS[trust.proofLevel];
   const concentrated = (trust.bestDayShare ?? 0) > 0.5;
   const lopsided = (trust.badToGoodRatio ?? 0) > 1.3;
+  const money = (v: number) => (hideAmounts ? "Private" : formatMoney(v));
 
   return (
     <div className="space-y-8">
@@ -35,9 +38,9 @@ export function ClientView({
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <Snapshot
           label="Total Result"
-          hint="Money made or lost"
-          value={formatMoney(m.netPnl)}
-          tone={m.netPnl >= 0 ? "pos" : "neg"}
+          hint={hideAmounts ? "Amounts hidden" : "Money made or lost"}
+          value={hideAmounts ? "Private" : formatMoney(m.netPnl)}
+          tone={hideAmounts ? undefined : m.netPnl >= 0 ? "pos" : "neg"}
         />
         <Snapshot
           label="Growth Rate"
@@ -70,10 +73,10 @@ export function ClientView({
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard title="Growth Path" subtitle="The account's journey over time">
-          <EquityCurveChart data={equitySeries} />
+          <EquityCurveChart data={equitySeries} hideAmounts={hideAmounts} />
         </ChartCard>
         <ChartCard title="Daily Results" subtitle="Green days and red days">
-          <DailyPnlChart data={dailySeries} />
+          <DailyPnlChart data={dailySeries} hideAmounts={hideAmounts} />
         </ChartCard>
       </div>
 
@@ -83,15 +86,15 @@ export function ClientView({
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Plain
             label="Biggest Drop"
-            value={`${formatMoney(m.maxDrawdown)} (${m.maxDrawdownPct.toFixed(1)}%)`}
+            value={
+              hideAmounts
+                ? `${m.maxDrawdownPct.toFixed(1)}%`
+                : `${formatMoney(m.maxDrawdown)} (${m.maxDrawdownPct.toFixed(1)}%)`
+            }
             note="The worst fall from a previous high."
             warn={trust.drawdownSeverity === "high" || trust.drawdownSeverity === "severe"}
           />
-          <Plain
-            label="Worst Day"
-            value={formatMoney(m.worstDay)}
-            note="The largest single-day loss."
-          />
+          <Plain label="Worst Day" value={money(m.worstDay)} note="The largest single-day loss." />
           <Plain
             label="Bounce-Back Time"
             value={trust.bounceBackDays != null ? `${trust.bounceBackDays} trading days` : "Not yet recovered"}
@@ -110,7 +113,9 @@ export function ClientView({
           />
           <Plain
             label="Typical Good vs Bad Day"
-            value={`${formatMoney(m.avgGreenDay)} vs ${formatMoney(m.avgRedDay)}`}
+            value={
+              hideAmounts ? "Private" : `${formatMoney(m.avgGreenDay)} vs ${formatMoney(m.avgRedDay)}`
+            }
             note={
               trust.badToGoodRatio != null
                 ? `A typical bad day is ${trust.badToGoodRatio.toFixed(1)}x a typical good day.`
@@ -120,7 +125,7 @@ export function ClientView({
           />
           <Plain
             label="Profit Without Best Day"
-            value={formatMoney(trust.profitWithoutBestDay)}
+            value={money(trust.profitWithoutBestDay)}
             note="What's left if the single best day is removed."
             warn={concentrated}
           />

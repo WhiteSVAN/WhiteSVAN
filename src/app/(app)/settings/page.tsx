@@ -1,0 +1,142 @@
+import { redirect } from "next/navigation";
+import { requireUserId } from "@/lib/auth/dal";
+import { prisma } from "@/lib/db";
+import { accountProofLevel } from "@/lib/proof";
+import { PROOF_LEVELS, type ProofLevel } from "@/lib/trust";
+import { PortalSettingsForm } from "./portal-settings-form";
+import { EvidenceUploader } from "./evidence-uploader";
+import { toggleEvidencePublic, deleteEvidence } from "./actions";
+
+const KIND_LABEL: Record<string, string> = {
+  STATEMENT: "Statement",
+  PAYOUT: "Payout",
+  EXPORT: "Export",
+  OTHER: "Other",
+};
+
+export default async function SettingsPage() {
+  const userId = await requireUserId();
+  const profile = await prisma.traderProfile.findUnique({
+    where: { userId },
+    select: { slug: true, isPublic: true, hideAmounts: true, disclaimer: true },
+  });
+  if (!profile) redirect("/onboarding");
+
+  const accounts = await prisma.tradingAccount.findMany({
+    where: { userId },
+    select: { id: true, accountName: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  let proofLevel: ProofLevel = 1;
+  const primary = accounts[0];
+  if (primary) {
+    const hasData = (await prisma.dailyPnl.count({ where: { accountId: primary.id } })) > 0;
+    proofLevel = await accountProofLevel(primary.id, hasData);
+  }
+
+  const evidence = await prisma.evidence.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      kind: true,
+      label: true,
+      originalName: true,
+      size: true,
+      isPublic: true,
+      account: { select: { accountName: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-8">
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Settings</h1>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-base font-medium text-slate-800">Portal &amp; privacy</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Control who can see your portal and what it reveals.
+        </p>
+        <div className="mt-4">
+          <PortalSettingsForm
+            slug={profile.slug}
+            isPublic={profile.isPublic}
+            hideAmounts={profile.hideAmounts}
+            disclaimer={profile.disclaimer ?? ""}
+          />
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-base font-medium text-slate-800">Proof &amp; evidence</h2>
+        <div className="mt-3 rounded-lg bg-slate-50 px-4 py-3 text-sm">
+          <span className="font-medium text-slate-800">
+            Proof Level {proofLevel}: {PROOF_LEVELS[proofLevel].label}
+          </span>
+          <p className="mt-0.5 text-slate-500">{PROOF_LEVELS[proofLevel].blurb}</p>
+          {proofLevel < 3 && (
+            <p className="mt-1 text-xs text-slate-400">
+              Upload a broker statement below to reach Level 3 (Statement checked).
+            </p>
+          )}
+        </div>
+
+        <div className="mt-5">
+          <EvidenceUploader accounts={accounts} />
+        </div>
+
+        <div className="mt-6">
+          <h3 className="text-sm font-medium text-slate-700">Evidence locker</h3>
+          {evidence.length === 0 ? (
+            <p className="mt-2 text-sm text-slate-500">No files uploaded yet.</p>
+          ) : (
+            <ul className="mt-2 divide-y divide-slate-100 rounded-xl border border-slate-200">
+              {evidence.map((e) => (
+                <li
+                  key={e.id}
+                  className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
+                >
+                  <div className="min-w-0">
+                    <a
+                      href={`/api/evidence/${e.id}`}
+                      target="_blank"
+                      className="font-medium text-blue-700 hover:text-blue-800"
+                    >
+                      {e.label || e.originalName}
+                    </a>
+                    <p className="text-xs text-slate-400">
+                      {KIND_LABEL[e.kind]} · {Math.max(1, Math.round(e.size / 1024))} KB
+                      {e.account && ` · ${e.account.accountName}`}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <form action={toggleEvidencePublic}>
+                      <input type="hidden" name="id" value={e.id} />
+                      <button
+                        type="submit"
+                        className={`rounded px-2 py-0.5 text-xs font-medium ${
+                          e.isPublic
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {e.isPublic ? "Public" : "Private"}
+                      </button>
+                    </form>
+                    <form action={deleteEvidence}>
+                      <input type="hidden" name="id" value={e.id} />
+                      <button type="submit" className="text-xs text-red-600 hover:text-red-700">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}

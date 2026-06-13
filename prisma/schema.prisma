@@ -31,6 +31,7 @@ model User {
   profile         TraderProfile?
   tradingAccounts TradingAccount[]
   reports         Report[]
+  evidence        Evidence[]
 }
 
 model Account {
@@ -82,6 +83,7 @@ model TraderProfile {
   instruments String? // free text e.g. "ES, NQ, options"
   riskRules   String?
   isPublic    Boolean  @default(false)
+  hideAmounts Boolean  @default(false) // redact dollar figures on the public portal
   disclaimer  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -101,6 +103,7 @@ model TradingAccount {
   trades    Trade[]
   dailyPnl  DailyPnl[]
   reports   Report[]
+  evidence  Evidence[]
 
   @@index([userId])
 }
@@ -170,4 +173,30 @@ model WaitlistEntry {
   email     String   @unique
   note      String?
   createdAt DateTime @default(now())
+}
+
+enum EvidenceKind {
+  STATEMENT // broker/prop-firm statement — raises Proof Level
+  PAYOUT // payout/withdrawal proof
+  EXPORT // raw export (e.g. the imported CSV)
+  OTHER
+}
+
+// Evidence locker — uploaded proof files. A STATEMENT raises the account's Proof Level.
+model Evidence {
+  id           String       @id @default(cuid())
+  userId       String
+  accountId    String?
+  kind         EvidenceKind @default(OTHER)
+  label        String?
+  originalName String
+  mime         String
+  size         Int
+  isPublic     Boolean      @default(false) // visible on the public portal
+  createdAt    DateTime     @default(now())
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account TradingAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
 }

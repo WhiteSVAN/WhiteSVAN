@@ -30,6 +30,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Link href="/reports" className="text-slate-600 hover:text-slate-900">
               Reports
             </Link>
+            <Link href="/settings" className="text-slate-600 hover:text-slate-900">
+              Settings
+            </Link>
             <span className="hidden text-slate-500 sm:inline">{user.name ?? user.email}</span>
             <form action={logout}>
               <button

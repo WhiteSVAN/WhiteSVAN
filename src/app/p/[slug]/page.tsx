@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { computeTrustMetrics } from "@/lib/trust";
+import { accountProofLevel } from "@/lib/proof";
 import { toISODate } from "@/lib/format";
 import { aiReportSchema } from "@/lib/ai/schema";
 import { ClientView } from "@/components/dashboard/client-view";
@@ -48,6 +49,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
       instruments: true,
       disclaimer: true,
       isPublic: true,
+      hideAmounts: true,
     },
   });
 
@@ -78,9 +80,10 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
     : [];
 
   const dailySeries = days.map((d) => ({ date: toISODate(d.tradeDate), netPnl: Number(d.netPnl) }));
+  const proofLevel = account ? await accountProofLevel(account.id, dailySeries.length > 0) : 1;
   const trust =
     account && dailySeries.length > 0
-      ? computeTrustMetrics(dailySeries, Number(account.startingBalance), 2)
+      ? computeTrustMetrics(dailySeries, Number(account.startingBalance), proofLevel)
       : null;
   const equitySeries =
     trust?.metrics.equityCurve.map((p) => ({ date: p.date, equity: p.equity })) ?? [];
@@ -98,6 +101,18 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
     const parsed = aiReportSchema.safeParse(r.aiReport);
     return parsed.success ? [{ id: r.id, period: r.period, report: parsed.data }] : [];
   });
+
+  const evidence = await prisma.evidence.findMany({
+    where: { userId: profile.userId, isPublic: true },
+    select: { id: true, kind: true, label: true, originalName: true },
+    orderBy: { createdAt: "desc" },
+  });
+  const KIND_LABEL: Record<string, string> = {
+    STATEMENT: "Statement",
+    PAYOUT: "Payout",
+    EXPORT: "Export",
+    OTHER: "Other",
+  };
 
   return (
     <div className="min-h-full bg-slate-50">
@@ -123,7 +138,12 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
         {profile.bio && <p className="text-sm leading-relaxed text-slate-600">{profile.bio}</p>}
 
         {trust ? (
-          <ClientView trust={trust} equitySeries={equitySeries} dailySeries={dailySeries} />
+          <ClientView
+            trust={trust}
+            equitySeries={equitySeries}
+            dailySeries={dailySeries}
+            hideAmounts={profile.hideAmounts}
+          />
         ) : (
           <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
             No published performance yet.
@@ -136,6 +156,31 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             {reports.map((r) => (
               <ReportSections key={r.id} period={r.period} report={r.report} />
             ))}
+          </section>
+        )}
+
+        {evidence.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Evidence</h2>
+            <p className="text-sm text-slate-500">Supporting documents shared by the trader.</p>
+            <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+              {evidence.map((e) => (
+                <li
+                  key={e.id}
+                  className="flex items-center justify-between gap-2 px-4 py-3 text-sm"
+                >
+                  <a
+                    href={`/api/evidence/${e.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate font-medium text-blue-700 hover:text-blue-800"
+                  >
+                    {e.label || e.originalName}
+                  </a>
+                  <span className="shrink-0 text-xs text-slate-400">{KIND_LABEL[e.kind]}</span>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
       </main>

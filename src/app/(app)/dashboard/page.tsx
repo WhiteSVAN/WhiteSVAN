@@ -4,6 +4,7 @@ import { subDays } from "date-fns";
 import { requireUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { computeTrustMetrics } from "@/lib/trust";
+import { accountProofLevel } from "@/lib/proof";
 import { toISODate } from "@/lib/format";
 import { DashboardControls } from "@/components/dashboard/controls";
 import { ViewToggle } from "@/components/dashboard/view-toggle";
@@ -49,9 +50,10 @@ export default async function DashboardPage({
     : [];
 
   const dailySeries = days.map((d) => ({ date: toISODate(d.tradeDate), netPnl: Number(d.netPnl) }));
+  const proofLevel = account ? await accountProofLevel(account.id, dailySeries.length > 0) : 1;
   const trust =
     account && dailySeries.length > 0
-      ? computeTrustMetrics(dailySeries, Number(account.startingBalance), 2)
+      ? computeTrustMetrics(dailySeries, Number(account.startingBalance), proofLevel)
       : null;
   const equitySeries =
     trust?.metrics.equityCurve.map((p) => ({ date: p.date, equity: p.equity })) ?? [];
