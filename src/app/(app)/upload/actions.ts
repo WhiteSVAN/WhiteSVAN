@@ -26,7 +26,7 @@ export async function createAccount(
     return { errors: { accountName: ["Give this account a name."] } };
   }
 
-  await prisma.tradingAccount.create({
+  const account = await prisma.tradingAccount.create({
     data: {
       userId,
       accountName,
@@ -35,7 +35,8 @@ export async function createAccount(
     },
   });
 
-  redirect("/upload");
+  // Land back on upload with the new account pre-selected.
+  redirect(`/upload?account=${account.id}`);
 }
 
 export type ImportFormState = { message?: string } | undefined;

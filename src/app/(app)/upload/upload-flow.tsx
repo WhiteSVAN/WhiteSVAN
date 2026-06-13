@@ -12,12 +12,13 @@ import {
 } from "@/lib/csv/parse";
 import {
   BROKER_FORMATS,
+  brokerForFormat,
   detectBrokerFormat,
   parseBrokerCsv,
   type BrokerParseResult,
 } from "@/lib/csv/brokers";
-import { confirmImport } from "./actions";
-import { btnPrimary, FormError, inputClass, labelClass } from "@/components/form";
+import { confirmImport, createAccount } from "./actions";
+import { btnPrimary, FieldError, FormError, inputClass, labelClass } from "@/components/form";
 
 const FIELD_LABELS: Record<CanonicalField, string> = {
   tradeDate: "Trade date",
@@ -43,9 +44,21 @@ interface Account {
 type PreviewResult = ParseResult | BrokerParseResult;
 const isBrokerResult = (r: PreviewResult): r is BrokerParseResult => "fills" in r;
 
-export function UploadFlow({ accounts }: { accounts: Account[] }) {
+export function UploadFlow({
+  accounts,
+  selectedAccountId,
+}: {
+  accounts: Account[];
+  selectedAccountId?: string;
+}) {
   const [state, action, pending] = useActionState(confirmImport, undefined);
-  const [accountId, setAccountId] = useState(accounts[0]?.id ?? "");
+  const [createState, createAccountAction, creating] = useActionState(createAccount, undefined);
+  const initialAccount =
+    (selectedAccountId && accounts.some((a) => a.id === selectedAccountId)
+      ? selectedAccountId
+      : accounts[0]?.id) ?? "";
+  const [accountId, setAccountId] = useState(initialAccount);
+  const [addingAccount, setAddingAccount] = useState(false);
   const [format, setFormat] = useState("auto");
   const [fileName, setFileName] = useState("");
   const [csvText, setCsvText] = useState("");
@@ -129,21 +142,83 @@ export function UploadFlow({ accounts }: { accounts: Account[] }) {
       {/* Account + file */}
       <div className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="account" className={labelClass}>
-            Account
-          </label>
-          <select
-            id="account"
-            value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
-            className={inputClass}
-          >
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.accountName}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center justify-between">
+            <label htmlFor="account" className={labelClass}>
+              Account
+            </label>
+            {!addingAccount && (
+              <button
+                type="button"
+                onClick={() => setAddingAccount(true)}
+                className="text-xs font-medium text-blue-600 hover:text-blue-700"
+              >
+                + New account
+              </button>
+            )}
+          </div>
+
+          {addingAccount ? (
+            // Inline create — broker pre-filled from the chosen format above.
+            <form
+              action={createAccountAction}
+              className="mt-1 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3"
+            >
+              <div>
+                <input
+                  name="accountName"
+                  required
+                  autoFocus
+                  className={inputClass}
+                  placeholder="Account name (e.g. Fidelity Individual)"
+                />
+                <FieldError messages={createState?.errors?.accountName} />
+              </div>
+              <input
+                key={format}
+                name="broker"
+                defaultValue={brokerForFormat(format)}
+                className={inputClass}
+                placeholder="Broker (optional)"
+              />
+              <input
+                name="startingBalance"
+                type="number"
+                step="0.01"
+                min="0"
+                className={inputClass}
+                placeholder="Starting balance (optional)"
+              />
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="rounded-lg bg-blue-700 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 disabled:opacity-60"
+                >
+                  {creating ? "Creating…" : "Create account"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAddingAccount(false)}
+                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <select
+              id="account"
+              value={accountId}
+              onChange={(e) => setAccountId(e.target.value)}
+              className={inputClass}
+            >
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.accountName}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         <div>
           <label htmlFor="file" className={labelClass}>
