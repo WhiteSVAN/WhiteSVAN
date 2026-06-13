@@ -1,10 +1,15 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { setStartingBalance } from "@/app/(app)/account-settings";
+import { formatMoney } from "@/lib/format";
 
-/** Inline starting-balance editor. Highlights when unset, since the equity
- *  curve and drawdown % depend on it. */
+/**
+ * Starting-investment control. Compact one-liner once set; a clean inline form
+ * when unset. Equity, growth rate, and drawdown % are all relative to this, so
+ * empty saves are blocked and the page refreshes on success.
+ */
 export function BalanceEditor({
   accountId,
   startingBalance,
@@ -12,19 +17,43 @@ export function BalanceEditor({
   accountId: string;
   startingBalance: number;
 }) {
+  const router = useRouter();
   const [state, action, pending] = useActionState(setStartingBalance, undefined);
-  const unset = startingBalance === 0;
+  const [manualEditing, setManualEditing] = useState(false);
+  const [value, setValue] = useState(startingBalance ? String(startingBalance) : "");
+
+  // Pull fresh server-computed metrics once the save lands.
+  useEffect(() => {
+    if (state?.saved) router.refresh();
+  }, [state, router]);
+
+  const showForm = startingBalance === 0 || manualEditing;
+
+  if (!showForm) {
+    return (
+      <p className="text-sm text-slate-500">
+        Starting investment{" "}
+        <span className="font-medium text-slate-700">{formatMoney(startingBalance)}</span>
+        <button
+          type="button"
+          onClick={() => setManualEditing(true)}
+          className="ml-2 text-blue-700 hover:text-blue-800"
+        >
+          Edit
+        </button>
+      </p>
+    );
+  }
 
   return (
     <form
       action={action}
-      className={`flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-        unset ? "border-amber-200 bg-amber-50" : "border-slate-200 bg-white"
-      }`}
+      onSubmit={() => setManualEditing(false)}
+      className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
     >
       <input type="hidden" name="accountId" value={accountId} />
       <label htmlFor="startingBalance" className="font-medium text-slate-600">
-        Starting balance
+        Starting investment
       </label>
       <div className="flex items-center">
         <span className="text-slate-400">$</span>
@@ -32,27 +61,33 @@ export function BalanceEditor({
           id="startingBalance"
           name="startingBalance"
           type="number"
-          step="0.01"
           min="0"
-          defaultValue={startingBalance || ""}
-          placeholder="20000"
-          className="w-28 rounded border border-slate-300 px-2 py-1 text-slate-900 focus:border-blue-600 focus:outline-none"
+          step="100"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="e.g. 20000"
+          autoFocus
+          className="w-32 rounded border border-slate-300 px-2 py-1 text-slate-900 focus:border-blue-600 focus:outline-none"
         />
       </div>
       <button
         type="submit"
-        disabled={pending}
-        className="rounded bg-slate-900 px-2.5 py-1 font-medium text-white disabled:opacity-60"
+        disabled={pending || !value}
+        className="rounded bg-slate-900 px-3 py-1 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {pending ? "Saving…" : "Save"}
+        {pending ? "Saving…" : "Set"}
       </button>
-      {state?.saved && <span className="text-emerald-600">Saved</span>}
-      {state?.error && <span className="text-red-600">{state.error}</span>}
-      {unset && !state?.saved && (
-        <span className="text-amber-700">
-          Set this so equity and drawdown reflect your real account size.
-        </span>
+      {startingBalance > 0 && (
+        <button
+          type="button"
+          onClick={() => setManualEditing(false)}
+          className="text-slate-400 hover:text-slate-600"
+        >
+          Cancel
+        </button>
       )}
+      <span className="text-slate-400">— used for growth rate &amp; drawdown.</span>
+      {state?.error && <span className="text-red-600">{state.error}</span>}
     </form>
   );
 }
