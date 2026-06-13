@@ -128,10 +128,10 @@ On branch `feat/foundation-and-auth`.
   Score, Proof Level) ⇄ technical **Trader view**, via `?view`. Editable starting balance.
 - ✅ **M4 AI reports** — `/reports`: generate (OpenAI default / Claude) → editor with live compliance →
   publish (blocked on banned phrases) / delete.
+- ✅ **M5 Client portal** — public `/p/[slug]` (Client view + published reports + disclaimer), public/private
+  toggle + share link in the dashboard, Print / Save-PDF.
 
 **Next:**
-- **M5 Client portal** — `/p/[slug]` read-only (Client view + published reports), public access, PDF export
-  (print-to-PDF first), disclaimers.
 - **M6 Launch** — landing polish, sanitized demo data, beta.
 - **Deferred (need schema/product work):** redaction settings, proof levels beyond CSV, evidence locker,
   trader directory, IBKR Flex Web Service auto-pull (the import core is already source-agnostic).
