@@ -3,10 +3,12 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { computeTrustMetrics } from "@/lib/trust";
+import { breakdownByBrokerAndAccount } from "@/lib/metrics";
 import { accountProofLevel } from "@/lib/proof";
 import { toISODate } from "@/lib/format";
 import { aiReportSchema } from "@/lib/ai/schema";
 import { ClientView } from "@/components/dashboard/client-view";
+import { BrokerageBreakdown } from "@/components/dashboard/brokerage-breakdown";
 import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
 import { ReportSections } from "@/components/report-sections";
 import { PrintButton } from "./print-button";
@@ -98,6 +100,37 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
       ? `${dateLabel(dailySeries[0].date)} – ${dateLabel(dailySeries[dailySeries.length - 1].date)}`
       : null;
 
+  // All-account brokerage → account P&L breakdown (the trust view above is the
+  // primary account only). Self-hides under 2 accounts; respects $ redaction.
+  const portalAccounts = await prisma.tradingAccount.findMany({
+    where: { userId: profile.userId },
+    select: { id: true, accountName: true, broker: true },
+    orderBy: { createdAt: "asc" },
+  });
+  let breakdown: ReturnType<typeof breakdownByBrokerAndAccount> | null = null;
+  if (portalAccounts.length > 1) {
+    const accountById = new Map(portalAccounts.map((a) => [a.id, a]));
+    const allDays = await prisma.dailyPnl.findMany({
+      where: { account: { userId: profile.userId } },
+      select: { accountId: true, tradeDate: true, netPnl: true, grossPnl: true, fees: true, tradeCount: true },
+    });
+    breakdown = breakdownByBrokerAndAccount(
+      allDays.map((d) => {
+        const acct = accountById.get(d.accountId);
+        return {
+          broker: acct?.broker?.trim() || acct?.accountName || "Unknown",
+          accountId: d.accountId,
+          accountName: acct?.accountName ?? "Unknown",
+          date: toISODate(d.tradeDate),
+          netPnl: Number(d.netPnl),
+          grossPnl: Number(d.grossPnl),
+          fees: Number(d.fees),
+          tradeCount: d.tradeCount,
+        };
+      }),
+    );
+  }
+
   const reportRows = await prisma.report.findMany({
     where: { userId: profile.userId, status: "PUBLISHED" },
     select: { id: true, period: true, aiReport: true },
@@ -176,6 +209,14 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
         )}
 
         {trust && <CalendarHeatmap data={dailySeries} hideAmounts={profile.hideAmounts} />}
+
+        {breakdown && (
+          <BrokerageBreakdown
+            brokers={breakdown.brokers}
+            totalNet={breakdown.totalNet}
+            hideAmounts={profile.hideAmounts}
+          />
+        )}
 
         {reports.length > 0 && (
           <section className="space-y-4">

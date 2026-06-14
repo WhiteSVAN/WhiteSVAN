@@ -102,81 +102,139 @@ export function consistencyScore(input: {
 /**
  * Compute all dashboard metrics from per-day P&L. `days` need not be sorted.
  */
-/** One daily rollup row tagged with the broker it belongs to. */
-export interface BrokerDailyRow {
-  broker: string;
+/** One daily rollup row tagged with the account (and its broker) it belongs to. */
+export interface AccountDailyRow {
+  broker: string; // broker label (falls back to account name upstream)
+  accountId: string;
+  accountName: string;
   date: string;
   netPnl: number;
   grossPnl: number;
   fees: number;
   tradeCount: number;
-  accountId: string;
 }
 
-export interface BrokerSummary {
+export interface AccountBreakdown {
+  accountId: string;
+  accountName: string;
+  netPnl: number;
+  grossPnl: number;
+  fees: number;
+  tradeCount: number;
+  /** Distinct calendar days this account traded. */
+  tradingDays: number;
+  /** |netPnl| as a fraction of total |netPnl| across all accounts (0..1). */
+  share: number;
+}
+
+export interface BrokerBreakdown {
   broker: string;
   netPnl: number;
   grossPnl: number;
   fees: number;
   tradeCount: number;
-  /** Distinct calendar days traded across this broker's accounts. */
+  /** Distinct calendar days across this broker's accounts (union, not sum). */
   tradingDays: number;
-  /** Distinct accounts grouped under this broker. */
-  accounts: number;
-  /** |netPnl| as a fraction of total |netPnl| across brokers (0..1). */
+  /** |netPnl| as a fraction of total |netPnl| across all brokers (0..1). */
   share: number;
+  accounts: AccountBreakdown[];
 }
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 
 /**
- * Roll daily P&L up by broker for the brokerage-wise split. `share` is each
- * broker's |net P&L| over the summed |net P&L| of all brokers, so the parts add
- * to 1 even when some brokers are red and others green (a plain net % would be
- * meaningless with mixed signs). Sorted by net P&L, best first.
+ * Two-level P&L breakdown: brokers with each account nested beneath. `share` (at
+ * both levels) is |net P&L| over the summed |net P&L| of all accounts, so the
+ * parts add to 1 even with mixed-sign results (a plain net % would be
+ * meaningless when some are red and some green). Brokers and the accounts within
+ * them are sorted by net P&L, best first.
  */
-export function summarizeByBroker(rows: BrokerDailyRow[]): {
-  brokers: BrokerSummary[];
+export function breakdownByBrokerAndAccount(rows: AccountDailyRow[]): {
+  brokers: BrokerBreakdown[];
   totalNet: number;
 } {
-  interface Acc {
+  interface AccAgg {
+    accountName: string;
+    broker: string;
     netPnl: number;
     grossPnl: number;
     fees: number;
     tradeCount: number;
     days: Set<string>;
-    accts: Set<string>;
   }
-  const groups = new Map<string, Acc>();
+  // Aggregate per account first.
+  const accs = new Map<string, AccAgg>();
   for (const r of rows) {
-    let g = groups.get(r.broker);
-    if (!g) {
-      g = { netPnl: 0, grossPnl: 0, fees: 0, tradeCount: 0, days: new Set(), accts: new Set() };
-      groups.set(r.broker, g);
+    let a = accs.get(r.accountId);
+    if (!a) {
+      a = {
+        accountName: r.accountName,
+        broker: r.broker,
+        netPnl: 0,
+        grossPnl: 0,
+        fees: 0,
+        tradeCount: 0,
+        days: new Set(),
+      };
+      accs.set(r.accountId, a);
     }
-    g.netPnl += r.netPnl;
-    g.grossPnl += r.grossPnl;
-    g.fees += r.fees;
-    g.tradeCount += r.tradeCount;
-    g.days.add(r.date);
-    g.accts.add(r.accountId);
+    a.netPnl += r.netPnl;
+    a.grossPnl += r.grossPnl;
+    a.fees += r.fees;
+    a.tradeCount += r.tradeCount;
+    a.days.add(r.date);
   }
 
-  const totalAbs = [...groups.values()].reduce((s, g) => s + Math.abs(g.netPnl), 0);
-  const brokers = [...groups.entries()]
-    .map(([broker, g]) => ({
+  const totalAbs = [...accs.values()].reduce((s, a) => s + Math.abs(a.netPnl), 0);
+  const share = (net: number) => (totalAbs > 0 ? Math.abs(net) / totalAbs : 0);
+
+  // Then group accounts under their broker.
+  interface BrokerAgg {
+    netPnl: number;
+    grossPnl: number;
+    fees: number;
+    tradeCount: number;
+    days: Set<string>;
+    accounts: AccountBreakdown[];
+  }
+  const brokerAggs = new Map<string, BrokerAgg>();
+  for (const [accountId, a] of accs) {
+    let b = brokerAggs.get(a.broker);
+    if (!b) {
+      b = { netPnl: 0, grossPnl: 0, fees: 0, tradeCount: 0, days: new Set(), accounts: [] };
+      brokerAggs.set(a.broker, b);
+    }
+    b.netPnl += a.netPnl;
+    b.grossPnl += a.grossPnl;
+    b.fees += a.fees;
+    b.tradeCount += a.tradeCount;
+    for (const d of a.days) b.days.add(d);
+    b.accounts.push({
+      accountId,
+      accountName: a.accountName,
+      netPnl: round2(a.netPnl),
+      grossPnl: round2(a.grossPnl),
+      fees: round2(a.fees),
+      tradeCount: a.tradeCount,
+      tradingDays: a.days.size,
+      share: share(a.netPnl),
+    });
+  }
+
+  const brokers = [...brokerAggs.entries()]
+    .map(([broker, b]) => ({
       broker,
-      netPnl: round2(g.netPnl),
-      grossPnl: round2(g.grossPnl),
-      fees: round2(g.fees),
-      tradeCount: g.tradeCount,
-      tradingDays: g.days.size,
-      accounts: g.accts.size,
-      share: totalAbs > 0 ? Math.abs(g.netPnl) / totalAbs : 0,
+      netPnl: round2(b.netPnl),
+      grossPnl: round2(b.grossPnl),
+      fees: round2(b.fees),
+      tradeCount: b.tradeCount,
+      tradingDays: b.days.size,
+      share: share(b.netPnl),
+      accounts: b.accounts.sort((x, y) => y.netPnl - x.netPnl),
     }))
     .sort((a, b) => b.netPnl - a.netPnl);
 
-  const totalNet = round2([...groups.values()].reduce((s, g) => s + g.netPnl, 0));
+  const totalNet = round2([...accs.values()].reduce((s, a) => s + a.netPnl, 0));
   return { brokers, totalNet };
 }
 
