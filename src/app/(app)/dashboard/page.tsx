@@ -4,10 +4,10 @@ import { subDays } from "date-fns";
 import { requireUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { computeTrustMetrics } from "@/lib/trust";
-import { summarizeByBroker } from "@/lib/metrics";
+import { breakdownByBrokerAndAccount } from "@/lib/metrics";
 import { accountProofLevel } from "@/lib/proof";
 import { toISODate } from "@/lib/format";
-import { BrokerageSplit } from "@/components/dashboard/brokerage-split";
+import { BrokerageBreakdown } from "@/components/dashboard/brokerage-breakdown";
 import { DashboardControls } from "@/components/dashboard/controls";
 import { ViewToggle } from "@/components/dashboard/view-toggle";
 import { BalanceEditor } from "@/components/dashboard/balance-editor";
@@ -45,27 +45,29 @@ export default async function DashboardPage({
 
   const start = rangeStartDate(range);
 
-  // Brokerage-wise split — net P&L grouped by broker across every account, for
-  // the same date range. Only worth a query (and the section) with 2+ accounts.
-  let brokerSummary: ReturnType<typeof summarizeByBroker> | null = null;
+  // Brokerage-wise breakdown — net P&L by broker → account across every account,
+  // for the same date range. Only worth a query (and the section) with 2+ accounts.
+  let breakdown: ReturnType<typeof breakdownByBrokerAndAccount> | null = null;
   if (accounts.length > 1) {
-    const brokerByAccount = new Map(
-      accounts.map((a) => [a.id, a.broker?.trim() || a.accountName]),
-    );
+    const accountById = new Map(accounts.map((a) => [a.id, a]));
     const allDays = await prisma.dailyPnl.findMany({
       where: { account: { userId: user.id }, ...(start ? { tradeDate: { gte: start } } : {}) },
       select: { accountId: true, tradeDate: true, netPnl: true, grossPnl: true, fees: true, tradeCount: true },
     });
-    brokerSummary = summarizeByBroker(
-      allDays.map((d) => ({
-        broker: brokerByAccount.get(d.accountId) ?? "Unknown",
-        date: toISODate(d.tradeDate),
-        netPnl: Number(d.netPnl),
-        grossPnl: Number(d.grossPnl),
-        fees: Number(d.fees),
-        tradeCount: d.tradeCount,
-        accountId: d.accountId,
-      })),
+    breakdown = breakdownByBrokerAndAccount(
+      allDays.map((d) => {
+        const acct = accountById.get(d.accountId);
+        return {
+          broker: acct?.broker?.trim() || acct?.accountName || "Unknown",
+          accountId: d.accountId,
+          accountName: acct?.accountName ?? "Unknown",
+          date: toISODate(d.tradeDate),
+          netPnl: Number(d.netPnl),
+          grossPnl: Number(d.grossPnl),
+          fees: Number(d.fees),
+          tradeCount: d.tradeCount,
+        };
+      }),
     );
   }
   const days = account
@@ -116,8 +118,8 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {brokerSummary && (
-        <BrokerageSplit brokers={brokerSummary.brokers} totalNet={brokerSummary.totalNet} />
+      {breakdown && (
+        <BrokerageBreakdown brokers={breakdown.brokers} totalNet={breakdown.totalNet} />
       )}
 
       {trust ? (

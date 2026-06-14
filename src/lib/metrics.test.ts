@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { aggregateDaily, computeMetrics, summarizeByBroker, type BrokerDailyRow } from "./metrics";
+import {
+  aggregateDaily,
+  computeMetrics,
+  breakdownByBrokerAndAccount,
+  type AccountDailyRow,
+} from "./metrics";
 
 describe("aggregateDaily", () => {
   it("groups trades by date and nets out fees", () => {
@@ -66,40 +71,47 @@ describe("computeMetrics", () => {
   });
 });
 
-describe("summarizeByBroker", () => {
-  const rows: BrokerDailyRow[] = [
-    // Fidelity: two accounts, one shared day → 2 distinct days, 2 accounts.
-    { broker: "Fidelity", date: "2026-06-01", netPnl: 100, grossPnl: 110, fees: 10, tradeCount: 3, accountId: "f1" },
-    { broker: "Fidelity", date: "2026-06-01", netPnl: 50, grossPnl: 55, fees: 5, tradeCount: 2, accountId: "f2" },
-    { broker: "Fidelity", date: "2026-06-02", netPnl: -50, grossPnl: -50, fees: 0, tradeCount: 1, accountId: "f1" },
-    // Webull: one account, net loss.
-    { broker: "Webull", date: "2026-06-01", netPnl: -100, grossPnl: -100, fees: 0, tradeCount: 4, accountId: "w1" },
+describe("breakdownByBrokerAndAccount", () => {
+  const rows: AccountDailyRow[] = [
+    // Fidelity broker, two accounts. "Swing" trades two days (one shared date),
+    // "Options" one day. Net: Swing 100−50=50, Options 50 → Fidelity 100.
+    { broker: "Fidelity", accountId: "f1", accountName: "Swing", date: "2026-06-01", netPnl: 100, grossPnl: 110, fees: 10, tradeCount: 3 },
+    { broker: "Fidelity", accountId: "f1", accountName: "Swing", date: "2026-06-02", netPnl: -50, grossPnl: -50, fees: 0, tradeCount: 1 },
+    { broker: "Fidelity", accountId: "f2", accountName: "Options", date: "2026-06-01", netPnl: 50, grossPnl: 55, fees: 5, tradeCount: 2 },
+    // Webull broker, one account, net loss.
+    { broker: "Webull", accountId: "w1", accountName: "Webull Main", date: "2026-06-01", netPnl: -100, grossPnl: -100, fees: 0, tradeCount: 4 },
   ];
 
-  it("groups by broker with distinct day/account counts and a signed total", () => {
-    const { brokers, totalNet } = summarizeByBroker(rows);
-    expect(totalNet).toBe(0); // 100 + 50 − 50 − 100
+  it("nests accounts under brokers with union-of-days and a signed total", () => {
+    const { brokers, totalNet } = breakdownByBrokerAndAccount(rows);
+    expect(totalNet).toBe(0); // 50 + 50 − 100
 
     const fidelity = brokers.find((b) => b.broker === "Fidelity")!;
     expect(fidelity).toMatchObject({
-      netPnl: 100, // 100 + 50 − 50
+      netPnl: 100,
       grossPnl: 115,
       fees: 15,
       tradeCount: 6,
-      tradingDays: 2, // 06-01 (twice) collapses to one day
-      accounts: 2,
+      tradingDays: 2, // union of 06-01 and 06-02 across both accounts
     });
+    expect(fidelity.accounts).toHaveLength(2);
+    // Accounts sorted best first: Swing (+50) before Options (+50)? equal nets,
+    // both present — assert by lookup instead of order.
+    const swing = fidelity.accounts.find((a) => a.accountName === "Swing")!;
+    expect(swing).toMatchObject({ netPnl: 50, tradingDays: 2, tradeCount: 4 });
   });
 
-  it("computes share as |net| over total |net| and sorts best first", () => {
-    const { brokers } = summarizeByBroker(rows);
-    // total |net| = |100| + |−100| = 200 → each is 0.5
-    expect(brokers[0].broker).toBe("Fidelity"); // +100 sorts above −100
-    expect(brokers[0].share).toBeCloseTo(0.5, 5);
-    expect(brokers[1].share).toBeCloseTo(0.5, 5);
+  it("computes share as |net| over total |net| at both levels, sorted best first", () => {
+    const { brokers } = breakdownByBrokerAndAccount(rows);
+    // total |net| over accounts = |50| + |50| + |−100| = 200
+    expect(brokers[0].broker).toBe("Fidelity"); // +100 above −100
+    expect(brokers[0].share).toBeCloseTo(0.5, 5); // |100|/200
+    expect(brokers[1].share).toBeCloseTo(0.5, 5); // |−100|/200
+    const swing = brokers[0].accounts.find((a) => a.accountName === "Swing")!;
+    expect(swing.share).toBeCloseTo(0.25, 5); // |50|/200
   });
 
-  it("returns an empty split for no rows", () => {
-    expect(summarizeByBroker([])).toEqual({ brokers: [], totalNet: 0 });
+  it("returns an empty breakdown for no rows", () => {
+    expect(breakdownByBrokerAndAccount([])).toEqual({ brokers: [], totalNet: 0 });
   });
 });
