@@ -19,7 +19,13 @@ export default async function SettingsPage() {
   const userId = await requireUserId();
   const profile = await prisma.traderProfile.findUnique({
     where: { userId },
-    select: { slug: true, isPublic: true, hideAmounts: true, disclaimer: true },
+    select: {
+      slug: true,
+      isPublic: true,
+      hideAmounts: true,
+      updateCadence: true,
+      disclaimer: true,
+    },
   });
   if (!profile) redirect("/onboarding");
 
@@ -69,6 +75,7 @@ export default async function SettingsPage() {
             slug={profile.slug}
             isPublic={profile.isPublic}
             hideAmounts={profile.hideAmounts}
+            updateCadence={profile.updateCadence}
             disclaimer={profile.disclaimer ?? ""}
           />
         </div>

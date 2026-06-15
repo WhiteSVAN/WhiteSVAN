@@ -87,5 +87,13 @@ export async function confirmImport(
   }
 
   const result = await importTrades(accountId, trades);
+
+  // MVP2 bridge: importing data refreshes the profile, so freshness is live now.
+  // MVP2.2 (immutable versions) will repoint this to the publish action.
+  await prisma.traderProfile.updateMany({
+    where: { userId },
+    data: { lastPublishedAt: new Date() },
+  });
+
   redirect(`/dashboard?imported=${result.tradeCount}`);
 }

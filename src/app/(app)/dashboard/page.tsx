@@ -15,6 +15,7 @@ import { PortalShare } from "@/components/dashboard/portal-share";
 import { ClientView } from "@/components/dashboard/client-view";
 import { TraderView } from "@/components/dashboard/trader-view";
 import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
+import { ProfileStatusCard } from "@/components/dashboard/profile-status";
 
 function rangeStartDate(range: string): Date | null {
   const now = new Date();
@@ -87,6 +88,13 @@ export default async function DashboardPage({
   const equitySeries =
     trust?.metrics.equityCurve.map((p) => ({ date: p.date, equity: p.equity })) ?? [];
 
+  // Profile-wide data coverage (all accounts, ignoring the range filter) for the status card.
+  const coverage = await prisma.dailyPnl.aggregate({
+    where: { account: { userId: user.id } },
+    _min: { tradeDate: true },
+    _max: { tradeDate: true },
+  });
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -107,6 +115,16 @@ export default async function DashboardPage({
           </Link>
         </div>
       </div>
+
+      <ProfileStatusCard
+        isPublic={user.profile.isPublic}
+        proofLevel={proofLevel}
+        cadence={user.profile.updateCadence}
+        lastPublishedAt={user.profile.lastPublishedAt}
+        transparencyScore={trust?.scores.transparency ?? null}
+        coverageStart={coverage._min.tradeDate ? toISODate(coverage._min.tradeDate) : null}
+        coverageEnd={coverage._max.tradeDate ? toISODate(coverage._max.tradeDate) : null}
+      />
 
       {account && (
         <BalanceEditor accountId={account.id} startingBalance={Number(account.startingBalance)} />

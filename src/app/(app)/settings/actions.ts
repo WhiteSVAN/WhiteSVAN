@@ -12,7 +12,10 @@ import {
 
 export type SettingsState = { saved?: boolean; error?: string } | undefined;
 
-/** Save portal settings: visibility, dollar-amount redaction, and disclaimer. */
+const CADENCES = ["DAILY", "WEEKLY", "MONTHLY", "MANUAL"] as const;
+type Cadence = (typeof CADENCES)[number];
+
+/** Save portal settings: visibility, dollar-amount redaction, cadence, and disclaimer. */
 export async function savePortalSettings(
   _prev: SettingsState,
   formData: FormData,
@@ -22,9 +25,14 @@ export async function savePortalSettings(
   const hideAmounts = formData.get("hideAmounts") === "on";
   const disclaimer = String(formData.get("disclaimer") ?? "").trim();
 
+  const cadenceRaw = String(formData.get("updateCadence") ?? "MANUAL");
+  const updateCadence: Cadence = (CADENCES as readonly string[]).includes(cadenceRaw)
+    ? (cadenceRaw as Cadence)
+    : "MANUAL";
+
   await prisma.traderProfile.update({
     where: { userId },
-    data: { isPublic, hideAmounts, disclaimer: disclaimer || null },
+    data: { isPublic, hideAmounts, updateCadence, disclaimer: disclaimer || null },
   });
   revalidatePath("/settings");
   revalidatePath("/dashboard");

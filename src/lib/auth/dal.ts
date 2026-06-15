@@ -26,7 +26,16 @@ export const requireUser = cache(async () => {
       id: true,
       name: true,
       email: true,
-      profile: { select: { id: true, slug: true, displayName: true, isPublic: true } },
+      profile: {
+        select: {
+          id: true,
+          slug: true,
+          displayName: true,
+          isPublic: true,
+          updateCadence: true,
+          lastPublishedAt: true,
+        },
+      },
     },
   });
   if (!user) redirect("/login");

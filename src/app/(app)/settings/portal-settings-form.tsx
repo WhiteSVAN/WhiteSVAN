@@ -4,15 +4,24 @@ import { useActionState } from "react";
 import { savePortalSettings } from "./actions";
 import { btnPrimary, inputClass } from "@/components/form";
 
+const CADENCE_OPTIONS: { value: string; label: string; hint: string }[] = [
+  { value: "DAILY", label: "Daily", hint: "Fresh for 48 hours" },
+  { value: "WEEKLY", label: "Weekly", hint: "Fresh for 9 days" },
+  { value: "MONTHLY", label: "Monthly", hint: "Fresh for 40 days" },
+  { value: "MANUAL", label: "Manual", hint: "No fixed schedule" },
+];
+
 export function PortalSettingsForm({
   slug,
   isPublic,
   hideAmounts,
+  updateCadence,
   disclaimer,
 }: {
   slug: string;
   isPublic: boolean;
   hideAmounts: boolean;
+  updateCadence: string;
   disclaimer: string;
 }) {
   const [state, action, pending] = useActionState(savePortalSettings, undefined);
@@ -42,6 +51,28 @@ export function PortalSettingsForm({
           </span>
         </span>
       </label>
+
+      <div>
+        <label htmlFor="updateCadence" className="text-sm font-medium text-slate-700">
+          Update cadence
+        </label>
+        <p className="text-xs text-slate-500">
+          How often you commit to refreshing this profile. Clients see a freshness badge based on
+          this — it does not auto-publish anything.
+        </p>
+        <select
+          id="updateCadence"
+          name="updateCadence"
+          defaultValue={updateCadence}
+          className={inputClass}
+        >
+          {CADENCE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label} — {o.hint}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div>
         <label htmlFor="disclaimer" className="text-sm font-medium text-slate-700">
