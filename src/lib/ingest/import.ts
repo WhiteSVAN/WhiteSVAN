@@ -16,14 +16,27 @@ export interface ImportResult {
   tradingDays: number;
 }
 
+/** Provenance for the import, recorded as an `ImportBatch` audit row (MVP2). */
+export interface ImportSourceInfo {
+  source?: "CSV" | "MANUAL" | "STATEMENT" | "BROKER_API";
+  broker?: string | null;
+  originalFilename?: string | null;
+  /** sha-256 of the raw file text (see src/lib/hash.ts). */
+  fileHash: string;
+}
+
 /**
  * Persist `trades` for one account, then fully rebuild that account's daily
  * rollup from all of its trades. A full rebuild (vs. incremental) keeps the
  * `DailyPnl` table correct even when imports overlap existing dates.
+ *
+ * When `sourceInfo` is given, an `ImportBatch` audit row is written in the same
+ * transaction (file hash, row count, period, net P&L this import contributed).
  */
 export async function importTrades(
   accountId: string,
   trades: ParsedTrade[],
+  sourceInfo?: ImportSourceInfo,
 ): Promise<ImportResult> {
   return prisma.$transaction(async (tx) => {
     if (trades.length > 0) {
@@ -68,6 +81,25 @@ export async function importTrades(
           netPnl: d.netPnl,
           tradeCount: d.tradeCount,
         })),
+      });
+    }
+
+    // Audit row for this import (period + net P&L summarize *this* file's trades).
+    if (sourceInfo && trades.length > 0) {
+      const dates = trades.map((t) => t.tradeDate).sort();
+      const netPnl = trades.reduce((sum, t) => sum + t.realizedPnl - (t.fees ?? 0), 0);
+      await tx.importBatch.create({
+        data: {
+          accountId,
+          source: sourceInfo.source ?? "CSV",
+          broker: sourceInfo.broker ?? null,
+          originalFilename: sourceInfo.originalFilename ?? null,
+          fileHash: sourceInfo.fileHash,
+          rowCount: trades.length,
+          periodStart: new Date(dates[0]),
+          periodEnd: new Date(dates[dates.length - 1]),
+          netPnl,
+        },
       });
     }
 

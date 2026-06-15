@@ -84,6 +84,7 @@ model TraderProfile {
   riskRules   String?
   isPublic    Boolean  @default(false)
   hideAmounts Boolean  @default(false) // redact dollar figures on the public portal
+  hideBrokers Boolean  @default(false) // redact broker + account names on the public portal
   disclaimer  String?
 
   // MVP2 — living trust profile: how often the trader commits to refreshing, and
@@ -95,7 +96,11 @@ model TraderProfile {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions      ProfileVersion[]
+  riskEvents    RiskEvent[]
+  followers     ProfileFollower[]
+  notifications NotificationEvent[]
 }
 
 // How often a trader commits to refreshing their public profile. Drives the
@@ -107,6 +112,64 @@ enum UpdateCadence {
   MANUAL
 }
 
+enum ImportSource {
+  CSV
+  MANUAL
+  STATEMENT
+  BROKER_API
+}
+
+// MVP2 — one row per import: the audit trail of where a profile's data came
+// from. Written by src/lib/ingest/import.ts on every import. The file hash makes
+// an import verifiable/idempotent; period + netPnl summarize what it contributed.
+model ImportBatch {
+  id               String       @id @default(cuid())
+  accountId        String
+  source           ImportSource @default(CSV)
+  broker           String?
+  originalFilename String?
+  fileHash         String // sha-256 of the raw file text
+  rowCount         Int // trades imported from this file
+  periodStart      DateTime?    @db.Date
+  periodEnd        DateTime?    @db.Date
+  netPnl           Decimal      @default(0) @db.Decimal(18, 2)
+  createdAt        DateTime     @default(now())
+
+  account  TradingAccount   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  versions ProfileVersion[]
+
+  @@index([accountId])
+}
+
+// MVP2 — an immutable snapshot of the profile's performance at a publish moment.
+// A publish never mutates a prior version: this is the "living profile" history.
+// `metrics` holds the full TrustMetrics JSON (code-of-record, like Report.metrics);
+// the denormalized columns exist for cheap listing/diffing. `changeSummary` is
+// filled in MVP2.3.
+model ProfileVersion {
+  id                String    @id @default(cuid())
+  profileId         String
+  versionNumber     Int
+  periodStart       DateTime? @db.Date
+  periodEnd         DateTime? @db.Date
+  metrics           Json
+  netPnl            Decimal   @db.Decimal(18, 2)
+  returnPct         Float? // simple return over starting balance, as a fraction
+  transparencyScore Int
+  proofLevel        Int
+  freshnessStatus   String
+  changeSummary     String?
+  sourceBatchId     String?
+  publishedAt       DateTime  @default(now())
+
+  profile     TraderProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sourceBatch ImportBatch?  @relation(fields: [sourceBatchId], references: [id], onDelete: SetNull)
+  riskEvents  RiskEvent[]
+
+  @@unique([profileId, versionNumber])
+  @@index([profileId])
+}
+
 model TradingAccount {
   id              String   @id @default(cuid())
   userId          String
@@ -115,11 +178,12 @@ model TradingAccount {
   startingBalance Decimal  @default(0) @db.Decimal(18, 2)
   createdAt       DateTime @default(now())
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trades    Trade[]
-  dailyPnl  DailyPnl[]
-  reports   Report[]
-  evidence  Evidence[]
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trades        Trade[]
+  dailyPnl      DailyPnl[]
+  reports       Report[]
+  evidence      Evidence[]
+  importBatches ImportBatch[]
 
   @@index([userId])
 }
@@ -180,6 +244,7 @@ model Report {
 
 enum ReportStatus {
   DRAFT
+  APPROVED
   PUBLISHED
 }
 
@@ -215,4 +280,105 @@ model Evidence {
   account TradingAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+}
+
+// MVP2 — risk events. Persisted, dated, plain-English flags generated when a
+// profile version is published (drawdown, worst day, big-win dependency, stale
+// profile, score change, recovery). Rendered as client-visible cards on the portal.
+enum RiskEventType {
+  DRAWDOWN
+  WORST_DAY
+  BIG_WIN_DEPENDENCY
+  LOSS_VS_WIN
+  STALE_PROFILE
+  SCORE_CHANGE
+  RECOVERY
+}
+
+enum RiskSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+model RiskEvent {
+  id              String        @id @default(cuid())
+  profileId       String
+  versionId       String?
+  type            RiskEventType
+  severity        RiskSeverity  @default(INFO)
+  eventDate       DateTime      @default(now())
+  title           String
+  description     String
+  metricBefore    Float?
+  metricAfter     Float?
+  isClientVisible Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+
+  profile TraderProfile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  version ProfileVersion? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+
+  @@index([profileId])
+}
+
+// MVP2 — followers/watchlist. A client subscribes by email to receive update and
+// risk-change notifications. Email delivery is stubbed; notifications are queued.
+enum FollowerStatus {
+  PENDING
+  ACTIVE
+  UNSUBSCRIBED
+}
+
+enum FollowFrequency {
+  WEEKLY
+  MONTHLY
+  RISK_CHANGES_ONLY
+}
+
+model ProfileFollower {
+  id         String          @id @default(cuid())
+  profileId  String
+  email      String
+  status     FollowerStatus  @default(ACTIVE)
+  frequency  FollowFrequency @default(MONTHLY)
+  createdAt  DateTime        @default(now())
+  verifiedAt DateTime?
+
+  profile       TraderProfile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  notifications NotificationEvent[]
+
+  @@unique([profileId, email])
+  @@index([profileId])
+}
+
+enum NotificationType {
+  WEEKLY_UPDATE
+  MONTHLY_REPORT
+  RISK_CHANGE
+  STALE_PROFILE
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  FAILED
+}
+
+// Outbound notification queue. Created when a profile publishes an update or a
+// risk change; actual delivery is deferred (status stays QUEUED for now).
+model NotificationEvent {
+  id         String             @id @default(cuid())
+  profileId  String
+  followerId String?
+  type       NotificationType
+  subject    String
+  body       String
+  status     NotificationStatus @default(QUEUED)
+  createdAt  DateTime           @default(now())
+  sentAt     DateTime?
+
+  profile  TraderProfile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  follower ProfileFollower? @relation(fields: [followerId], references: [id], onDelete: SetNull)
+
+  @@index([profileId])
 }

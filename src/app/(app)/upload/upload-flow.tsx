@@ -390,6 +390,7 @@ export function UploadFlow({
         <input type="hidden" name="accountId" value={accountId} />
         <input type="hidden" name="format" value={format} />
         <input type="hidden" name="csvText" value={csvText} />
+        <input type="hidden" name="fileName" value={fileName} />
         <input type="hidden" name="mapping" value={JSON.stringify(mapping)} />
         <FormError message={state?.message} />
         <button

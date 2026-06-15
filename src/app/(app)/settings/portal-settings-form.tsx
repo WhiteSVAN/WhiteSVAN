@@ -15,12 +15,14 @@ export function PortalSettingsForm({
   slug,
   isPublic,
   hideAmounts,
+  hideBrokers,
   updateCadence,
   disclaimer,
 }: {
   slug: string;
   isPublic: boolean;
   hideAmounts: boolean;
+  hideBrokers: boolean;
   updateCadence: string;
   disclaimer: string;
 }) {
@@ -48,6 +50,17 @@ export function PortalSettingsForm({
           <span className="text-sm font-medium text-slate-700">Hide dollar amounts</span>
           <span className="block text-xs text-slate-500">
             Show percentages and scores on the public portal, but redact exact $ figures.
+          </span>
+        </span>
+      </label>
+
+      <label className="flex items-start gap-3">
+        <input type="checkbox" name="hideBrokers" defaultChecked={hideBrokers} className="mt-1" />
+        <span>
+          <span className="text-sm font-medium text-slate-700">Hide broker &amp; account names</span>
+          <span className="block text-xs text-slate-500">
+            Redact broker and account labels in the public breakdown. Performance metrics are
+            unchanged — only the private labels are hidden.
           </span>
         </span>
       </label>

@@ -52,18 +52,18 @@ Legend: ✅ done · 🟡 partial / foundation exists · ⛔ not started
 | --- | --- | --- |
 | **Profile freshness** (last-updated, coverage, fresh/getting-stale/stale) | ✅ | [freshness.ts](src/lib/freshness.ts) (pure + tested) drives a status card on `/dashboard`; `lastPublishedAt` on the profile |
 | **Update cadence** (daily/weekly/monthly/manual) | ✅ | `UpdateCadence` enum on `TraderProfile`; selector in `/settings` |
-| **Upload history** (hash, row count, period, P&L per import) | ⛔ | [import.ts](src/lib/ingest/import.ts) rebuilds `DailyPnl` but records nothing about the import itself. New `ImportBatch` model |
-| **Profile versions** (immutable snapshot per publish) | ⛔ | No versioning. Precedent: `Report.metrics` is already snapshotted verbatim — reuse the pattern in a `ProfileVersion` |
-| **Change summary** (diff since last version) | ⛔ | Needs versions to diff against; AI layer can write the prose |
-| **Risk events** (persisted, dated, severity) | 🟡 | [trust.ts](src/lib/trust.ts) already *computes* drawdown / worst-day / big-win dependency — but live, never stored. Plan: persist as `RiskEvent` rows + add stale / score-change |
-| **Report archive** (by month, draft/approved/published) | 🟡 | `Report` has `DRAFT`/`PUBLISHED` + `period` but no by-month archive view and no `APPROVED` middle state |
-| **Redaction controls** (granular toggles) | 🟡 | Only `hideAmounts`. Extend the profile with per-field toggles (account #, broker, symbols, timestamps, sizes, $ values) |
-| **Follower / watchlist** (email capture + queue) | ⛔ | Fully new. `WaitlistEntry` is a copy-able email-capture pattern |
+| **Upload history** (hash, row count, period, P&L per import) | ✅ | `ImportBatch` model written by [import.ts](src/lib/ingest/import.ts) (sha-256 [hash.ts](src/lib/hash.ts), row count, period, net P&L); table in `/settings` |
+| **Profile versions** (immutable snapshot per publish) | ✅ | `ProfileVersion` + Publish action ([dashboard/actions.ts](src/app/(app)/dashboard/actions.ts)); `@@unique([profileId, versionNumber])`, prior versions never mutated |
+| **Change summary** (diff since last version) | ✅ | [version.ts](src/lib/version.ts) `diffVersions` + [risk-events.ts](src/lib/risk-events.ts) `buildChangeSummary`; shown on portal + dashboard |
+| **Risk events** (persisted, dated, severity) | ✅ | `RiskEvent` rows generated on publish ([risk-events.ts](src/lib/risk-events.ts)): drawdown, worst-day, big-win dependency, loss/win, score-change, recovery, stale. Client-visible cards on portal |
+| **Report archive** (by month, draft/approved/published) | ✅ | `APPROVED` state added; `/reports` is now a by-month archive with three-state badges + Approve step |
+| **Redaction controls** (granular toggles) | ✅ | `hideBrokers` added (masks broker/account names; metrics untouched) alongside `hideAmounts`; toggles in `/settings` |
+| **Follower / watchlist** (email capture + queue) | ✅ | `ProfileFollower` + follow form on portal; `NotificationEvent` queued on publish (delivery stubbed) |
 | **Statement matching** (P2, Level-3 reconciliation) | 🟡 | Statement upload → Proof L3 already done via [proof.ts](src/lib/proof.ts) / Evidence. Only reconciliation placeholder remains |
-| **TrustSVAN Score v2** (reweight + update-reliability factor) | ⛔ | Today: `proof .25 / risk .25 / consistency .20 / profit .15 / discipline .15`. v2 adds **update reliability (20%)** + rebalance — *blocked on freshness data, so it lands after MVP2.1* |
+| **TrustSVAN Score v2** (reweight + update-reliability factor) | ✅ | [trust.ts](src/lib/trust.ts) composite now proof 25 / risk 25 / **update reliability 20** / consistency 15 / profit 10 / discipline 5; reliability derived from freshness |
 
-**Net:** MVP2's new surface is ~0% built, but MVP1 already supplies the metrics, trust math, AI
-layer, evidence/proof, snapshot pattern, and compliance guardrails that most of MVP2 builds on.
+**Net:** MVP2 P0–P1 are built. The only remaining brief item is P2 statement reconciliation (the
+upload half is already done at Proof L3). Email *delivery* is intentionally stubbed (queue only).
 
 ---
 
@@ -87,31 +87,31 @@ Each slice ships schema + a pure logic lib (+ colocated tests) + UI, matching ex
   repoint it to the version-publish action.
 - **Verified:** `npm test` (48 pass), `npm run typecheck`, `npm run lint` all green.
 
-### MVP2.2 — Upload history + file hash + immutable versions
+### MVP2.2 — Upload history + file hash + immutable versions  ✅ *done*
 - `ImportBatch` model (source, broker, filename, **sha-256 hash**, row count, period, starting/
   ending equity, net P&L, status); written by [import.ts](src/lib/ingest/import.ts).
 - `ProfileVersion` model (immutable snapshot of metrics + scores + freshness at publish time);
   a **publish** action creates a new version and never mutates prior ones.
 - UI: upload-history table + publish-preview (old vs new) in `/settings` (or a new dashboard tab).
 
-### MVP2.3 — Change summary + persisted risk events
+### MVP2.3 — Change summary + persisted risk events  ✅ done
 - On publish, diff new vs previous `ProfileVersion` → `RiskEvent` rows (drawdown, worst-day,
   big-win dependency, loss/win ratio, **stale-profile**, **score-change**, recovery) with
   severity + plain-English description + `isClientVisible`.
 - AI layer writes the human-readable **change summary** stored on the version.
 - Public profile renders client-visible risk-event cards + "since last update."
 
-### MVP2.4 — Report archive
+### MVP2.4 — Report archive  ✅ done
 - Add `APPROVED` to report status; `month`/`year` for archive grouping.
 - `/reports` gains a by-month archive (draft/approved/published cards) + chronological order.
 
-### MVP2.5 — Granular redaction + follower capture
+### MVP2.5 — Granular redaction + follower capture  ✅ done
 - Replace single `hideAmounts` with per-field redaction toggles (metrics never change — only
   display fields hide), with a clear "what's hidden" disclosure on the public profile.
 - `ProfileFollower` + `NotificationEvent` (queue only; email delivery stubbed). Follow form with
   explicit no-advice language.
 
-### TrustSVAN Score v2
+### TrustSVAN Score v2  ✅ done
 - Once freshness + update-reliability data exist, reweight to: proof 25 · risk control 25 ·
   update reliability 20 · consistency 15 · profit quality 10 · transparency 5.
 
@@ -141,4 +141,6 @@ Each slice ships schema + a pure logic lib (+ colocated tests) + UI, matching ex
 
 ---
 
-_Last updated: 2026-06-16 · Branch: `feat/brokerage-breakdown` · **MVP2.1 complete** — next up MVP2.2 (upload history + immutable versions)._
+_Last updated: 2026-06-16 · **MVP2.1–2.5 + Score v2 complete** (P0–P1). Remaining: P2 statement
+reconciliation and real email delivery (queue + capture are in place). Verified: `npm test`
+(62 pass) · `npm run typecheck` · `npm run lint` · `/p/demo` renders the living profile._

@@ -41,7 +41,21 @@ export function ReportEditor({
     [fields],
   );
 
-  const published = status === "PUBLISHED" || state?.published === true;
+  const effectiveStatus = state?.published
+    ? "PUBLISHED"
+    : state?.approved
+      ? "APPROVED"
+      : status;
+  const STATUS_BADGE: Record<string, string> = {
+    PUBLISHED: "bg-emerald-50 text-emerald-700",
+    APPROVED: "bg-amber-50 text-amber-700",
+    DRAFT: "bg-slate-100 text-slate-500",
+  };
+  const STATUS_LABEL: Record<string, string> = {
+    PUBLISHED: "Published",
+    APPROVED: "Approved",
+    DRAFT: "Draft",
+  };
   const set = (key: keyof typeof fields) => (e: { target: { value: string } }) =>
     setFields((f) => ({ ...f, [key]: e.target.value }));
 
@@ -57,17 +71,20 @@ export function ReportEditor({
           </h1>
         </div>
         <span
-          className={`rounded px-2 py-0.5 text-xs font-medium ${
-            published ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
-          }`}
+          className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[effectiveStatus] ?? STATUS_BADGE.DRAFT}`}
         >
-          {published ? "Published" : "Draft"}
+          {STATUS_LABEL[effectiveStatus] ?? "Draft"}
         </span>
       </div>
 
       {state?.published && (
         <div className="rounded-lg bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
           Report published.
+        </div>
+      )}
+      {state?.approved && (
+        <div className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          Report approved — ready to publish.
         </div>
       )}
       {state?.saved && (
@@ -109,6 +126,15 @@ export function ReportEditor({
             className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
             {pending ? "Saving…" : "Save draft"}
+          </button>
+          <button
+            type="submit"
+            name="intent"
+            value="approve"
+            disabled={pending}
+            className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-60"
+          >
+            Approve
           </button>
           <button
             type="submit"

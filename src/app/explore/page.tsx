@@ -5,7 +5,6 @@ import { prisma } from "@/lib/db";
 import { computeTrustMetrics, type DrawdownSeverity } from "@/lib/trust";
 import { accountProofLevel } from "@/lib/proof";
 import { toISODate, formatPercent } from "@/lib/format";
-import { BackButton } from "./back-button";
 
 export const metadata: Metadata = { title: "Explore traders — TrustSVAN" };
 
@@ -50,15 +49,12 @@ export default async function ExplorePage() {
     <div className="min-h-full bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-4">
-            <Link
-              href={loggedIn ? "/dashboard" : "/"}
-              className="text-base font-semibold tracking-tight text-slate-900"
-            >
-              Trust<span className="text-blue-700">SVAN</span>
-            </Link>
-            <BackButton />
-          </div>
+          <Link
+            href={loggedIn ? "/dashboard" : "/"}
+            className="text-base font-semibold tracking-tight text-slate-900"
+          >
+            Trust<span className="text-blue-700">SVAN</span>
+          </Link>
           {loggedIn ? (
             <Link
               href="/dashboard"

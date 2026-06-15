@@ -6,6 +6,7 @@ import { requireUserId } from "@/lib/auth/dal";
 import { parseTradesCsv, type ColumnMapping } from "@/lib/csv/parse";
 import { parseBrokerCsv } from "@/lib/csv/brokers";
 import { importTrades } from "@/lib/ingest/import";
+import { sha256 } from "@/lib/hash";
 
 export type AccountFormState =
   | { errors?: { accountName?: string[] }; message?: string }
@@ -58,9 +59,11 @@ export async function confirmImport(
 
   const account = await prisma.tradingAccount.findFirst({
     where: { id: accountId, userId },
-    select: { id: true },
+    select: { id: true, broker: true },
   });
   if (!account) return { message: "Choose an account to import into." };
+
+  const fileName = String(formData.get("fileName") ?? "").trim() || null;
 
   // Auto-detect path uses the user's column mapping; broker transaction-export
   // formats (Fidelity, Webull) FIFO-match buys/sells into realized P&L instead.
@@ -86,14 +89,14 @@ export async function confirmImport(
     };
   }
 
-  const result = await importTrades(accountId, trades);
-
-  // MVP2 bridge: importing data refreshes the profile, so freshness is live now.
-  // MVP2.2 (immutable versions) will repoint this to the publish action.
-  await prisma.traderProfile.updateMany({
-    where: { userId },
-    data: { lastPublishedAt: new Date() },
+  const result = await importTrades(accountId, trades, {
+    source: "CSV",
+    broker: account.broker,
+    originalFilename: fileName,
+    fileHash: sha256(csvText),
   });
 
+  // Freshness is driven by *publishing*, not importing — the trader reviews the
+  // new numbers, then clicks Publish on the dashboard to create a profile version.
   redirect(`/dashboard?imported=${result.tradeCount}`);
 }

@@ -23,6 +23,7 @@ export async function savePortalSettings(
   const userId = await requireUserId();
   const isPublic = formData.get("isPublic") === "on";
   const hideAmounts = formData.get("hideAmounts") === "on";
+  const hideBrokers = formData.get("hideBrokers") === "on";
   const disclaimer = String(formData.get("disclaimer") ?? "").trim();
 
   const cadenceRaw = String(formData.get("updateCadence") ?? "MANUAL");
@@ -32,7 +33,7 @@ export async function savePortalSettings(
 
   await prisma.traderProfile.update({
     where: { userId },
-    data: { isPublic, hideAmounts, updateCadence, disclaimer: disclaimer || null },
+    data: { isPublic, hideAmounts, hideBrokers, updateCadence, disclaimer: disclaimer || null },
   });
   revalidatePath("/settings");
   revalidatePath("/dashboard");
