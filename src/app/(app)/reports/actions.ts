@@ -97,7 +97,7 @@ export async function generateReport(
 }
 
 export type ReportEditState =
-  | { saved?: boolean; published?: boolean; issues?: string[]; message?: string }
+  | { saved?: boolean; approved?: boolean; published?: boolean; issues?: string[]; message?: string }
   | undefined;
 
 function splitLines(value: FormDataEntryValue | null): string[] {
@@ -132,6 +132,12 @@ export async function submitReport(
   if (!report) return { message: "Report not found." };
 
   const aiReport = reportFromForm(formData);
+
+  if (intent === "approve") {
+    // Internal gate: mark ready-to-publish. Public compliance check still runs on publish.
+    await prisma.report.update({ where: { id }, data: { aiReport, status: "APPROVED" } });
+    return { approved: true };
+  }
 
   if (intent === "publish") {
     const issues = reportComplianceIssues(aiReport);

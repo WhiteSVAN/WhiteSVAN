@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { subDays } from "date-fns";
+import { subDays, format } from "date-fns";
 import { requireUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { computeTrustMetrics } from "@/lib/trust";
 import { breakdownByBrokerAndAccount } from "@/lib/metrics";
 import { accountProofLevel } from "@/lib/proof";
+import { getFreshnessStatus, toCadence, reliabilityFromFreshness } from "@/lib/freshness";
 import { toISODate } from "@/lib/format";
 import { BrokerageBreakdown } from "@/components/dashboard/brokerage-breakdown";
 import { DashboardControls } from "@/components/dashboard/controls";
@@ -16,6 +17,7 @@ import { ClientView } from "@/components/dashboard/client-view";
 import { TraderView } from "@/components/dashboard/trader-view";
 import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
 import { ProfileStatusCard } from "@/components/dashboard/profile-status";
+import { PublishUpdate } from "@/components/dashboard/publish-update";
 
 function rangeStartDate(range: string): Date | null {
   const now = new Date();
@@ -81,9 +83,12 @@ export default async function DashboardPage({
 
   const dailySeries = days.map((d) => ({ date: toISODate(d.tradeDate), netPnl: Number(d.netPnl) }));
   const proofLevel = account ? await accountProofLevel(account.id, dailySeries.length > 0) : 1;
+  const reliability = reliabilityFromFreshness(
+    getFreshnessStatus(toCadence(user.profile.updateCadence), user.profile.lastPublishedAt),
+  );
   const trust =
     account && dailySeries.length > 0
-      ? computeTrustMetrics(dailySeries, Number(account.startingBalance), proofLevel)
+      ? computeTrustMetrics(dailySeries, Number(account.startingBalance), proofLevel, reliability)
       : null;
   const equitySeries =
     trust?.metrics.equityCurve.map((p) => ({ date: p.date, equity: p.equity })) ?? [];
@@ -93,6 +98,13 @@ export default async function DashboardPage({
     where: { account: { userId: user.id } },
     _min: { tradeDate: true },
     _max: { tradeDate: true },
+  });
+
+  // Latest published profile version (for the Publish card).
+  const lastVersion = await prisma.profileVersion.findFirst({
+    where: { profileId: user.profile.id },
+    orderBy: { versionNumber: "desc" },
+    select: { versionNumber: true, publishedAt: true, changeSummary: true },
   });
 
   return (
@@ -124,6 +136,12 @@ export default async function DashboardPage({
         transparencyScore={trust?.scores.transparency ?? null}
         coverageStart={coverage._min.tradeDate ? toISODate(coverage._min.tradeDate) : null}
         coverageEnd={coverage._max.tradeDate ? toISODate(coverage._max.tradeDate) : null}
+      />
+
+      <PublishUpdate
+        lastVersionNumber={lastVersion?.versionNumber ?? null}
+        lastPublishedLabel={lastVersion ? format(lastVersion.publishedAt, "MMM d, yyyy") : null}
+        lastChangeSummary={lastVersion?.changeSummary ?? null}
       />
 
       {account && (

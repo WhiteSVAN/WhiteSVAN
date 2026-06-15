@@ -6,6 +6,7 @@ import { PROOF_LEVELS, type ProofLevel } from "@/lib/trust";
 import { PortalSettingsForm } from "./portal-settings-form";
 import { EvidenceUploader } from "./evidence-uploader";
 import { AccountData } from "./account-data";
+import { UpdateHistory } from "./update-history";
 import { toggleEvidencePublic, deleteEvidence } from "./actions";
 
 const KIND_LABEL: Record<string, string> = {
@@ -20,9 +21,11 @@ export default async function SettingsPage() {
   const profile = await prisma.traderProfile.findUnique({
     where: { userId },
     select: {
+      id: true,
       slug: true,
       isPublic: true,
       hideAmounts: true,
+      hideBrokers: true,
       updateCadence: true,
       disclaimer: true,
     },
@@ -61,6 +64,50 @@ export default async function SettingsPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  // MVP2 audit trail: imports, published versions, followers, queued notifications.
+  const accountIds = accounts.map((a) => a.id);
+  const [uploads, versions, followers, queuedCount] = await Promise.all([
+    prisma.importBatch.findMany({
+      where: { accountId: { in: accountIds } },
+      select: {
+        id: true,
+        source: true,
+        broker: true,
+        originalFilename: true,
+        fileHash: true,
+        rowCount: true,
+        periodStart: true,
+        periodEnd: true,
+        netPnl: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 25,
+    }),
+    prisma.profileVersion.findMany({
+      where: { profileId: profile.id },
+      select: {
+        versionNumber: true,
+        periodStart: true,
+        periodEnd: true,
+        transparencyScore: true,
+        proofLevel: true,
+        netPnl: true,
+        changeSummary: true,
+        publishedAt: true,
+      },
+      orderBy: { versionNumber: "desc" },
+      take: 25,
+    }),
+    prisma.profileFollower.findMany({
+      where: { profileId: profile.id },
+      select: { email: true, status: true, frequency: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    }),
+    prisma.notificationEvent.count({ where: { profileId: profile.id, status: "QUEUED" } }),
+  ]);
+
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Settings</h1>
@@ -75,6 +122,7 @@ export default async function SettingsPage() {
             slug={profile.slug}
             isPublic={profile.isPublic}
             hideAmounts={profile.hideAmounts}
+            hideBrokers={profile.hideBrokers}
             updateCadence={profile.updateCadence}
             disclaimer={profile.disclaimer ?? ""}
           />
@@ -150,6 +198,21 @@ export default async function SettingsPage() {
               ))}
             </ul>
           )}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-base font-medium text-slate-800">Updates &amp; history</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Your import audit trail and the immutable versions clients see on your profile.
+        </p>
+        <div className="mt-4">
+          <UpdateHistory
+            uploads={uploads.map((u) => ({ ...u, netPnl: Number(u.netPnl) }))}
+            versions={versions.map((v) => ({ ...v, netPnl: Number(v.netPnl) }))}
+            followers={followers}
+            queuedCount={queuedCount}
+          />
         </div>
       </section>
 

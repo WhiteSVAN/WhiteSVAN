@@ -71,6 +71,25 @@ export function calculateUpdateReliability(expectedUpdates: number, completedUpd
   return Math.round(Math.min(100, (completedUpdates / expectedUpdates) * 100));
 }
 
+/**
+ * Map a freshness status to a reporting-discipline score (0..100) for the
+ * TrustSVAN Score v2 "update reliability" factor. Manual/never sit at neutral-ish.
+ */
+export function reliabilityFromFreshness(status: FreshnessStatus): number {
+  switch (status) {
+    case "fresh":
+      return 100;
+    case "getting_stale":
+      return 60;
+    case "stale":
+      return 20;
+    case "manual_only":
+      return 50;
+    case "never":
+      return 40;
+  }
+}
+
 export type FreshnessTone = "good" | "warn" | "bad" | "neutral";
 
 export interface FreshnessDisplay {

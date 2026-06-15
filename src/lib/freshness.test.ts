@@ -3,6 +3,7 @@ import {
   getFreshnessStatus,
   nextExpectedUpdate,
   calculateUpdateReliability,
+  reliabilityFromFreshness,
   describeFreshness,
   toCadence,
 } from "./freshness";
@@ -70,6 +71,16 @@ describe("calculateUpdateReliability", () => {
     expect(calculateUpdateReliability(10, 5)).toBe(50);
     expect(calculateUpdateReliability(4, 3)).toBe(75);
     expect(calculateUpdateReliability(4, 8)).toBe(100); // over-delivery capped
+  });
+});
+
+describe("reliabilityFromFreshness", () => {
+  it("rewards fresh profiles and penalizes stale ones", () => {
+    expect(reliabilityFromFreshness("fresh")).toBe(100);
+    expect(reliabilityFromFreshness("getting_stale")).toBe(60);
+    expect(reliabilityFromFreshness("stale")).toBe(20);
+    expect(reliabilityFromFreshness("manual_only")).toBe(50);
+    expect(reliabilityFromFreshness("never")).toBe(40);
   });
 });
 

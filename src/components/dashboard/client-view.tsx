@@ -142,14 +142,16 @@ export function ClientView({
           </span>
         </div>
         <p className="mt-0.5 text-xs text-slate-400">
-          A weighted blend of five factors — proof and risk control carry the most weight.
+          A weighted blend of six factors — proof, risk control, and reporting discipline carry the
+          most weight.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <ScoreBar label="Proof" weight="25%" value={trust.scores.proof} />
           <ScoreBar label="Risk Control" weight="25%" value={trust.scores.riskControl} />
-          <ScoreBar label="Consistency" weight="20%" value={trust.scores.consistency} />
-          <ScoreBar label="Profit" weight="15%" value={trust.scores.profit} />
-          <ScoreBar label="Discipline" weight="15%" value={trust.scores.discipline} />
+          <ScoreBar label="Update Reliability" weight="20%" value={trust.scores.updateReliability} />
+          <ScoreBar label="Consistency" weight="15%" value={trust.scores.consistency} />
+          <ScoreBar label="Profit" weight="10%" value={trust.scores.profit} />
+          <ScoreBar label="Discipline" weight="5%" value={trust.scores.discipline} />
         </div>
         <p className="mt-4 text-xs text-slate-400">
           Not an investment recommendation. It measures data quality, risk visibility, and reporting

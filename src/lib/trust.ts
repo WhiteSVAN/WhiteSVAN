@@ -32,7 +32,9 @@ export interface TrustScores {
   consistency: number;
   discipline: number;
   proof: number;
-  /** Weighted composite, 0..100. */
+  /** Reporting discipline — how reliably the profile is refreshed (0..100). */
+  updateReliability: number;
+  /** Weighted composite (TrustSVAN Score v2), 0..100. */
   transparency: number;
 }
 
@@ -158,6 +160,8 @@ export function computeTrustMetrics(
   days: Array<{ date: string; netPnl: number }>,
   startingBalance: number,
   proofLevel: ProofLevel = 2,
+  /** Reporting-discipline score 0..100 (from freshness/cadence). Neutral 50 default. */
+  updateReliability = 50,
 ): TrustMetrics {
   const metrics = computeMetrics(days, startingBalance);
 
@@ -187,8 +191,16 @@ export function computeTrustMetrics(
   const discipline = clamp(100 - (bestDayShare ?? 0) * 60 - redRatio * 30, 0, 100);
   const proof = proofLevel * 20;
 
+  // TrustSVAN Score v2 — rewards proof quality, risk control, and reporting
+  // discipline over raw profit (profit capped at 10%).
+  const reliability = clamp(updateReliability, 0, 100);
   const transparency = Math.round(
-    0.25 * proof + 0.25 * riskControl + 0.2 * consistency + 0.15 * profit + 0.15 * discipline,
+    0.25 * proof +
+      0.25 * riskControl +
+      0.2 * reliability +
+      0.15 * consistency +
+      0.1 * profit +
+      0.05 * discipline,
   );
 
   return {
@@ -201,7 +213,7 @@ export function computeTrustMetrics(
     bounceBackDays,
     daysUnderwater,
     proofLevel,
-    scores: { profit, riskControl, consistency, discipline, proof, transparency },
+    scores: { profit, riskControl, consistency, discipline, proof, updateReliability: reliability, transparency },
     verdict: buildVerdict({ metrics, severity, bestDayShare, badToGoodRatio }),
   };
 }

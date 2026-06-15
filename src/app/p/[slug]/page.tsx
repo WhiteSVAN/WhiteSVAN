@@ -7,12 +7,20 @@ import { breakdownByBrokerAndAccount } from "@/lib/metrics";
 import { accountProofLevel } from "@/lib/proof";
 import { toISODate } from "@/lib/format";
 import { aiReportSchema } from "@/lib/ai/schema";
+import {
+  describeFreshness,
+  getFreshnessStatus,
+  toCadence,
+  cadenceLabel,
+  reliabilityFromFreshness,
+} from "@/lib/freshness";
 import { ClientView } from "@/components/dashboard/client-view";
 import { BrokerageBreakdown } from "@/components/dashboard/brokerage-breakdown";
 import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
 import { ReportSections } from "@/components/report-sections";
+import { ProfileTrust } from "@/components/portal/profile-trust";
 import { PrintButton } from "./print-button";
-import { BackButton } from "./back-button";
+import { FollowForm } from "./follow-form";
 
 const DEFAULT_DISCLAIMER =
   "TrustSVAN is reporting and analytics software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
@@ -50,6 +58,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
   const profile = await prisma.traderProfile.findUnique({
     where: { slug },
     select: {
+      id: true,
       userId: true,
       displayName: true,
       bio: true,
@@ -58,6 +67,9 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
       disclaimer: true,
       isPublic: true,
       hideAmounts: true,
+      hideBrokers: true,
+      updateCadence: true,
+      lastPublishedAt: true,
     },
   });
 
@@ -89,9 +101,12 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
   const dailySeries = days.map((d) => ({ date: toISODate(d.tradeDate), netPnl: Number(d.netPnl) }));
   const proofLevel = account ? await accountProofLevel(account.id, dailySeries.length > 0) : 1;
+  const reliability = reliabilityFromFreshness(
+    getFreshnessStatus(toCadence(profile.updateCadence), profile.lastPublishedAt),
+  );
   const trust =
     account && dailySeries.length > 0
-      ? computeTrustMetrics(dailySeries, Number(account.startingBalance), proofLevel)
+      ? computeTrustMetrics(dailySeries, Number(account.startingBalance), proofLevel, reliability)
       : null;
   const equitySeries =
     trust?.metrics.equityCurve.map((p) => ({ date: p.date, equity: p.equity })) ?? [];
@@ -114,13 +129,32 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
       where: { account: { userId: profile.userId } },
       select: { accountId: true, tradeDate: true, netPnl: true, grossPnl: true, fees: true, tradeCount: true },
     });
+
+    // Redaction (MVP2.5): when hideBrokers is on, replace broker + account labels
+    // with generic placeholders. The P&L numbers are untouched — only names hide.
+    const brokerMask = new Map<string, string>();
+    const accountMask = new Map<string, string>();
+    const maskBroker = (name: string) => {
+      if (!profile.hideBrokers) return name;
+      if (!brokerMask.has(name))
+        brokerMask.set(name, `Broker ${String.fromCharCode(65 + brokerMask.size)}`);
+      return brokerMask.get(name)!;
+    };
+    const maskAccount = (id: string, name: string) => {
+      if (!profile.hideBrokers) return name;
+      if (!accountMask.has(id)) accountMask.set(id, `Account ${accountMask.size + 1}`);
+      return accountMask.get(id)!;
+    };
+
     breakdown = breakdownByBrokerAndAccount(
       allDays.map((d) => {
         const acct = accountById.get(d.accountId);
+        const broker = acct?.broker?.trim() || acct?.accountName || "Unknown";
+        const accountName = acct?.accountName ?? "Unknown";
         return {
-          broker: acct?.broker?.trim() || acct?.accountName || "Unknown",
+          broker: maskBroker(broker),
           accountId: d.accountId,
-          accountName: acct?.accountName ?? "Unknown",
+          accountName: maskAccount(d.accountId, accountName),
           date: toISODate(d.tradeDate),
           netPnl: Number(d.netPnl),
           grossPnl: Number(d.grossPnl),
@@ -130,6 +164,22 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
       }),
     );
   }
+
+  // Living-profile header (MVP2): freshness + latest version's change summary + risk events.
+  const fresh = describeFreshness(toCadence(profile.updateCadence), profile.lastPublishedAt);
+  const latestVersion = await prisma.profileVersion.findFirst({
+    where: { profileId: profile.id },
+    orderBy: { versionNumber: "desc" },
+    select: { id: true, changeSummary: true, publishedAt: true },
+  });
+  const riskEvents = latestVersion
+    ? await prisma.riskEvent.findMany({
+        where: { versionId: latestVersion.id, isClientVisible: true },
+        select: { id: true, type: true, severity: true, title: true, description: true },
+        orderBy: { createdAt: "asc" },
+      })
+    : [];
+  const lastUpdatedLabel = latestVersion ? dateLabel(toISODate(latestVersion.publishedAt)) : null;
 
   const reportRows = await prisma.report.findMany({
     where: { userId: profile.userId, status: "PUBLISHED" },
@@ -157,8 +207,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
     <div className="min-h-full bg-slate-50">
       {/* Slim nav — hidden when printing / saving the report as PDF. */}
       <nav className="border-b border-slate-200 bg-white print:hidden">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <BackButton />
+        <div className="mx-auto flex max-w-4xl items-center justify-end px-4 py-3">
           <Link
             href={loggedIn ? "/dashboard" : "/explore"}
             className="text-sm font-medium text-blue-700 hover:text-blue-800"
@@ -194,6 +243,14 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
       <main className="mx-auto max-w-4xl space-y-10 px-4 py-8">
         {profile.bio && <p className="text-sm leading-relaxed text-slate-600">{profile.bio}</p>}
+
+        <ProfileTrust
+          freshness={{ label: fresh.label, blurb: fresh.blurb, tone: fresh.tone }}
+          lastUpdatedLabel={lastUpdatedLabel}
+          cadenceLabel={cadenceLabel(toCadence(profile.updateCadence))}
+          changeSummary={latestVersion?.changeSummary ?? null}
+          riskEvents={riskEvents}
+        />
 
         {trust ? (
           <ClientView
@@ -251,6 +308,14 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             </ul>
           </section>
         )}
+
+        <section className="space-y-3 print:hidden">
+          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Follow this profile</h2>
+          <p className="text-sm text-slate-500">
+            Get this trader&apos;s reporting updates by email. Not investment advice.
+          </p>
+          <FollowForm slug={slug} />
+        </section>
       </main>
 
       <footer className="border-t border-slate-200 bg-white">
