@@ -136,15 +136,15 @@ On branch `feat/foundation-and-auth`.
 - ✅ **M6 Launch** — polished landing (hero + waitlist), `WaitlistEntry` capture, seeded demo at `/p/demo`
   (`npm run db:seed`). **MVP complete (M1–M6).**
 - ✅ **Trust features** — evidence locker + dynamic **Proof Levels** (CSV data = L2, uploaded broker
-  statement = L3) via [src/lib/proof.ts](src/lib/proof.ts); `/settings` (visibility, $-redaction via
+  statement = L3, uploaded tax return / official tax record = L4) via [src/lib/proof.ts](src/lib/proof.ts); `/settings` (visibility, $-redaction via
   `hideAmounts`, disclaimer, evidence upload/serve at `/api/evidence/[id]`); public trader directory
   `/explore`. Files stored under `storage/` (git-ignored).
 
 - ✅ **Transparency Score breakdown** (weighted sub-scores in the UI) + **monthly calendar heatmap**.
 
 **Deferred / next:** more broker CSV formats (Fidelity, Webull, Robinhood, E*TRADE — note most retail
-transaction exports lack per-row realized P&L, so they need a FIFO round-trip matcher), Proof Levels 4–5
-(broker connection / third-party verification), IBKR Flex Web Service auto-pull, multi-account portal,
+	transaction exports lack per-row realized P&L, so they need a FIFO round-trip matcher), Proof Level 5
+	(third-party verification), IBKR Flex Web Service auto-pull, multi-account portal,
 hosting/deploy.
 
 Planned routes: `/login`, `/onboarding`, `/upload`, `/dashboard`, `/reports`, `/p/[slug]`,

@@ -2,20 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { computeTrustMetrics } from "@/lib/trust";
-import { breakdownByBrokerAndAccount } from "@/lib/metrics";
-import { accountProofLevel } from "@/lib/proof";
 import { toISODate } from "@/lib/format";
 import { aiReportSchema } from "@/lib/ai/schema";
+import { publishedTrustFromMetrics } from "@/lib/published-profile";
 import {
   describeFreshness,
-  getFreshnessStatus,
   toCadence,
   cadenceLabel,
-  reliabilityFromFreshness,
 } from "@/lib/freshness";
 import { ClientView } from "@/components/dashboard/client-view";
-import { BrokerageBreakdown } from "@/components/dashboard/brokerage-breakdown";
 import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
 import { ReportSections } from "@/components/report-sections";
 import { ProfileTrust } from "@/components/portal/profile-trust";
@@ -86,92 +81,31 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
     );
   }
 
-  const account = await prisma.tradingAccount.findFirst({
-    where: { userId: profile.userId },
-    select: { id: true, startingBalance: true },
-    orderBy: { createdAt: "asc" },
+  const latestVersion = await prisma.profileVersion.findFirst({
+    where: { profileId: profile.id },
+    orderBy: { versionNumber: "desc" },
+    select: { id: true, changeSummary: true, publishedAt: true, metrics: true },
   });
-  const days = account
-    ? await prisma.dailyPnl.findMany({
-        where: { accountId: account.id },
-        select: { tradeDate: true, netPnl: true },
-        orderBy: { tradeDate: "asc" },
-      })
-    : [];
-
-  const dailySeries = days.map((d) => ({ date: toISODate(d.tradeDate), netPnl: Number(d.netPnl) }));
-  const proofLevel = account ? await accountProofLevel(account.id, dailySeries.length > 0) : 1;
-  const reliability = reliabilityFromFreshness(
-    getFreshnessStatus(toCadence(profile.updateCadence), profile.lastPublishedAt),
-  );
-  const trust =
-    account && dailySeries.length > 0
-      ? computeTrustMetrics(dailySeries, Number(account.startingBalance), proofLevel, reliability)
-      : null;
-  const equitySeries =
-    trust?.metrics.equityCurve.map((p) => ({ date: p.date, equity: p.equity })) ?? [];
+  const snapshot = latestVersion ? publishedTrustFromMetrics(latestVersion.metrics) : null;
+  const trust = snapshot?.trust ?? null;
+  const dailySeries = snapshot?.dailySeries ?? [];
+  const equitySeries = snapshot?.equitySeries ?? [];
   const period =
     dailySeries.length > 0
       ? `${dateLabel(dailySeries[0].date)} – ${dateLabel(dailySeries[dailySeries.length - 1].date)}`
       : null;
 
-  // All-account brokerage → account P&L breakdown (the trust view above is the
-  // primary account only). Self-hides under 2 accounts; respects $ redaction.
+  // Account/broker labels are used only to redact report prose when privacy is on.
   const portalAccounts = await prisma.tradingAccount.findMany({
     where: { userId: profile.userId },
     select: { id: true, accountName: true, broker: true },
     orderBy: { createdAt: "asc" },
   });
-  let breakdown: ReturnType<typeof breakdownByBrokerAndAccount> | null = null;
-  if (portalAccounts.length > 1) {
-    const accountById = new Map(portalAccounts.map((a) => [a.id, a]));
-    const allDays = await prisma.dailyPnl.findMany({
-      where: { account: { userId: profile.userId } },
-      select: { accountId: true, tradeDate: true, netPnl: true, grossPnl: true, fees: true, tradeCount: true },
-    });
-
-    // Redaction (MVP2.5): when hideBrokers is on, replace broker + account labels
-    // with generic placeholders. The P&L numbers are untouched — only names hide.
-    const brokerMask = new Map<string, string>();
-    const accountMask = new Map<string, string>();
-    const maskBroker = (name: string) => {
-      if (!profile.hideBrokers) return name;
-      if (!brokerMask.has(name))
-        brokerMask.set(name, `Broker ${String.fromCharCode(65 + brokerMask.size)}`);
-      return brokerMask.get(name)!;
-    };
-    const maskAccount = (id: string, name: string) => {
-      if (!profile.hideBrokers) return name;
-      if (!accountMask.has(id)) accountMask.set(id, `Account ${accountMask.size + 1}`);
-      return accountMask.get(id)!;
-    };
-
-    breakdown = breakdownByBrokerAndAccount(
-      allDays.map((d) => {
-        const acct = accountById.get(d.accountId);
-        const broker = acct?.broker?.trim() || acct?.accountName || "Unknown";
-        const accountName = acct?.accountName ?? "Unknown";
-        return {
-          broker: maskBroker(broker),
-          accountId: d.accountId,
-          accountName: maskAccount(d.accountId, accountName),
-          date: toISODate(d.tradeDate),
-          netPnl: Number(d.netPnl),
-          grossPnl: Number(d.grossPnl),
-          fees: Number(d.fees),
-          tradeCount: d.tradeCount,
-        };
-      }),
-    );
-  }
+  const privateReportTerms = portalAccounts.flatMap((a) => [a.accountName, a.broker ?? ""]);
 
   // Living-profile header (MVP2): freshness + latest version's change summary + risk events.
-  const fresh = describeFreshness(toCadence(profile.updateCadence), profile.lastPublishedAt);
-  const latestVersion = await prisma.profileVersion.findFirst({
-    where: { profileId: profile.id },
-    orderBy: { versionNumber: "desc" },
-    select: { id: true, changeSummary: true, publishedAt: true },
-  });
+  const publishedAtForFreshness = profile.lastPublishedAt ?? latestVersion?.publishedAt ?? null;
+  const fresh = describeFreshness(toCadence(profile.updateCadence), publishedAtForFreshness);
   const riskEvents = latestVersion
     ? await prisma.riskEvent.findMany({
         where: { versionId: latestVersion.id, isClientVisible: true },
@@ -198,6 +132,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
   });
   const KIND_LABEL: Record<string, string> = {
     STATEMENT: "Statement",
+    TAX_RETURN: "Tax return",
     PAYOUT: "Payout",
     EXPORT: "Export",
     OTHER: "Other",
@@ -267,19 +202,17 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
         {trust && <CalendarHeatmap data={dailySeries} hideAmounts={profile.hideAmounts} />}
 
-        {breakdown && (
-          <BrokerageBreakdown
-            brokers={breakdown.brokers}
-            totalNet={breakdown.totalNet}
-            hideAmounts={profile.hideAmounts}
-          />
-        )}
-
         {reports.length > 0 && (
           <section className="space-y-4">
             <h2 className="text-lg font-semibold tracking-tight text-slate-900">Monthly reports</h2>
             {reports.map((r) => (
-              <ReportSections key={r.id} period={r.period} report={r.report} />
+              <ReportSections
+                key={r.id}
+                period={r.period}
+                report={r.report}
+                hideAmounts={profile.hideAmounts}
+                redactTerms={profile.hideBrokers ? privateReportTerms : []}
+              />
             ))}
           </section>
         )}
@@ -319,8 +252,9 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
       </main>
 
       <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-4xl px-4 py-6 text-xs leading-relaxed text-slate-400">
-          {profile.disclaimer || DEFAULT_DISCLAIMER}
+        <div className="mx-auto max-w-4xl space-y-2 px-4 py-6 text-xs leading-relaxed text-slate-400">
+          {profile.disclaimer && <p>{profile.disclaimer}</p>}
+          <p>{DEFAULT_DISCLAIMER}</p>
         </div>
       </footer>
     </div>

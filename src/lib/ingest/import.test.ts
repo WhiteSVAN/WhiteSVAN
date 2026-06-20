@@ -5,7 +5,7 @@
 import "dotenv/config";
 import { afterAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
-import { importTrades } from "@/lib/ingest/import";
+import { DuplicateImportError, importTrades } from "@/lib/ingest/import";
 import type { ParsedTrade } from "@/lib/csv/parse";
 
 const hasDb = !!process.env.DATABASE_URL;
@@ -67,5 +67,15 @@ describe.skipIf(!hasDb)("importTrades (integration)", () => {
     // Original -42 plus the new +10 → -32, still a single row for the day.
     expect(Number(day2.netPnl)).toBeCloseTo(-32);
     expect(day2.tradeCount).toBe(2);
+  });
+
+  it("rejects importing the same source file twice", async () => {
+    const account = await prisma.tradingAccount.findFirstOrThrow({ where: { userId } });
+    const sourceInfo = { fileHash: "duplicate-test-hash", originalFilename: "dupe.csv" };
+
+    await importTrades(account.id, [trade({ tradeDate: "2026-05-03", realizedPnl: 25 })], sourceInfo);
+    await expect(
+      importTrades(account.id, [trade({ tradeDate: "2026-05-04", realizedPnl: 50 })], sourceInfo),
+    ).rejects.toBeInstanceOf(DuplicateImportError);
   });
 });

@@ -11,6 +11,7 @@ import { toggleEvidencePublic, deleteEvidence } from "./actions";
 
 const KIND_LABEL: Record<string, string> = {
   STATEMENT: "Statement",
+  TAX_RETURN: "Tax return",
   PAYOUT: "Payout",
   EXPORT: "Export",
   OTHER: "Other",
@@ -136,11 +137,9 @@ export default async function SettingsPage() {
             Proof Level {proofLevel}: {PROOF_LEVELS[proofLevel].label}
           </span>
           <p className="mt-0.5 text-slate-500">{PROOF_LEVELS[proofLevel].blurb}</p>
-          {proofLevel < 3 && (
-            <p className="mt-1 text-xs text-slate-400">
-              Upload a broker statement below to reach Level 3 (Statement checked).
-            </p>
-          )}
+          <p className="mt-1 text-xs text-slate-400">
+            Upload a broker statement for Level 3, or a tax return / official tax record for Level 4.
+          </p>
         </div>
 
         <div className="mt-5">
@@ -174,19 +173,25 @@ export default async function SettingsPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <form action={toggleEvidencePublic}>
-                      <input type="hidden" name="id" value={e.id} />
-                      <button
-                        type="submit"
-                        className={`rounded px-2 py-0.5 text-xs font-medium ${
-                          e.isPublic
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-slate-100 text-slate-500"
-                        }`}
-                      >
-                        {e.isPublic ? "Public" : "Private"}
-                      </button>
-                    </form>
+                    {e.kind === "TAX_RETURN" ? (
+                      <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                        Verification only
+                      </span>
+                    ) : (
+                      <form action={toggleEvidencePublic}>
+                        <input type="hidden" name="id" value={e.id} />
+                        <button
+                          type="submit"
+                          className={`rounded px-2 py-0.5 text-xs font-medium ${
+                            e.isPublic
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
+                          {e.isPublic ? "Public" : "Private"}
+                        </button>
+                      </form>
+                    )}
                     <form action={deleteEvidence}>
                       <input type="hidden" name="id" value={e.id} />
                       <button type="submit" className="text-xs text-red-600 hover:text-red-700">

@@ -9,6 +9,7 @@ import bcrypt from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { aggregateDaily } from "../src/lib/metrics";
+import { computeTrustMetrics } from "../src/lib/trust";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -71,6 +72,7 @@ async function main() {
           displayName: "Ava Demo",
           slug: "demo",
           isPublic: true,
+          updateCadence: "WEEKLY",
           strategy: "Intraday futures momentum, risk-defined",
           instruments: "ES, NQ",
           bio: "A demo account showing what a TrustSVAN client portal looks like.",
@@ -112,6 +114,52 @@ async function main() {
       netPnl: d.netPnl,
       tradeCount: d.tradeCount,
     })),
+  });
+
+  const trust = computeTrustMetrics(
+    daily.map((d) => ({ date: d.date, netPnl: d.netPnl })),
+    STARTING_BALANCE,
+    2,
+    100,
+  );
+  const profile = await prisma.traderProfile.findUniqueOrThrow({
+    where: { userId: user.id },
+    select: { id: true },
+  });
+  const publishedAt = new Date();
+  await prisma.traderProfile.update({
+    where: { id: profile.id },
+    data: { lastPublishedAt: publishedAt },
+  });
+  await prisma.profileVersion.create({
+    data: {
+      profileId: profile.id,
+      versionNumber: 1,
+      periodStart: new Date(daily[0].date),
+      periodEnd: new Date(daily[daily.length - 1].date),
+      metrics: JSON.parse(
+        JSON.stringify({
+          ...trust.metrics,
+          bestDayShare: trust.bestDayShare,
+          top3Share: trust.top3Share,
+          profitWithoutBestDay: trust.profitWithoutBestDay,
+          badToGoodRatio: trust.badToGoodRatio,
+          drawdownSeverity: trust.drawdownSeverity,
+          bounceBackDays: trust.bounceBackDays,
+          daysUnderwater: trust.daysUnderwater,
+          proofLevel: 2,
+          scores: trust.scores,
+          verdict: trust.verdict,
+        }),
+      ),
+      netPnl: trust.metrics.netPnl,
+      returnPct: trust.metrics.returnPct,
+      transparencyScore: trust.scores.transparency,
+      proofLevel: 2,
+      freshnessStatus: "fresh",
+      changeSummary: `First published update — ${trust.metrics.tradingDays} trading days, net $${trust.metrics.netPnl.toFixed(0)}, Transparency Score ${trust.scores.transparency}.`,
+      publishedAt,
+    },
   });
 
   await prisma.report.create({

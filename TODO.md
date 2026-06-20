@@ -29,8 +29,10 @@ Things to come back to. MVP (M1–M6) and the first round of trust features are 
 
 ## Trust & verification
 
-- [ ] **Proof Levels 4–5** — read-only broker connection (L4) and third-party / admin verification
-      (L5). Currently CSV = L2, uploaded statement = L3.
+- [x] **Tax-return verification (Proof Level 4).** Uploaded tax return / official tax record evidence
+      raises a profile to L4.
+- [ ] **Proof Level 5** — third-party / admin verification. Currently CSV = L2, uploaded statement =
+      L3, uploaded tax return / official tax record = L4.
 - [ ] **Score breakdown popover** — hover/tooltip on the Transparency Score showing the exact formula
       per sub-score (weights are already shown).
 - [ ] **Redaction granularity** — today only `hideAmounts`; add hide symbols / sizes / timestamps if

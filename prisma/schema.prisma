@@ -139,6 +139,7 @@ model ImportBatch {
   versions ProfileVersion[]
 
   @@index([accountId])
+  @@unique([accountId, fileHash])
 }
 
 // MVP2 — an immutable snapshot of the profile's performance at a publish moment.
@@ -258,6 +259,7 @@ model WaitlistEntry {
 
 enum EvidenceKind {
   STATEMENT // broker/prop-firm statement — raises Proof Level
+  TAX_RETURN // tax return / official tax record — raises Proof Level
   PAYOUT // payout/withdrawal proof
   EXPORT // raw export (e.g. the imported CSV)
   OTHER

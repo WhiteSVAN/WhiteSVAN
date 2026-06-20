@@ -9,6 +9,7 @@ import {
   saveEvidenceFile,
   deleteEvidenceFile,
 } from "@/lib/evidence";
+import { publicCopyError, publicCopyIssues } from "@/lib/public-copy";
 
 export type SettingsState = { saved?: boolean; error?: string } | undefined;
 
@@ -25,6 +26,8 @@ export async function savePortalSettings(
   const hideAmounts = formData.get("hideAmounts") === "on";
   const hideBrokers = formData.get("hideBrokers") === "on";
   const disclaimer = String(formData.get("disclaimer") ?? "").trim();
+  const complianceMessage = publicCopyError(publicCopyIssues([disclaimer]));
+  if (complianceMessage) return { error: complianceMessage };
 
   const cadenceRaw = String(formData.get("updateCadence") ?? "MANUAL");
   const updateCadence: Cadence = (CADENCES as readonly string[]).includes(cadenceRaw)
@@ -40,7 +43,7 @@ export async function savePortalSettings(
   return { saved: true };
 }
 
-const EVIDENCE_KINDS = ["STATEMENT", "PAYOUT", "EXPORT", "OTHER"] as const;
+const EVIDENCE_KINDS = ["STATEMENT", "TAX_RETURN", "PAYOUT", "EXPORT", "OTHER"] as const;
 
 /** Upload an evidence file (statement, payout proof, export). */
 export async function uploadEvidence(
@@ -95,9 +98,10 @@ export async function toggleEvidencePublic(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const evidence = await prisma.evidence.findFirst({
     where: { id, userId },
-    select: { id: true, isPublic: true },
+    select: { id: true, isPublic: true, kind: true },
   });
   if (evidence) {
+    if (evidence.kind === "TAX_RETURN") return;
     await prisma.evidence.update({ where: { id }, data: { isPublic: !evidence.isPublic } });
     revalidatePath("/settings");
     revalidatePath("/dashboard");
@@ -130,6 +134,7 @@ export async function clearAccountTrades(formData: FormData) {
   if (!owned) return;
 
   await prisma.$transaction([
+    prisma.importBatch.deleteMany({ where: { accountId } }),
     prisma.trade.deleteMany({ where: { accountId } }),
     prisma.dailyPnl.deleteMany({ where: { accountId } }),
   ]);
@@ -170,6 +175,7 @@ export async function clearAllData() {
   if (ids.length === 0) return;
 
   await prisma.$transaction([
+    prisma.importBatch.deleteMany({ where: { accountId: { in: ids } } }),
     prisma.trade.deleteMany({ where: { accountId: { in: ids } } }),
     prisma.dailyPnl.deleteMany({ where: { accountId: { in: ids } } }),
   ]);
