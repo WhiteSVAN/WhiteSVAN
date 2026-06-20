@@ -5,6 +5,7 @@ import { signOut } from "@/auth";
 import { prisma } from "@/lib/db";
 import { requireUserId } from "@/lib/auth/dal";
 import { profileSchema, type ProfileInput } from "@/lib/auth/schemas";
+import { publicCopyError, publicCopyIssues } from "@/lib/public-copy";
 
 export type ProfileFormState =
   | { errors?: Partial<Record<keyof ProfileInput, string[]>>; message?: string }
@@ -30,6 +31,10 @@ export async function createProfile(
   }
 
   const { displayName, slug, bio, strategy, instruments, riskRules } = parsed.data;
+  const complianceMessage = publicCopyError(
+    publicCopyIssues([displayName, bio, strategy, instruments, riskRules]),
+  );
+  if (complianceMessage) return { message: complianceMessage };
 
   // Handle must be globally unique; allow the owner to keep their own.
   const taken = await prisma.traderProfile.findUnique({

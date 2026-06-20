@@ -7,6 +7,7 @@ import { inputClass, labelClass } from "@/components/form";
 
 const KINDS = [
   { v: "STATEMENT", label: "Broker statement (raises Proof Level)" },
+  { v: "TAX_RETURN", label: "Tax return / official tax record (raises Proof Level 4)" },
   { v: "PAYOUT", label: "Payout proof" },
   { v: "EXPORT", label: "Raw export" },
   { v: "OTHER", label: "Other" },

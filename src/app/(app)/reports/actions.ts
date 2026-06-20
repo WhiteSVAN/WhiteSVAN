@@ -128,18 +128,31 @@ export async function submitReport(
   const id = String(formData.get("id") ?? "");
   const intent = String(formData.get("intent") ?? "save");
 
-  const report = await prisma.report.findFirst({ where: { id, userId }, select: { id: true } });
+  const report = await prisma.report.findFirst({
+    where: { id, userId },
+    select: { id: true, status: true },
+  });
   if (!report) return { message: "Report not found." };
+  if (report.status === "PUBLISHED" && intent !== "publish") {
+    return { message: "Published reports are read-only. Delete and regenerate if you need a replacement." };
+  }
 
   const aiReport = reportFromForm(formData);
 
   if (intent === "approve") {
-    // Internal gate: mark ready-to-publish. Public compliance check still runs on publish.
+    const issues = reportComplianceIssues(aiReport);
+    if (issues.length > 0) {
+      await prisma.report.update({ where: { id }, data: { aiReport } });
+      return { issues };
+    }
     await prisma.report.update({ where: { id }, data: { aiReport, status: "APPROVED" } });
     return { approved: true };
   }
 
   if (intent === "publish") {
+    if (report.status !== "APPROVED") {
+      return { message: "Approve the report before publishing." };
+    }
     const issues = reportComplianceIssues(aiReport);
     if (issues.length > 0) {
       await prisma.report.update({ where: { id }, data: { aiReport } }); // keep edits, stay draft
@@ -149,7 +162,10 @@ export async function submitReport(
     return { published: true };
   }
 
-  await prisma.report.update({ where: { id }, data: { aiReport } });
+  await prisma.report.update({
+    where: { id },
+    data: { aiReport, ...(report.status === "APPROVED" ? { status: "DRAFT" as const } : {}) },
+  });
   return { saved: true };
 }
 

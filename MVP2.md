@@ -34,7 +34,8 @@ The MVP1 product (milestones M1–M6 + trust features) is built and working:
 
 ## 2. MVP2 goal
 
-A **living** profile that tells a client, at a glance:
+A **living** trust profile that helps traders, prop firms, independent contractors, brokers, and
+clients share the same factual performance record. It tells a client, at a glance:
 
 - **How fresh** the data is (last updated, coverage, freshness status, next expected update).
 - **Where it came from** (source type, file fingerprint, proof level).
@@ -59,7 +60,7 @@ Legend: ✅ done · 🟡 partial / foundation exists · ⛔ not started
 | **Report archive** (by month, draft/approved/published) | ✅ | `APPROVED` state added; `/reports` is now a by-month archive with three-state badges + Approve step |
 | **Redaction controls** (granular toggles) | ✅ | `hideBrokers` added (masks broker/account names; metrics untouched) alongside `hideAmounts`; toggles in `/settings` |
 | **Follower / watchlist** (email capture + queue) | ✅ | `ProfileFollower` + follow form on portal; `NotificationEvent` queued on publish (delivery stubbed) |
-| **Statement matching** (P2, Level-3 reconciliation) | 🟡 | Statement upload → Proof L3 already done via [proof.ts](src/lib/proof.ts) / Evidence. Only reconciliation placeholder remains |
+| **Statement / tax-return verification** (P2) | 🟡 | Statement upload → Proof L3; tax return / official tax record upload → Proof L4 via [proof.ts](src/lib/proof.ts) / Evidence. Statement reconciliation placeholder remains |
 | **TrustSVAN Score v2** (reweight + update-reliability factor) | ✅ | [trust.ts](src/lib/trust.ts) composite now proof 25 / risk 25 / **update reliability 20** / consistency 15 / profit 10 / discipline 5; reliability derived from freshness |
 
 **Net:** MVP2 P0–P1 are built. The only remaining brief item is P2 statement reconciliation (the
@@ -121,7 +122,7 @@ Each slice ships schema + a pure logic lib (+ colocated tests) + UI, matching ex
 
 - Every public profile shows last-updated, data coverage, and freshness status.
 - Trader can set cadence; profile reflects the expected schedule.
-- Each upload persists a row with file hash + period.
+- Each upload persists a row with file hash + period; duplicate source files are rejected per account.
 - Publishing creates a **new immutable** version (publishing twice ⇒ two versions, first preserved).
 - Public profile shows a change summary since the prior version.
 - Risk events (incl. stale-profile & score-change) are detected and stored.

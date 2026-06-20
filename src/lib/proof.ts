@@ -8,6 +8,21 @@ import type { ProofLevel } from "@/lib/trust";
 
 export async function accountProofLevel(accountId: string, hasData: boolean): Promise<ProofLevel> {
   if (!hasData) return 1;
+  const account = await prisma.tradingAccount.findUnique({
+    where: { id: accountId },
+    select: { userId: true },
+  });
+  if (!account) return 1;
+
+  const taxReturns = await prisma.evidence.count({
+    where: {
+      userId: account.userId,
+      kind: "TAX_RETURN",
+      OR: [{ accountId }, { accountId: null }],
+    },
+  });
+  if (taxReturns > 0) return 4;
+
   const statements = await prisma.evidence.count({
     where: { accountId, kind: "STATEMENT" },
   });

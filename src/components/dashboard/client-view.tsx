@@ -176,8 +176,12 @@ export function ClientView({
           </div>
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Redactions</p>
-            <p className="mt-1 text-slate-700">Full detail shown</p>
-            <p className="mt-0.5 text-xs text-slate-400">Redaction controls are coming soon.</p>
+            <p className="mt-1 text-slate-700">
+              {hideAmounts ? "Dollar amounts hidden" : "Full detail shown"}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-400">
+              Public privacy settings change display only; metrics are not recalculated.
+            </p>
           </div>
         </div>
       </div>

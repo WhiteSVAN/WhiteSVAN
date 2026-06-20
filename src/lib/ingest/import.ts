@@ -25,6 +25,13 @@ export interface ImportSourceInfo {
   fileHash: string;
 }
 
+export class DuplicateImportError extends Error {
+  constructor() {
+    super("This file was already imported for this account.");
+    this.name = "DuplicateImportError";
+  }
+}
+
 /**
  * Persist `trades` for one account, then fully rebuild that account's daily
  * rollup from all of its trades. A full rebuild (vs. incremental) keeps the
@@ -39,6 +46,14 @@ export async function importTrades(
   sourceInfo?: ImportSourceInfo,
 ): Promise<ImportResult> {
   return prisma.$transaction(async (tx) => {
+    if (sourceInfo) {
+      const existing = await tx.importBatch.findFirst({
+        where: { accountId, fileHash: sourceInfo.fileHash },
+        select: { id: true },
+      });
+      if (existing) throw new DuplicateImportError();
+    }
+
     if (trades.length > 0) {
       await tx.trade.createMany({
         data: trades.map((t) => ({

@@ -10,13 +10,13 @@ const QUESTIONS = [
 const STEPS = [
   { n: "1", t: "Upload your history", d: "Upload a broker or prop-firm CSV. IBKR and other formats are detected automatically — no manual mapping." },
   { n: "2", t: "Review your dashboard", d: "An equity curve, risk analytics, and an AI-written monthly report that you review and approve." },
-  { n: "3", t: "Share a private portal", d: "A clean, read-only link for clients and allocators. Print or save it as a PDF in one click." },
+  { n: "3", t: "Share a trust profile", d: "A clean, read-only link for clients, counterparties, and partners. Print or save it as a PDF in one click." },
 ];
 
 const PRICING = [
-  { name: "Free beta", price: "$0", blurb: "1 account, CSV upload, public dashboard" },
-  { name: "Pro Trader", price: "$49", blurb: "Private portal, AI monthly report, PDF export" },
-  { name: "Emerging Manager", price: "$199", blurb: "Multiple accounts, report archive, branding" },
+  { name: "Free beta", price: "$0", blurb: "1 account, CSV upload, shareable trust profile" },
+  { name: "Independent", price: "$49", blurb: "Private portal, AI monthly report, PDF export" },
+  { name: "Firm / broker", price: "$199", blurb: "Multiple accounts, report archive, branding" },
 ];
 
 export default function Home() {
@@ -47,13 +47,13 @@ export default function Home() {
       <main className="flex-1">
         {/* Hero */}
         <section className="mx-auto max-w-3xl px-4 py-20">
-          <p className="text-sm font-medium text-blue-700">Trust infrastructure for traders</p>
+          <p className="text-sm font-medium text-blue-700">Trust infrastructure for trader-client relationships</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
-            Turn your trading history into an investor-ready client portal.
+            Bridge the trust gap between traders and clients.
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-slate-600">
-            Upload your broker or prop-firm CSV. TrustSVAN generates verified performance dashboards,
-            risk analytics, AI monthly reports, and a private client link — in minutes.
+            Prop-firm traders, independent contractors, brokers, and trading teams can turn verified
+            history into client-readable risk reports, AI monthly updates, and a private trust profile.
           </p>
 
           <div className="mt-8">
@@ -74,7 +74,7 @@ export default function Home() {
             {[
               "Verified performance reports, without the spreadsheets",
               "AI-written risk and discipline summaries for your clients",
-              "A private, shareable link for clients, allocators, and followers",
+              "A private, shareable link for clients, counterparties, and followers",
             ].map((b) => (
               <li key={b} className="flex items-start gap-2 text-sm text-slate-700">
                 <span className="mt-0.5 text-blue-700">✓</span>
@@ -91,7 +91,7 @@ export default function Home() {
               Clients understand it in 30 seconds
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              No trader terminal. A trust report anyone can read.
+              No trader terminal. A trust report clients, firms, and partners can read.
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {QUESTIONS.map((c) => (
@@ -124,17 +124,17 @@ export default function Home() {
         <section className="border-y border-slate-200 bg-white">
           <div className="mx-auto grid max-w-5xl gap-6 px-4 py-16 sm:grid-cols-2">
             <div className="rounded-xl border border-slate-200 p-6">
-              <h3 className="font-medium text-slate-900">Client view</h3>
+              <h3 className="font-medium text-slate-900">Client trust view</h3>
               <p className="mt-1 text-sm text-slate-600">
                 Plain-English verdict, biggest-drop severity, and a TrustSVAN Transparency Score —
-                built for clients with no finance background.
+                built for clients, firms, and partners who need clarity without a trading terminal.
               </p>
             </div>
             <div className="rounded-xl border border-slate-200 p-6">
-              <h3 className="font-medium text-slate-900">Trader view</h3>
+              <h3 className="font-medium text-slate-900">Trader / firm view</h3>
               <p className="mt-1 text-sm text-slate-600">
                 Equity curve, profit factor, drawdown, and risk flags — the raw metrics experienced
-                traders use to review each other.
+                traders, brokers, and prop teams use to review performance records.
               </p>
             </div>
           </div>

@@ -2,9 +2,10 @@
 
 # WhiteSVAN — TrustSVAN
 
-AI-powered client reporting & risk intelligence for serious traders and emerging portfolio managers.
-Traders upload broker / prop-firm history (CSV) and get verified performance dashboards, risk
-analytics, AI-written client reports, and a private read-only client portal.
+AI-powered trust infrastructure for trader-client relationships. Prop-firm traders, independent
+traders or contractors, brokers, and trading teams upload broker / prop-firm history (CSV) and get
+verified performance dashboards, risk analytics, AI-written client reports, and a private read-only
+trust profile clients can understand.
 
 **It is a pure SaaS reporting tool.** It does **not** manage money, execute or copy trades, send
 signals, give allocation advice, predict returns, or take performance fees. Those boundaries are not
@@ -136,15 +137,15 @@ On branch `feat/foundation-and-auth`.
 - ✅ **M6 Launch** — polished landing (hero + waitlist), `WaitlistEntry` capture, seeded demo at `/p/demo`
   (`npm run db:seed`). **MVP complete (M1–M6).**
 - ✅ **Trust features** — evidence locker + dynamic **Proof Levels** (CSV data = L2, uploaded broker
-  statement = L3) via [src/lib/proof.ts](src/lib/proof.ts); `/settings` (visibility, $-redaction via
+  statement = L3, uploaded tax return / official tax record = L4) via [src/lib/proof.ts](src/lib/proof.ts); `/settings` (visibility, $-redaction via
   `hideAmounts`, disclaimer, evidence upload/serve at `/api/evidence/[id]`); public trader directory
   `/explore`. Files stored under `storage/` (git-ignored).
 
 - ✅ **Transparency Score breakdown** (weighted sub-scores in the UI) + **monthly calendar heatmap**.
 
 **Deferred / next:** more broker CSV formats (Fidelity, Webull, Robinhood, E*TRADE — note most retail
-transaction exports lack per-row realized P&L, so they need a FIFO round-trip matcher), Proof Levels 4–5
-(broker connection / third-party verification), IBKR Flex Web Service auto-pull, multi-account portal,
+	transaction exports lack per-row realized P&L, so they need a FIFO round-trip matcher), Proof Level 5
+	(third-party verification), IBKR Flex Web Service auto-pull, multi-account portal,
 hosting/deploy.
 
 Planned routes: `/login`, `/onboarding`, `/upload`, `/dashboard`, `/reports`, `/p/[slug]`,

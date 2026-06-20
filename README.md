@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WhiteSVAN — TrustSVAN
 
-## Getting Started
+TrustSVAN bridges the trust gap between traders and clients. Prop-firm traders, independent traders or contractors, brokers, and trading teams import broker or prop-firm history, review code-computed metrics, publish immutable client-facing profile versions, and share a read-only trust profile.
 
-First, run the development server:
+It does not manage money, execute trades, copy trades, provide investment advice, or guarantee performance. Public pages must keep the past-performance disclaimer.
+
+## Current Stack
+
+- Next.js 16 App Router
+- React 19
+- Prisma 7 with generated client in `src/generated/prisma`
+- Postgres 16 via Docker Compose
+- NextAuth v5 credentials auth
+- Tailwind v4
+- Recharts
+- OpenAI by default, Anthropic via `AI_PROVIDER=anthropic`
+
+## Core Rules
+
+- Code calculates numbers. AI only explains already-computed metrics.
+- Public performance reads from published `ProfileVersion` snapshots, not live imports.
+- CSV/import hashes are recorded and duplicate source files are rejected per account.
+- Privacy redaction affects public display only; metrics are not recalculated.
+- Proof Levels currently support CSV imports, broker statements, and tax-return / official-tax-record evidence.
+
+## Commands
 
 ```bash
+npm run db:up
+npm run db:migrate
+npm run db:generate
+npm run db:seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm test
+npm run typecheck
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Demo after seeding: `/p/demo`, login `demo@trustsvan.app` / `demo1234`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Important Files
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `CLAUDE.md` — architecture and guardrails
+- `MVP2.md` — living trust profile plan/status
+- `TODO.md` — backlog and caveats
+- `prisma/schema.prisma` — data model
+- `src/lib/metrics.ts` — code-of-record metrics engine
+- `src/lib/trust.ts` — TrustSVAN score and client-readable risk layer
+- `src/lib/ingest/import.ts` — source-agnostic import write path
+- `src/lib/published-profile.ts` — public snapshot reconstruction

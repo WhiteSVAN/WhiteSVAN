@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { computeTrustMetrics, type DrawdownSeverity } from "@/lib/trust";
-import { accountProofLevel } from "@/lib/proof";
-import { toISODate, formatPercent } from "@/lib/format";
+import type { DrawdownSeverity } from "@/lib/trust";
+import { formatPercent } from "@/lib/format";
+import { publishedTrustFromMetrics } from "@/lib/published-profile";
 
 export const metadata: Metadata = { title: "Explore traders — TrustSVAN" };
 
@@ -21,29 +21,24 @@ export default async function ExplorePage() {
 
   const profiles = await prisma.traderProfile.findMany({
     where: { isPublic: true },
-    select: { slug: true, displayName: true, strategy: true, instruments: true, userId: true },
+    select: {
+      slug: true,
+      displayName: true,
+      strategy: true,
+      instruments: true,
+      versions: {
+        orderBy: { versionNumber: "desc" },
+        take: 1,
+        select: { metrics: true },
+      },
+    },
     orderBy: { displayName: "asc" },
   });
 
-  const cards = await Promise.all(
-    profiles.map(async (p) => {
-      const account = await prisma.tradingAccount.findFirst({
-        where: { userId: p.userId },
-        select: { id: true, startingBalance: true },
-        orderBy: { createdAt: "asc" },
-      });
-      if (!account) return { p, trust: null };
-      const days = await prisma.dailyPnl.findMany({
-        where: { accountId: account.id },
-        select: { tradeDate: true, netPnl: true },
-        orderBy: { tradeDate: "asc" },
-      });
-      if (days.length === 0) return { p, trust: null };
-      const series = days.map((d) => ({ date: toISODate(d.tradeDate), netPnl: Number(d.netPnl) }));
-      const proofLevel = await accountProofLevel(account.id, true);
-      return { p, trust: computeTrustMetrics(series, Number(account.startingBalance), proofLevel) };
-    }),
-  );
+  const cards = profiles.map((p) => ({
+    p,
+    trust: publishedTrustFromMetrics(p.versions[0]?.metrics)?.trust ?? null,
+  }));
 
   return (
     <div className="min-h-full bg-slate-50">

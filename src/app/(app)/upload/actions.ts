@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { requireUserId } from "@/lib/auth/dal";
 import { parseTradesCsv, type ColumnMapping } from "@/lib/csv/parse";
 import { parseBrokerCsv } from "@/lib/csv/brokers";
-import { importTrades } from "@/lib/ingest/import";
+import { DuplicateImportError, importTrades } from "@/lib/ingest/import";
 import { sha256 } from "@/lib/hash";
 
 export type AccountFormState =
@@ -89,12 +89,20 @@ export async function confirmImport(
     };
   }
 
-  const result = await importTrades(accountId, trades, {
-    source: "CSV",
-    broker: account.broker,
-    originalFilename: fileName,
-    fileHash: sha256(csvText),
-  });
+  let result;
+  try {
+    result = await importTrades(accountId, trades, {
+      source: "CSV",
+      broker: account.broker,
+      originalFilename: fileName,
+      fileHash: sha256(csvText),
+    });
+  } catch (error) {
+    if (error instanceof DuplicateImportError) {
+      return { message: "This file was already imported for this account." };
+    }
+    throw error;
+  }
 
   // Freshness is driven by *publishing*, not importing — the trader reviews the
   // new numbers, then clicks Publish on the dashboard to create a profile version.

@@ -20,7 +20,7 @@ export const PROOF_LEVELS = {
   1: { label: "Self-reported", blurb: "Numbers were entered manually." },
   2: { label: "CSV imported", blurb: "Data was imported from a trading export. Broker connection is not yet active." },
   3: { label: "Statement checked", blurb: "A broker statement was uploaded and checked." },
-  4: { label: "Broker connected", blurb: "A read-only broker connection verified the data." },
+  4: { label: "Tax return checked", blurb: "A tax return or official tax record was uploaded for verification." },
   5: { label: "Third-party verified", blurb: "Data was reviewed by an external auditor." },
 } as const;
 

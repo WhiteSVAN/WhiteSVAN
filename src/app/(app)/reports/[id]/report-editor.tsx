@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { type FormEvent, useActionState, useMemo, useState } from "react";
 import { submitReport, deleteReport } from "../actions";
 import type { AiReport } from "@/lib/ai/schema";
 import { findBannedPhrases } from "@/lib/ai/compliance";
@@ -46,6 +46,7 @@ export function ReportEditor({
     : state?.approved
       ? "APPROVED"
       : status;
+  const readOnly = effectiveStatus === "PUBLISHED";
   const STATUS_BADGE: Record<string, string> = {
     PUBLISHED: "bg-emerald-50 text-emerald-700",
     APPROVED: "bg-amber-50 text-amber-700",
@@ -109,47 +110,56 @@ export function ReportEditor({
       <form action={action} className="space-y-5">
         <input type="hidden" name="id" value={id} />
 
-        <Field label="Executive summary" name="executive_summary" rows={3} value={fields.executive_summary} onChange={set("executive_summary")} />
-        <Field label="Performance summary" name="performance_summary" rows={4} value={fields.performance_summary} onChange={set("performance_summary")} />
-        <Field label="Risk summary" name="risk_summary" rows={4} value={fields.risk_summary} onChange={set("risk_summary")} />
-        <Field label="Discipline review" name="discipline_review" rows={4} value={fields.discipline_review} onChange={set("discipline_review")} />
-        <Field label="Notable days" name="notable_days" rows={3} value={fields.notable_days} onChange={set("notable_days")} hint="One per line." />
-        <Field label="Warnings" name="warnings" rows={3} value={fields.warnings} onChange={set("warnings")} hint="One per line." />
-        <Field label="Client disclaimer" name="client_disclaimer" rows={2} value={fields.client_disclaimer} onChange={set("client_disclaimer")} />
+        <Field label="Executive summary" name="executive_summary" rows={3} value={fields.executive_summary} onChange={set("executive_summary")} readOnly={readOnly} />
+        <Field label="Performance summary" name="performance_summary" rows={4} value={fields.performance_summary} onChange={set("performance_summary")} readOnly={readOnly} />
+        <Field label="Risk summary" name="risk_summary" rows={4} value={fields.risk_summary} onChange={set("risk_summary")} readOnly={readOnly} />
+        <Field label="Discipline review" name="discipline_review" rows={4} value={fields.discipline_review} onChange={set("discipline_review")} readOnly={readOnly} />
+        <Field label="Notable days" name="notable_days" rows={3} value={fields.notable_days} onChange={set("notable_days")} hint="One per line." readOnly={readOnly} />
+        <Field label="Warnings" name="warnings" rows={3} value={fields.warnings} onChange={set("warnings")} hint="One per line." readOnly={readOnly} />
+        <Field label="Client disclaimer" name="client_disclaimer" rows={2} value={fields.client_disclaimer} onChange={set("client_disclaimer")} readOnly={readOnly} />
 
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            name="intent"
-            value="save"
-            disabled={pending}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-          >
-            {pending ? "Saving…" : "Save draft"}
-          </button>
-          <button
-            type="submit"
-            name="intent"
-            value="approve"
-            disabled={pending}
-            className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-60"
-          >
-            Approve
-          </button>
-          <button
-            type="submit"
-            name="intent"
-            value="publish"
-            disabled={pending || liveIssues.length > 0}
-            className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
-            title={liveIssues.length > 0 ? "Resolve compliance issues first" : undefined}
-          >
-            Publish
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="flex flex-wrap items-center gap-3">
+            {effectiveStatus === "DRAFT" && (
+              <>
+                <button
+                  type="submit"
+                  name="intent"
+                  value="save"
+                  disabled={pending}
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                >
+                  {pending ? "Saving…" : "Save draft"}
+                </button>
+                <button
+                  type="submit"
+                  name="intent"
+                  value="approve"
+                  disabled={pending || liveIssues.length > 0}
+                  className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  title={liveIssues.length > 0 ? "Resolve compliance issues first" : undefined}
+                >
+                  Approve
+                </button>
+              </>
+            )}
+            {effectiveStatus === "APPROVED" && (
+              <button
+                type="submit"
+                name="intent"
+                value="publish"
+                disabled={pending || liveIssues.length > 0}
+                className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                title={liveIssues.length > 0 ? "Resolve compliance issues first" : undefined}
+              >
+                Publish
+              </button>
+            )}
+          </div>
+        )}
       </form>
 
-      <form action={deleteReport} className="border-t border-slate-100 pt-4">
+      <form action={deleteReport} className="border-t border-slate-100 pt-4" onSubmit={confirmDelete}>
         <input type="hidden" name="id" value={id} />
         <button type="submit" className="text-sm text-red-600 hover:text-red-700">
           Delete report
@@ -159,6 +169,10 @@ export function ReportEditor({
   );
 }
 
+function confirmDelete(e: FormEvent<HTMLFormElement>) {
+  if (!window.confirm("Delete this report? This can't be undone.")) e.preventDefault();
+}
+
 function Field({
   label,
   name,
@@ -166,6 +180,7 @@ function Field({
   value,
   onChange,
   hint,
+  readOnly,
 }: {
   label: string;
   name: string;
@@ -173,6 +188,7 @@ function Field({
   value: string;
   onChange: (e: { target: { value: string } }) => void;
   hint?: string;
+  readOnly?: boolean;
 }) {
   return (
     <div>
@@ -185,7 +201,8 @@ function Field({
         rows={rows}
         value={value}
         onChange={onChange}
-        className={inputClass}
+        readOnly={readOnly}
+        className={`${inputClass} ${readOnly ? "bg-slate-50 text-slate-600" : ""}`}
       />
       {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
     </div>

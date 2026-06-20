@@ -27,6 +27,9 @@ export async function publishUpdate(
   _prev: PublishState,
   _formData: FormData,
 ): Promise<PublishState> {
+  void _prev;
+  void _formData;
+
   const user = await requireUser();
   if (!user.profile) return { error: "Set up your profile first." };
 
@@ -112,8 +115,12 @@ export async function publishUpdate(
     JSON.stringify({
       ...trust.metrics,
       bestDayShare: trust.bestDayShare,
+      top3Share: trust.top3Share,
+      profitWithoutBestDay: trust.profitWithoutBestDay,
       badToGoodRatio: trust.badToGoodRatio,
       drawdownSeverity: trust.drawdownSeverity,
+      bounceBackDays: trust.bounceBackDays,
+      daysUnderwater: trust.daysUnderwater,
       proofLevel,
       scores: trust.scores,
       verdict: trust.verdict,

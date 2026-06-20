@@ -1,4 +1,5 @@
 import type { AiReport } from "@/lib/ai/schema";
+import { redactReport } from "@/lib/redaction";
 
 function periodLabel(p: string): string {
   const [y, m] = p.split("-").map(Number);
@@ -6,21 +7,41 @@ function periodLabel(p: string): string {
 }
 
 /** Read-only render of a published AI report (used on the public portal). */
-export function ReportSections({ period, report }: { period: string; report: AiReport }) {
+export function ReportSections({
+  period,
+  report,
+  hideAmounts,
+  redactTerms,
+}: {
+  period: string;
+  report: AiReport;
+  hideAmounts?: boolean;
+  redactTerms?: string[];
+}) {
+  const renderedReport =
+    hideAmounts || (redactTerms && redactTerms.length > 0)
+      ? redactReport(report, { hideAmounts, terms: redactTerms })
+      : report;
+
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-6">
       <h3 className="text-base font-semibold text-slate-900">{periodLabel(period)}</h3>
+      {(hideAmounts || (redactTerms && redactTerms.length > 0)) && (
+        <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+          This narrative is redacted to match the profile&apos;s public privacy settings.
+        </p>
+      )}
       <div className="mt-4 space-y-4">
-        <Prose title="Summary" text={report.executive_summary} />
-        <Prose title="Performance" text={report.performance_summary} />
-        <Prose title="Risk" text={report.risk_summary} />
-        <Prose title="Discipline" text={report.discipline_review} />
-        {report.notable_days.length > 0 && <Bullets title="Notable days" items={report.notable_days} />}
-        {report.warnings.length > 0 && <Bullets title="Warnings" items={report.warnings} />}
+        <Prose title="Summary" text={renderedReport.executive_summary} />
+        <Prose title="Performance" text={renderedReport.performance_summary} />
+        <Prose title="Risk" text={renderedReport.risk_summary} />
+        <Prose title="Discipline" text={renderedReport.discipline_review} />
+        {renderedReport.notable_days.length > 0 && <Bullets title="Notable days" items={renderedReport.notable_days} />}
+        {renderedReport.warnings.length > 0 && <Bullets title="Warnings" items={renderedReport.warnings} />}
       </div>
-      {report.client_disclaimer && (
+      {renderedReport.client_disclaimer && (
         <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-400">
-          {report.client_disclaimer}
+          {renderedReport.client_disclaimer}
         </p>
       )}
     </article>

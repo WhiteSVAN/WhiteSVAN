@@ -1,6 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { requestIpKey } from "@/lib/request";
 
 export type FollowState = { ok?: boolean; error?: string } | undefined;
 
@@ -22,6 +24,13 @@ export async function followProfile(_prev: FollowState, formData: FormData): Pro
     : "MONTHLY";
 
   if (!EMAIL.test(email)) return { error: "Enter a valid email address." };
+  const limited = checkRateLimit(await requestIpKey("profile-follow"), {
+    limit: 8,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limited.ok) {
+    return { error: `Too many follow attempts. Try again in ${limited.retryAfterSeconds} seconds.` };
+  }
 
   const profile = await prisma.traderProfile.findUnique({
     where: { slug },
