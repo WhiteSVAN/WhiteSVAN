@@ -1,6 +1,6 @@
 # WhiteSVAN — TrustSVAN
 
-TrustSVAN is reporting and analytics software for traders. Traders import broker or prop-firm history, review code-computed metrics, publish immutable client-facing profile versions, and share a read-only portal.
+TrustSVAN bridges the trust gap between traders and clients. Prop-firm traders, independent traders or contractors, brokers, and trading teams import broker or prop-firm history, review code-computed metrics, publish immutable client-facing profile versions, and share a read-only trust profile.
 
 It does not manage money, execute trades, copy trades, provide investment advice, or guarantee performance. Public pages must keep the past-performance disclaimer.
 

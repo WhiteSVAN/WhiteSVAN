@@ -34,7 +34,8 @@ The MVP1 product (milestones M1–M6 + trust features) is built and working:
 
 ## 2. MVP2 goal
 
-A **living** profile that tells a client, at a glance:
+A **living** trust profile that helps traders, prop firms, independent contractors, brokers, and
+clients share the same factual performance record. It tells a client, at a glance:
 
 - **How fresh** the data is (last updated, coverage, freshness status, next expected update).
 - **Where it came from** (source type, file fingerprint, proof level).

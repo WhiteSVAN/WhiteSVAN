@@ -2,9 +2,10 @@
 
 # WhiteSVAN — TrustSVAN
 
-AI-powered client reporting & risk intelligence for serious traders and emerging portfolio managers.
-Traders upload broker / prop-firm history (CSV) and get verified performance dashboards, risk
-analytics, AI-written client reports, and a private read-only client portal.
+AI-powered trust infrastructure for trader-client relationships. Prop-firm traders, independent
+traders or contractors, brokers, and trading teams upload broker / prop-firm history (CSV) and get
+verified performance dashboards, risk analytics, AI-written client reports, and a private read-only
+trust profile clients can understand.
 
 **It is a pure SaaS reporting tool.** It does **not** manage money, execute or copy trades, send
 signals, give allocation advice, predict returns, or take performance fees. Those boundaries are not
