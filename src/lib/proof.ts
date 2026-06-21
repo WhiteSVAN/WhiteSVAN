@@ -5,6 +5,7 @@
  */
 import { prisma } from "@/lib/db";
 import type { ProofLevel } from "@/lib/trust";
+import { EvidenceKind } from "@/generated/prisma/enums";
 
 export async function accountProofLevel(accountId: string, hasData: boolean): Promise<ProofLevel> {
   if (!hasData) return 1;
@@ -17,14 +18,14 @@ export async function accountProofLevel(accountId: string, hasData: boolean): Pr
   const taxReturns = await prisma.evidence.count({
     where: {
       userId: account.userId,
-      kind: "TAX_RETURN",
+      kind: EvidenceKind.TAX_RETURN,
       OR: [{ accountId }, { accountId: null }],
     },
   });
   if (taxReturns > 0) return 4;
 
   const statements = await prisma.evidence.count({
-    where: { accountId, kind: "STATEMENT" },
+    where: { accountId, kind: EvidenceKind.STATEMENT },
   });
   return statements > 0 ? 3 : 2;
 }

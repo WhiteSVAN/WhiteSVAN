@@ -8,6 +8,7 @@ import { EvidenceUploader } from "./evidence-uploader";
 import { AccountData } from "./account-data";
 import { UpdateHistory } from "./update-history";
 import { toggleEvidencePublic, deleteEvidence } from "./actions";
+import { EvidenceKind } from "@/generated/prisma/enums";
 
 const KIND_LABEL: Record<string, string> = {
   STATEMENT: "Statement",
@@ -173,7 +174,7 @@ export default async function SettingsPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    {e.kind === "TAX_RETURN" ? (
+                    {e.kind === EvidenceKind.TAX_RETURN ? (
                       <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
                         Verification only
                       </span>

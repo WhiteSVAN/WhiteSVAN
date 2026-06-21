@@ -10,6 +10,7 @@ import {
   deleteEvidenceFile,
 } from "@/lib/evidence";
 import { publicCopyError, publicCopyIssues } from "@/lib/public-copy";
+import { EvidenceKind } from "@/generated/prisma/enums";
 
 export type SettingsState = { saved?: boolean; error?: string } | undefined;
 
@@ -43,7 +44,13 @@ export async function savePortalSettings(
   return { saved: true };
 }
 
-const EVIDENCE_KINDS = ["STATEMENT", "TAX_RETURN", "PAYOUT", "EXPORT", "OTHER"] as const;
+const EVIDENCE_KINDS = [
+  EvidenceKind.STATEMENT,
+  EvidenceKind.TAX_RETURN,
+  EvidenceKind.PAYOUT,
+  EvidenceKind.EXPORT,
+  EvidenceKind.OTHER,
+] as const;
 
 /** Upload an evidence file (statement, payout proof, export). */
 export async function uploadEvidence(
@@ -61,7 +68,7 @@ export async function uploadEvidence(
   const kindRaw = String(formData.get("kind") ?? "OTHER");
   const kind = (EVIDENCE_KINDS as readonly string[]).includes(kindRaw)
     ? (kindRaw as (typeof EVIDENCE_KINDS)[number])
-    : "OTHER";
+    : EvidenceKind.OTHER;
   const label = String(formData.get("label") ?? "").trim() || null;
 
   // Optional account scoping — verify ownership if provided.
@@ -101,7 +108,7 @@ export async function toggleEvidencePublic(formData: FormData) {
     select: { id: true, isPublic: true, kind: true },
   });
   if (evidence) {
-    if (evidence.kind === "TAX_RETURN") return;
+    if (evidence.kind === EvidenceKind.TAX_RETURN) return;
     await prisma.evidence.update({ where: { id }, data: { isPublic: !evidence.isPublic } });
     revalidatePath("/settings");
     revalidatePath("/dashboard");
