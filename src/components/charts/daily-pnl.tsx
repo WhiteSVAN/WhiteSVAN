@@ -23,7 +23,7 @@ export function DailyPnlChart({ data, hideAmounts }: { data: DailyPoint[]; hideA
   return (
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
         <XAxis
           dataKey="date"
           tick={{ fontSize: 11, fill: "#94a3b8" }}
@@ -35,10 +35,18 @@ export function DailyPnlChart({ data, hideAmounts }: { data: DailyPoint[]; hideA
           tickFormatter={(v: number) => (hideAmounts ? "" : formatMoney(v))}
           width={hideAmounts ? 8 : 56}
         />
-        <ReferenceLine y={0} stroke="#cbd5e1" />
+        <ReferenceLine y={0} stroke="#475569" />
         <Tooltip
-          cursor={{ fill: "#f8fafc" }}
-          contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0" }}
+          cursor={{ fill: "rgba(148,163,184,0.12)" }}
+          contentStyle={{
+            fontSize: 12,
+            borderRadius: 8,
+            border: "1px solid #1f2937",
+            backgroundColor: "#0b1120",
+            color: "#e5edf5",
+          }}
+          labelStyle={{ color: "#94a3b8" }}
+          itemStyle={{ color: "#e5edf5" }}
           formatter={(value: unknown) => [
             hideAmounts ? "—" : formatMoney(Number(value), { cents: true }),
             "Net P&L",

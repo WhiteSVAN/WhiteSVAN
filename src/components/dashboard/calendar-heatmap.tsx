@@ -73,7 +73,7 @@ function Month({
           const has = pnl != null;
           const intensity = has ? Math.min(1, Math.abs(pnl) / maxAbs) : 0;
           const bg = !has
-            ? "#f8fafc"
+            ? "rgba(148,163,184,0.08)"
             : pnl >= 0
               ? `rgba(16,185,129,${0.15 + intensity * 0.55})`
               : `rgba(239,68,68,${0.15 + intensity * 0.55})`;
@@ -84,7 +84,7 @@ function Month({
               style={{ backgroundColor: bg }}
               title={has && !hideAmounts ? formatMoney(pnl) : undefined}
             >
-              <div className={`text-[10px] ${has ? "font-medium text-slate-700" : "text-slate-300"}`}>
+              <div className={`text-[10px] ${has ? "font-medium text-slate-700" : "text-slate-500"}`}>
                 {d}
               </div>
               {has && !hideAmounts && (
