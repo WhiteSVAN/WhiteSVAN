@@ -27,7 +27,7 @@ export function EquityCurveChart({ data, hideAmounts }: { data: EquityPoint[]; h
             <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
         <XAxis
           dataKey="date"
           tick={{ fontSize: 11, fill: "#94a3b8" }}
@@ -40,7 +40,16 @@ export function EquityCurveChart({ data, hideAmounts }: { data: EquityPoint[]; h
           width={hideAmounts ? 8 : 56}
         />
         <Tooltip
-          contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0" }}
+          cursor={{ stroke: "rgba(148,163,184,0.25)" }}
+          contentStyle={{
+            fontSize: 12,
+            borderRadius: 8,
+            border: "1px solid #1f2937",
+            backgroundColor: "#0b1120",
+            color: "#e5edf5",
+          }}
+          labelStyle={{ color: "#94a3b8" }}
+          itemStyle={{ color: "#e5edf5" }}
           formatter={(value: unknown) => [
             hideAmounts ? "—" : formatMoney(Number(value), { cents: true }),
             "Equity",
