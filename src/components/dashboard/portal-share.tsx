@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { setPortalVisibility } from "@/app/(app)/account-settings";
 
-/** Portal link + public/private toggle + copy, shown in the dashboard header. */
+/** Operator card link + public/private toggle + copy, shown in the dashboard header. */
 export function PortalShare({ slug, isPublic }: { slug: string; isPublic: boolean }) {
   const [state, action, pending] = useActionState(setPortalVisibility, undefined);
   const live = state?.isPublic ?? isPublic;
@@ -23,7 +23,7 @@ export function PortalShare({ slug, isPublic }: { slug: string; isPublic: boolea
   return (
     <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
       <span>
-        Public portal: <span className="font-mono text-slate-700">/p/{slug}</span>
+        Operator card: <span className="font-mono text-slate-300">/p/{slug}</span>
       </span>
       <span
         className={`rounded px-1.5 py-0.5 text-xs font-medium ${
@@ -44,16 +44,12 @@ export function PortalShare({ slug, isPublic }: { slug: string; isPublic: boolea
       </form>
       {live && (
         <>
-          <span className="text-slate-300">·</span>
+          <span className="text-slate-600">/</span>
           <button type="button" onClick={copy} className="text-blue-700 hover:text-blue-800">
             {copied ? "Copied!" : "Copy link"}
           </button>
-          <Link
-            href={`/p/${slug}`}
-            target="_blank"
-            className="text-blue-700 hover:text-blue-800"
-          >
-            Open ↗
+          <Link href={`/p/${slug}`} target="_blank" className="text-cyan-300 hover:text-cyan-100">
+            Open
           </Link>
         </>
       )}

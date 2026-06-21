@@ -3,12 +3,11 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const VIEWS = [
-  { k: "client", label: "Client view" },
-  { k: "trader", label: "Trader view" },
+  { k: "client", label: "Research view" },
+  { k: "trader", label: "Operator view" },
 ];
 
-/** Switches the dashboard between the plain-English client view and the
- *  technical trader view via the `view` query param. */
+/** Switches the dashboard between research and operator views. */
 export function ViewToggle({ view }: { view: string }) {
   const router = useRouter();
   const pathname = usePathname();

@@ -73,21 +73,21 @@ export default async function ReportsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Reports</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Research briefs</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Generate an AI monthly report from your verified metrics, edit it, then publish.
+          Generate a monthly operator brief from verified metrics, edit it, then publish it to your card.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-medium text-slate-800">Generate a report</h2>
+      <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
+        <h2 className="text-base font-medium text-slate-800">Generate a brief</h2>
         <p className="mt-1 text-sm text-slate-500">
-          TrustSVAN computes the numbers; the AI only writes the narrative.
+          SVAN Capital computes the numbers; AI only drafts the market-facing narrative.
         </p>
         <div className="mt-4">
           {accountOptions.length === 0 ? (
             <p className="text-sm text-slate-500">
-              Import trades first — then you can generate a monthly report.
+              Import trades first, then generate a monthly operator brief.
             </p>
           ) : (
             <GenerateReportForm accounts={accountOptions} />
@@ -96,7 +96,7 @@ export default async function ReportsPage() {
       </div>
 
       <div>
-        <h2 className="text-base font-medium text-slate-800">Report archive</h2>
+        <h2 className="text-base font-medium text-slate-800">Brief archive</h2>
         {reports.length === 0 ? (
           <p className="mt-2 text-sm text-slate-500">No reports yet.</p>
         ) : (
@@ -106,12 +106,12 @@ export default async function ReportsPage() {
                 <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400">
                   {periodLabel(period)}
                 </h3>
-                <ul className="mt-2 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+                  <ul className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-800 bg-slate-900/70">
                   {group.map((r) => (
                     <li key={r.id}>
                       <Link
                         href={`/reports/${r.id}`}
-                        className="flex items-center justify-between px-4 py-3 text-sm hover:bg-slate-50"
+                        className="flex items-center justify-between px-4 py-3 text-sm hover:bg-slate-800/70"
                       >
                         <span className="text-slate-800">{r.account.accountName}</span>
                         <span

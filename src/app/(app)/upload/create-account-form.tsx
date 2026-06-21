@@ -8,7 +8,7 @@ export function CreateAccountForm() {
   const [state, action, pending] = useActionState(createAccount, undefined);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
       <h2 className="text-base font-medium text-slate-800">Create a trading account</h2>
       <p className="mt-1 text-sm text-slate-500">
         First, add the account these trades belong to. You can add more later.
@@ -37,7 +37,7 @@ export function CreateAccountForm() {
             id="broker"
             name="broker"
             className={inputClass}
-            placeholder="Interactive Brokers, Tradovate, Topstep…"
+            placeholder="Interactive Brokers, Tradovate, Topstep"
           />
         </div>
 
@@ -58,7 +58,7 @@ export function CreateAccountForm() {
         </div>
 
         <button type="submit" disabled={pending} className={btnPrimary}>
-          {pending ? "Creating…" : "Create account"}
+          {pending ? "Creating..." : "Create account"}
         </button>
       </form>
     </div>

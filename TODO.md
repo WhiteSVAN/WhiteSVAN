@@ -1,4 +1,4 @@
-# TrustSVAN — Backlog
+# SVAN Capital Backlog
 
 Things to come back to. MVP (M1–M6) and the first round of trust features are done and on `main`.
 
@@ -11,7 +11,7 @@ Things to come back to. MVP (M1–M6) and the first round of trust features are 
       `Amount`) and **Webull Orders** (P&L from `Avg Price` × multiplier; Webull omits fees → $0).
       Surfaced via the **Broker / import format** dropdown on `/upload` (auto-detect still default).
       Still TODO: Robinhood/Schwab/tastytrade adapters (dropdown shows them as "coming soon").
-- [ ] **Multi-account portal.** The dashboard already has an account selector; extend `/p/[slug]`
+- [ ] **Multi-account operator card.** The dashboard already has an account selector; extend `/p/[slug]`
       (and reports/evidence) to support more than the primary account — a selector or per-account
       sections.
 
@@ -36,16 +36,20 @@ Things to come back to. MVP (M1–M6) and the first round of trust features are 
 - [ ] **Score breakdown popover** — hover/tooltip on the Transparency Score showing the exact formula
       per sub-score (weights are already shown).
 - [ ] **Redaction granularity** — today only `hideAmounts`; add hide symbols / sizes / timestamps if
-      trade-level views are ever exposed on the portal.
+      trade-level views are ever exposed on the operator card.
 
 ## Product / UX
 
-- [ ] Back `/network` rooms and signal board with persisted posts, room membership, and moderation
+- [ ] Back `/network` rooms and desk tape with persisted posts, room membership, and moderation
       tools. Current slice ships the authenticated professional-network surface and real public
       profile directory without fake connect actions.
-- [ ] Render each published report's **own stored metrics snapshot** in its portal section.
+- [ ] Add first-class GEX brief objects: ticker, gamma flip, call wall, put wall, expiration, source
+      notes, counterview, invalidation, and charts.
+- [ ] Add long-form stock deep dives with thesis, catalyst path, valuation notes, bear case, and
+      source attachments.
+- [ ] Render each published brief's **own stored metrics snapshot** in its operator-card section.
 - [ ] **Email / magic-link auth** (currently credentials only; Auth.js adapter models already exist).
-- [ ] **OG image + richer metadata** for shared portal links.
+- [ ] **OG image + richer metadata** for shared operator-card links.
 - [ ] Consider **shadcn/ui** for component polish (currently Tailwind only).
 
 ## Hardening (pre-beta)
@@ -62,6 +66,6 @@ Things to come back to. MVP (M1–M6) and the first round of trust features are 
 ## Known caveats (don't lose this context)
 
 - Most **retail transaction CSVs lack realized P&L** → need the FIFO matcher above.
-- The public portal currently shows the **primary account only**.
+- The public operator card currently shows the **primary account only**.
 - The AI report generator needs an API key (`OPENAI_API_KEY` default, or `AI_PROVIDER=anthropic`).
 - Demo: `npm run db:seed` → `/p/demo` (login `demo@trustsvan.app` / `demo1234`).

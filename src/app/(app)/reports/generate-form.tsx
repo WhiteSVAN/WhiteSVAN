@@ -77,7 +77,7 @@ export function GenerateReportForm({ accounts }: { accounts: AccountOption[] }) 
       </div>
 
       <button type="submit" disabled={pending || !period} className={`${btnPrimary} sm:w-auto sm:px-6`}>
-        {pending ? "Generating…" : "Generate AI report"}
+        {pending ? "Generating..." : "Generate brief"}
       </button>
     </form>
   );

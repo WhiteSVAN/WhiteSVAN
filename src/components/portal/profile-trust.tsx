@@ -22,8 +22,8 @@ export interface ClientRiskEvent {
 }
 
 /**
- * Public "living profile" header (MVP2): freshness badge + last-updated, the
- * change summary since the prior version, and client-visible risk-event cards.
+ * Public operator-card header: freshness badge, last-updated label, change
+ * summary since the prior version, and visible risk-event cards.
  */
 export function ProfileTrust({
   freshness,
@@ -40,7 +40,7 @@ export function ProfileTrust({
 }) {
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-800 bg-slate-900/70 p-4">
         <span
           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${TONE[freshness.tone]}`}
           title={freshness.blurb}
@@ -49,13 +49,13 @@ export function ProfileTrust({
         </span>
         <span className="text-sm text-slate-500">
           {lastUpdatedLabel ? `Last updated ${lastUpdatedLabel}` : "Not yet published"}
-          <span className="text-slate-300"> · </span>
+          <span className="text-slate-600"> / </span>
           {cadenceLabel} updates
         </span>
       </div>
 
       {changeSummary && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-4">
           <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400">
             Since last update
           </h3>

@@ -1,9 +1,9 @@
-# TrustSVAN — MVP2: Living Trust Profile
+# SVAN Capital - Living Operator Card
 
-> **What this is:** a running record of what TrustSVAN does today and the plan to take it
-> from a *static* performance report to a *living, timestamped, client-readable trust profile*.
+> **What this is:** a running record of what SVAN Capital does today and the plan to take it
+> from a static performance record to a living, timestamped, trader-readable operator card.
 > Source of truth for tech remains [CLAUDE.md](CLAUDE.md) + the code; the MVP2 brief PDF is a
-> **draft** — where its table/field names disagree with our schema, we adapt the *capability*
+> **draft** - where its table/field names disagree with our schema, we adapt the *capability*
 > onto our existing models rather than copying its names.
 
 **Product guardrail (unchanged, load-bearing):** reporting & analytics software only. No trade
@@ -22,9 +22,9 @@ The MVP1 product (milestones M1–M6 + trust features) is built and working:
 | Auth & app shell | ✅ | NextAuth v5 (credentials + JWT), DAL, `/login` `/signup` `/onboarding`, protected layout |
 | CSV import | ✅ | `/upload`: account → file → auto-mapped preview → import → `DailyPnl` rebuild. IBKR Flex/Activity, manual template, Fidelity & E\*TRADE realized-G/L; FIFO matcher for retail transaction exports |
 | Metrics + dashboard | ✅ | Equity curve, daily P&L, account/range filters, risk panel — all from [metrics.ts](src/lib/metrics.ts) (pure, code-of-record) |
-| TrustSVAN dashboard | ✅ | Plain-English **Client view** ⇄ technical **Trader view** ([trust.ts](src/lib/trust.ts)): Big-Win Dependency, Biggest-Drop severity, Bounce-Back Time, sub-scores + Transparency Score + verdict |
-| AI reports | ✅ | `/reports`: generate (OpenAI default / Claude) → editor with live compliance → publish. Strict system prompt + banned-language filter ([compliance.ts](src/lib/ai/compliance.ts)) |
-| Client portal | ✅ | Public `/p/[slug]`, public/private toggle + share link, Print / Save-PDF |
+| SVAN dashboard | done | **Research view** and **Operator view** ([trust.ts](src/lib/trust.ts)): Big-Win Dependency, Biggest-Drop severity, Bounce-Back Time, sub-scores + Transparency Score + verdict |
+| AI briefs | done | `/reports`: generate (OpenAI default / Claude), edit with live compliance, then publish. Strict system prompt + banned-language filter ([compliance.ts](src/lib/ai/compliance.ts)) |
+| Operator card | done | Public `/p/[slug]`, public/private toggle + share link, Print / Save-PDF |
 | Launch surface | ✅ | Landing + waitlist capture, seeded demo at `/p/demo`, public directory `/explore` |
 | Professional network | ✅ | Authenticated `/network` surface for trader-to-trader discovery, rooms, structured signal/counterview prompts, and proof-backed member cards |
 | Evidence & Proof Levels | ✅ | Evidence locker + dynamic Proof Levels ([proof.ts](src/lib/proof.ts)): CSV = L2, broker statement = L3. `/settings` upload + serve |
@@ -33,10 +33,11 @@ The MVP1 product (milestones M1–M6 + trust features) is built and working:
 
 ---
 
-## 2. MVP2 goal
+## 2. Current product goal
 
-A **living** trust profile that helps traders, prop firms, independent contractors, brokers, and
-clients share the same factual performance record. It tells a client, at a glance:
+A living operator card and research network that helps traders, prop firms, independent operators,
+brokers, and quant desks share factual performance records, GEX briefs, and stock deep dives. It
+tells a professional peer, at a glance:
 
 - **How fresh** the data is (last updated, coverage, freshness status, next expected update).
 - **Where it came from** (source type, file fingerprint, proof level).
@@ -56,13 +57,13 @@ Legend: ✅ done · 🟡 partial / foundation exists · ⛔ not started
 | **Update cadence** (daily/weekly/monthly/manual) | ✅ | `UpdateCadence` enum on `TraderProfile`; selector in `/settings` |
 | **Upload history** (hash, row count, period, P&L per import) | ✅ | `ImportBatch` model written by [import.ts](src/lib/ingest/import.ts) (sha-256 [hash.ts](src/lib/hash.ts), row count, period, net P&L); table in `/settings` |
 | **Profile versions** (immutable snapshot per publish) | ✅ | `ProfileVersion` + Publish action ([dashboard/actions.ts](src/app/(app)/dashboard/actions.ts)); `@@unique([profileId, versionNumber])`, prior versions never mutated |
-| **Change summary** (diff since last version) | ✅ | [version.ts](src/lib/version.ts) `diffVersions` + [risk-events.ts](src/lib/risk-events.ts) `buildChangeSummary`; shown on portal + dashboard |
-| **Risk events** (persisted, dated, severity) | ✅ | `RiskEvent` rows generated on publish ([risk-events.ts](src/lib/risk-events.ts)): drawdown, worst-day, big-win dependency, loss/win, score-change, recovery, stale. Client-visible cards on portal |
+| **Change summary** (diff since last version) | ✅ | [version.ts](src/lib/version.ts) `diffVersions` + [risk-events.ts](src/lib/risk-events.ts) `buildChangeSummary`; shown on operator card + dashboard |
+| **Risk events** (persisted, dated, severity) | ✅ | `RiskEvent` rows generated on publish ([risk-events.ts](src/lib/risk-events.ts)): drawdown, worst-day, big-win dependency, loss/win, score-change, recovery, stale. Visible cards on operator card |
 | **Report archive** (by month, draft/approved/published) | ✅ | `APPROVED` state added; `/reports` is now a by-month archive with three-state badges + Approve step |
 | **Redaction controls** (granular toggles) | ✅ | `hideBrokers` added (masks broker/account names; metrics untouched) alongside `hideAmounts`; toggles in `/settings` |
-| **Follower / watchlist** (email capture + queue) | ✅ | `ProfileFollower` + follow form on portal; `NotificationEvent` queued on publish (delivery stubbed) |
+| **Follower / watchlist** (email capture + queue) | ✅ | `ProfileFollower` + follow form on operator card; `NotificationEvent` queued on publish (delivery stubbed) |
 | **Statement / tax-return verification** (P2) | 🟡 | Statement upload → Proof L3; tax return / official tax record upload → Proof L4 via [proof.ts](src/lib/proof.ts) / Evidence. Statement reconciliation placeholder remains |
-| **TrustSVAN Score v2** (reweight + update-reliability factor) | ✅ | [trust.ts](src/lib/trust.ts) composite now proof 25 / risk 25 / **update reliability 20** / consistency 15 / profit 10 / discipline 5; reliability derived from freshness |
+| **SVAN Score v2** (reweight + update-reliability factor) | ✅ | [trust.ts](src/lib/trust.ts) composite now proof 25 / risk 25 / **update reliability 20** / consistency 15 / profit 10 / discipline 5; reliability derived from freshness |
 
 **Net:** MVP2 P0–P1 are built. The only remaining brief item is P2 statement reconciliation (the
 upload half is already done at Proof L3). Email *delivery* is intentionally stubbed (queue only).
@@ -113,7 +114,7 @@ Each slice ships schema + a pure logic lib (+ colocated tests) + UI, matching ex
 - `ProfileFollower` + `NotificationEvent` (queue only; email delivery stubbed). Follow form with
   explicit no-advice language.
 
-### TrustSVAN Score v2  ✅ done
+### SVAN Score v2 - done
 - Once freshness + update-reliability data exist, reweight to: proof 25 · risk control 25 ·
   update reliability 20 · consistency 15 · profit quality 10 · transparency 5.
 

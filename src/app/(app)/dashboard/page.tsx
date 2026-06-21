@@ -172,13 +172,13 @@ export default async function DashboardPage({
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
             {account
               ? "Try a wider date range, or import more trades."
-              : "Import a broker or prop-firm CSV to see a plain-English trust report and the full analytics here."}
+            : "Import a broker or prop-firm CSV to build your SVAN Capital operator card and analytics terminal."}
           </p>
           <Link
             href="/upload"
             className="mt-4 inline-flex rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800"
           >
-            {account ? "Import more" : "Import your first CSV"}
+            {account ? "Import more" : "Import first CSV"}
           </Link>
         </div>
       )}

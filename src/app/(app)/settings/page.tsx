@@ -113,10 +113,10 @@ export default async function SettingsPage() {
     <div className="mx-auto max-w-3xl space-y-8">
       <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Settings</h1>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-medium text-slate-800">Portal &amp; privacy</h2>
+      <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
+        <h2 className="text-base font-medium text-slate-800">Operator card and privacy</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Control who can see your portal and what it reveals.
+          Control who can see your SVAN Capital card and what it reveals.
         </p>
         <div className="mt-4">
           <PortalSettingsForm
@@ -130,8 +130,8 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-medium text-slate-800">Proof &amp; evidence</h2>
+      <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
+        <h2 className="text-base font-medium text-slate-800">Proof and evidence</h2>
         <div className="mt-3 rounded-lg bg-slate-50 px-4 py-3 text-sm">
           <span className="font-medium text-slate-800">
             Proof Level {proofLevel}: {PROOF_LEVELS[proofLevel].label}
@@ -153,7 +153,7 @@ export default async function SettingsPage() {
           {evidence.length === 0 ? (
             <p className="mt-2 text-sm text-slate-500">No files uploaded yet.</p>
           ) : (
-            <ul className="mt-2 divide-y divide-slate-100 rounded-xl border border-slate-200">
+            <ul className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-800">
               {evidence.map((e) => (
                 <li
                   key={e.id}
@@ -168,8 +168,8 @@ export default async function SettingsPage() {
                       {e.label || e.originalName}
                     </a>
                     <p className="text-xs text-slate-400">
-                      {KIND_LABEL[e.kind]} · {Math.max(1, Math.round(e.size / 1024))} KB
-                      {e.account && ` · ${e.account.accountName}`}
+                      {KIND_LABEL[e.kind]} / {Math.max(1, Math.round(e.size / 1024))} KB
+                      {e.account && ` / ${e.account.accountName}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -206,10 +206,10 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-medium text-slate-800">Updates &amp; history</h2>
+      <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
+        <h2 className="text-base font-medium text-slate-800">Publishing history</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Your import audit trail and the immutable versions clients see on your profile.
+          Your import audit trail and the immutable versions visible on your operator card.
         </p>
         <div className="mt-4">
           <UpdateHistory
@@ -221,8 +221,8 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-medium text-slate-800">Trading accounts &amp; data</h2>
+      <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
+        <h2 className="text-base font-medium text-slate-800">Trading accounts and data</h2>
         <p className="mt-1 text-sm text-slate-500">
           Imported the wrong CSV? Clear an account&apos;s trades and re-import, delete an account
           entirely, or reset everything. These actions can&apos;t be undone.

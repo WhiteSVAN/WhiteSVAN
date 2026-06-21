@@ -6,7 +6,7 @@ import type { DrawdownSeverity } from "@/lib/trust";
 import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 
-export const metadata: Metadata = { title: "Explore traders — TrustSVAN" };
+export const metadata: Metadata = { title: "Operator directory - SVAN Capital" };
 
 const SEVERITY: Record<DrawdownSeverity, { label: string; cls: string }> = {
   controlled: { label: "Controlled", cls: "bg-emerald-50 text-emerald-700" },
@@ -41,41 +41,41 @@ export default async function ExplorePage() {
   }));
 
   return (
-    <div className="min-h-full bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="min-h-full bg-slate-950 text-slate-100">
+      <header className="border-b border-slate-800 bg-slate-950/90">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <Link
             href={loggedIn ? "/dashboard" : "/"}
-            className="text-base font-semibold tracking-tight text-slate-900"
+            className="text-base font-semibold tracking-[0.18em] text-slate-100"
           >
-            Trust<span className="text-blue-700">SVAN</span>
+            SVAN <span className="text-cyan-300">CAPITAL</span>
           </Link>
           {loggedIn ? (
             <Link
-              href="/dashboard"
-              className="text-sm font-medium text-blue-700 hover:text-blue-800"
+              href="/network"
+              className="text-sm font-medium text-cyan-300 hover:text-cyan-100"
             >
-              Dashboard
+              Network
             </Link>
           ) : (
             <Link
               href="/signup"
-              className="rounded-lg bg-blue-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-800"
+              className="rounded-md bg-cyan-500 px-3 py-1.5 text-sm font-medium text-slate-950 hover:bg-cyan-300"
             >
-              Get started
+              Join beta
             </Link>
           )}
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-10">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Explore traders</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Operator directory</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Public trader portals — review records the way an allocator or a peer would.
+          Public SVAN Capital operator cards with strategy, proof level, risk context, and performance snapshots.
         </p>
 
         {cards.length === 0 ? (
-          <p className="mt-8 text-sm text-slate-500">No public portals yet.</p>
+          <p className="mt-8 text-sm text-slate-500">No public operator cards yet.</p>
         ) : (
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {cards.map(({ p, trust }) => {
@@ -84,11 +84,11 @@ export default async function ExplorePage() {
                 <Link
                   key={p.slug}
                   href={`/p/${p.slug}`}
-                  className="block rounded-xl border border-slate-200 bg-white p-5 transition hover:border-blue-300 hover:shadow-sm"
+                  className="block rounded-lg border border-slate-800 bg-slate-900/70 p-5 transition hover:border-cyan-400 hover:shadow-sm"
                 >
                   <h3 className="font-semibold text-slate-900">{p.displayName}</h3>
                   <p className="mt-0.5 truncate text-sm text-slate-500">
-                    {[p.strategy, p.instruments].filter(Boolean).join(" · ") || "Trader"}
+                    {[p.strategy, p.instruments].filter(Boolean).join(" / ") || "Trader"}
                   </p>
 
                   {trust ? (
@@ -98,14 +98,14 @@ export default async function ExplorePage() {
                         value={
                           trust.metrics.returnPct != null
                             ? formatPercent(trust.metrics.returnPct, 0)
-                            : "—"
+                            : "-"
                         }
                       />
                       <Mini label="Drop" value={`${trust.metrics.maxDrawdownPct.toFixed(0)}%`} />
                       <Mini label="Trust" value={`${trust.scores.transparency}`} />
                     </div>
                   ) : (
-                    <p className="mt-4 text-sm text-slate-400">No published data yet</p>
+                    <p className="mt-4 text-sm text-slate-400">No published record yet</p>
                   )}
 
                   <div className="mt-4 flex items-center justify-between">
@@ -114,7 +114,7 @@ export default async function ExplorePage() {
                         {sev.label} risk
                       </span>
                     )}
-                    <span className="ml-auto text-sm font-medium text-blue-700">View portal →</span>
+                    <span className="ml-auto text-sm font-medium text-cyan-300">View card</span>
                   </div>
                 </Link>
               );

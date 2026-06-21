@@ -6,7 +6,7 @@ function periodLabel(p: string): string {
   return new Date(y, m - 1, 1).toLocaleString("en-US", { month: "long", year: "numeric" });
 }
 
-/** Read-only render of a published AI report (used on the public portal). */
+/** Read-only render of a published AI brief. */
 export function ReportSections({
   period,
   report,
