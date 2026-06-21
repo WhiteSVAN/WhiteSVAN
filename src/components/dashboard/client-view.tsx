@@ -56,7 +56,7 @@ export function ClientView({
           badgeClass={`${sev.bg} ${sev.text}`}
         />
         <Snapshot
-          label="SVAN Score"
+          label="Research Score"
           hint="Process transparency, not advice"
           value={`${trust.scores.transparency}`}
           suffix="/100"
@@ -135,7 +135,7 @@ export function ClientView({
       {/* Trust scores */}
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-medium text-slate-800">SVAN operator score</h2>
+          <h2 className="text-sm font-medium text-slate-800">Research profile score</h2>
           <span className="text-2xl font-semibold text-slate-900">
             {trust.scores.transparency}
             <span className="text-base font-normal text-slate-400">/100</span>

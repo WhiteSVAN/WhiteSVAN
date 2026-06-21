@@ -115,9 +115,9 @@ export default async function SettingsPage() {
       <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Settings</h1>
 
       <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
-        <h2 className="text-base font-medium text-slate-800">Operator card and privacy</h2>
+        <h2 className="text-base font-medium text-slate-800">Research profile and privacy</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Control who can see your SVAN Capital card and what it reveals.
+          Control who can see your Quant Connect profile and what it reveals.
         </p>
         <div className="mt-4">
           <PortalSettingsForm
@@ -210,7 +210,7 @@ export default async function SettingsPage() {
       <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
         <h2 className="text-base font-medium text-slate-800">Publishing history</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Your import audit trail and the immutable versions visible on your operator card.
+          Your import audit trail and the immutable versions visible on your research profile.
         </p>
         <div className="mt-4">
           <UpdateHistory

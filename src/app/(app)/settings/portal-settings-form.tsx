@@ -31,15 +31,15 @@ export function PortalSettingsForm({
   return (
     <form action={action} className="space-y-4">
       <p className="text-sm text-slate-500">
-        Your operator card: <span className="font-mono text-slate-300">/p/{slug}</span>
+        Your research profile: <span className="font-mono text-slate-300">/p/{slug}</span>
       </p>
 
       <label className="flex items-start gap-3">
         <input type="checkbox" name="isPublic" defaultChecked={isPublic} className="mt-1" />
         <span>
-          <span className="text-sm font-medium text-slate-700">Public card</span>
+          <span className="text-sm font-medium text-slate-700">Public profile</span>
           <span className="block text-xs text-slate-500">
-            Anyone with the link can view your operator card.
+            Anyone with the link can view your research profile.
           </span>
         </span>
       </label>
@@ -96,7 +96,7 @@ export function PortalSettingsForm({
           name="disclaimer"
           rows={3}
           defaultValue={disclaimer}
-          placeholder="Leave blank to use the default SVAN Capital disclaimer."
+          placeholder="Leave blank to use the default Quant Connect disclaimer."
           className={inputClass}
         />
       </div>

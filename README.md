@@ -1,6 +1,6 @@
-# SVAN Capital
+# Quant Connect
 
-SVAN Capital is a professional trader network for GEX analysis, quant briefs, stock deep dives, and proof-backed operator profiles. Traders can import broker or prop-firm history, review code-computed metrics, publish immutable profile versions, and share research or performance context with other market professionals.
+Quant Connect is a professional quant research network for GEX analysis, strategy validation, portfolio research, stock deep dives, and proof-backed research profiles. Traders can import broker or prop-firm history, review code-computed metrics, publish immutable profile versions, and share research or performance context with other market professionals.
 
 It does not manage money, execute trades, copy trades, provide investment advice, or guarantee performance. Public pages must keep the past-performance disclaimer.
 
@@ -18,8 +18,8 @@ It does not manage money, execute trades, copy trades, provide investment advice
 ## Product Direction
 
 - Trader-only network, not a consumer investing app.
-- `/network` is the core surface: GEX rooms, quant labs, deep-dive prompts, and operator cards.
-- `/p/[slug]` is a public operator card backed by published `ProfileVersion` snapshots.
+- `/network` is the core surface: market-structure rooms, quant labs, deep-dive prompts, and research profiles.
+- `/p/[slug]` is a public research profile backed by published `ProfileVersion` snapshots.
 - `/reports` now acts as a research brief archive; AI drafts prose only from code-computed metrics.
 - GEX and market-structure discussion must remain non-advisory and evidence-led.
 
@@ -44,15 +44,15 @@ npm run typecheck
 npm run lint
 ```
 
-Demo after seeding: `/p/demo`, login `demo@trustsvan.app` / `demo1234`.
+Demo after seeding: `/p/demo`, login `demo@quantconnect.local` / `demo1234`.
 
 ## Important Files
 
 - `CLAUDE.md` - architecture and guardrails
-- `MVP2.md` - living operator card plan/status
+- `MVP2.md` - living research profile plan/status
 - `TODO.md` - backlog and caveats
 - `prisma/schema.prisma` - data model
 - `src/lib/metrics.ts` - code-of-record metrics engine
-- `src/lib/trust.ts` - SVAN operator score and risk layer
+- `src/lib/trust.ts` - research score and risk layer
 - `src/lib/ingest/import.ts` - source-agnostic import write path
 - `src/lib/published-profile.ts` - public snapshot reconstruction

@@ -75,19 +75,19 @@ export default async function ReportsPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Research briefs</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Generate a monthly operator brief from verified metrics, edit it, then publish it to your card.
+          Generate a monthly research brief from verified metrics, edit it, then publish it to your profile.
         </p>
       </div>
 
       <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
         <h2 className="text-base font-medium text-slate-800">Generate a brief</h2>
         <p className="mt-1 text-sm text-slate-500">
-          SVAN Capital computes the numbers; AI only drafts the market-facing narrative.
+          Quant Connect computes the numbers; AI only drafts the research-facing narrative.
         </p>
         <div className="mt-4">
           {accountOptions.length === 0 ? (
             <p className="text-sm text-slate-500">
-              Import trades first, then generate a monthly operator brief.
+              Import trades first, then generate a monthly research brief.
             </p>
           ) : (
             <GenerateReportForm accounts={accountOptions} />
