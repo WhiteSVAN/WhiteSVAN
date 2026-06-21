@@ -18,7 +18,7 @@ import { PrintButton } from "./print-button";
 import { FollowForm } from "./follow-form";
 
 const DEFAULT_DISCLAIMER =
-  "SVAN Capital is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
+  "Quant Connect is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
 
 export async function generateMetadata({
   params,
@@ -31,7 +31,7 @@ export async function generateMetadata({
     select: { displayName: true, isPublic: true },
   });
   return {
-    title: profile?.isPublic ? `${profile.displayName} - SVAN Capital` : "SVAN Capital",
+    title: profile?.isPublic ? `${profile.displayName} - Quant Connect` : "Quant Connect",
     robots: { index: false }, // private share links shouldn't be indexed
   };
 }
@@ -72,7 +72,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
     return (
       <div className="flex min-h-full flex-1 items-center justify-center bg-slate-950 px-4 py-16 text-center">
         <div>
-          <p className="text-lg font-semibold text-slate-900">This operator card isn&apos;t available</p>
+          <p className="text-lg font-semibold text-slate-900">This research profile isn&apos;t available</p>
           <p className="mt-1 text-sm text-slate-500">
             The link may be wrong, or the trader has set their profile to private.
           </p>
@@ -160,9 +160,9 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
                 href={loggedIn ? "/dashboard" : "/"}
                 className="transition hover:text-slate-600"
               >
-                SVAN <span className="text-cyan-300">CAPITAL</span>
+                QUANT <span className="text-cyan-300">CONNECT</span>
               </Link>{" "}
-              / operator card
+              / research profile
             </p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
               {profile.displayName}
@@ -220,7 +220,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
         {evidence.length > 0 && (
           <section className="space-y-3">
             <h2 className="text-lg font-semibold tracking-tight text-slate-900">Evidence</h2>
-            <p className="text-sm text-slate-500">Supporting documents shared by the operator.</p>
+            <p className="text-sm text-slate-500">Supporting documents shared by the researcher.</p>
             <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
               {evidence.map((e) => (
                 <li
@@ -243,7 +243,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
         )}
 
         <section className="space-y-3 print:hidden">
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Follow this operator</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Follow this researcher</h2>
           <p className="text-sm text-slate-500">
             Get profile and research updates by email. Not investment advice.
           </p>

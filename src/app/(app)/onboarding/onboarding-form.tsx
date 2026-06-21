@@ -74,7 +74,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
           name="strategy"
           rows={2}
           className={inputClass}
-          placeholder="GEX-led SPX intraday, systematic swing equities, or earnings deep dives."
+          placeholder="Market structure, statistical arbitrage, factor research, or equity deep dives."
         />
         <FieldError messages={state?.errors?.strategy} />
       </div>
@@ -115,13 +115,13 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
           name="bio"
           rows={3}
           className={inputClass}
-          placeholder="A short intro shown on your public operator card."
+          placeholder="A short intro shown on your public research profile."
         />
         <FieldError messages={state?.errors?.bio} />
       </div>
 
       <button type="submit" disabled={pending} className={btnPrimary}>
-        {pending ? "Saving..." : "Continue to terminal"}
+        {pending ? "Saving..." : "Continue to dashboard"}
       </button>
     </form>
   );

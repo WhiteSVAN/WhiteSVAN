@@ -1,5 +1,5 @@
 /**
- * Seed a sanitized demo trader so /p/demo shows a populated client portal.
+ * Seed a sanitized demo trader so /p/demo shows a populated research profile.
  * Idempotent: re-running replaces the demo user. Run with: npm run db:seed
  *
  * Uses relative imports only (no `@/` alias) so it runs under plain `tsx`.
@@ -59,7 +59,7 @@ const SAMPLE_REPORT = {
 };
 
 async function main() {
-  const email = "demo@trustsvan.app";
+  const email = "demo@quantconnect.local";
   await prisma.user.deleteMany({ where: { email } });
 
   const user = await prisma.user.create({
@@ -75,7 +75,7 @@ async function main() {
           updateCadence: "WEEKLY",
           strategy: "Intraday futures momentum, risk-defined",
           instruments: "ES, NQ",
-          bio: "A demo account showing what a TrustSVAN client portal looks like.",
+          bio: "A demo account showing what a Quant Connect research profile looks like.",
         },
       },
     },

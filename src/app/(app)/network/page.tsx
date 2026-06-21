@@ -19,29 +19,29 @@ import { prisma } from "@/lib/db";
 import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 
-export const metadata: Metadata = { title: "Network - SVAN Capital" };
+export const metadata: Metadata = { title: "Network - Quant Connect" };
 
-type NetworkType = "all" | "gex" | "deep-dive" | "prop" | "systematic";
+type NetworkType = "all" | "gex" | "deep-dive" | "portfolio" | "systematic";
 
 const FILTERS: { key: NetworkType; label: string }[] = [
   { key: "all", label: "All" },
-  { key: "gex", label: "GEX" },
-  { key: "deep-dive", label: "Deep dives" },
-  { key: "prop", label: "Prop desks" },
+  { key: "gex", label: "Market structure" },
+  { key: "deep-dive", label: "Equity research" },
+  { key: "portfolio", label: "Portfolio work" },
   { key: "systematic", label: "Systematic" },
 ];
 
 const TYPE_LABELS: Record<Exclude<NetworkType, "all">, string> = {
-  gex: "GEX desk",
-  "deep-dive": "Deep dive",
-  prop: "Prop desk",
-  systematic: "Systematic",
+  gex: "Market structure",
+  "deep-dive": "Equity research",
+  portfolio: "Portfolio research",
+  systematic: "Systematic research",
 };
 
 const TYPE_STYLES: Record<Exclude<NetworkType, "all">, string> = {
   gex: "bg-cyan-950/70 text-cyan-200",
   "deep-dive": "bg-amber-950/70 text-amber-200",
-  prop: "bg-blue-50 text-blue-700",
+  portfolio: "bg-blue-50 text-blue-700",
   systematic: "bg-violet-50 text-violet-700",
 };
 
@@ -53,29 +53,29 @@ const ROOMS: {
   tone: string;
 }[] = [
   {
-    title: "GEX and dealer positioning",
-    description: "Gamma walls, HVL, call walls, put walls, charm/vanna notes, and 0DTE structure by ticker.",
+    title: "Market structure and GEX",
+    description: "Gamma walls, dealer hedging, 0DTE structure, skew shifts, and volatility regimes by ticker.",
     fit: "SPX, SPY, QQQ, single-stock options",
     icon: Radar,
     tone: "bg-cyan-950/70 text-cyan-200",
   },
   {
-    title: "Stock deep dives",
-    description: "Long-form theses, earnings breakdowns, valuation work, catalysts, bear cases, and rebuttals.",
+    title: "Equity deep dives",
+    description: "Long-form stock research with valuation, catalysts, risks, bear cases, and rebuttals.",
     fit: "Research memos, counterviews, catalysts",
     icon: FileText,
     tone: "bg-amber-950/70 text-amber-200",
   },
   {
-    title: "Prop and operator desk",
-    description: "Funded traders, independent operators, and desk leads comparing process and execution quality.",
-    fit: "Funding, desk fit, verified history",
+    title: "Portfolio construction",
+    description: "Allocation notes, factor overlap, risk contribution, regime stress, and diversification checks.",
+    fit: "Risk parity, factor mix, drawdowns",
     icon: Factory,
     tone: "bg-blue-950/70 text-blue-200",
   },
   {
-    title: "Systematic and quant lab",
-    description: "Rules-based traders discussing regimes, validation, scanners, backtests, and failure modes.",
+    title: "Systematic research lab",
+    description: "Rules-based researchers discussing regimes, validation, scanners, backtests, and failure modes.",
     fit: "Models, data quality, risk controls",
     icon: Building2,
     tone: "bg-violet-950/70 text-violet-200",
@@ -84,21 +84,21 @@ const ROOMS: {
 
 const SIGNALS = [
   {
-    label: "GEX brief",
+    label: "Market structure",
     title: "SPX positive gamma may dampen realized volatility into the close",
     detail: "A useful post includes the gamma flip, largest call/put walls, expiration concentration, and invalidation level.",
     tone: "border-cyan-900/70 bg-cyan-950/40 text-cyan-100",
   },
   {
-    label: "Counterview",
-    title: "Dealer positioning is structure, not a trade by itself",
-    detail: "Members are expected to separate flow mechanics from entries, stops, catalysts, and position sizing.",
+    label: "Validation",
+    title: "A high in-sample Sharpe can still be noise",
+    detail: "Members are expected to show trial count, assumptions, out-of-sample behavior, costs, and failure cases.",
     tone: "border-amber-900/70 bg-amber-950/40 text-amber-100",
   },
   {
-    label: "Deep dive",
-    title: "Burry-style stock work belongs in a memo, not a one-line callout",
-    detail: "Long-form equity posts should carry thesis, evidence, valuation lens, bear case, catalyst path, and source notes.",
+    label: "Portfolio note",
+    title: "Equal capital weights can still mean concentrated risk",
+    detail: "Portfolio posts should identify factor overlap, correlation, stress behavior, and the benchmark being improved.",
     tone: "border-emerald-900/70 bg-emerald-950/40 text-emerald-100",
   },
 ];
@@ -155,17 +155,17 @@ export default async function NetworkPage({
           <div className="p-6 sm:p-8">
             <p className="flex items-center gap-2 text-sm font-medium text-cyan-300">
               <Users className="h-4 w-4" aria-hidden="true" />
-              SVAN Capital network
+              Quant Connect network
             </p>
             <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-              A trader-only network for GEX, quant analysis, and stock deep dives.
+              A research network for quants, systematic traders, and market analysts.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-              Think Stocktwits-style market rooms, Substack-style research memos, and GEX dashboard
-              discipline, but filtered for professional operators and evidence-backed profiles.
+              Think curated quant links, long-form research memos, and strategy-library discipline,
+              but built around professional profiles, peer review, and evidence-backed performance records.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <Metric label="Operators" value={String(members.length)} />
+              <Metric label="Researchers" value={String(members.length)} />
               <Metric label="Proof-backed" value={String(proofReadyCount)} />
               <Metric label="Research rooms" value={String(ROOMS.length)} />
             </div>
@@ -173,7 +173,7 @@ export default async function NetworkPage({
           <aside className="border-t border-slate-800 bg-slate-950/70 p-6 sm:p-8 lg:border-l lg:border-t-0">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-slate-900">Your operator card</p>
+                <p className="text-sm font-medium text-slate-900">Your research profile</p>
                 <p className="mt-1 text-sm text-slate-500">{user.profile.displayName}</p>
               </div>
               <span
@@ -192,18 +192,18 @@ export default async function NetworkPage({
                 value={latestVersion ? String(latestVersion.proofLevel) : "-"}
               />
               <Metric
-                label="Trust Score"
+                label="Research Score"
                 value={latestVersion ? String(latestVersion.transparencyScore) : "-"}
               />
             </div>
             <div className="mt-5 space-y-3 text-sm text-slate-600">
               <p className="flex gap-2">
                 <ShieldCheck className="mt-0.5 h-4 w-4 flex-none text-blue-700" aria-hidden="true" />
-                Network identity is anchored to a published SVAN Capital profile, not follower count.
+                Network identity is anchored to a published Quant Connect profile, not follower count.
               </p>
               <p className="flex gap-2">
                 <MessageSquareText className="mt-0.5 h-4 w-4 flex-none text-blue-700" aria-hidden="true" />
-                Posts are structured around thesis, GEX context, counterview, risk, and evidence.
+                Posts are structured around thesis, method, evidence, counterview, risk, and replication notes.
               </p>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
@@ -212,7 +212,7 @@ export default async function NetworkPage({
                 className="inline-flex items-center gap-2 rounded-md bg-blue-700 px-3 py-2 text-sm font-medium text-white hover:bg-blue-800"
               >
                 <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                {user.profile.isPublic ? "View operator card" : "Publish card"}
+                {user.profile.isPublic ? "View profile" : "Publish profile"}
               </Link>
               <Link
                 href="/settings"
@@ -229,9 +229,9 @@ export default async function NetworkPage({
       <section>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight text-slate-900">Research desks</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900">Research rooms</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Dedicated areas for market structure, equity research, desk fit, and systematic work.
+              Dedicated areas for market structure, equity research, portfolio construction, and systematic work.
             </p>
           </div>
         </div>
@@ -260,7 +260,7 @@ export default async function NetworkPage({
         <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-blue-700" aria-hidden="true" />
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Desk tape</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Research tape</h2>
           </div>
           <div className="mt-4 space-y-3">
             {SIGNALS.map((signal) => (
@@ -282,11 +282,11 @@ export default async function NetworkPage({
             <Standard title="Professional-only context">
               The network is for professional market discussion, peer review, and research distribution.
             </Standard>
-            <Standard title="Proof before promotion">
-              Operator cards show published profile versions, Proof Level, and risk metrics before social reach.
+            <Standard title="Evidence before promotion">
+              Research profiles show published versions, Proof Level, and risk metrics before social reach.
             </Standard>
             <Standard title="Structured disagreement">
-              Every strong view should include counterview, invalidation, and risk context.
+              Every strong view should include method, counterview, invalidation, and risk context.
             </Standard>
           </ul>
         </div>
@@ -295,9 +295,9 @@ export default async function NetworkPage({
       <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight text-slate-900">Operator directory</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900">Researcher directory</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Published profiles become professional cards with process, proof, and track-record context attached.
+              Published profiles become professional research cards with process, proof, and track-record context attached.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -321,7 +321,7 @@ export default async function NetworkPage({
           <div className="mt-5 rounded-lg border border-dashed border-slate-700 bg-slate-950/70 p-8 text-center">
             <h3 className="text-sm font-medium text-slate-800">No matching public profiles yet</h3>
             <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
-              Publish your own SVAN Capital operator card or clear the filter to see every trader
+              Publish your own Quant Connect research profile or clear the filter to see every trader
               currently visible on the network.
             </p>
             <Link
@@ -420,11 +420,11 @@ function MemberCard({
       </div>
       <div className="mt-5 grid grid-cols-4 gap-2 text-sm">
         <Mini label="Proof" value={proofLevel ? `L${proofLevel}` : "-"} />
-        <Mini label="Trust" value={trustScore != null ? String(trustScore) : "-"} />
+        <Mini label="Score" value={trustScore != null ? String(trustScore) : "-"} />
         <Mini label="Return" value={returnPct != null ? formatPercent(returnPct, 0) : "-"} />
         <Mini label="Drop" value={maxDrawdownPct != null ? `${maxDrawdownPct.toFixed(0)}%` : "-"} />
       </div>
-      <p className="mt-4 text-sm font-medium text-cyan-300">View operator card</p>
+      <p className="mt-4 text-sm font-medium text-cyan-300">View research profile</p>
     </Link>
   );
 }
@@ -445,7 +445,15 @@ function inferMemberType(
   const text = `${strategy ?? ""} ${instruments ?? ""}`.toLowerCase();
   if (text.includes("gex") || text.includes("gamma") || text.includes("0dte")) return "gex";
   if (text.includes("deep") || text.includes("value") || text.includes("fundamental")) return "deep-dive";
-  if (text.includes("prop") || text.includes("funded")) return "prop";
+  if (
+    text.includes("portfolio") ||
+    text.includes("allocation") ||
+    text.includes("factor") ||
+    text.includes("risk parity") ||
+    text.includes("divers")
+  ) {
+    return "portfolio";
+  }
   if (
     text.includes("quant") ||
     text.includes("system") ||

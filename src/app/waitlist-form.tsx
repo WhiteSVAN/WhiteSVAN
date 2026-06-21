@@ -20,7 +20,7 @@ export function WaitlistForm() {
         type="email"
         name="email"
         required
-        placeholder="desk@sitename.com"
+        placeholder="research@sitename.com"
         className="flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 shadow-sm focus:border-cyan-500 focus:outline-none"
       />
       <button

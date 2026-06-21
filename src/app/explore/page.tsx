@@ -6,7 +6,7 @@ import type { DrawdownSeverity } from "@/lib/trust";
 import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 
-export const metadata: Metadata = { title: "Operator directory - SVAN Capital" };
+export const metadata: Metadata = { title: "Researcher directory - Quant Connect" };
 
 const SEVERITY: Record<DrawdownSeverity, { label: string; cls: string }> = {
   controlled: { label: "Controlled", cls: "bg-emerald-50 text-emerald-700" },
@@ -48,7 +48,7 @@ export default async function ExplorePage() {
             href={loggedIn ? "/dashboard" : "/"}
             className="text-base font-semibold tracking-[0.18em] text-slate-100"
           >
-            SVAN <span className="text-cyan-300">CAPITAL</span>
+            QUANT <span className="text-cyan-300">CONNECT</span>
           </Link>
           {loggedIn ? (
             <Link
@@ -69,13 +69,13 @@ export default async function ExplorePage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-10">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Operator directory</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Researcher directory</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Public SVAN Capital operator cards with strategy, proof level, risk context, and performance snapshots.
+          Public Quant Connect research profiles with strategy, proof level, risk context, and performance snapshots.
         </p>
 
         {cards.length === 0 ? (
-          <p className="mt-8 text-sm text-slate-500">No public operator cards yet.</p>
+          <p className="mt-8 text-sm text-slate-500">No public research profiles yet.</p>
         ) : (
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {cards.map(({ p, trust }) => {

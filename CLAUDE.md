@@ -1,18 +1,18 @@
 @AGENTS.md
 
-# SVAN Capital
+# Quant Connect
 
-Professional trader network for GEX analysis, quant briefs, stock deep dives, and proof-backed
-operator profiles. Prop-firm traders, independent operators, brokers, and trading teams upload
-broker / prop-firm history (CSV), review verified performance dashboards, publish research briefs,
-and share an operator card with other market professionals.
+Professional quant research network for GEX analysis, strategy validation, portfolio research,
+stock deep dives, and proof-backed research profiles. Prop-firm traders, independent traders,
+brokers, and research teams upload broker / prop-firm history (CSV), review verified performance
+dashboards, publish research briefs, and share a research profile with other market professionals.
 
 **It is a pure SaaS reporting tool.** It does **not** manage money, execute or copy trades, send
 signals, give allocation advice, predict returns, or take performance fees. Those boundaries are not
 optional; they shape the data model, the AI layer, and the copy. See [Guardrails](#guardrails).
 
-> The `SVAN_Trader_Trust_AI_MVP_Plan.pdf` is the product brief. Where this file and the PDF disagree
-> on *tech*, **this file and the code win**. The implementation deliberately diverged (see below).
+> The original MVP brief is historical context. Where this file and the brief disagree on *tech*,
+> **this file and the code win**. The implementation deliberately diverged (see below).
 
 ## Plan vs. reality
 
@@ -42,7 +42,7 @@ CSV / manual entry  →  parse + auto-map (src/lib/csv)  →  trades  →  daily
 
 - [src/lib/metrics.ts](src/lib/metrics.ts) — pure, dependency-free metrics. The source of truth for
   every number; runs on server or client.
-- [src/lib/trust.ts](src/lib/trust.ts) - SVAN operator layer over metrics: Big-Win Dependency,
+- [src/lib/trust.ts](src/lib/trust.ts) - research profile layer over metrics: Big-Win Dependency,
   Biggest-Drop severity, Bounce-Back Time, five sub-scores + the weighted Transparency Score, and a
   plain-English verdict. Drives the dashboard **Client view** (the **Trader view** shows raw metrics).
 - [src/lib/csv/parse.ts](src/lib/csv/parse.ts) — PapaParse + **alias-based auto-detection** that maps
@@ -66,7 +66,7 @@ Prisma schema: [prisma/schema.prisma](prisma/schema.prisma). Two groups:
 - **Auth.js models** — `User`, `Account`, `Session`, `VerificationToken`. ⚠️ `Account` is the
   OAuth/credentials provider link. A user's *brokerage* account is **`TradingAccount`** — don't
   confuse them. Credentials sign-in uses `User.passwordHash` (bcryptjs).
-- **Domain** - `TraderProfile` (public operator-card identity, unique `slug` -> `/p/[slug]`),
+- **Domain** - `TraderProfile` (public research-profile identity, unique `slug` -> `/p/[slug]`),
   `TradingAccount`, `Trade` (raw imported rows, original CSV kept in `raw` Json), `DailyPnl`
   (per-account/day rollup, rebuilt from trades on import, `@@unique([accountId, tradeDate])`),
   `Report` (`metrics` + `aiReport` JSON, `DRAFT`/`PUBLISHED`).
@@ -128,11 +128,11 @@ On branch `feat/foundation-and-auth`.
 - ✅ **M1 App shell** — NextAuth (Credentials + JWT), DAL, `/login` `/signup` `/onboarding`, protected layout.
 - ✅ **M2 CSV import** — `/upload`: account → file → auto-mapped preview → import → `DailyPnl` rebuild.
 - ✅ **M3 Metrics + dashboard** — equity-curve & daily-P&L charts, account/range filters, risk panel.
-- **SVAN dashboard** - **Research view** (risk metrics, severity, verdict, Transparency
+- **Quant Connect dashboard** - **Research view** (risk metrics, severity, verdict, Transparency
   Score, Proof Level) ⇄ technical **Trader view**, via `?view`. Editable starting balance.
 - ✅ **M4 AI reports** — `/reports`: generate (OpenAI default / Claude) → editor with live compliance →
   publish (blocked on banned phrases) / delete.
-- **M5 operator card** - public `/p/[slug]` (Research view + published briefs + disclaimer), public/private
+- **M5 research profile** - public `/p/[slug]` (Research view + published briefs + disclaimer), public/private
   toggle + share link in the dashboard, Print / Save-PDF.
 - ✅ **M6 Launch** — polished landing (hero + waitlist), `WaitlistEntry` capture, seeded demo at `/p/demo`
   (`npm run db:seed`). **MVP complete (M1–M6).**
@@ -145,7 +145,7 @@ On branch `feat/foundation-and-auth`.
 
 **Deferred / next:** more broker CSV formats (Fidelity, Webull, Robinhood, E*TRADE — note most retail
 	transaction exports lack per-row realized P&L, so they need a FIFO round-trip matcher), Proof Level 5
-	(third-party verification), IBKR Flex Web Service auto-pull, multi-account operator cards,
+	(third-party verification), IBKR Flex Web Service auto-pull, multi-account research profiles,
 hosting/deploy.
 
 Planned routes: `/login`, `/onboarding`, `/upload`, `/dashboard`, `/reports`, `/p/[slug]`,

@@ -10,8 +10,8 @@ export default function SignupPage() {
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-slate-100">Create your operator profile</h1>
-      <p className="mt-1 text-sm text-slate-500">Join the professional trader network.</p>
+      <h1 className="text-lg font-semibold text-slate-100">Create your research profile</h1>
+      <p className="mt-1 text-sm text-slate-500">Join the professional quant research network.</p>
 
       <form action={action} className="mt-6 space-y-4">
         <FormError message={state?.message} />

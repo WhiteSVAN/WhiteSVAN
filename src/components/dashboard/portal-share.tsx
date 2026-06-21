@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { setPortalVisibility } from "@/app/(app)/account-settings";
 
-/** Operator card link + public/private toggle + copy, shown in the dashboard header. */
+/** Research profile link + public/private toggle + copy, shown in the dashboard header. */
 export function PortalShare({ slug, isPublic }: { slug: string; isPublic: boolean }) {
   const [state, action, pending] = useActionState(setPortalVisibility, undefined);
   const live = state?.isPublic ?? isPublic;
@@ -23,7 +23,7 @@ export function PortalShare({ slug, isPublic }: { slug: string; isPublic: boolea
   return (
     <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
       <span>
-        Operator card: <span className="font-mono text-slate-300">/p/{slug}</span>
+        Research profile: <span className="font-mono text-slate-300">/p/{slug}</span>
       </span>
       <span
         className={`rounded px-1.5 py-0.5 text-xs font-medium ${

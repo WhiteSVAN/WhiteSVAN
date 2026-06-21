@@ -18,11 +18,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             href="/dashboard"
             className="text-base font-semibold tracking-[0.18em] text-slate-100"
           >
-            SVAN <span className="text-cyan-300">CAPITAL</span>
+            QUANT <span className="text-cyan-300">CONNECT</span>
           </Link>
           <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-sm">
             <Link href="/dashboard" className="text-slate-400 hover:text-white">
-              Terminal
+              Dashboard
             </Link>
             <Link href="/network" className="text-slate-400 hover:text-white">
               Network

@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SVAN Capital - professional trader network",
+  title: "Quant Connect - professional quant research network",
   description:
-    "A professional network for traders sharing GEX analysis, quant briefs, stock deep dives, and verified performance records.",
+    "A professional network for traders and quant researchers sharing GEX notes, strategy validation, stock deep dives, portfolio research, and verified performance records.",
 };
 
 export default function RootLayout({

@@ -22,7 +22,7 @@ export interface ClientRiskEvent {
 }
 
 /**
- * Public operator-card header: freshness badge, last-updated label, change
+ * Public research-profile header: freshness badge, last-updated label, change
  * summary since the prior version, and visible risk-event cards.
  */
 export function ProfileTrust({
