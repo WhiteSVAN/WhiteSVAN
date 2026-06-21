@@ -1,6 +1,6 @@
-# WhiteSVAN — TrustSVAN
+# SVAN Capital
 
-TrustSVAN bridges the trust gap between traders and clients, and gives professional traders a network card for peer discovery. Prop-firm traders, independent traders or contractors, brokers, and trading teams import broker or prop-firm history, review code-computed metrics, publish immutable profile versions, and share read-only trust profiles in client or trader-to-trader contexts.
+SVAN Capital is a professional trader network for GEX analysis, quant briefs, stock deep dives, and proof-backed operator profiles. Traders can import broker or prop-firm history, review code-computed metrics, publish immutable profile versions, and share research or performance context with other market professionals.
 
 It does not manage money, execute trades, copy trades, provide investment advice, or guarantee performance. Public pages must keep the past-performance disclaimer.
 
@@ -15,11 +15,18 @@ It does not manage money, execute trades, copy trades, provide investment advice
 - Recharts
 - OpenAI by default, Anthropic via `AI_PROVIDER=anthropic`
 
+## Product Direction
+
+- Trader-only network, not a consumer investing app.
+- `/network` is the core surface: GEX rooms, quant labs, deep-dive prompts, and operator cards.
+- `/p/[slug]` is a public operator card backed by published `ProfileVersion` snapshots.
+- `/reports` now acts as a research brief archive; AI drafts prose only from code-computed metrics.
+- GEX and market-structure discussion must remain non-advisory and evidence-led.
+
 ## Core Rules
 
 - Code calculates numbers. AI only explains already-computed metrics.
 - Public performance reads from published `ProfileVersion` snapshots, not live imports.
-- The authenticated `/network` surface is for professional trader-to-trader discovery; member cards link back to proof-backed public profiles.
 - CSV/import hashes are recorded and duplicate source files are rejected per account.
 - Privacy redaction affects public display only; metrics are not recalculated.
 - Proof Levels currently support CSV imports, broker statements, and tax-return / official-tax-record evidence.
@@ -41,11 +48,11 @@ Demo after seeding: `/p/demo`, login `demo@trustsvan.app` / `demo1234`.
 
 ## Important Files
 
-- `CLAUDE.md` — architecture and guardrails
-- `MVP2.md` — living trust profile plan/status
-- `TODO.md` — backlog and caveats
-- `prisma/schema.prisma` — data model
-- `src/lib/metrics.ts` — code-of-record metrics engine
-- `src/lib/trust.ts` — TrustSVAN score and client-readable risk layer
-- `src/lib/ingest/import.ts` — source-agnostic import write path
-- `src/lib/published-profile.ts` — public snapshot reconstruction
+- `CLAUDE.md` - architecture and guardrails
+- `MVP2.md` - living operator card plan/status
+- `TODO.md` - backlog and caveats
+- `prisma/schema.prisma` - data model
+- `src/lib/metrics.ts` - code-of-record metrics engine
+- `src/lib/trust.ts` - SVAN operator score and risk layer
+- `src/lib/ingest/import.ts` - source-agnostic import write path
+- `src/lib/published-profile.ts` - public snapshot reconstruction

@@ -31,15 +31,15 @@ export function PortalSettingsForm({
   return (
     <form action={action} className="space-y-4">
       <p className="text-sm text-slate-500">
-        Your portal: <span className="font-mono text-slate-700">/p/{slug}</span>
+        Your operator card: <span className="font-mono text-slate-300">/p/{slug}</span>
       </p>
 
       <label className="flex items-start gap-3">
         <input type="checkbox" name="isPublic" defaultChecked={isPublic} className="mt-1" />
         <span>
-          <span className="text-sm font-medium text-slate-700">Public</span>
+          <span className="text-sm font-medium text-slate-700">Public card</span>
           <span className="block text-xs text-slate-500">
-            Anyone with the link can view your portal.
+            Anyone with the link can view your operator card.
           </span>
         </span>
       </label>
@@ -49,7 +49,7 @@ export function PortalSettingsForm({
         <span>
           <span className="text-sm font-medium text-slate-700">Hide dollar amounts</span>
           <span className="block text-xs text-slate-500">
-            Show percentages and scores on the public portal, but redact exact $ figures.
+            Show percentages and scores on the public card, but redact exact $ figures.
           </span>
         </span>
       </label>
@@ -60,7 +60,7 @@ export function PortalSettingsForm({
           <span className="text-sm font-medium text-slate-700">Hide broker &amp; account names</span>
           <span className="block text-xs text-slate-500">
             Redact broker and account labels in the public breakdown. Performance metrics are
-            unchanged — only the private labels are hidden.
+            unchanged; only the private labels are hidden.
           </span>
         </span>
       </label>
@@ -70,8 +70,8 @@ export function PortalSettingsForm({
           Update cadence
         </label>
         <p className="text-xs text-slate-500">
-          How often you commit to refreshing this profile. Clients see a freshness badge based on
-          this — it does not auto-publish anything.
+          How often you commit to refreshing this profile. The public card shows a freshness badge
+          based on this; it does not auto-publish anything.
         </p>
         <select
           id="updateCadence"
@@ -81,7 +81,7 @@ export function PortalSettingsForm({
         >
           {CADENCE_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
-              {o.label} — {o.hint}
+              {o.label} - {o.hint}
             </option>
           ))}
         </select>
@@ -96,14 +96,14 @@ export function PortalSettingsForm({
           name="disclaimer"
           rows={3}
           defaultValue={disclaimer}
-          placeholder="Leave blank to use the default TrustSVAN disclaimer."
+          placeholder="Leave blank to use the default SVAN Capital disclaimer."
           className={inputClass}
         />
       </div>
 
       <div className="flex items-center gap-3">
         <button type="submit" disabled={pending} className={`${btnPrimary} sm:w-auto sm:px-6`}>
-          {pending ? "Saving…" : "Save settings"}
+          {pending ? "Saving..." : "Save settings"}
         </button>
         {state?.saved && <span className="text-sm text-emerald-600">Saved.</span>}
         {state?.error && <span className="text-sm text-red-600">{state.error}</span>}

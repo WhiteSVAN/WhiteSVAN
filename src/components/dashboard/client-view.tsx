@@ -37,15 +37,15 @@ export function ClientView({
       {/* Snapshot */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <Snapshot
-          label="Total Result"
-          hint={hideAmounts ? "Amounts hidden" : "Money made or lost"}
+          label="Net result"
+          hint={hideAmounts ? "Amounts hidden" : "Realized result"}
           value={hideAmounts ? "Private" : formatMoney(m.netPnl)}
           tone={hideAmounts ? undefined : m.netPnl >= 0 ? "pos" : "neg"}
         />
         <Snapshot
           label="Growth Rate"
           hint="Profit relative to account size"
-          value={m.returnPct != null ? formatPercent(m.returnPct, 1) : "—"}
+          value={m.returnPct != null ? formatPercent(m.returnPct, 1) : "-"}
           tone={(m.returnPct ?? 0) >= 0 ? "pos" : "neg"}
         />
         <Snapshot
@@ -56,8 +56,8 @@ export function ClientView({
           badgeClass={`${sev.bg} ${sev.text}`}
         />
         <Snapshot
-          label="TrustSVAN Score"
-          hint="A transparency measure, not advice"
+          label="SVAN Score"
+          hint="Process transparency, not advice"
           value={`${trust.scores.transparency}`}
           suffix="/100"
         />
@@ -72,17 +72,17 @@ export function ClientView({
 
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <ChartCard title="Growth Path" subtitle="The account's journey over time">
+        <ChartCard title="Equity path" subtitle="Account curve over the selected period">
           <EquityCurveChart data={equitySeries} hideAmounts={hideAmounts} />
         </ChartCard>
-        <ChartCard title="Daily Results" subtitle="Green days and red days">
+        <ChartCard title="Daily P&L" subtitle="Session-level realized performance">
           <DailyPnlChart data={dailySeries} hideAmounts={hideAmounts} />
         </ChartCard>
       </div>
 
       {/* Risk explained simply */}
       <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="text-sm font-medium text-slate-800">Risk, explained simply</h2>
+        <h2 className="text-sm font-medium text-slate-800">Risk and structure</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Plain
             label="Biggest Drop"
@@ -106,7 +106,7 @@ export function ClientView({
             value={
               trust.bestDayShare != null
                 ? `${Math.round(trust.bestDayShare * 100)}% from one day`
-                : "—"
+                : "-"
             }
             note="Whether profit relied on a single strong day."
             warn={concentrated}
@@ -135,14 +135,14 @@ export function ClientView({
       {/* Trust scores */}
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-medium text-slate-800">TrustSVAN Transparency Score</h2>
+          <h2 className="text-sm font-medium text-slate-800">SVAN operator score</h2>
           <span className="text-2xl font-semibold text-slate-900">
             {trust.scores.transparency}
             <span className="text-base font-normal text-slate-400">/100</span>
           </span>
         </div>
         <p className="mt-0.5 text-xs text-slate-400">
-          A weighted blend of six factors — proof, risk control, and reporting discipline carry the
+          A weighted blend of six factors: proof, risk control, and reporting discipline carry the
           most weight.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -154,14 +154,14 @@ export function ClientView({
           <ScoreBar label="Discipline" weight="5%" value={trust.scores.discipline} />
         </div>
         <p className="mt-4 text-xs text-slate-400">
-          Not an investment recommendation. It measures data quality, risk visibility, and reporting
+          Not an investment recommendation. It measures data quality, risk visibility, and publishing
           discipline.
         </p>
       </div>
 
       {/* Proof & privacy */}
       <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="text-sm font-medium text-slate-800">Proof &amp; privacy</h2>
+        <h2 className="text-sm font-medium text-slate-800">Proof and privacy</h2>
         <div className="mt-3 grid gap-4 sm:grid-cols-3 text-sm">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Data source</p>
@@ -241,7 +241,7 @@ function Plain({
   return (
     <div className={`rounded-lg border p-3 ${warn ? "border-amber-200 bg-amber-50" : "border-slate-100"}`}>
       <div className="flex items-center gap-1.5">
-        {warn && <span className="text-amber-600">⚠</span>}
+        {warn && <span className="text-amber-600">!</span>}
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
       </div>
       <p className="mt-1 font-semibold tabular-nums text-slate-800">{value}</p>
@@ -258,7 +258,7 @@ function ScoreBar({ label, value, weight }: { label: string; value: number; weig
       <div className="flex items-center justify-between text-xs">
         <span className="font-medium text-slate-600">
           {label}
-          {weight && <span className="font-normal text-slate-400"> · {weight}</span>}
+          {weight && <span className="font-normal text-slate-400"> / {weight}</span>}
         </span>
         <span className="tabular-nums text-slate-400">{pct}</span>
       </div>

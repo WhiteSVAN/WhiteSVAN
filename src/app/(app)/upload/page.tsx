@@ -22,9 +22,9 @@ export default async function UploadPage({
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Import trades</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Import trading history</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Upload a CSV from your broker or prop firm. Map the columns, preview the rows, then import.
+        Upload broker or prop-firm records to back your SVAN Capital operator card with real metrics.
       </p>
       <div className="mt-6">
         {accounts.length === 0 ? (

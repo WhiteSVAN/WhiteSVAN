@@ -18,7 +18,7 @@ import { PrintButton } from "./print-button";
 import { FollowForm } from "./follow-form";
 
 const DEFAULT_DISCLAIMER =
-  "TrustSVAN is reporting and analytics software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
+  "SVAN Capital is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
 
 export async function generateMetadata({
   params,
@@ -31,7 +31,7 @@ export async function generateMetadata({
     select: { displayName: true, isPublic: true },
   });
   return {
-    title: profile?.isPublic ? `${profile.displayName} — TrustSVAN` : "TrustSVAN",
+    title: profile?.isPublic ? `${profile.displayName} - SVAN Capital` : "SVAN Capital",
     robots: { index: false }, // private share links shouldn't be indexed
   };
 }
@@ -70,11 +70,11 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
   if (!profile || !profile.isPublic) {
     return (
-      <div className="flex min-h-full flex-1 items-center justify-center bg-slate-50 px-4 py-16 text-center">
+      <div className="flex min-h-full flex-1 items-center justify-center bg-slate-950 px-4 py-16 text-center">
         <div>
-          <p className="text-lg font-semibold text-slate-900">This portal isn&apos;t available</p>
+          <p className="text-lg font-semibold text-slate-900">This operator card isn&apos;t available</p>
           <p className="mt-1 text-sm text-slate-500">
-            The link may be wrong, or the trader has set their portal to private.
+            The link may be wrong, or the trader has set their profile to private.
           </p>
         </div>
       </div>
@@ -92,16 +92,16 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
   const equitySeries = snapshot?.equitySeries ?? [];
   const period =
     dailySeries.length > 0
-      ? `${dateLabel(dailySeries[0].date)} – ${dateLabel(dailySeries[dailySeries.length - 1].date)}`
+      ? `${dateLabel(dailySeries[0].date)} - ${dateLabel(dailySeries[dailySeries.length - 1].date)}`
       : null;
 
-  // Account/broker labels are used only to redact report prose when privacy is on.
-  const portalAccounts = await prisma.tradingAccount.findMany({
+  // Account/broker labels are used only to redact brief prose when privacy is on.
+  const privateAccounts = await prisma.tradingAccount.findMany({
     where: { userId: profile.userId },
     select: { id: true, accountName: true, broker: true },
     orderBy: { createdAt: "asc" },
   });
-  const privateReportTerms = portalAccounts.flatMap((a) => [a.accountName, a.broker ?? ""]);
+  const privateReportTerms = privateAccounts.flatMap((a) => [a.accountName, a.broker ?? ""]);
 
   // Living-profile header (MVP2): freshness + latest version's change summary + risk events.
   const publishedAtForFreshness = profile.lastPublishedAt ?? latestVersion?.publishedAt ?? null;
@@ -139,20 +139,20 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
   };
 
   return (
-    <div className="min-h-full bg-slate-50">
-      {/* Slim nav — hidden when printing / saving the report as PDF. */}
-      <nav className="border-b border-slate-200 bg-white print:hidden">
+    <div className="min-h-full bg-slate-950 text-slate-100">
+      {/* Slim nav hidden when printing / saving the report as PDF. */}
+      <nav className="border-b border-slate-800 bg-slate-950/90 print:hidden">
         <div className="mx-auto flex max-w-4xl items-center justify-end px-4 py-3">
           <Link
-            href={loggedIn ? "/dashboard" : "/explore"}
-            className="text-sm font-medium text-blue-700 hover:text-blue-800"
+            href={loggedIn ? "/network" : "/explore"}
+            className="text-sm font-medium text-cyan-300 hover:text-cyan-100"
           >
-            {loggedIn ? "Dashboard" : "Explore traders"}
+            {loggedIn ? "Network" : "Directory"}
           </Link>
         </div>
       </nav>
 
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-slate-800 bg-slate-950">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -160,16 +160,16 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
                 href={loggedIn ? "/dashboard" : "/"}
                 className="transition hover:text-slate-600"
               >
-                Trust<span className="text-blue-700">SVAN</span>
+                SVAN <span className="text-cyan-300">CAPITAL</span>
               </Link>{" "}
-              · verified report
+              / operator card
             </p>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
               {profile.displayName}
             </h1>
             <p className="mt-0.5 text-sm text-slate-500">
-              {[profile.strategy, profile.instruments].filter(Boolean).join(" · ")}
-              {period && <span className="text-slate-400"> · {period}</span>}
+              {[profile.strategy, profile.instruments].filter(Boolean).join(" / ")}
+              {period && <span className="text-slate-400"> / {period}</span>}
             </p>
           </div>
           <PrintButton />
@@ -195,8 +195,8 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             hideAmounts={profile.hideAmounts}
           />
         ) : (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
-            No published performance yet.
+          <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/70 p-10 text-center text-sm text-slate-500">
+            No published record yet.
           </div>
         )}
 
@@ -204,7 +204,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
         {reports.length > 0 && (
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Monthly reports</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Research and performance briefs</h2>
             {reports.map((r) => (
               <ReportSections
                 key={r.id}
@@ -220,7 +220,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
         {evidence.length > 0 && (
           <section className="space-y-3">
             <h2 className="text-lg font-semibold tracking-tight text-slate-900">Evidence</h2>
-            <p className="text-sm text-slate-500">Supporting documents shared by the trader.</p>
+            <p className="text-sm text-slate-500">Supporting documents shared by the operator.</p>
             <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
               {evidence.map((e) => (
                 <li
@@ -243,15 +243,15 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
         )}
 
         <section className="space-y-3 print:hidden">
-          <h2 className="text-lg font-semibold tracking-tight text-slate-900">Follow this profile</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Follow this operator</h2>
           <p className="text-sm text-slate-500">
-            Get this trader&apos;s reporting updates by email. Not investment advice.
+            Get profile and research updates by email. Not investment advice.
           </p>
           <FollowForm slug={slug} />
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-4xl space-y-2 px-4 py-6 text-xs leading-relaxed text-slate-400">
           {profile.disclaimer && <p>{profile.disclaimer}</p>}
           <p>{DEFAULT_DISCLAIMER}</p>

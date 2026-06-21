@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TrustSVAN — trader reporting & risk analytics",
+  title: "SVAN Capital - professional trader network",
   description:
-    "Upload your trading history and get verified performance dashboards, AI risk reports, and a private client portal.",
+    "A professional network for traders sharing GEX analysis, quant briefs, stock deep dives, and verified performance records.",
 };
 
 export default function RootLayout({

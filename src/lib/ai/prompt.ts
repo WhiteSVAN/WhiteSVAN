@@ -1,6 +1,6 @@
 /**
- * Shared prompt construction — provider-agnostic. The system prompt is the
- * compliance guardrail (plan §6, §13); the user prompt feeds verified metrics
+ * Shared prompt construction. The system prompt is the
+ * compliance guardrail; the user prompt feeds verified metrics
  * as text so the model explains numbers it never has to compute.
  */
 import type { Metrics } from "@/lib/metrics";
@@ -12,7 +12,7 @@ Do not recommend buying, selling, holding, copying, allocating, or investing.
 Do not predict or imply future returns.
 Do not use words such as guaranteed, safe, risk-free, certain, or assured.
 Discuss only past performance, risk, discipline, and process, written in the third person about the trader.
-Write in a professional, plain style suitable for a client portal.
+Write in a professional, plain style suitable for a trader research network.
 The client_disclaimer field must state that past performance does not guarantee future results.
 Return only valid JSON matching the requested schema.`;
 
@@ -22,7 +22,7 @@ export interface ReportNotes {
   riskRules?: string | null;
 }
 
-/** Client-friendly TrustSVAN signals, so the report mirrors the dashboard. */
+/** SVAN Capital signals, so the brief mirrors the dashboard. */
 export interface ReportSignals {
   bestDayShare: number | null;
   drawdownSeverity: string;
@@ -61,12 +61,12 @@ export function buildUserPrompt(input: ReportInput): string {
   if (input.notes?.riskRules) facts.push(`Trader's stated risk rules: ${input.notes.riskRules}`);
 
   return [
-    "Write a monthly client report from these verified metrics. Use only the numbers given.",
+    "Write a monthly SVAN Capital operator brief from these verified metrics. Use only the numbers given.",
     "",
     facts.join("\n"),
     "",
     "Return a JSON object with exactly these fields:",
-    "- executive_summary (string): a client-friendly overview of the month.",
+    "- executive_summary (string): a professional overview of the month.",
     "- performance_summary (string): what happened, using the verified metrics.",
     "- risk_summary (string): drawdown, worst day, volatility, concentration.",
     "- discipline_review (string): consistency, red-day frequency, single-day dependence.",

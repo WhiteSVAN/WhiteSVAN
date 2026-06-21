@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { followProfile } from "./actions";
 
 /**
- * Follow form (MVP2.5) — clients subscribe to update/risk-change notifications.
+ * Follow form (MVP2.5) captures update/risk-change notification subscribers.
  * Deliberately advice-free: it offers updates about a *reporting* profile, not a
  * recommendation to invest or copy trades.
  */
@@ -44,11 +44,11 @@ export function FollowForm({ slug }: { slug: string }) {
           disabled={pending}
           className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending ? "Following…" : "Follow"}
+          {pending ? "Following..." : "Follow"}
         </button>
       </div>
       <p className="text-xs text-slate-400">
-        Get notified when this profile updates or a risk flag changes. Reporting updates only — not
+        Get notified when this profile updates or a risk flag changes. Research updates only, not
         investment advice, and you can unsubscribe anytime.
       </p>
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}

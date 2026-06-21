@@ -12,7 +12,7 @@ import { MissingApiKeyError } from "@/lib/ai/errors";
 
 export type GenerateState = { message?: string } | undefined;
 
-/** Generate a draft AI report for one account + month, then open the editor. */
+/** Generate a draft AI brief for one account + month, then open the editor. */
 export async function generateReport(
   _prev: GenerateState,
   formData: FormData,
@@ -67,9 +67,9 @@ export async function generateReport(
     });
   } catch (err) {
     if (err instanceof MissingApiKeyError) {
-      return { message: `Set the ${err.provider} API key in .env to generate reports.` };
+      return { message: `Set the ${err.provider} API key in .env to generate briefs.` };
     }
-    return { message: "Report generation failed. Please try again." };
+    return { message: "Brief generation failed. Please try again." };
   }
 
   // Persist a code-of-record metrics snapshot alongside the AI text.
@@ -132,9 +132,9 @@ export async function submitReport(
     where: { id, userId },
     select: { id: true, status: true },
   });
-  if (!report) return { message: "Report not found." };
+  if (!report) return { message: "Brief not found." };
   if (report.status === "PUBLISHED" && intent !== "publish") {
-    return { message: "Published reports are read-only. Delete and regenerate if you need a replacement." };
+    return { message: "Published briefs are read-only. Delete and regenerate if you need a replacement." };
   }
 
   const aiReport = reportFromForm(formData);
@@ -151,7 +151,7 @@ export async function submitReport(
 
   if (intent === "publish") {
     if (report.status !== "APPROVED") {
-      return { message: "Approve the report before publishing." };
+      return { message: "Approve the brief before publishing." };
     }
     const issues = reportComplianceIssues(aiReport);
     if (issues.length > 0) {

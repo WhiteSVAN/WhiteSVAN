@@ -38,7 +38,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
           }}
           required
           className={inputClass}
-          placeholder="Aditya Nalluri"
+          placeholder="Alex Morgan"
         />
         <FieldError messages={state?.errors?.displayName} />
       </div>
@@ -74,7 +74,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
           name="strategy"
           rows={2}
           className={inputClass}
-          placeholder="Intraday futures momentum; risk-defined."
+          placeholder="GEX-led SPX intraday, systematic swing equities, or earnings deep dives."
         />
         <FieldError messages={state?.errors?.strategy} />
       </div>
@@ -87,7 +87,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
           id="instruments"
           name="instruments"
           className={inputClass}
-          placeholder="ES, NQ, options"
+          placeholder="SPX, SPY, QQQ, single-stock options"
         />
         <FieldError messages={state?.errors?.instruments} />
       </div>
@@ -115,13 +115,13 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
           name="bio"
           rows={3}
           className={inputClass}
-          placeholder="A short intro shown on your public portal."
+          placeholder="A short intro shown on your public operator card."
         />
         <FieldError messages={state?.errors?.bio} />
       </div>
 
       <button type="submit" disabled={pending} className={btnPrimary}>
-        {pending ? "Saving…" : "Continue to dashboard"}
+        {pending ? "Saving..." : "Continue to terminal"}
       </button>
     </form>
   );

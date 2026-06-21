@@ -64,11 +64,11 @@ export function ReportEditor({
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <Link href="/reports" className="text-sm text-blue-700 hover:text-blue-800">
-            ← Reports
+          <Link href="/reports" className="text-sm text-cyan-300 hover:text-cyan-100">
+            Back to briefs
           </Link>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
-            {accountName} · {periodLabel(period)}
+            {accountName} / {periodLabel(period)}
           </h1>
         </div>
         <span
@@ -80,12 +80,12 @@ export function ReportEditor({
 
       {state?.published && (
         <div className="rounded-lg bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
-          Report published.
+          Brief published.
         </div>
       )}
       {state?.approved && (
         <div className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800">
-          Report approved — ready to publish.
+          Brief approved. Ready to publish.
         </div>
       )}
       {state?.saved && (
@@ -96,7 +96,7 @@ export function ReportEditor({
       )}
       {(liveIssues.length > 0 || (state?.issues && state.issues.length > 0)) && (
         <div className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <p className="font-medium">Compliance check — remove before publishing:</p>
+          <p className="font-medium">Compliance check: remove before publishing:</p>
           <ul className="mt-1 list-inside list-disc">
             {[...new Set([...liveIssues, ...(state?.issues ?? [])])].map((p) => (
               <li key={p}>
@@ -116,7 +116,7 @@ export function ReportEditor({
         <Field label="Discipline review" name="discipline_review" rows={4} value={fields.discipline_review} onChange={set("discipline_review")} readOnly={readOnly} />
         <Field label="Notable days" name="notable_days" rows={3} value={fields.notable_days} onChange={set("notable_days")} hint="One per line." readOnly={readOnly} />
         <Field label="Warnings" name="warnings" rows={3} value={fields.warnings} onChange={set("warnings")} hint="One per line." readOnly={readOnly} />
-        <Field label="Client disclaimer" name="client_disclaimer" rows={2} value={fields.client_disclaimer} onChange={set("client_disclaimer")} readOnly={readOnly} />
+        <Field label="Research disclaimer" name="client_disclaimer" rows={2} value={fields.client_disclaimer} onChange={set("client_disclaimer")} readOnly={readOnly} />
 
         {!readOnly && (
           <div className="flex flex-wrap items-center gap-3">
@@ -129,7 +129,7 @@ export function ReportEditor({
                   disabled={pending}
                   className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
                 >
-                  {pending ? "Saving…" : "Save draft"}
+                  {pending ? "Saving..." : "Save draft"}
                 </button>
                 <button
                   type="submit"
@@ -162,7 +162,7 @@ export function ReportEditor({
       <form action={deleteReport} className="border-t border-slate-100 pt-4" onSubmit={confirmDelete}>
         <input type="hidden" name="id" value={id} />
         <button type="submit" className="text-sm text-red-600 hover:text-red-700">
-          Delete report
+          Delete brief
         </button>
       </form>
     </div>

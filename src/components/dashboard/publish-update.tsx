@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { publishUpdate } from "@/app/(app)/dashboard/actions";
 
 /**
- * Publish control (MVP2.2) — snapshots the trader's current numbers into a new
+ * Publish control (MVP2.2) snapshots the trader's current numbers into a new
  * immutable profile version and makes them the live public record. Shows the
  * last published version + its change summary.
  */
@@ -20,14 +20,14 @@ export function PublishUpdate({
   const [state, action, pending] = useActionState(publishUpdate, undefined);
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-medium text-slate-800">Publish update</h2>
+          <h2 className="text-base font-medium text-slate-800">Publish operator record</h2>
           <p className="mt-1 text-sm text-slate-500">
             {lastVersionNumber
-              ? `Last published: v${lastVersionNumber}${lastPublishedLabel ? ` · ${lastPublishedLabel}` : ""}`
-              : "Not published yet — publish to make your latest numbers live for clients."}
+              ? `Last published: v${lastVersionNumber}${lastPublishedLabel ? ` / ${lastPublishedLabel}` : ""}`
+              : "Not published yet. Publish to make your latest numbers visible on your operator card."}
           </p>
         </div>
         <form action={action}>
@@ -36,7 +36,7 @@ export function PublishUpdate({
             disabled={pending}
             className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {pending ? "Publishing…" : "Publish update"}
+            {pending ? "Publishing..." : "Publish record"}
           </button>
         </form>
       </div>
@@ -48,7 +48,7 @@ export function PublishUpdate({
       )}
       {state?.published && (
         <p className="mt-3 text-sm text-emerald-600">
-          Published v{state.version}. Your public profile is updated.
+          Published v{state.version}. Your operator card is updated.
         </p>
       )}
       {state?.error && <p className="mt-3 text-sm text-red-600">{state.error}</p>}

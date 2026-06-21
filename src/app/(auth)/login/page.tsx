@@ -10,8 +10,8 @@ export default function LoginPage() {
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-slate-900">Sign in</h1>
-      <p className="mt-1 text-sm text-slate-500">Welcome back to your trader portal.</p>
+      <h1 className="text-lg font-semibold text-slate-100">Sign in</h1>
+      <p className="mt-1 text-sm text-slate-500">Return to the SVAN Capital desk.</p>
 
       <form action={action} className="mt-6 space-y-4">
         <FormError message={state?.message} />
@@ -48,7 +48,7 @@ export default function LoginPage() {
         </div>
 
         <button type="submit" disabled={pending} className={btnPrimary}>
-          {pending ? "Signing in…" : "Sign in"}
+          {pending ? "Signing in..." : "Sign in"}
         </button>
       </form>
 
