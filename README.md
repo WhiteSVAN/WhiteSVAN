@@ -1,6 +1,6 @@
 # WhiteSVAN — TrustSVAN
 
-TrustSVAN bridges the trust gap between traders and clients. Prop-firm traders, independent traders or contractors, brokers, and trading teams import broker or prop-firm history, review code-computed metrics, publish immutable client-facing profile versions, and share a read-only trust profile.
+TrustSVAN bridges the trust gap between traders and clients, and gives professional traders a network card for peer discovery. Prop-firm traders, independent traders or contractors, brokers, and trading teams import broker or prop-firm history, review code-computed metrics, publish immutable profile versions, and share read-only trust profiles in client or trader-to-trader contexts.
 
 It does not manage money, execute trades, copy trades, provide investment advice, or guarantee performance. Public pages must keep the past-performance disclaimer.
 
@@ -19,6 +19,7 @@ It does not manage money, execute trades, copy trades, provide investment advice
 
 - Code calculates numbers. AI only explains already-computed metrics.
 - Public performance reads from published `ProfileVersion` snapshots, not live imports.
+- The authenticated `/network` surface is for professional trader-to-trader discovery; member cards link back to proof-backed public profiles.
 - CSV/import hashes are recorded and duplicate source files are rejected per account.
 - Privacy redaction affects public display only; metrics are not recalculated.
 - Proof Levels currently support CSV imports, broker statements, and tax-return / official-tax-record evidence.
