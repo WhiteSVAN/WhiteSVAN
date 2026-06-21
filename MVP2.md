@@ -26,6 +26,7 @@ The MVP1 product (milestones M1–M6 + trust features) is built and working:
 | AI reports | ✅ | `/reports`: generate (OpenAI default / Claude) → editor with live compliance → publish. Strict system prompt + banned-language filter ([compliance.ts](src/lib/ai/compliance.ts)) |
 | Client portal | ✅ | Public `/p/[slug]`, public/private toggle + share link, Print / Save-PDF |
 | Launch surface | ✅ | Landing + waitlist capture, seeded demo at `/p/demo`, public directory `/explore` |
+| Professional network | ✅ | Authenticated `/network` surface for trader-to-trader discovery, rooms, structured signal/counterview prompts, and proof-backed member cards |
 | Evidence & Proof Levels | ✅ | Evidence locker + dynamic Proof Levels ([proof.ts](src/lib/proof.ts)): CSV = L2, broker statement = L3. `/settings` upload + serve |
 | Redaction (basic) | ⚠️ | Single `hideAmounts` boolean only — MVP2 makes this granular |
 | Transparency breakdown + calendar heatmap | ✅ | Weighted sub-scores in UI + monthly heatmap |

@@ -28,6 +28,9 @@ export default function Home() {
             Trust<span className="text-blue-700">SVAN</span>
           </span>
           <div className="flex items-center gap-3 text-sm">
+            <Link href="/network" className="text-slate-600 hover:text-slate-900">
+              Network
+            </Link>
             <Link href="/explore" className="text-slate-600 hover:text-slate-900">
               Explore
             </Link>
@@ -53,7 +56,8 @@ export default function Home() {
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-slate-600">
             Prop-firm traders, independent contractors, brokers, and trading teams can turn verified
-            history into client-readable risk reports, AI monthly updates, and a private trust profile.
+            history into client-readable risk reports, AI monthly updates, a professional network
+            card, and a private trust profile.
           </p>
 
           <div className="mt-8">
@@ -74,6 +78,7 @@ export default function Home() {
             {[
               "Verified performance reports, without the spreadsheets",
               "AI-written risk and discipline summaries for your clients",
+              "A professional network card for trader-to-trader discovery",
               "A private, shareable link for clients, counterparties, and followers",
             ].map((b) => (
               <li key={b} className="flex items-start gap-2 text-sm text-slate-700">

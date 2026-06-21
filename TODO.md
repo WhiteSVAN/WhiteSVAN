@@ -40,6 +40,9 @@ Things to come back to. MVP (M1–M6) and the first round of trust features are 
 
 ## Product / UX
 
+- [ ] Back `/network` rooms and signal board with persisted posts, room membership, and moderation
+      tools. Current slice ships the authenticated professional-network surface and real public
+      profile directory without fake connect actions.
 - [ ] Render each published report's **own stored metrics snapshot** in its portal section.
 - [ ] **Email / magic-link auth** (currently credentials only; Auth.js adapter models already exist).
 - [ ] **OG image + richer metadata** for shared portal links.

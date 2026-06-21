@@ -20,9 +20,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           >
             Trust<span className="text-blue-700">SVAN</span>
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
+          <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-sm">
             <Link href="/dashboard" className="text-slate-600 hover:text-slate-900">
               Dashboard
+            </Link>
+            <Link href="/network" className="text-slate-600 hover:text-slate-900">
+              Network
             </Link>
             <Link href="/upload" className="text-slate-600 hover:text-slate-900">
               Import
