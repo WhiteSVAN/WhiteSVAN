@@ -227,6 +227,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
           cadenceLabel={cadenceLabel(toCadence(profile.updateCadence))}
           changeSummary={latestVersion?.changeSummary ?? null}
           riskEvents={riskEvents}
+          proofLevel={trust?.proofLevel ?? null}
         />
 
         {trust ? (

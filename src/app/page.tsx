@@ -46,9 +46,24 @@ const PILLARS = [
 ];
 
 const ACCESS = [
-  { name: "Reader", price: "$0", blurb: "Browse verified operator cards and the research directory" },
-  { name: "Operator", price: "$49", blurb: "Verified profile, proof locker, published briefs, and client inquiries" },
-  { name: "Team", price: "$199", blurb: "Team profiles, private rooms, and a shared research archive" },
+  {
+    name: "Free",
+    price: "$0",
+    blurb: "Verified operator card, proof levels (CSV → broker statement → tax return), public profile, and an open-to-work signal. Get verified and discovered at no cost.",
+    highlight: true,
+  },
+  {
+    name: "Pro",
+    price: "$12",
+    blurb: "Everything in Free, plus published research briefs, follower email updates, multiple accounts, and directory priority.",
+    highlight: false,
+  },
+  {
+    name: "Team",
+    price: "$49",
+    blurb: "Team profiles, private research rooms, and a shared research archive.",
+    highlight: false,
+  },
 ];
 
 export default function Home() {
@@ -187,12 +202,30 @@ export default function Home() {
 
         <section className="border-y border-slate-800 bg-slate-950/70">
           <div className="mx-auto max-w-6xl px-4 py-16">
-            <h2 className="text-2xl font-semibold tracking-tight text-white">Simple beta access</h2>
-            <p className="mt-2 text-sm text-slate-400">Free during early research-profile onboarding.</p>
+            <h2 className="text-2xl font-semibold tracking-tight text-white">
+              Verification is free for every trader
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-slate-400">
+              Any trader can get a verified, proof-backed operator card at no cost — up to
+              tax-return-checked proof. Paid tiers add research, reach, and team tools at a fraction
+              of legacy reporting tools.
+            </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {ACCESS.map((plan) => (
-                <div key={plan.name} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
-                  <p className="text-sm font-medium text-slate-400">{plan.name}</p>
+                <div
+                  key={plan.name}
+                  className={`rounded-lg border bg-slate-900/70 p-5 ${
+                    plan.highlight ? "border-cyan-400/40 ring-1 ring-cyan-400/20" : "border-slate-800"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-slate-400">{plan.name}</p>
+                    {plan.highlight && (
+                      <span className="rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-300">
+                        Most accessible
+                      </span>
+                    )}
+                  </div>
                   <p className="mt-2 text-3xl font-semibold text-white">
                     {plan.price}
                     <span className="text-sm font-normal text-slate-500">/mo</span>
