@@ -185,7 +185,7 @@ export function ClientView({
         <div className="mt-3 grid gap-4 sm:grid-cols-3 text-sm">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Data source</p>
-            <p className="mt-1 text-slate-300">CSV import</p>
+            <p className="mt-1 text-slate-300">Broker-reported history</p>
           </div>
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Proof level</p>

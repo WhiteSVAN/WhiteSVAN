@@ -7,10 +7,10 @@ import {
   CheckCircle2,
   ClipboardCheck,
   FileSearch,
+  Link2,
   LockKeyhole,
   MessageSquare,
   ShieldCheck,
-  UploadCloud,
 } from "lucide-react";
 import { WaitlistForm } from "./waitlist-form";
 import { BrokerLogos } from "@/components/broker-logos";
@@ -26,7 +26,7 @@ const TRUST_CARDS = [
   },
   {
     title: "The solution",
-    body: "A public Quantidive profile ties performance, proof level, freshness, and risk metrics to a record that can be reviewed.",
+    body: "A public Quantidive profile ties broker-reported performance, proof level, freshness, and risk metrics to a record that can be reviewed.",
   },
 ];
 
@@ -172,7 +172,8 @@ export default function Home() {
               <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
                 Quantidive combines public trader verification with an AI-ready workflow for
                 screening, reviewing, monitoring, and reporting on trading talent. Traders prove the
-                record; clients and firms get a cleaner way to diligence it.
+                record through source-linked history; clients and firms get a cleaner way to
+                diligence it.
               </p>
               <div className="mt-8 max-w-xl">
                 <WaitlistForm />
@@ -388,13 +389,14 @@ export default function Home() {
                   Verify from the broker or prop firm you already use
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                  CSV and statement imports work today. Direct connections can sit behind the same
-                  proof system later without changing the public profile model.
+                  Quantidive is designed around read-only broker and prop-firm connections:
+                  broker-reported transactions, automatic performance metrics, no trade execution,
+                  and no hand-edited track records.
                 </p>
               </div>
               <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-200">
-                <UploadCloud className="h-4 w-4" aria-hidden="true" />
-                14+ brokers &amp; prop firms
+                <Link2 className="h-4 w-4" aria-hidden="true" />
+                Read-only broker links
               </span>
             </div>
             <div className="mt-6">

@@ -7,8 +7,9 @@
  * real SVG logos later, replace the chip body with an <Image>/<svg> per entry —
  * the list below is the single source of truth, so "add a broker" = add a line.
  *
- * Import coverage today is via CSV/statement export (IBKR Flex, Fidelity and
- * E*TRADE realized-gain exports, manual template); the rest are on the roadmap.
+ * Product coverage is framed around read-only broker and prop-firm connections.
+ * While direct connectors are added, source files and statements can feed the
+ * same proof model without changing public profile semantics.
  */
 const BROKERS = [
   "Interactive Brokers",

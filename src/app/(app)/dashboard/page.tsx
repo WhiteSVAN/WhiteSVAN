@@ -123,7 +123,7 @@ export default async function DashboardPage({
             href="/upload"
             className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800"
           >
-            Import trades
+            Connect broker
           </Link>
         </div>
       </div>
@@ -150,7 +150,7 @@ export default async function DashboardPage({
 
       {imported && (
         <div className="rounded-lg bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
-          Imported {imported} trades. Your metrics are updated below.
+          Loaded {imported} trades. Your metrics are updated below.
         </div>
       )}
 
@@ -171,14 +171,14 @@ export default async function DashboardPage({
           </h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
             {account
-              ? "Try a wider date range, or import more trades."
-            : "Import a broker or prop-firm CSV to build your Quantidive research profile and analytics dashboard."}
+              ? "Try a wider date range, or connect more trading history."
+            : "Connect broker or prop-firm history to build your Quantidive research profile and analytics dashboard."}
           </p>
           <Link
             href="/upload"
             className="mt-4 inline-flex rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800"
           >
-            {account ? "Import more" : "Import first CSV"}
+            {account ? "Connect more history" : "Connect broker"}
           </Link>
         </div>
       )}

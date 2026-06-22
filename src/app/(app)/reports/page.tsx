@@ -87,7 +87,7 @@ export default async function ReportsPage() {
         <div className="mt-4">
           {accountOptions.length === 0 ? (
             <p className="text-sm text-slate-500">
-              Import trades first, then generate a monthly research brief.
+              Connect trading history first, then generate a monthly research brief.
             </p>
           ) : (
             <GenerateReportForm accounts={accountOptions} />

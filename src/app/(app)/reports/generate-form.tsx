@@ -64,7 +64,7 @@ export function GenerateReportForm({ accounts }: { accounts: AccountOption[] }) 
             disabled={periods.length === 0}
           >
             {periods.length === 0 ? (
-              <option value="">No imported months</option>
+              <option value="">No source-backed months</option>
             ) : (
               periods.map((p) => (
                 <option key={p} value={p}>

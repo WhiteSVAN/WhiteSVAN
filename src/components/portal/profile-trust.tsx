@@ -10,8 +10,9 @@ const TONE: Record<FreshnessTone, string> = {
 };
 
 // Proof Level badge styling. Tax-return (4) and third-party (5) are the strongest
-// proof, so they read as fully verified; statement (3) is checked; CSV/self (1-2)
-// are muted. Drives the headline "verification" badge on the public operator card.
+// proof, so they read as fully verified; statement (3) is checked; source-linked
+// and self-reported levels (1-2) are muted. Drives the headline "verification"
+// badge on the public operator card.
 const PROOF_BADGE: Record<ProofLevel, string> = {
   1: "bg-slate-800 text-slate-300 ring-1 ring-inset ring-slate-700",
   2: "bg-slate-800 text-slate-300 ring-1 ring-inset ring-slate-700",

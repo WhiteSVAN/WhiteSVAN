@@ -95,7 +95,7 @@ export async function uploadEvidence(
   if (!(file instanceof File) || file.size === 0) return { error: "Choose a file to upload." };
   if (file.size > MAX_EVIDENCE_BYTES) return { error: "File too large (max 10 MB)." };
   if (!ALLOWED_MIME.has(file.type)) {
-    return { error: "Unsupported type. Use PDF, image, CSV, or text." };
+    return { error: "Unsupported type. Use PDF, image, source export, or text." };
   }
 
   const kindRaw = String(formData.get("kind") ?? "OTHER");
@@ -161,8 +161,8 @@ export async function deleteEvidence(formData: FormData) {
 }
 
 /**
- * Wipe imported trades + daily rollup for one account, keeping the account
- * itself (and its reports/evidence). For undoing a wrong-CSV import.
+ * Wipe loaded trades + daily rollup for one account, keeping the account
+ * itself (and its reports/evidence). For undoing a wrong source-history load.
  */
 export async function clearAccountTrades(formData: FormData) {
   const userId = await requireUserId();
@@ -201,7 +201,7 @@ export async function deleteAccount(formData: FormData) {
 }
 
 /**
- * Clear ALL imported trades + daily rollups across every account, keeping the
+ * Clear ALL loaded trades + daily rollups across every account, keeping the
  * accounts (and reports/evidence) intact — a "reset my numbers" without losing
  * account setup. A full account purge is per-account via deleteAccount.
  */

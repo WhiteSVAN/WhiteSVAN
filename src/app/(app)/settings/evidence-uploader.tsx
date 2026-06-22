@@ -9,7 +9,7 @@ const KINDS = [
   { v: "STATEMENT", label: "Broker statement (raises Proof Level)" },
   { v: "TAX_RETURN", label: "Tax return / official tax record (raises Proof Level 4)" },
   { v: "PAYOUT", label: "Payout proof" },
-  { v: "EXPORT", label: "Raw export" },
+  { v: "EXPORT", label: "Source export" },
   { v: "OTHER", label: "Other" },
 ];
 
@@ -29,7 +29,7 @@ export function EvidenceUploader({ accounts }: { accounts: { id: string; account
     <form ref={formRef} action={action} className="grid gap-3 sm:grid-cols-2">
       <div className="sm:col-span-2">
         <label htmlFor="file" className={labelClass}>
-          File <span className="text-slate-400">(PDF, image, CSV — max 10 MB)</span>
+          File <span className="text-slate-400">(PDF, image, source export - max 10 MB)</span>
         </label>
         <input
           id="file"

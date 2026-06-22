@@ -15,10 +15,10 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n
 
 export type DrawdownSeverity = "controlled" | "elevated" | "high" | "severe";
 
-/** Proof Level 1..5 — how reliable the underlying data is. CSV import = 2. */
+/** Proof Level 1..5 — how reliable the underlying data is. Source-linked history = 2. */
 export const PROOF_LEVELS = {
-  1: { label: "Self-reported", blurb: "Numbers were entered manually." },
-  2: { label: "CSV imported", blurb: "Data was imported from a trading export. Broker connection is not yet active." },
+  1: { label: "Self-reported", blurb: "Numbers were supplied by the trader." },
+  2: { label: "Source linked", blurb: "Trading history came from broker or prop-firm source data." },
   3: { label: "Statement checked", blurb: "A broker statement was uploaded and checked." },
   4: { label: "Tax return checked", blurb: "A tax return or official tax record was uploaded for verification." },
   5: { label: "Third-party verified", blurb: "Data was reviewed by an external auditor." },

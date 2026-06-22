@@ -34,7 +34,7 @@ export interface BrokerFormat {
 
 /** Drives the upload-page dropdown. `auto` is handled by parse.ts, not here. */
 export const BROKER_FORMATS: BrokerFormat[] = [
-  { id: "auto", label: "Auto-detect — IBKR Flex, E*TRADE / Fidelity Gain-Loss, manual", status: "ready" },
+  { id: "auto", label: "Auto-detect broker statement/export", status: "ready" },
   { id: "fidelity", label: "Fidelity — Activity History", status: "ready", broker: "Fidelity" },
   { id: "webull", label: "Webull — Orders", status: "ready", broker: "Webull" },
   { id: "robinhood", label: "Robinhood", status: "soon", broker: "Robinhood" },

@@ -37,7 +37,7 @@ const periodLabel = (s: Date | null, e: Date | null) =>
   s && e ? `${format(s, "MMM d")} – ${format(e, "MMM d, yyyy")}` : "—";
 
 /**
- * Trader-facing audit trail (MVP2.2/2.3): every import recorded with a file
+ * Trader-facing audit trail (MVP2.2/2.3): every source load recorded with a file
  * hash, the immutable published versions, and the follower list.
  */
 export function UpdateHistory({
@@ -85,11 +85,11 @@ export function UpdateHistory({
         )}
       </div>
 
-      {/* Upload history */}
+      {/* Source history */}
       <div>
-        <h3 className="text-sm font-medium text-slate-700">Upload history</h3>
+        <h3 className="text-sm font-medium text-slate-700">Source history</h3>
         {uploads.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">No imports recorded yet.</p>
+          <p className="mt-2 text-sm text-slate-500">No source loads recorded yet.</p>
         ) : (
           <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200">
             <table className="min-w-full divide-y divide-slate-100 text-sm">
@@ -101,7 +101,7 @@ export function UpdateHistory({
                   <th className="px-3 py-2 font-medium text-right">Rows</th>
                   <th className="px-3 py-2 font-medium text-right">Net P&amp;L</th>
                   <th className="px-3 py-2 font-medium">Fingerprint</th>
-                  <th className="px-3 py-2 font-medium">Imported</th>
+                  <th className="px-3 py-2 font-medium">Loaded</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
