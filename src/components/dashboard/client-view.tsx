@@ -10,27 +10,27 @@ import { DailyPnlChart, type DailyPoint } from "@/components/charts/daily-pnl";
 const SEVERITY: Record<DrawdownSeverity, { label: string; text: string; bg: string; border: string }> = {
   controlled: {
     label: "Controlled",
-    text: "text-zinc-100",
-    bg: "bg-zinc-300/10",
-    border: "border-zinc-300/30",
+    text: "text-emerald-300",
+    bg: "bg-emerald-400/10",
+    border: "border-emerald-400/30",
   },
   elevated: {
     label: "Elevated",
-    text: "text-zinc-300",
-    bg: "bg-zinc-500/15",
-    border: "border-zinc-500/30",
+    text: "text-amber-300",
+    bg: "bg-amber-400/10",
+    border: "border-amber-400/30",
   },
   high: {
     label: "High risk",
-    text: "text-zinc-300",
-    bg: "bg-zinc-600/15",
-    border: "border-zinc-600/30",
+    text: "text-orange-300",
+    bg: "bg-orange-400/10",
+    border: "border-orange-400/30",
   },
   severe: {
     label: "Severe",
-    text: "text-zinc-400",
-    bg: "bg-zinc-700/20",
-    border: "border-zinc-600/40",
+    text: "text-red-300",
+    bg: "bg-red-400/10",
+    border: "border-red-400/30",
   },
 };
 
@@ -228,7 +228,7 @@ function Snapshot({
   badgeClass?: string;
   small?: boolean;
 }) {
-  const color = tone === "pos" ? "text-zinc-100" : tone === "neg" ? "text-zinc-400" : "text-white";
+  const color = tone === "pos" ? "text-emerald-400" : tone === "neg" ? "text-red-400" : "text-white";
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
       <p className="text-xs font-medium uppercase text-zinc-400">{label}</p>
@@ -261,7 +261,7 @@ function Plain({
   return (
     <div
       className={`rounded-lg border p-3 ${
-        warn ? "border-zinc-500/30 bg-zinc-500/15" : "border-zinc-800 bg-zinc-950/60"
+        warn ? "border-amber-400/30 bg-amber-400/10" : "border-zinc-800 bg-zinc-950/60"
       }`}
     >
       <div className="flex items-center gap-1.5">
@@ -276,7 +276,7 @@ function Plain({
 
 function ScoreBar({ label, value, weight }: { label: string; value: number; weight?: string }) {
   const pct = Math.round(value);
-  const color = pct >= 67 ? "bg-zinc-200" : pct >= 40 ? "bg-zinc-500" : "bg-zinc-700";
+  const color = pct >= 67 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-red-500";
   return (
     <div>
       <div className="flex items-center justify-between text-xs">

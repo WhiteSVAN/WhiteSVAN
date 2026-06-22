@@ -111,7 +111,7 @@ function Card({
   tone?: "pos" | "neg";
 }) {
   const valueColor =
-    tone === "pos" ? "text-zinc-100" : tone === "neg" ? "text-zinc-300" : "text-zinc-900";
+    tone === "pos" ? "text-emerald-400" : tone === "neg" ? "text-red-400" : "text-zinc-900";
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-4">
       <p className="text-xs font-medium uppercase text-zinc-400">{label}</p>
@@ -123,7 +123,7 @@ function Card({
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "pos" | "neg" }) {
   const valueColor =
-    tone === "pos" ? "text-zinc-100" : tone === "neg" ? "text-zinc-300" : "text-zinc-700";
+    tone === "pos" ? "text-emerald-400" : tone === "neg" ? "text-red-400" : "text-zinc-700";
   return (
     <div>
       <p className="text-xs font-medium uppercase text-zinc-400">{label}</p>

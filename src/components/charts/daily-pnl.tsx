@@ -18,7 +18,7 @@ export interface DailyPoint {
   netPnl: number;
 }
 
-/** Net P&L per trading day with neutral positive/negative bars. */
+/** Net P&L per trading day — emerald bars for green days, coral for red. */
 export function DailyPnlChart({ data, hideAmounts }: { data: DailyPoint[]; hideAmounts?: boolean }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
@@ -54,7 +54,7 @@ export function DailyPnlChart({ data, hideAmounts }: { data: DailyPoint[]; hideA
         />
         <Bar dataKey="netPnl" radius={[2, 2, 0, 0]}>
           {data.map((d) => (
-            <Cell key={d.date} fill={d.netPnl >= 0 ? "#d4d4d8" : "#52525b"} />
+            <Cell key={d.date} fill={d.netPnl >= 0 ? "#34d399" : "#f87171"} />
           ))}
         </Bar>
       </BarChart>
