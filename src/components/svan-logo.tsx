@@ -1,23 +1,25 @@
 /**
- * TrustSVAN brand lockup — swan mark + wordmark.
+ * truSVAN brand lockup — swan mark + wordmark.
  *
  * The swan is the official vector (public/images/svan-logo.svg), inlined here so
  * it inherits text color via `currentColor` and stays crisp at any size.
  */
 export function SvanLogo({ className }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 ${className ?? ""}`}>
-      <SwanMark className="h-6 w-6 text-slate-100" />
-      <span className="text-sm font-semibold tracking-[0.16em] text-slate-100">
-        Trust<span className="text-cyan-300">SVAN</span>
-      </span>
+    <span
+      className={`inline-flex items-center gap-[0.04em] font-semibold leading-none tracking-[0.01em] ${className ?? ""}`}
+    >
+      <span className="lowercase text-[#97a4c9]">tru</span>
+      {/* the swan mark stands in for the "S" of SVAN */}
+      <SwanMark className="h-[1.12em] w-auto shrink-0 text-white drop-shadow-[0_0_6px_rgba(96,165,250,0.55)]" />
+      <span className="text-white">VAN</span>
     </span>
   );
 }
 
 export function SwanMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 554 589" className={className} aria-hidden="true">
+    <svg viewBox="80 81 393 426" className={className} aria-hidden="true">
       <path
         fill="currentColor"
         fillRule="evenodd"

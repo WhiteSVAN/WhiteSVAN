@@ -73,7 +73,7 @@ export function calculateUpdateReliability(expectedUpdates: number, completedUpd
 
 /**
  * Map a freshness status to a reporting-discipline score (0..100) for the
- * TrustSVAN Score v2 "update reliability" factor. Manual/never sit at neutral-ish.
+ * truSVAN Score v2 "update reliability" factor. Manual/never sit at neutral-ish.
  */
 export function reliabilityFromFreshness(status: FreshnessStatus): number {
   switch (status) {

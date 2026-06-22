@@ -12,7 +12,7 @@ export default async function OnboardingPage() {
         Set up your research profile
       </h1>
       <p className="mt-1 text-sm text-slate-500">
-        This is your TrustSVAN identity for research rooms, public profiles, and the researcher directory.
+        This is your truSVAN identity for research rooms, public profiles, and the researcher directory.
       </p>
       <div className="mt-6 rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
         <OnboardingForm defaultName={user.name ?? ""} />

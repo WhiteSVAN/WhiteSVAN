@@ -1,4 +1,4 @@
-# TrustSVAN — Architecture, Data Model & Design Spec
+# truSVAN — Architecture, Data Model & Design Spec
 
 > Verified performance network for quants / systematic & algo traders / prop‑firm
 > operators. Traders import broker or prop‑firm history, get a **proof‑backed**

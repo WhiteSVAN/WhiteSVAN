@@ -80,16 +80,16 @@ const DISCLAIMER =
 
 const SEED_TRADERS: SeedTrader[] = [
   {
-    email: "demo@trustsvan.local",
+    email: "demo@trusvan.local",
     password: "demo1234",
     name: "Sofia Alvarez",
     slug: "demo",
     headline: "Proof L4 futures operator - GEX and intraday risk",
     strategy: "Systematic futures momentum with SPX gamma context",
     instruments: "ES, NQ, SPX options",
-    bio: "Sofia runs a rules-led futures process that combines opening-range structure, volatility context, and strict daily loss limits. This seeded profile shows how a verified TrustSVAN operator page should read.",
+    bio: "Sofia runs a rules-led futures process that combines opening-range structure, volatility context, and strict daily loss limits. This seeded profile shows how a verified truSVAN operator page should read.",
     services: "Market-structure research, futures execution review, and risk-process consulting for prop desks and independent operators.",
-    contactUrl: "https://cal.com/trustsvan/sofia-alvarez-demo",
+    contactUrl: "https://cal.com/trusvan/sofia-alvarez-demo",
     openToWork: true,
     updateCadence: "WEEKLY",
     accountName: "Sofia Futures Process",
@@ -158,7 +158,7 @@ const SEED_TRADERS: SeedTrader[] = [
     ],
   },
   {
-    email: "marcus.chen@trustsvan.local",
+    email: "marcus.chen@trusvan.local",
     name: "Marcus Chen",
     slug: "marcus-chen",
     headline: "Systematic stat-arb researcher - equities and ETFs",
@@ -166,7 +166,7 @@ const SEED_TRADERS: SeedTrader[] = [
     instruments: "US equities, sector ETFs",
     bio: "Marcus publishes reproducible stat-arb notes with cost assumptions, regime filters, and post-trade drift checks. His seeded profile is designed for clients who want process clarity before discussing collaboration.",
     services: "Research reviews, scanner design, execution-cost analysis, and systematic process documentation.",
-    contactUrl: "https://cal.com/trustsvan/marcus-chen-demo",
+    contactUrl: "https://cal.com/trusvan/marcus-chen-demo",
     openToWork: true,
     updateCadence: "MONTHLY",
     accountName: "Equity Stat-Arb Sleeve",
@@ -221,7 +221,7 @@ const SEED_TRADERS: SeedTrader[] = [
     ],
   },
   {
-    email: "priya.nair@trustsvan.local",
+    email: "priya.nair@trusvan.local",
     name: "Priya Nair",
     slug: "priya-nair",
     headline: "Options flow and GEX analyst - index volatility",
@@ -229,7 +229,7 @@ const SEED_TRADERS: SeedTrader[] = [
     instruments: "SPX, SPY, QQQ options",
     bio: "Priya focuses on market-structure research: gamma walls, skew shifts, expiration concentration, and intraday invalidation levels. Her seeded profile demonstrates how discussion rooms can stay evidence-led.",
     services: "GEX briefings, market-structure dashboards, options-flow education, and risk review.",
-    contactUrl: "https://cal.com/trustsvan/priya-nair-demo",
+    contactUrl: "https://cal.com/trusvan/priya-nair-demo",
     openToWork: true,
     updateCadence: "WEEKLY",
     accountName: "Index Volatility Research",
@@ -284,15 +284,15 @@ const SEED_TRADERS: SeedTrader[] = [
     ],
   },
   {
-    email: "elena.brooks@trustsvan.local",
+    email: "elena.brooks@trusvan.local",
     name: "Elena Brooks",
     slug: "elena-brooks",
     headline: "Portfolio-construction operator - factor and drawdown control",
     strategy: "Multi-strategy allocation, factor overlap, and risk contribution",
     instruments: "ETFs, futures, liquid alternatives",
-    bio: "Elena evaluates portfolios like an operating review: factor overlap, correlation, drawdown contribution, and rebalancing discipline. This profile rounds out the diligence side of the TrustSVAN network.",
+    bio: "Elena evaluates portfolios like an operating review: factor overlap, correlation, drawdown contribution, and rebalancing discipline. This profile rounds out the diligence side of the truSVAN network.",
     services: "Portfolio diagnostics, factor exposure review, and model governance documentation.",
-    contactUrl: "https://cal.com/trustsvan/elena-brooks-demo",
+    contactUrl: "https://cal.com/trusvan/elena-brooks-demo",
     openToWork: false,
     updateCadence: "MONTHLY",
     accountName: "Portfolio Overlay Sleeve",
@@ -347,7 +347,7 @@ const SEED_TRADERS: SeedTrader[] = [
     ],
   },
   {
-    email: "noah.okafor@trustsvan.local",
+    email: "noah.okafor@trusvan.local",
     name: "Noah Okafor",
     slug: "noah-okafor",
     headline: "Macro futures researcher - rates, FX, and private-market context",
@@ -355,7 +355,7 @@ const SEED_TRADERS: SeedTrader[] = [
     instruments: "Treasury futures, FX futures, equity index hedges",
     bio: "Noah writes macro strategy reviews in a diligence format: thesis, scenario map, source data, and what would invalidate the position. His seeded profile bridges trader verification with private-market operating discipline.",
     services: "Macro risk memos, scenario monitoring, and portfolio hedge process reviews.",
-    contactUrl: "https://cal.com/trustsvan/noah-okafor-demo",
+    contactUrl: "https://cal.com/trusvan/noah-okafor-demo",
     openToWork: true,
     updateCadence: "WEEKLY",
     accountName: "Macro Scenario Sleeve",
@@ -480,7 +480,7 @@ function makeTrader(p: GenTrader): SeedTrader {
   const first = p.name.split(" ")[0];
   return {
     ...p,
-    contactUrl: `https://cal.com/trustsvan/${p.slug}`,
+    contactUrl: `https://cal.com/trusvan/${p.slug}`,
     accountName: `${first} ${p.symbols[0]} book`,
     dailyPnl: genDailyPnl(p.seed, p.gen),
     report: {
@@ -521,7 +521,7 @@ function makeTrader(p: GenTrader): SeedTrader {
 
 const GENERATED_TRADERS: SeedTrader[] = [
   makeTrader({
-    email: "liang.wu@trustsvan.local",
+    email: "liang.wu@trusvan.local",
     name: "Liang Wu",
     slug: "liang-wu",
     headline: "Index futures scalper - ES/NQ open",
@@ -542,7 +542,7 @@ const GENERATED_TRADERS: SeedTrader[] = [
     gen: { days: 46, winRate: 0.57, avgWin: 380, avgLoss: 300, outlierAt: 30, drawdownAt: 18 },
   }),
   makeTrader({
-    email: "sara.cohen@trustsvan.local",
+    email: "sara.cohen@trusvan.local",
     name: "Sara Cohen",
     slug: "sara-cohen",
     headline: "Equity swing researcher - factor tilts",
@@ -563,7 +563,7 @@ const GENERATED_TRADERS: SeedTrader[] = [
     gen: { days: 52, winRate: 0.52, avgWin: 520, avgLoss: 470, outlierAt: 41, drawdownAt: 22 },
   }),
   makeTrader({
-    email: "diego.santos@trustsvan.local",
+    email: "diego.santos@trusvan.local",
     name: "Diego Santos",
     slug: "diego-santos",
     headline: "FX and rates macro - systematic overlays",
@@ -584,7 +584,7 @@ const GENERATED_TRADERS: SeedTrader[] = [
     gen: { days: 58, winRate: 0.49, avgWin: 640, avgLoss: 520, outlierAt: 12, drawdownAt: 33 },
   }),
   makeTrader({
-    email: "hana.kim@trustsvan.local",
+    email: "hana.kim@trusvan.local",
     name: "Hana Kim",
     slug: "hana-kim",
     headline: "Options premium seller - defined risk",
@@ -605,7 +605,7 @@ const GENERATED_TRADERS: SeedTrader[] = [
     gen: { days: 44, winRate: 0.66, avgWin: 240, avgLoss: 520, drawdownAt: 26 },
   }),
   makeTrader({
-    email: "tomas.novak@trustsvan.local",
+    email: "tomas.novak@trusvan.local",
     name: "Tomas Novak",
     slug: "tomas-novak",
     headline: "Micro futures momentum - small book",
@@ -631,7 +631,7 @@ const GENERATED_TRADERS: SeedTrader[] = [
 // mixed bag (buy-and-hold / dividend / index / multi-asset), not only active traders.
 const INVESTORS: SeedTrader[] = [
   makeTrader({
-    email: "grace.bennett@trustsvan.local",
+    email: "grace.bennett@trusvan.local",
     name: "Grace Bennett",
     slug: "grace-bennett",
     headline: "Long-term value investor — quality compounders",
@@ -652,7 +652,7 @@ const INVESTORS: SeedTrader[] = [
     gen: { days: 64, winRate: 0.6, avgWin: 900, avgLoss: 800, drawdownAt: 28 },
   }),
   makeTrader({
-    email: "owen.fletcher@trustsvan.local",
+    email: "owen.fletcher@trusvan.local",
     name: "Owen Fletcher",
     slug: "owen-fletcher",
     headline: "Dividend-growth portfolio — income + compounding",
@@ -673,7 +673,7 @@ const INVESTORS: SeedTrader[] = [
     gen: { days: 60, winRate: 0.62, avgWin: 540, avgLoss: 520, drawdownAt: 35 },
   }),
   makeTrader({
-    email: "mei.tanaka@trustsvan.local",
+    email: "mei.tanaka@trusvan.local",
     name: "Mei Tanaka",
     slug: "mei-tanaka",
     headline: "Index core + satellite allocator",
@@ -694,7 +694,7 @@ const INVESTORS: SeedTrader[] = [
     gen: { days: 56, winRate: 0.58, avgWin: 700, avgLoss: 760, drawdownAt: 24 },
   }),
   makeTrader({
-    email: "raj.malhotra@trustsvan.local",
+    email: "raj.malhotra@trusvan.local",
     name: "Raj Malhotra",
     slug: "raj-malhotra",
     headline: "Multi-asset allocator — equities, bonds, gold",
@@ -765,7 +765,7 @@ async function seedEvidence(trader: SeedTrader, userId: string, accountId: strin
 
     const body = [
       `${trader.name} - ${item.label}`,
-      "Sanitized demo evidence generated by TrustSVAN seed data.",
+      "Sanitized demo evidence generated by truSVAN seed data.",
       "This file exists only to make the demo profile links behave like real evidence links.",
     ].join("\n");
     await saveEvidenceFile(evidence.id, Buffer.from(body, "utf8"));
@@ -865,7 +865,7 @@ async function seedTrader(trader: SeedTrader, passwordHash: string) {
       transparencyScore: trust.scores.transparency,
       proofLevel: trader.proofLevel,
       freshnessStatus: "fresh",
-      changeSummary: `First published update: ${trust.metrics.tradingDays} trading days, net $${trust.metrics.netPnl.toFixed(0)}, TrustSVAN Score ${trust.scores.transparency}.`,
+      changeSummary: `First published update: ${trust.metrics.tradingDays} trading days, net $${trust.metrics.netPnl.toFixed(0)}, truSVAN Score ${trust.scores.transparency}.`,
       publishedAt,
     },
     select: { id: true },
@@ -929,7 +929,7 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${ALL_TRADERS.length} demo traders -> /explore and /p/demo (login: demo@trustsvan.local / demo1234)`,
+    `Seeded ${ALL_TRADERS.length} demo traders -> /explore and /p/demo (login: demo@trusvan.local / demo1234)`,
   );
 }
 

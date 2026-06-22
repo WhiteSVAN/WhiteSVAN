@@ -32,9 +32,9 @@ export async function sendEmail({ to, subject, text }: EmailMessage): Promise<vo
 export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
   await sendEmail({
     to,
-    subject: "Reset your TrustSVAN password",
+    subject: "Reset your truSVAN password",
     text:
-      `We received a request to reset your TrustSVAN password.\n\n` +
+      `We received a request to reset your truSVAN password.\n\n` +
       `Reset it here (link valid for 1 hour):\n${resetUrl}\n\n` +
       `If you didn't request this, you can safely ignore this email.`,
   });

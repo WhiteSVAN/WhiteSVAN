@@ -17,7 +17,7 @@ import { prisma } from "@/lib/db";
 import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 
-export const metadata: Metadata = { title: "Verified traders - TrustSVAN" };
+export const metadata: Metadata = { title: "Verified traders - truSVAN" };
 
 type NetworkType = "all" | "gex" | "deep-dive" | "portfolio" | "systematic";
 
@@ -52,7 +52,7 @@ const STEPS = [
   {
     icon: ShieldCheck,
     title: "Publish a proof-backed profile",
-    body: "TrustSVAN calculates risk, PnL, freshness, and score from source-linked history. Public pages show the proof level.",
+    body: "truSVAN calculates risk, PnL, freshness, and score from source-linked history. Public pages show the proof level.",
   },
   {
     icon: Trophy,
@@ -85,8 +85,8 @@ const FORUM_CATEGORIES = [
 ];
 
 const ACCESS_FLOW = [
-  "Create a verified TrustSVAN identity",
-  "TrustSVAN publishes proof metadata for linked roles",
+  "Create a verified truSVAN identity",
+  "truSVAN publishes proof metadata for linked roles",
   "Forum categories open by proof level, style, and reviewer status",
   "AI summarizes threads into non-advisory research briefs",
 ];
@@ -151,7 +151,7 @@ export default async function NetworkPage({
               Public profiles with proof, freshness, and computed risk.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-              TrustSVAN profiles are built to make real trading records easier to inspect. Every
+              truSVAN profiles are built to make real trading records easier to inspect. Every
               profile can show where the numbers came from, how current they are, and what proof
               level supports the published record.
             </p>
