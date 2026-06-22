@@ -243,7 +243,7 @@ export function UploadFlow({
             <summary className="flex cursor-pointer list-none items-center gap-2 text-sm">
               {missingRequired.length === 0 ? (
                 <>
-                  <span className="text-emerald-600">✓</span>
+                  <span className="text-zinc-100">✓</span>
                   <span className="font-medium text-zinc-800">
                     Columns matched from your source file
                   </span>
@@ -251,7 +251,7 @@ export function UploadFlow({
                 </>
               ) : (
                 <>
-                  <span className="text-amber-600">⚠</span>
+                  <span className="text-zinc-300">⚠</span>
                   <span className="font-medium text-zinc-800">Map columns</span>
                   <span className="text-zinc-400">
                     — still need: {missingRequired.map((f) => FIELD_LABELS[f]).join(", ")}
@@ -264,7 +264,7 @@ export function UploadFlow({
                 <div key={field}>
                   <label className="text-xs font-medium text-zinc-600">
                     {FIELD_LABELS[field]}
-                    {REQUIRED.has(field) && <span className="text-red-500"> *</span>}
+                    {REQUIRED.has(field) && <span className="text-zinc-300"> *</span>}
                   </label>
                   <select
                     value={mapping[field] ?? ""}
@@ -298,7 +298,7 @@ export function UploadFlow({
       {!isAuto && result && isBrokerResult(result) && (
         <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-emerald-600">✓</span>
+            <span className="text-zinc-100">✓</span>
             <span className="font-medium text-zinc-800">Matched buys &amp; sells (FIFO)</span>
           </div>
           <p className="mt-1 text-xs text-zinc-500">
@@ -331,7 +331,7 @@ export function UploadFlow({
             <div className="mt-3 overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase tracking-wide text-zinc-400">
+                  <tr className="text-left text-xs uppercase text-zinc-400">
                     <th className="py-1 pr-4 font-medium">Date</th>
                     <th className="py-1 pr-4 font-medium">Symbol</th>
                     <th className="py-1 pr-4 font-medium">Side</th>
@@ -349,7 +349,7 @@ export function UploadFlow({
                       <td className="py-1 pr-4 text-right">{t.quantity ?? "—"}</td>
                       <td
                         className={`py-1 pr-4 text-right tabular-nums ${
-                          t.realizedPnl >= 0 ? "text-emerald-600" : "text-red-600"
+                          t.realizedPnl >= 0 ? "text-zinc-100" : "text-zinc-300"
                         }`}
                       >
                         {t.realizedPnl.toFixed(2)}
@@ -371,7 +371,7 @@ export function UploadFlow({
 
           {result.errors.length > 0 && (
             <details className="mt-3">
-              <summary className="cursor-pointer text-xs text-amber-600">
+              <summary className="cursor-pointer text-xs text-zinc-300">
                 {result.errors.length} rows skipped — why?
               </summary>
               <ul className="mt-1 space-y-0.5 text-xs text-zinc-500">

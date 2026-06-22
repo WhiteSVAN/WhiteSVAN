@@ -33,7 +33,7 @@ export function SiteFooter() {
     <footer className="border-t border-zinc-800 bg-zinc-950">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:py-12 lg:grid-cols-[1.1fr_1.4fr]">
         <div>
-          <Link href="/" className="text-base font-semibold tracking-[0.18em] text-zinc-100">
+          <Link href="/" className="text-base font-semibold text-zinc-100">
             <SvanLogo />
           </Link>
           <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400">
@@ -49,7 +49,7 @@ export function SiteFooter() {
         <div className="grid gap-6 sm:grid-cols-3">
           {FOOTER_GROUPS.map((group) => (
             <div key={group.title}>
-              <h2 className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">
+              <h2 className="text-xs font-medium uppercase text-zinc-500">
                 {group.title}
               </h2>
               <ul className="mt-3 space-y-2">

@@ -10,27 +10,27 @@ import { DailyPnlChart, type DailyPoint } from "@/components/charts/daily-pnl";
 const SEVERITY: Record<DrawdownSeverity, { label: string; text: string; bg: string; border: string }> = {
   controlled: {
     label: "Controlled",
-    text: "text-emerald-300",
-    bg: "bg-emerald-400/10",
-    border: "border-emerald-400/30",
+    text: "text-zinc-100",
+    bg: "bg-zinc-300/10",
+    border: "border-zinc-300/30",
   },
   elevated: {
     label: "Elevated",
-    text: "text-amber-300",
-    bg: "bg-amber-400/10",
-    border: "border-amber-400/30",
+    text: "text-zinc-300",
+    bg: "bg-zinc-500/15",
+    border: "border-zinc-500/30",
   },
   high: {
     label: "High risk",
-    text: "text-orange-300",
-    bg: "bg-orange-400/10",
-    border: "border-orange-400/30",
+    text: "text-zinc-300",
+    bg: "bg-zinc-600/15",
+    border: "border-zinc-600/30",
   },
   severe: {
     label: "Severe",
-    text: "text-red-300",
-    bg: "bg-red-400/10",
-    border: "border-red-400/30",
+    text: "text-zinc-400",
+    bg: "bg-zinc-700/20",
+    border: "border-zinc-600/40",
   },
 };
 
@@ -184,18 +184,18 @@ export function ClientView({
         <h2 className="text-sm font-medium text-white">Proof and privacy</h2>
         <div className="mt-3 grid gap-4 sm:grid-cols-3 text-sm">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Data source</p>
+            <p className="text-xs font-medium uppercase text-zinc-400">Data source</p>
             <p className="mt-1 text-zinc-300">Broker-reported history</p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Proof level</p>
+            <p className="text-xs font-medium uppercase text-zinc-400">Proof level</p>
             <p className="mt-1 text-zinc-300">
               Level {trust.proofLevel}: {proof.label}
             </p>
             <p className="mt-0.5 text-xs text-zinc-400">{proof.blurb}</p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Redactions</p>
+            <p className="text-xs font-medium uppercase text-zinc-400">Redactions</p>
             <p className="mt-1 text-zinc-300">
               {hideAmounts ? "Dollar amounts hidden" : "Full detail shown"}
             </p>
@@ -228,10 +228,10 @@ function Snapshot({
   badgeClass?: string;
   small?: boolean;
 }) {
-  const color = tone === "pos" ? "text-emerald-300" : tone === "neg" ? "text-red-300" : "text-white";
+  const color = tone === "pos" ? "text-zinc-100" : tone === "neg" ? "text-zinc-400" : "text-white";
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</p>
+      <p className="text-xs font-medium uppercase text-zinc-400">{label}</p>
       <p className={`mt-2 font-semibold ${small ? "text-lg" : "text-2xl"} ${color}`}>
         {value}
         {suffix && <span className="text-base font-normal text-zinc-400">{suffix}</span>}
@@ -261,12 +261,12 @@ function Plain({
   return (
     <div
       className={`rounded-lg border p-3 ${
-        warn ? "border-amber-400/30 bg-amber-400/10" : "border-zinc-800 bg-zinc-950/60"
+        warn ? "border-zinc-500/30 bg-zinc-500/15" : "border-zinc-800 bg-zinc-950/60"
       }`}
     >
       <div className="flex items-center gap-1.5">
-        {warn && <span className="text-amber-300">!</span>}
-        <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</p>
+        {warn && <span className="text-zinc-300">!</span>}
+        <p className="text-xs font-medium uppercase text-zinc-400">{label}</p>
       </div>
       <p className="mt-1 font-semibold tabular-nums text-white">{value}</p>
       <p className="mt-0.5 text-xs text-zinc-400">{note}</p>
@@ -276,7 +276,7 @@ function Plain({
 
 function ScoreBar({ label, value, weight }: { label: string; value: number; weight?: string }) {
   const pct = Math.round(value);
-  const color = pct >= 67 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-red-500";
+  const color = pct >= 67 ? "bg-zinc-200" : pct >= 40 ? "bg-zinc-500" : "bg-zinc-700";
   return (
     <div>
       <div className="flex items-center justify-between text-xs">

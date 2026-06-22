@@ -13,7 +13,7 @@ export function FollowForm({ slug }: { slug: string }) {
 
   if (state?.ok) {
     return (
-      <p className="rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+      <p className="rounded-lg bg-zinc-900/70 px-4 py-3 text-sm text-zinc-100">
         You&apos;re on the list. You&apos;ll get this trader&apos;s reporting updates by email.
       </p>
     );
@@ -51,7 +51,7 @@ export function FollowForm({ slug }: { slug: string }) {
         Get notified when this profile updates or a risk flag changes. Research updates only, not
         investment advice, and you can unsubscribe anytime.
       </p>
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state?.error && <p className="text-sm text-zinc-300">{state.error}</p>}
     </form>
   );
 }

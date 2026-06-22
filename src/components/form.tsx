@@ -17,14 +17,14 @@ export const btnPrimary =
 /** Shows the first validation message for a field, if any. */
 export function FieldError({ messages }: { messages?: string[] }) {
   if (!messages?.length) return null;
-  return <p className="mt-1 text-xs text-red-400">{messages[0]}</p>;
+  return <p className="mt-1 text-xs text-zinc-300">{messages[0]}</p>;
 }
 
 /** Red banner for a top-level form error. */
 export function FormError({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <div className="rounded-lg border border-red-900/60 bg-red-950/60 px-3 py-2 text-sm text-red-200" role="alert">
+    <div className="rounded-lg border border-zinc-700 bg-zinc-950/80 px-3 py-2 text-sm text-zinc-200" role="alert">
       {message}
     </div>
   );

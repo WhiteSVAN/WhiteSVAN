@@ -3,9 +3,9 @@ import type { FreshnessTone } from "@/lib/freshness";
 import { PROOF_LEVELS, type ProofLevel } from "@/lib/trust";
 
 const TONE: Record<FreshnessTone, string> = {
-  good: "bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30",
-  warn: "bg-amber-400/10 text-amber-300 ring-1 ring-inset ring-amber-400/30",
-  bad: "bg-red-400/10 text-red-300 ring-1 ring-inset ring-red-400/30",
+  good: "bg-zinc-300/10 text-zinc-100 ring-1 ring-inset ring-zinc-300/30",
+  warn: "bg-zinc-500/15 text-zinc-300 ring-1 ring-inset ring-zinc-500/30",
+  bad: "bg-zinc-700/20 text-zinc-400 ring-1 ring-inset ring-zinc-600/35",
   neutral: "bg-zinc-800 text-zinc-300 ring-1 ring-inset ring-zinc-700",
 };
 
@@ -17,14 +17,14 @@ const PROOF_BADGE: Record<ProofLevel, string> = {
   1: "bg-zinc-800 text-zinc-300 ring-1 ring-inset ring-zinc-700",
   2: "bg-zinc-800 text-zinc-300 ring-1 ring-inset ring-zinc-700",
   3: "bg-white/5 text-zinc-200 ring-1 ring-inset ring-zinc-500/30",
-  4: "bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30",
-  5: "bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30",
+  4: "bg-zinc-300/10 text-zinc-100 ring-1 ring-inset ring-zinc-300/30",
+  5: "bg-zinc-300/10 text-zinc-100 ring-1 ring-inset ring-zinc-300/30",
 };
 
 const SEVERITY: Record<string, { ring: string; label: string }> = {
   INFO: { ring: "border-zinc-800 bg-zinc-900/70", label: "text-zinc-300" },
-  WARNING: { ring: "border-amber-400/30 bg-amber-400/10", label: "text-amber-300" },
-  CRITICAL: { ring: "border-red-400/30 bg-red-400/10", label: "text-red-300" },
+  WARNING: { ring: "border-zinc-500/30 bg-zinc-500/15", label: "text-zinc-300" },
+  CRITICAL: { ring: "border-zinc-600/40 bg-zinc-700/20", label: "text-zinc-400" },
 };
 
 export interface ClientRiskEvent {
@@ -81,7 +81,7 @@ export function ProfileTrust({
 
       {changeSummary && (
         <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-4">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+          <h3 className="text-xs font-medium uppercase text-zinc-400">
             Since last update
           </h3>
           <p className="mt-1 text-sm text-zinc-300">{changeSummary}</p>
@@ -90,7 +90,7 @@ export function ProfileTrust({
 
       {riskEvents.length > 0 && (
         <div>
-          <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-400">Risk events</h3>
+          <h3 className="text-xs font-medium uppercase text-zinc-400">Risk events</h3>
           <ul className="mt-2 grid gap-2 sm:grid-cols-2">
             {riskEvents.map((e) => {
               const s = SEVERITY[e.severity] ?? SEVERITY.INFO;

@@ -25,7 +25,7 @@ export function LoginForm({
     <form action={action} className="mt-6 space-y-4">
       {notice && (
         <div
-          className="rounded-lg border border-emerald-900/60 bg-emerald-950/60 px-3 py-2 text-sm text-emerald-200"
+          className="rounded-lg border border-zinc-700 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-200"
           role="status"
         >
           {notice}

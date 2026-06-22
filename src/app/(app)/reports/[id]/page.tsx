@@ -28,7 +28,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         <Link href="/reports" className="text-sm text-zinc-200 hover:text-zinc-100">
           Back to briefs
         </Link>
-        <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p className="mt-4 rounded-lg bg-zinc-950/80 px-4 py-3 text-sm text-zinc-300">
           This brief&apos;s content could not be read. Try regenerating it.
         </p>
       </div>

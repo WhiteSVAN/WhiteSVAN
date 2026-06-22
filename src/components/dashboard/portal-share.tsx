@@ -27,7 +27,7 @@ export function PortalShare({ slug, isPublic }: { slug: string; isPublic: boolea
       </span>
       <span
         className={`rounded px-1.5 py-0.5 text-xs font-medium ${
-          live ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
+          live ? "bg-zinc-900/70 text-zinc-100" : "bg-zinc-100 text-zinc-500"
         }`}
       >
         {live ? "Public" : "Private"}

@@ -17,7 +17,7 @@ export default function ForgotPasswordPage() {
 
       {state?.sent ? (
         <div
-          className="mt-6 rounded-lg border border-emerald-900/60 bg-emerald-950/60 px-3 py-2 text-sm text-emerald-200"
+          className="mt-6 rounded-lg border border-zinc-700 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-200"
           role="status"
         >
           If an account exists for that email, a reset link is on its way. The link expires in one

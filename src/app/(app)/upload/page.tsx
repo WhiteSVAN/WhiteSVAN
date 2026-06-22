@@ -24,7 +24,7 @@ export default async function UploadPage({
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <p className="text-sm font-medium text-zinc-200">Broker connection</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900">
+        <h1 className="mt-1 text-2xl font-semibold text-zinc-900">
           Connect source-backed trading history
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
