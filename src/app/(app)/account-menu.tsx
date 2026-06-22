@@ -43,7 +43,7 @@ export function AccountMenu({ label }: { label: string }) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-1.5 rounded-md border border-slate-700 px-3 py-1 text-slate-300 transition hover:border-cyan-400 hover:text-white"
+        className="flex items-center gap-1.5 rounded-md border border-zinc-700 px-3 py-1 text-zinc-300 transition hover:border-zinc-400 hover:text-white"
       >
         <span className="max-w-[10rem] truncate">{label}</span>
         <ChevronDown
@@ -55,7 +55,7 @@ export function AccountMenu({ label }: { label: string }) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-30 mt-2 w-48 overflow-hidden rounded-lg border border-slate-800 bg-slate-900 py-1 shadow-xl shadow-black/40"
+          className="absolute right-0 z-30 mt-2 w-48 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 py-1 shadow-xl shadow-black/40"
         >
           {ITEMS.map((item) => (
             <Link
@@ -63,17 +63,17 @@ export function AccountMenu({ label }: { label: string }) {
               href={item.href}
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="block px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
             >
               {item.label}
             </Link>
           ))}
-          <div className="my-1 border-t border-slate-800" />
+          <div className="my-1 border-t border-zinc-800" />
           <form action={logout}>
             <button
               type="submit"
               role="menuitem"
-              className="block w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="block w-full px-3 py-2 text-left text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white"
             >
               Sign out
             </button>

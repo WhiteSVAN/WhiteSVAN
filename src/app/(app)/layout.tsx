@@ -17,12 +17,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await requireUser();
 
   return (
-    <div className="min-h-full bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-800 bg-slate-950/90 backdrop-blur">
+    <div className="min-h-full bg-zinc-950 text-zinc-100">
+      <header className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <Link
             href="/dashboard"
-            className="self-start text-base font-semibold tracking-[0.14em] text-slate-100 sm:tracking-[0.18em]"
+            className="self-start text-base font-semibold tracking-[0.14em] text-zinc-100 sm:tracking-[0.18em]"
           >
             <SvanLogo />
           </Link>
@@ -31,7 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.href}
                 href={item.href}
-                className="shrink-0 text-slate-400 hover:text-white"
+                className="shrink-0 text-zinc-400 hover:text-white"
               >
                 {item.label}
               </Link>

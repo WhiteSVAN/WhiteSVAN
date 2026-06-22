@@ -2,17 +2,17 @@
  * Presentational form primitives shared across screens. No hooks here, so these
  * are safe to import from both Server and Client Components.
  */
-export const labelClass = "block text-sm font-medium text-slate-300";
+export const labelClass = "block text-sm font-medium text-zinc-300";
 
 export const inputClass =
-  "mt-1 block w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm " +
-  "text-slate-100 placeholder-slate-500 shadow-sm focus:border-cyan-500 focus:outline-none " +
-  "focus:ring-1 focus:ring-cyan-500";
+  "mt-1 block w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm " +
+  "text-zinc-100 placeholder-zinc-500 shadow-sm focus:border-zinc-400 focus:outline-none " +
+  "focus:ring-1 focus:ring-zinc-400";
 
 export const btnPrimary =
-  "flex w-full items-center justify-center rounded-lg bg-cyan-600 px-4 py-2 text-sm " +
-  "font-medium text-white shadow-sm transition hover:bg-cyan-500 focus:outline-none " +
-  "focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-60";
+  "flex w-full items-center justify-center rounded-lg bg-zinc-200 px-4 py-2 text-sm " +
+  "font-medium text-white shadow-sm transition hover:bg-zinc-100 focus:outline-none " +
+  "focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-950 disabled:cursor-not-allowed disabled:opacity-60";
 
 /** Shows the first validation message for a field, if any. */
 export function FieldError({ messages }: { messages?: string[] }) {

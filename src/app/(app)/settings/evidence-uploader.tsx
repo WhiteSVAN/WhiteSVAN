@@ -29,7 +29,7 @@ export function EvidenceUploader({ accounts }: { accounts: { id: string; account
     <form ref={formRef} action={action} className="grid gap-3 sm:grid-cols-2">
       <div className="sm:col-span-2">
         <label htmlFor="file" className={labelClass}>
-          File <span className="text-slate-400">(PDF, image, source export - max 10 MB)</span>
+          File <span className="text-zinc-400">(PDF, image, source export - max 10 MB)</span>
         </label>
         <input
           id="file"
@@ -37,7 +37,7 @@ export function EvidenceUploader({ accounts }: { accounts: { id: string; account
           name="file"
           accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.txt"
           required
-          className="mt-1 block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+          className="mt-1 block w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-200 hover:file:bg-zinc-800"
         />
       </div>
       <div>
@@ -55,7 +55,7 @@ export function EvidenceUploader({ accounts }: { accounts: { id: string; account
       {accounts.length > 0 && (
         <div>
           <label htmlFor="accountId" className={labelClass}>
-            Account <span className="text-slate-400">(optional)</span>
+            Account <span className="text-zinc-400">(optional)</span>
           </label>
           <select id="accountId" name="accountId" defaultValue="" className={inputClass}>
             <option value="">— none —</option>
@@ -69,7 +69,7 @@ export function EvidenceUploader({ accounts }: { accounts: { id: string; account
       )}
       <div className="sm:col-span-2">
         <label htmlFor="label" className={labelClass}>
-          Label <span className="text-slate-400">(optional)</span>
+          Label <span className="text-zinc-400">(optional)</span>
         </label>
         <input
           id="label"
@@ -82,7 +82,7 @@ export function EvidenceUploader({ accounts }: { accounts: { id: string; account
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
         >
           {pending ? "Uploading…" : "Upload"}
         </button>

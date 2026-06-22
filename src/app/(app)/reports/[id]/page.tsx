@@ -25,7 +25,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   if (!parsed.success) {
     return (
       <div className="mx-auto max-w-3xl">
-        <Link href="/reports" className="text-sm text-cyan-300 hover:text-cyan-100">
+        <Link href="/reports" className="text-sm text-zinc-200 hover:text-zinc-100">
           Back to briefs
         </Link>
         <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">

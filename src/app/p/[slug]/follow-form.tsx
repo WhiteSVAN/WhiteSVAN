@@ -28,12 +28,12 @@ export function FollowForm({ slug }: { slug: string }) {
           name="email"
           required
           placeholder="you@example.com"
-          className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 shadow-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 shadow-sm focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
         />
         <select
           name="frequency"
           defaultValue="MONTHLY"
-          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"
         >
           <option value="WEEKLY">Weekly</option>
           <option value="MONTHLY">Monthly</option>
@@ -42,12 +42,12 @@ export function FollowForm({ slug }: { slug: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending ? "Following..." : "Follow"}
         </button>
       </div>
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-zinc-400">
         Get notified when this profile updates or a risk flag changes. Research updates only, not
         investment advice, and you can unsubscribe anytime.
       </p>

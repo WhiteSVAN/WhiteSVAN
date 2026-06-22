@@ -47,8 +47,8 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
         <label htmlFor="slug" className={labelClass}>
           Public handle
         </label>
-        <div className="mt-1 flex items-center rounded-lg border border-slate-300 bg-white shadow-sm focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600">
-          <span className="pl-3 text-sm text-slate-400">/p/</span>
+        <div className="mt-1 flex items-center rounded-lg border border-zinc-300 bg-white shadow-sm focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400">
+          <span className="pl-3 text-sm text-zinc-400">/p/</span>
           <input
             id="slug"
             name="slug"
@@ -58,7 +58,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
               setSlug(slugify(e.target.value));
             }}
             required
-            className="block w-full rounded-r-lg border-0 bg-transparent px-1 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
+            className="block w-full rounded-r-lg border-0 bg-transparent px-1 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none"
             placeholder="your-handle"
           />
         </div>
@@ -67,7 +67,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
 
       <div>
         <label htmlFor="strategy" className={labelClass}>
-          Strategy <span className="text-slate-400">(optional)</span>
+          Strategy <span className="text-zinc-400">(optional)</span>
         </label>
         <textarea
           id="strategy"
@@ -81,7 +81,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
 
       <div>
         <label htmlFor="instruments" className={labelClass}>
-          Instruments <span className="text-slate-400">(optional)</span>
+          Instruments <span className="text-zinc-400">(optional)</span>
         </label>
         <input
           id="instruments"
@@ -94,7 +94,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
 
       <div>
         <label htmlFor="riskRules" className={labelClass}>
-          Risk rules <span className="text-slate-400">(optional)</span>
+          Risk rules <span className="text-zinc-400">(optional)</span>
         </label>
         <textarea
           id="riskRules"
@@ -108,7 +108,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
 
       <div>
         <label htmlFor="bio" className={labelClass}>
-          Bio <span className="text-slate-400">(optional)</span>
+          Bio <span className="text-zinc-400">(optional)</span>
         </label>
         <textarea
           id="bio"

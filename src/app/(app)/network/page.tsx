@@ -17,7 +17,7 @@ import { prisma } from "@/lib/db";
 import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 
-export const metadata: Metadata = { title: "Verified traders - truSVAN" };
+export const metadata: Metadata = { title: "Verified traders - TrustSVAN" };
 
 type NetworkType = "all" | "gex" | "deep-dive" | "portfolio" | "systematic";
 
@@ -37,10 +37,10 @@ const TYPE_LABELS: Record<Exclude<NetworkType, "all">, string> = {
 };
 
 const TYPE_STYLES: Record<Exclude<NetworkType, "all">, string> = {
-  gex: "bg-cyan-950/70 text-cyan-200",
+  gex: "bg-zinc-950/70 text-zinc-200",
   "deep-dive": "bg-amber-950/70 text-amber-200",
-  portfolio: "bg-blue-950/70 text-blue-200",
-  systematic: "bg-violet-950/70 text-violet-200",
+  portfolio: "bg-zinc-950/70 text-zinc-200",
+  systematic: "bg-neutral-950/70 text-zinc-200",
 };
 
 const STEPS = [
@@ -52,7 +52,7 @@ const STEPS = [
   {
     icon: ShieldCheck,
     title: "Publish a proof-backed profile",
-    body: "truSVAN calculates risk, PnL, freshness, and score from source-linked history. Public pages show the proof level.",
+    body: "TrustSVAN calculates risk, PnL, freshness, and score from source-linked history. Public pages show the proof level.",
   },
   {
     icon: Trophy,
@@ -85,8 +85,8 @@ const FORUM_CATEGORIES = [
 ];
 
 const ACCESS_FLOW = [
-  "Create a verified truSVAN identity",
-  "truSVAN publishes proof metadata for linked roles",
+  "Create a verified TrustSVAN identity",
+  "TrustSVAN publishes proof metadata for linked roles",
   "Forum categories open by proof level, style, and reviewer status",
   "AI summarizes threads into non-advisory research briefs",
 ];
@@ -140,18 +140,18 @@ export default async function NetworkPage({
 
   return (
     <div className="space-y-8">
-      <section className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900/80">
+      <section className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/80">
         <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
           <div className="p-6 sm:p-8">
-            <p className="flex items-center gap-2 text-sm font-medium text-cyan-300">
+            <p className="flex items-center gap-2 text-sm font-medium text-zinc-200">
               <Users className="h-4 w-4" aria-hidden="true" />
               Verified trader board
             </p>
             <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               Public profiles with proof, freshness, and computed risk.
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-              truSVAN profiles are built to make real trading records easier to inspect. Every
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-zinc-400 sm:text-base">
+              TrustSVAN profiles are built to make real trading records easier to inspect. Every
               profile can show where the numbers came from, how current they are, and what proof
               level supports the published record.
             </p>
@@ -162,17 +162,17 @@ export default async function NetworkPage({
             </div>
           </div>
 
-          <aside className="border-t border-slate-800 bg-slate-950/70 p-6 sm:p-8 lg:border-l lg:border-t-0">
+          <aside className="border-t border-zinc-800 bg-zinc-950/70 p-6 sm:p-8 lg:border-l lg:border-t-0">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-white">Your profile</p>
-                <p className="mt-1 text-sm text-slate-400">{user.profile.displayName}</p>
+                <p className="mt-1 text-sm text-zinc-400">{user.profile.displayName}</p>
               </div>
               <span
                 className={`rounded px-2 py-1 text-xs font-medium ${
                   user.profile.isPublic
                     ? "bg-emerald-50 text-emerald-700"
-                    : "bg-slate-800 text-slate-300"
+                    : "bg-zinc-800 text-zinc-300"
                 }`}
               >
                 {user.profile.isPublic ? "Public" : "Private"}
@@ -191,14 +191,14 @@ export default async function NetworkPage({
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href={user.profile.isPublic ? `/p/${user.profile.slug}` : "/settings"}
-                className="inline-flex items-center gap-2 rounded-md bg-cyan-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-300"
+                className="inline-flex items-center gap-2 rounded-md bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-950 hover:bg-white"
               >
                 <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                 {user.profile.isPublic ? "View profile" : "Publish profile"}
               </Link>
               <Link
                 href="/upload"
-                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-200 hover:border-cyan-400 hover:text-white"
+                className="inline-flex items-center gap-2 rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-200 hover:border-zinc-400 hover:text-white"
               >
                 <Link2 className="h-4 w-4" aria-hidden="true" />
                 Connect broker
@@ -213,43 +213,43 @@ export default async function NetworkPage({
           {STEPS.map((step) => {
             const Icon = step.icon;
             return (
-              <article key={step.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
-                <Icon className="h-6 w-6 text-cyan-300" aria-hidden="true" />
+              <article key={step.title} className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-5 shadow-sm">
+                <Icon className="h-6 w-6 text-zinc-200" aria-hidden="true" />
                 <h2 className="mt-4 font-semibold text-white">{step.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-400">{step.body}</p>
+                <p className="mt-2 text-sm leading-6 text-zinc-400">{step.body}</p>
               </article>
             );
           })}
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
+      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-5 shadow-sm">
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
           <div>
-            <p className="flex items-center gap-2 text-sm font-medium text-cyan-300">
+            <p className="flex items-center gap-2 text-sm font-medium text-zinc-200">
               <MessageSquare className="h-4 w-4" aria-hidden="true" />
               Verified research forum
             </p>
             <h2 className="mt-3 text-xl font-semibold tracking-tight text-white">
               Post by proof, not hype.
             </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
+            <p className="mt-2 text-sm leading-6 text-zinc-400">
               A forum, not a chat room — threads stay practical because participants post
               evidence, assumptions, counterviews, and monitoring notes instead of raw alerts,
               with proof and freshness visible on every poster. (Use Discord for live chat.)
             </p>
-            <div className="mt-5 rounded-lg border border-slate-800 bg-slate-950/70 p-4">
-              <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400">
-                <LockKeyhole className="h-4 w-4 text-cyan-300" aria-hidden="true" />
+            <div className="mt-5 rounded-lg border border-zinc-800 bg-zinc-950/70 p-4">
+              <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-400">
+                <LockKeyhole className="h-4 w-4 text-zinc-200" aria-hidden="true" />
                 Access model
               </p>
               <div className="mt-4 space-y-3">
                 {ACCESS_FLOW.map((item, index) => (
                   <div key={item} className="flex gap-3 text-sm">
-                    <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-cyan-400/10 text-xs font-semibold text-cyan-300">
+                    <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-white/5 text-xs font-semibold text-zinc-200">
                       {index + 1}
                     </span>
-                    <span className="text-slate-300">{item}</span>
+                    <span className="text-zinc-300">{item}</span>
                   </div>
                 ))}
               </div>
@@ -258,36 +258,36 @@ export default async function NetworkPage({
 
           <div className="grid gap-4 md:grid-cols-2">
             {FORUM_CATEGORIES.map((room) => (
-              <article key={room.name} className="rounded-lg border border-slate-800 bg-slate-950/60 p-4">
+              <article key={room.name} className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="font-semibold text-white">{room.name}</h3>
-                  <span className="rounded border border-cyan-400/30 bg-cyan-400/10 px-2 py-1 text-[11px] font-medium text-cyan-200">
+                  <span className="rounded border border-zinc-500/50 bg-white/5 px-2 py-1 text-[11px] font-medium text-zinc-200">
                     {room.access}
                   </span>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-slate-400">{room.prompt}</p>
+                <p className="mt-3 text-sm leading-6 text-zinc-400">{room.prompt}</p>
               </article>
             ))}
           </div>
         </div>
 
-        <div className="mt-5 rounded-lg border border-slate-800 bg-slate-950/70 p-4">
-          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400">
-            <Bot className="h-4 w-4 text-cyan-300" aria-hidden="true" />
+        <div className="mt-5 rounded-lg border border-zinc-800 bg-zinc-950/70 p-4">
+          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-400">
+            <Bot className="h-4 w-4 text-zinc-200" aria-hidden="true" />
             AI thread assistant
           </p>
-          <p className="mt-2 text-sm leading-6 text-slate-300">
+          <p className="mt-2 text-sm leading-6 text-zinc-300">
             Turn this thread into a diligence memo: thesis, evidence cited, assumptions, risks,
             counterarguments, open questions, and what data should be checked next.
           </p>
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
+      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-5 shadow-sm">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold tracking-tight text-white">Verified profiles</h2>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-zinc-400">
               Filter by research style and inspect the published track record behind each profile.
             </p>
           </div>
@@ -298,8 +298,8 @@ export default async function NetworkPage({
                 href={filter.key === "all" ? "/network" : `/network?type=${filter.key}`}
                 className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
                   activeType === filter.key
-                    ? "border-cyan-500 bg-cyan-500 text-slate-950"
-                    : "border-slate-700 bg-slate-950/70 text-slate-300 hover:border-cyan-400 hover:text-white"
+                    ? "border-zinc-400 bg-zinc-100 text-zinc-950"
+                    : "border-zinc-700 bg-zinc-950/70 text-zinc-300 hover:border-zinc-400 hover:text-white"
                 }`}
               >
                 {filter.label}
@@ -309,14 +309,14 @@ export default async function NetworkPage({
         </div>
 
         {filteredMembers.length === 0 ? (
-          <div className="mt-5 rounded-lg border border-dashed border-slate-700 bg-slate-950/70 p-8 text-center">
+          <div className="mt-5 rounded-lg border border-dashed border-zinc-700 bg-zinc-950/70 p-8 text-center">
             <h3 className="text-sm font-medium text-white">No matching public profiles yet</h3>
-            <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
+            <p className="mx-auto mt-1 max-w-md text-sm text-zinc-400">
               Publish your profile or clear the filter to see every trader currently visible on the board.
             </p>
             <Link
               href={activeType === "all" ? "/settings" : "/network"}
-              className="mt-4 inline-flex items-center gap-2 rounded-md bg-cyan-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-300"
+              className="mt-4 inline-flex items-center gap-2 rounded-md bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-950 hover:bg-white"
             >
               <Users className="h-4 w-4" aria-hidden="true" />
               {activeType === "all" ? "Open settings" : "Clear filter"}
@@ -349,8 +349,8 @@ export default async function NetworkPage({
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2">
-      <p className="text-xs font-medium uppercase text-slate-400">{label}</p>
+    <div className="rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 py-2">
+      <p className="text-xs font-medium uppercase text-zinc-400">{label}</p>
       <p className="mt-1 text-lg font-semibold tabular-nums text-white">{value}</p>
     </div>
   );
@@ -384,16 +384,16 @@ function MemberCard({
   return (
     <Link
       href={`/p/${slug}`}
-      className="block rounded-lg border border-slate-800 bg-slate-950/50 p-5 transition hover:border-cyan-400 hover:shadow-sm"
+      className="block rounded-lg border border-zinc-800 bg-zinc-950/50 p-5 transition hover:border-zinc-400 hover:shadow-sm"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 gap-3">
-          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-slate-900 text-sm font-semibold text-white">
+          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-zinc-900 text-sm font-semibold text-white">
             {initials(displayName)}
           </div>
           <div className="min-w-0">
             <h3 className="truncate font-semibold text-white">{displayName}</h3>
-            <p className="mt-0.5 truncate text-sm text-slate-400">
+            <p className="mt-0.5 truncate text-sm text-zinc-400">
               {headline || [strategy, instruments].filter(Boolean).join(" / ") || "Professional trader"}
             </p>
           </div>
@@ -414,7 +414,7 @@ function MemberCard({
         <Mini label="Return" value={returnPct != null ? formatPercent(returnPct, 0) : "-"} />
         <Mini label="Drop" value={maxDrawdownPct != null ? `${maxDrawdownPct.toFixed(0)}%` : "-"} />
       </div>
-      <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-cyan-300">
+      <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-zinc-200">
         <FileText className="h-4 w-4" aria-hidden="true" />
         View verified profile
       </p>
@@ -425,7 +425,7 @@ function MemberCard({
 function Mini({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[11px] font-medium uppercase text-slate-400">{label}</p>
+      <p className="text-[11px] font-medium uppercase text-zinc-400">{label}</p>
       <p className="mt-0.5 font-semibold tabular-nums text-white">{value}</p>
     </div>
   );

@@ -10,8 +10,8 @@ export default function SignupPage() {
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-slate-100">Create your operator card</h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <h1 className="text-lg font-semibold text-zinc-100">Create your operator card</h1>
+      <p className="mt-1 text-sm text-zinc-500">
         Join the verified quant &amp; trader network — get proof-backed, get discovered.
       </p>
 
@@ -63,7 +63,7 @@ export default function SignupPage() {
             className={inputClass}
           />
           <FieldError messages={state?.errors?.password} />
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-zinc-400">
             At least 8 characters, with a letter and a number.
           </p>
         </div>
@@ -73,9 +73,9 @@ export default function SignupPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-zinc-500">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-blue-700 hover:text-blue-800">
+        <Link href="/login" className="font-medium text-zinc-200 hover:text-zinc-100">
           Sign in
         </Link>
       </p>

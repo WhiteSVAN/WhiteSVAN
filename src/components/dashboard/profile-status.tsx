@@ -12,7 +12,7 @@ const TONE: Record<FreshnessTone, string> = {
   good: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20",
   warn: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20",
   bad: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
-  neutral: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20",
+  neutral: "bg-zinc-100 text-zinc-600 ring-1 ring-inset ring-zinc-500/20",
 };
 
 /** "2h ago" / "3d ago" / "2mo ago" — coarse, client-readable. */
@@ -28,8 +28,8 @@ function relativeAge(hours: number | null): string {
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</dt>
-      <dd className="mt-1 text-sm text-slate-800">{children}</dd>
+      <dt className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</dt>
+      <dd className="mt-1 text-sm text-zinc-800">{children}</dd>
     </div>
   );
 }
@@ -66,9 +66,9 @@ export function ProfileStatusCard({
       : "No data yet";
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-base font-medium text-slate-800">Profile status</h2>
+        <h2 className="text-base font-medium text-zinc-800">Profile status</h2>
         <span
           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${TONE[fresh.tone]}`}
           title={fresh.blurb}
@@ -79,19 +79,19 @@ export function ProfileStatusCard({
 
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 lg:grid-cols-6">
         <Stat label="Visibility">
-          <span className={isPublic ? "text-emerald-700" : "text-slate-500"}>
+          <span className={isPublic ? "text-emerald-700" : "text-zinc-500"}>
             {isPublic ? "Public" : "Private"}
           </span>
         </Stat>
         <Stat label="Proof level">
           <span className="font-medium">L{proofLevel}</span>{" "}
-          <span className="text-slate-500">{PROOF_LEVELS[proofLevel].label}</span>
+          <span className="text-zinc-500">{PROOF_LEVELS[proofLevel].label}</span>
         </Stat>
         <Stat label="Cadence">{cadenceLabel(c)}</Stat>
         <Stat label="Last updated">
           {relativeAge(fresh.ageHours)}
           {fresh.nextExpectedUpdate && (
-            <span className="block text-xs text-slate-400">
+            <span className="block text-xs text-zinc-400">
               next due {format(fresh.nextExpectedUpdate, "MMM d")}
             </span>
           )}
@@ -100,7 +100,7 @@ export function ProfileStatusCard({
           {transparencyScore != null ? (
             <>
               <span className="font-medium">{transparencyScore}</span>
-              <span className="text-slate-400">/100</span>
+              <span className="text-zinc-400">/100</span>
             </>
           ) : (
             "—"
@@ -109,7 +109,7 @@ export function ProfileStatusCard({
         <Stat label="Data coverage">{coverage}</Stat>
       </dl>
 
-      <p className="mt-4 text-xs text-slate-400">{fresh.blurb}</p>
+      <p className="mt-4 text-xs text-zinc-400">{fresh.blurb}</p>
     </section>
   );
 }

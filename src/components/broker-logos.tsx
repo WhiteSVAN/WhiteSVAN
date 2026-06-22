@@ -34,7 +34,7 @@ export function BrokerLogos() {
       {BROKERS.map((name) => (
         <div
           key={name}
-          className="flex items-center justify-center rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-4 text-center text-sm font-semibold tracking-tight text-slate-400 grayscale transition hover:border-cyan-400/40 hover:text-slate-100 hover:grayscale-0"
+          className="flex items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-4 text-center text-sm font-semibold tracking-tight text-zinc-400 grayscale transition hover:border-zinc-500/50 hover:text-zinc-100 hover:grayscale-0"
         >
           {name}
         </div>

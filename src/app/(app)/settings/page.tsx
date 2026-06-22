@@ -116,12 +116,12 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Settings</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Settings</h1>
 
-      <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
-        <h2 className="text-base font-medium text-slate-800">Research profile and privacy</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Control who can see your truSVAN profile and what it reveals.
+      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
+        <h2 className="text-base font-medium text-zinc-800">Research profile and privacy</h2>
+        <p className="mt-1 text-sm text-zinc-500">
+          Control who can see your TrustSVAN profile and what it reveals.
         </p>
         <div className="mt-4">
           <PortalSettingsForm
@@ -139,14 +139,14 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
-        <h2 className="text-base font-medium text-slate-800">Proof and evidence</h2>
-        <div className="mt-3 rounded-lg bg-slate-50 px-4 py-3 text-sm">
-          <span className="font-medium text-slate-800">
+      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
+        <h2 className="text-base font-medium text-zinc-800">Proof and evidence</h2>
+        <div className="mt-3 rounded-lg bg-zinc-50 px-4 py-3 text-sm">
+          <span className="font-medium text-zinc-800">
             Proof Level {proofLevel}: {PROOF_LEVELS[proofLevel].label}
           </span>
-          <p className="mt-0.5 text-slate-500">{PROOF_LEVELS[proofLevel].blurb}</p>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-0.5 text-zinc-500">{PROOF_LEVELS[proofLevel].blurb}</p>
+          <p className="mt-1 text-xs text-zinc-400">
             Add a broker statement for Level 3, or a tax return / official tax record for Level 4.
           </p>
         </div>
@@ -158,11 +158,11 @@ export default async function SettingsPage() {
         </div>
 
         <div className="mt-6">
-          <h3 className="text-sm font-medium text-slate-700">Evidence locker</h3>
+          <h3 className="text-sm font-medium text-zinc-700">Evidence locker</h3>
           {evidence.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-500">No files uploaded yet.</p>
+            <p className="mt-2 text-sm text-zinc-500">No files uploaded yet.</p>
           ) : (
-            <ul className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-800">
+            <ul className="mt-2 divide-y divide-zinc-100 rounded-lg border border-zinc-800">
               {evidence.map((e) => (
                 <li
                   key={e.id}
@@ -172,18 +172,18 @@ export default async function SettingsPage() {
                     <a
                       href={`/api/evidence/${e.id}`}
                       target="_blank"
-                      className="font-medium text-blue-700 hover:text-blue-800"
+                      className="font-medium text-zinc-200 hover:text-zinc-100"
                     >
                       {e.label || e.originalName}
                     </a>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-zinc-400">
                       {KIND_LABEL[e.kind]} / {Math.max(1, Math.round(e.size / 1024))} KB
                       {e.account && ` / ${e.account.accountName}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
                     {e.kind === EvidenceKind.TAX_RETURN ? (
-                      <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                      <span className="rounded bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500">
                         Verification only
                       </span>
                     ) : (
@@ -194,7 +194,7 @@ export default async function SettingsPage() {
                           className={`rounded px-2 py-0.5 text-xs font-medium ${
                             e.isPublic
                               ? "bg-emerald-50 text-emerald-700"
-                              : "bg-slate-100 text-slate-500"
+                              : "bg-zinc-100 text-zinc-500"
                           }`}
                         >
                           {e.isPublic ? "Public" : "Private"}
@@ -215,9 +215,9 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
-        <h2 className="text-base font-medium text-slate-800">Publishing history</h2>
-        <p className="mt-1 text-sm text-slate-500">
+      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
+        <h2 className="text-base font-medium text-zinc-800">Publishing history</h2>
+        <p className="mt-1 text-sm text-zinc-500">
           Your source-history audit trail and the immutable versions visible on your research profile.
         </p>
         <div className="mt-4">
@@ -230,9 +230,9 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
-        <h2 className="text-base font-medium text-slate-800">Trading accounts and data</h2>
-        <p className="mt-1 text-sm text-slate-500">
+      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
+        <h2 className="text-base font-medium text-zinc-800">Trading accounts and data</h2>
+        <p className="mt-1 text-sm text-zinc-500">
           Loaded the wrong source history? Clear an account&apos;s trades, delete an account entirely,
           or reset everything. These actions can&apos;t be undone.
         </p>

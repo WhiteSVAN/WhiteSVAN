@@ -2,12 +2,12 @@
 services:
   db:
     image: postgres:16
-    container_name: trusvan-db
+    container_name: trustsvan-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: trusvan
-      POSTGRES_PASSWORD: trusvan
-      POSTGRES_DB: trusvan
+      POSTGRES_USER: trustsvan
+      POSTGRES_PASSWORD: trustsvan
+      POSTGRES_DB: trustsvan
     ports:
       - "5432:5432"
     volumes:

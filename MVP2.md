@@ -1,6 +1,6 @@
-# truSVAN - Living Research Profile
+# TrustSVAN - Living Research Profile
 
-> **What this is:** a running record of what truSVAN does today and the plan to take it
+> **What this is:** a running record of what TrustSVAN does today and the plan to take it
 > from a static performance record to a living, timestamped, trader-readable research profile.
 > Source of truth for tech remains [CLAUDE.md](CLAUDE.md) + the code; the MVP2 brief PDF is a
 > **draft** - where its table/field names disagree with our schema, we adapt the *capability*
@@ -22,7 +22,7 @@ The MVP1 product (milestones M1–M6 + trust features) is built and working:
 | Auth & app shell | ✅ | NextAuth v5 (credentials + JWT), DAL, `/login` `/signup` `/onboarding`, protected layout |
 | CSV import | ✅ | `/upload`: account → file → auto-mapped preview → import → `DailyPnl` rebuild. IBKR Flex/Activity, manual template, Fidelity & E\*TRADE realized-G/L; FIFO matcher for retail transaction exports |
 | Metrics + dashboard | ✅ | Equity curve, daily P&L, account/range filters, risk panel — all from [metrics.ts](src/lib/metrics.ts) (pure, code-of-record) |
-| truSVAN dashboard | done | **Research view** and **Trader metrics view** ([trust.ts](src/lib/trust.ts)): Big-Win Dependency, Biggest-Drop severity, Bounce-Back Time, sub-scores + Transparency Score + verdict |
+| TrustSVAN dashboard | done | **Research view** and **Trader metrics view** ([trust.ts](src/lib/trust.ts)): Big-Win Dependency, Biggest-Drop severity, Bounce-Back Time, sub-scores + Transparency Score + verdict |
 | AI briefs | done | `/reports`: generate (OpenAI default / Claude), edit with live compliance, then publish. Strict system prompt + banned-language filter ([compliance.ts](src/lib/ai/compliance.ts)) |
 | Operator card | done | Public `/p/[slug]`, public/private toggle + share link, Print / Save-PDF |
 | Launch surface | ✅ | Landing + waitlist capture, seeded demo at `/p/demo`, public directory `/explore` |

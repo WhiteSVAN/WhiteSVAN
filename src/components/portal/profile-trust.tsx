@@ -6,7 +6,7 @@ const TONE: Record<FreshnessTone, string> = {
   good: "bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30",
   warn: "bg-amber-400/10 text-amber-300 ring-1 ring-inset ring-amber-400/30",
   bad: "bg-red-400/10 text-red-300 ring-1 ring-inset ring-red-400/30",
-  neutral: "bg-slate-800 text-slate-300 ring-1 ring-inset ring-slate-700",
+  neutral: "bg-zinc-800 text-zinc-300 ring-1 ring-inset ring-zinc-700",
 };
 
 // Proof Level badge styling. Tax-return (4) and third-party (5) are the strongest
@@ -14,15 +14,15 @@ const TONE: Record<FreshnessTone, string> = {
 // and self-reported levels (1-2) are muted. Drives the headline "verification"
 // badge on the public operator card.
 const PROOF_BADGE: Record<ProofLevel, string> = {
-  1: "bg-slate-800 text-slate-300 ring-1 ring-inset ring-slate-700",
-  2: "bg-slate-800 text-slate-300 ring-1 ring-inset ring-slate-700",
-  3: "bg-cyan-400/10 text-cyan-300 ring-1 ring-inset ring-cyan-400/30",
+  1: "bg-zinc-800 text-zinc-300 ring-1 ring-inset ring-zinc-700",
+  2: "bg-zinc-800 text-zinc-300 ring-1 ring-inset ring-zinc-700",
+  3: "bg-white/5 text-zinc-200 ring-1 ring-inset ring-zinc-500/30",
   4: "bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30",
   5: "bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30",
 };
 
 const SEVERITY: Record<string, { ring: string; label: string }> = {
-  INFO: { ring: "border-slate-800 bg-slate-900/70", label: "text-slate-300" },
+  INFO: { ring: "border-zinc-800 bg-zinc-900/70", label: "text-zinc-300" },
   WARNING: { ring: "border-amber-400/30 bg-amber-400/10", label: "text-amber-300" },
   CRITICAL: { ring: "border-red-400/30 bg-red-400/10", label: "text-red-300" },
 };
@@ -56,7 +56,7 @@ export function ProfileTrust({
 }) {
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-800 bg-slate-900/70 p-4">
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/70 p-4">
         {proofLevel != null && (
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${PROOF_BADGE[proofLevel]}`}
@@ -72,32 +72,32 @@ export function ProfileTrust({
         >
           {freshness.label}
         </span>
-        <span className="text-sm text-slate-400">
+        <span className="text-sm text-zinc-400">
           {lastUpdatedLabel ? `Last updated ${lastUpdatedLabel}` : "Not yet published"}
-          <span className="text-slate-600"> / </span>
+          <span className="text-zinc-600"> / </span>
           {cadenceLabel} updates
         </span>
       </div>
 
       {changeSummary && (
-        <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-4">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400">
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-4">
+          <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-400">
             Since last update
           </h3>
-          <p className="mt-1 text-sm text-slate-300">{changeSummary}</p>
+          <p className="mt-1 text-sm text-zinc-300">{changeSummary}</p>
         </div>
       )}
 
       {riskEvents.length > 0 && (
         <div>
-          <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400">Risk events</h3>
+          <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-400">Risk events</h3>
           <ul className="mt-2 grid gap-2 sm:grid-cols-2">
             {riskEvents.map((e) => {
               const s = SEVERITY[e.severity] ?? SEVERITY.INFO;
               return (
                 <li key={e.id} className={`rounded-xl border p-3 ${s.ring}`}>
                   <p className={`text-sm font-medium ${s.label}`}>{e.title}</p>
-                  <p className="mt-0.5 text-xs text-slate-400">{e.description}</p>
+                  <p className="mt-0.5 text-xs text-zinc-400">{e.description}</p>
                 </li>
               );
             })}

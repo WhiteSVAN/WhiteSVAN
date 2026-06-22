@@ -20,7 +20,7 @@ import { PrintButton } from "./print-button";
 import { FollowForm } from "./follow-form";
 
 const DEFAULT_DISCLAIMER =
-  "truSVAN is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
+  "TrustSVAN is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
 
 export async function generateMetadata({
   params,
@@ -33,7 +33,7 @@ export async function generateMetadata({
     select: { displayName: true, isPublic: true },
   });
   return {
-    title: profile?.isPublic ? `${profile.displayName} - truSVAN` : "truSVAN",
+    title: profile?.isPublic ? `${profile.displayName} - TrustSVAN` : "TrustSVAN",
     robots: { index: false }, // private share links shouldn't be indexed
   };
 }
@@ -76,10 +76,10 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
   if (!profile || !profile.isPublic) {
     return (
-      <div className="flex min-h-full flex-1 items-center justify-center bg-slate-950 px-4 py-16 text-center">
+      <div className="flex min-h-full flex-1 items-center justify-center bg-zinc-950 px-4 py-16 text-center">
         <div>
           <p className="text-lg font-semibold text-white">This research profile isn&apos;t available</p>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-zinc-400">
             The link may be wrong, or the trader has set their profile to private.
           </p>
         </div>
@@ -145,32 +145,32 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
   };
 
   return (
-    <div className="min-h-full bg-slate-950 text-slate-100">
+    <div className="min-h-full bg-zinc-950 text-zinc-100">
       {/* Slim nav hidden when printing / saving the report as PDF. */}
-      <nav className="border-b border-slate-800 bg-slate-950/90 print:hidden">
+      <nav className="border-b border-zinc-800 bg-zinc-950/90 print:hidden">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
           <Link
             href={loggedIn ? "/dashboard" : "/"}
-            className="text-sm font-semibold tracking-[0.14em] text-slate-100"
+            className="text-sm font-semibold tracking-[0.14em] text-zinc-100"
           >
             <SvanLogo />
           </Link>
           <Link
             href={loggedIn ? "/network" : "/explore"}
-            className="text-sm font-medium text-cyan-300 hover:text-cyan-100"
+            className="text-sm font-medium text-zinc-200 hover:text-zinc-100"
           >
             Verified traders
           </Link>
         </div>
       </nav>
 
-      <header className="border-b border-slate-800 bg-slate-950">
+      <header className="border-b border-zinc-800 bg-zinc-950">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
               <Link
                 href={loggedIn ? "/dashboard" : "/"}
-                className="transition hover:text-cyan-300"
+                className="transition hover:text-zinc-200"
               >
                 <SvanLogo />
               </Link>{" "}
@@ -188,11 +188,11 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
               )}
             </div>
             {profile.headline && (
-              <p className="mt-1 text-sm font-medium text-slate-300">{profile.headline}</p>
+              <p className="mt-1 text-sm font-medium text-zinc-300">{profile.headline}</p>
             )}
-            <p className="mt-0.5 text-sm text-slate-400">
+            <p className="mt-0.5 text-sm text-zinc-400">
               {[profile.strategy, profile.instruments].filter(Boolean).join(" / ")}
-              {period && <span className="text-slate-400"> / {period}</span>}
+              {period && <span className="text-zinc-400"> / {period}</span>}
             </p>
           </div>
           <PrintButton />
@@ -200,17 +200,17 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
       </header>
 
       <main className="mx-auto max-w-4xl space-y-10 px-4 py-8">
-        {profile.bio && <p className="text-sm leading-relaxed text-slate-300">{profile.bio}</p>}
+        {profile.bio && <p className="text-sm leading-relaxed text-zinc-300">{profile.bio}</p>}
 
         {(profile.openToWork || profile.contactUrl) && (
-          <section className="rounded-xl border border-cyan-400/25 bg-cyan-400/5 p-5 print:hidden">
+          <section className="rounded-xl border border-zinc-500/40 bg-zinc-300/5 p-5 print:hidden">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
                 <h2 className="text-base font-semibold text-white">Work with {profile.displayName}</h2>
                 {profile.services ? (
-                  <p className="mt-1 text-sm leading-relaxed text-slate-400">{profile.services}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-zinc-400">{profile.services}</p>
                 ) : (
-                  <p className="mt-1 text-sm leading-relaxed text-slate-400">
+                  <p className="mt-1 text-sm leading-relaxed text-zinc-400">
                     Open to client work and collaboration. Reach out to start a conversation.
                   </p>
                 )}
@@ -220,7 +220,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
                   href={profile.contactUrl}
                   target="_blank"
                   rel="noopener noreferrer nofollow"
-                  className="shrink-0 rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-300"
+                  className="shrink-0 rounded-md bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white"
                 >
                   Get in touch
                 </a>
@@ -246,7 +246,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             hideAmounts={profile.hideAmounts}
           />
         ) : (
-          <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/70 p-10 text-center text-sm text-slate-400">
+          <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/70 p-10 text-center text-sm text-zinc-400">
             No published record yet.
           </div>
         )}
@@ -271,8 +271,8 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
         {evidence.length > 0 && (
           <section className="space-y-3">
             <h2 className="text-lg font-semibold tracking-tight text-white">Evidence</h2>
-            <p className="text-sm text-slate-400">Supporting documents shared by the researcher.</p>
-            <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800 bg-slate-900/70">
+            <p className="text-sm text-zinc-400">Supporting documents shared by the researcher.</p>
+            <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-800 bg-zinc-900/70">
               {evidence.map((e) => (
                 <li
                   key={e.id}
@@ -282,11 +282,11 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
                     href={`/api/evidence/${e.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="truncate font-medium text-cyan-300 hover:text-cyan-100"
+                    className="truncate font-medium text-zinc-200 hover:text-zinc-100"
                   >
                     {e.label || e.originalName}
                   </a>
-                  <span className="shrink-0 text-xs text-slate-400">{KIND_LABEL[e.kind]}</span>
+                  <span className="shrink-0 text-xs text-zinc-400">{KIND_LABEL[e.kind]}</span>
                 </li>
               ))}
             </ul>
@@ -295,15 +295,15 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
         <section className="space-y-3 print:hidden">
           <h2 className="text-lg font-semibold tracking-tight text-white">Follow this researcher</h2>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-zinc-400">
             Get profile and research updates by email. Not investment advice.
           </p>
           <FollowForm slug={slug} />
         </section>
       </main>
 
-      <footer className="border-t border-slate-800 bg-slate-950 print:hidden">
-        <div className="mx-auto max-w-4xl space-y-2 px-4 py-6 text-xs leading-relaxed text-slate-400">
+      <footer className="border-t border-zinc-800 bg-zinc-950 print:hidden">
+        <div className="mx-auto max-w-4xl space-y-2 px-4 py-6 text-xs leading-relaxed text-zinc-400">
           {profile.disclaimer && <p>{profile.disclaimer}</p>}
           <p>{DEFAULT_DISCLAIMER}</p>
         </div>

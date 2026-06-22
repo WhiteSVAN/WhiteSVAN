@@ -10,7 +10,7 @@ const POSTURE_STYLE: Record<DiligencePosture, string> = {
 const TONE: Record<string, string> = {
   emerald: "text-emerald-300",
   red: "text-red-300",
-  cyan: "text-cyan-300",
+  steel: "text-zinc-200",
 };
 
 function Column({
@@ -27,19 +27,19 @@ function Column({
   empty: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-4">
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-4">
       <h3 className={`flex items-center gap-1.5 text-sm font-medium ${TONE[tone]}`}>
         <Icon className="h-4 w-4" aria-hidden="true" />
         {title}
       </h3>
       {items.length === 0 ? (
-        <p className="mt-3 text-xs text-slate-500">{empty}</p>
+        <p className="mt-3 text-xs text-zinc-500">{empty}</p>
       ) : (
         <ul className="mt-3 space-y-3">
           {items.map((it) => (
             <li key={it.label}>
-              <p className="text-sm font-medium text-slate-200">{it.label}</p>
-              <p className="text-xs leading-5 text-slate-400">{it.detail}</p>
+              <p className="text-sm font-medium text-zinc-200">{it.label}</p>
+              <p className="text-xs leading-5 text-zinc-400">{it.detail}</p>
             </li>
           ))}
         </ul>
@@ -58,13 +58,13 @@ export function DiligenceBriefView({ brief }: { brief: DiligenceBrief }) {
         >
           {brief.postureLabel}
         </span>
-        <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-0.5 text-xs font-medium text-cyan-300">
+        <span className="inline-flex items-center gap-1 rounded-full border border-zinc-500/50 bg-white/5 px-2.5 py-0.5 text-xs font-medium text-zinc-200">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
           {brief.dataQuality.label} · Proof L{brief.dataQuality.proofLevel}
         </span>
       </div>
 
-      <p className="max-w-3xl text-sm leading-6 text-slate-400">{brief.summary}</p>
+      <p className="max-w-3xl text-sm leading-6 text-zinc-400">{brief.summary}</p>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Column
@@ -84,7 +84,7 @@ export function DiligenceBriefView({ brief }: { brief: DiligenceBrief }) {
         <Column
           title="What to monitor"
           icon={Eye}
-          tone="cyan"
+          tone="steel"
           items={brief.watchItems}
           empty="Nothing flagged to monitor."
         />

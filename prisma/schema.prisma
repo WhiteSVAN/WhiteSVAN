@@ -1,4 +1,4 @@
-// truSVAN - trader analytics and research-network SaaS
+// TrustSVAN - trader analytics and research-network SaaS
 // Schema docs: https://pris.ly/d/prisma-schema
 // DB URL is provided via prisma.config.ts (process.env.DATABASE_URL).
 

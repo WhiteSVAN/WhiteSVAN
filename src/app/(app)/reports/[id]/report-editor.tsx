@@ -50,7 +50,7 @@ export function ReportEditor({
   const STATUS_BADGE: Record<string, string> = {
     PUBLISHED: "bg-emerald-50 text-emerald-700",
     APPROVED: "bg-amber-50 text-amber-700",
-    DRAFT: "bg-slate-100 text-slate-500",
+    DRAFT: "bg-zinc-100 text-zinc-500",
   };
   const STATUS_LABEL: Record<string, string> = {
     PUBLISHED: "Published",
@@ -64,10 +64,10 @@ export function ReportEditor({
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <Link href="/reports" className="text-sm text-cyan-300 hover:text-cyan-100">
+          <Link href="/reports" className="text-sm text-zinc-200 hover:text-zinc-100">
             Back to briefs
           </Link>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900">
             {accountName} / {periodLabel(period)}
           </h1>
         </div>
@@ -89,7 +89,7 @@ export function ReportEditor({
         </div>
       )}
       {state?.saved && (
-        <div className="rounded-lg bg-slate-100 px-4 py-2 text-sm text-slate-600">Draft saved.</div>
+        <div className="rounded-lg bg-zinc-100 px-4 py-2 text-sm text-zinc-600">Draft saved.</div>
       )}
       {state?.message && (
         <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{state.message}</div>
@@ -127,7 +127,7 @@ export function ReportEditor({
                   name="intent"
                   value="save"
                   disabled={pending}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                  className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
                 >
                   {pending ? "Saving..." : "Save draft"}
                 </button>
@@ -149,7 +149,7 @@ export function ReportEditor({
                 name="intent"
                 value="publish"
                 disabled={pending || liveIssues.length > 0}
-                className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                 title={liveIssues.length > 0 ? "Resolve compliance issues first" : undefined}
               >
                 Publish
@@ -159,7 +159,7 @@ export function ReportEditor({
         )}
       </form>
 
-      <form action={deleteReport} className="border-t border-slate-100 pt-4" onSubmit={confirmDelete}>
+      <form action={deleteReport} className="border-t border-zinc-100 pt-4" onSubmit={confirmDelete}>
         <input type="hidden" name="id" value={id} />
         <button type="submit" className="text-sm text-red-600 hover:text-red-700">
           Delete brief
@@ -202,9 +202,9 @@ function Field({
         value={value}
         onChange={onChange}
         readOnly={readOnly}
-        className={`${inputClass} ${readOnly ? "bg-slate-50 text-slate-600" : ""}`}
+        className={`${inputClass} ${readOnly ? "bg-zinc-50 text-zinc-600" : ""}`}
       />
-      {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-zinc-400">{hint}</p>}
     </div>
   );
 }

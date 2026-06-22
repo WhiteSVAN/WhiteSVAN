@@ -111,7 +111,7 @@ export default async function DashboardPage({
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
             {user.profile.displayName}
           </h1>
           <PortalShare slug={user.profile.slug} isPublic={user.profile.isPublic} />
@@ -121,7 +121,7 @@ export default async function DashboardPage({
           {account && <DashboardControls accounts={accounts.map((a) => ({ id: a.id, accountName: a.accountName }))} accountId={account.id} range={range} />}
           <Link
             href="/upload"
-            className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800"
+            className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-white"
           >
             Connect broker
           </Link>
@@ -165,18 +165,18 @@ export default async function DashboardPage({
           <ClientView trust={trust} equitySeries={equitySeries} dailySeries={dailySeries} />
         )
       ) : (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-          <h2 className="text-base font-medium text-slate-800">
+        <div className="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center">
+          <h2 className="text-base font-medium text-zinc-800">
             {account ? "No trades in this range" : "No trading data yet"}
           </h2>
-          <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
+          <p className="mx-auto mt-1 max-w-md text-sm text-zinc-500">
             {account
               ? "Try a wider date range, or connect more trading history."
-            : "Connect broker or prop-firm history to build your truSVAN research profile and analytics dashboard."}
+            : "Connect broker or prop-firm history to build your TrustSVAN research profile and analytics dashboard."}
           </p>
           <Link
             href="/upload"
-            className="mt-4 inline-flex rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800"
+            className="mt-4 inline-flex rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-white"
           >
             {account ? "Connect more history" : "Connect broker"}
           </Link>

@@ -116,7 +116,7 @@ export function UploadFlow({
   return (
     <div className="space-y-5">
       {/* Broker source */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4">
         <label htmlFor="format" className={labelClass}>
           Broker source
         </label>
@@ -133,7 +133,7 @@ export function UploadFlow({
             </option>
           ))}
         </select>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-zinc-500">
           Pick a supported broker source or leave detection on automatic. Direct read-only
           connections are the product direction; this bridge workflow loads broker-reported history
           while connectors are added.
@@ -141,7 +141,7 @@ export function UploadFlow({
       </div>
 
       {/* Account + file */}
-      <div className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
+      <div className="grid gap-4 rounded-xl border border-zinc-200 bg-white p-4 sm:grid-cols-2">
         <div>
           <div className="flex items-center justify-between">
             <label htmlFor="account" className={labelClass}>
@@ -151,7 +151,7 @@ export function UploadFlow({
               <button
                 type="button"
                 onClick={() => setAddingAccount(true)}
-                className="text-xs font-medium text-blue-600 hover:text-blue-700"
+                className="text-xs font-medium text-zinc-300 hover:text-zinc-200"
               >
                 + New account
               </button>
@@ -162,7 +162,7 @@ export function UploadFlow({
             // Inline create — broker pre-filled from the chosen format above.
             <form
               action={createAccountAction}
-              className="mt-1 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3"
+              className="mt-1 space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
             >
               <div>
                 <input
@@ -193,14 +193,14 @@ export function UploadFlow({
                 <button
                   type="submit"
                   disabled={creating}
-                  className="rounded-lg bg-blue-700 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 disabled:opacity-60"
+                  className="rounded-lg bg-zinc-100 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-white disabled:opacity-60"
                 >
                   {creating ? "Creating…" : "Create account"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setAddingAccount(false)}
-                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100"
                 >
                   Cancel
                 </button>
@@ -230,30 +230,30 @@ export function UploadFlow({
             type="file"
             accept=".csv,text/csv"
             onChange={onFile}
-            className="mt-1 block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+            className="mt-1 block w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-200 hover:file:bg-zinc-800"
           />
-          {fileName && <p className="mt-1 text-xs text-slate-500">{fileName}</p>}
+          {fileName && <p className="mt-1 text-xs text-zinc-500">{fileName}</p>}
         </div>
       </div>
 
       {/* Column mapping — auto-detect path only, collapsed once recognized */}
       {isAuto && headers.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4">
           <details open={missingRequired.length > 0}>
             <summary className="flex cursor-pointer list-none items-center gap-2 text-sm">
               {missingRequired.length === 0 ? (
                 <>
                   <span className="text-emerald-600">✓</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="font-medium text-zinc-800">
                     Columns matched from your source file
                   </span>
-                  <span className="text-slate-400">— click to review or adjust</span>
+                  <span className="text-zinc-400">— click to review or adjust</span>
                 </>
               ) : (
                 <>
                   <span className="text-amber-600">⚠</span>
-                  <span className="font-medium text-slate-800">Map columns</span>
-                  <span className="text-slate-400">
+                  <span className="font-medium text-zinc-800">Map columns</span>
+                  <span className="text-zinc-400">
                     — still need: {missingRequired.map((f) => FIELD_LABELS[f]).join(", ")}
                   </span>
                 </>
@@ -262,7 +262,7 @@ export function UploadFlow({
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {CANONICAL_FIELDS.map((field) => (
                 <div key={field}>
-                  <label className="text-xs font-medium text-slate-600">
+                  <label className="text-xs font-medium text-zinc-600">
                     {FIELD_LABELS[field]}
                     {REQUIRED.has(field) && <span className="text-red-500"> *</span>}
                   </label>
@@ -285,9 +285,9 @@ export function UploadFlow({
             </div>
           </details>
           {!mapping.realizedPnl && (
-            <p className="mt-3 text-xs text-slate-500">
+            <p className="mt-3 text-xs text-zinc-500">
               No <strong>realized P&amp;L</strong> column found. If this is a Robinhood, Webull, or
-              Fidelity <em>transaction</em> export, pick your broker above and truSVAN will pair
+              Fidelity <em>transaction</em> export, pick your broker above and TrustSVAN will pair
               buys/sells into closed trades for you.
             </p>
           )}
@@ -296,12 +296,12 @@ export function UploadFlow({
 
       {/* FIFO summary — broker transaction-export path */}
       {!isAuto && result && isBrokerResult(result) && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm">
           <div className="flex items-center gap-2">
             <span className="text-emerald-600">✓</span>
-            <span className="font-medium text-slate-800">Matched buys &amp; sells (FIFO)</span>
+            <span className="font-medium text-zinc-800">Matched buys &amp; sells (FIFO)</span>
           </div>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-zinc-500">
             Paired <strong>{result.fills}</strong> fills into <strong>{result.matched}</strong>{" "}
             closed trades with realized P&amp;L.
             {result.openPositions > 0 && (
@@ -319,10 +319,10 @@ export function UploadFlow({
 
       {/* Preview */}
       {result && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="rounded-xl border border-zinc-200 bg-white p-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-slate-800">Broker history preview</h3>
-            <span className="text-xs text-slate-500">
+            <h3 className="text-sm font-medium text-zinc-800">Broker history preview</h3>
+            <span className="text-xs text-zinc-500">
               {result.trades.length} valid · {result.errors.length} skipped
             </span>
           </div>
@@ -331,7 +331,7 @@ export function UploadFlow({
             <div className="mt-3 overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                  <tr className="text-left text-xs uppercase tracking-wide text-zinc-400">
                     <th className="py-1 pr-4 font-medium">Date</th>
                     <th className="py-1 pr-4 font-medium">Symbol</th>
                     <th className="py-1 pr-4 font-medium">Side</th>
@@ -342,10 +342,10 @@ export function UploadFlow({
                 </thead>
                 <tbody>
                   {result.trades.slice(0, 8).map((t, i) => (
-                    <tr key={i} className="border-t border-slate-100">
-                      <td className="py-1 pr-4 font-mono text-xs text-slate-600">{t.tradeDate}</td>
+                    <tr key={i} className="border-t border-zinc-100">
+                      <td className="py-1 pr-4 font-mono text-xs text-zinc-600">{t.tradeDate}</td>
                       <td className="py-1 pr-4">{t.symbol}</td>
-                      <td className="py-1 pr-4 text-slate-500">{t.side ?? "—"}</td>
+                      <td className="py-1 pr-4 text-zinc-500">{t.side ?? "—"}</td>
                       <td className="py-1 pr-4 text-right">{t.quantity ?? "—"}</td>
                       <td
                         className={`py-1 pr-4 text-right tabular-nums ${
@@ -354,7 +354,7 @@ export function UploadFlow({
                       >
                         {t.realizedPnl.toFixed(2)}
                       </td>
-                      <td className="py-1 text-right tabular-nums text-slate-500">
+                      <td className="py-1 text-right tabular-nums text-zinc-500">
                         {t.fees.toFixed(2)}
                       </td>
                     </tr>
@@ -362,7 +362,7 @@ export function UploadFlow({
                 </tbody>
               </table>
               {result.trades.length > 8 && (
-                <p className="mt-2 text-xs text-slate-400">
+                <p className="mt-2 text-xs text-zinc-400">
                   + {result.trades.length - 8} more rows
                 </p>
               )}
@@ -374,7 +374,7 @@ export function UploadFlow({
               <summary className="cursor-pointer text-xs text-amber-600">
                 {result.errors.length} rows skipped — why?
               </summary>
-              <ul className="mt-1 space-y-0.5 text-xs text-slate-500">
+              <ul className="mt-1 space-y-0.5 text-xs text-zinc-500">
                 {result.errors.slice(0, 5).map((er, i) => (
                   <li key={i}>
                     Row {er.row}: {er.message}

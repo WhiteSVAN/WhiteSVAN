@@ -56,7 +56,7 @@ export function LoginForm({
           </label>
           <Link
             href="/forgot"
-            className="text-xs font-medium text-blue-700 hover:text-blue-800"
+            className="text-xs font-medium text-zinc-200 hover:text-zinc-100"
           >
             Forgot password?
           </Link>
