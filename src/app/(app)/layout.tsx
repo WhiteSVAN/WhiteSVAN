@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth/dal";
-import { logout } from "./actions";
+import { AccountMenu } from "./account-menu";
+
+const NAV = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/network", label: "Network" },
+  { href: "/explore", label: "Discover" },
+];
 
 /**
  * Authenticated app shell. `requireUser()` redirects to /login when there is no
@@ -20,34 +26,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           >
             QUANTI<span className="text-cyan-300">DIVE</span>
           </Link>
-          <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-sm">
-            <Link href="/dashboard" className="text-slate-400 hover:text-white">
-              Dashboard
-            </Link>
-            <Link href="/network" className="text-slate-400 hover:text-white">
-              Network
-            </Link>
-            <Link href="/upload" className="text-slate-400 hover:text-white">
-              Import
-            </Link>
-            <Link href="/reports" className="text-slate-400 hover:text-white">
-              Briefs
-            </Link>
-            <Link href="/settings" className="text-slate-400 hover:text-white">
-              Settings
-            </Link>
-            <Link href="/explore" className="text-slate-400 hover:text-white">
-              Directory
-            </Link>
-            <span className="hidden text-slate-500 sm:inline">{user.name ?? user.email}</span>
-            <form action={logout}>
-              <button
-                type="submit"
-                className="rounded-md border border-slate-700 px-3 py-1 text-slate-300 transition hover:border-cyan-400 hover:text-white"
-              >
-                Sign out
-              </button>
-            </form>
+          <nav className="flex items-center justify-end gap-x-5 gap-y-2 text-sm">
+            {NAV.map((item) => (
+              <Link key={item.href} href={item.href} className="text-slate-400 hover:text-white">
+                {item.label}
+              </Link>
+            ))}
+            <AccountMenu label={user.name ?? user.email ?? "Account"} />
           </nav>
         </div>
       </header>

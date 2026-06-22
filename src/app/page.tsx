@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BookOpenText, Briefcase, CandlestickChart, RadioTower, ShieldCheck } from "lucide-react";
 import { WaitlistForm } from "./waitlist-form";
+import { BrokerLogos } from "@/components/broker-logos";
 
 const FEED = [
   {
@@ -197,6 +198,29 @@ export default function Home() {
                 </article>
               );
             })}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pb-16">
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6 sm:p-8">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-semibold tracking-tight text-white">
+                  Works with the broker you already trade
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                  Verify from your real trade history — import a CSV or statement export today, with
+                  more direct broker connections on the way. Your numbers are computed from the
+                  trades, never self-claimed.
+                </p>
+              </div>
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-200">
+                14+ brokers &amp; prop firms
+              </span>
+            </div>
+            <div className="mt-6">
+              <BrokerLogos />
+            </div>
           </div>
         </section>
 
