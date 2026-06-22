@@ -1,5 +1,5 @@
 /**
- * Proof Level derivation. CSV-imported data is Level 2; an uploaded broker
+ * Proof Level derivation. Source-linked data is Level 2; an uploaded broker
  * STATEMENT raises it to Level 3, and a TAX_RETURN raises it to Level 4.
  */
 import { prisma } from "@/lib/db";

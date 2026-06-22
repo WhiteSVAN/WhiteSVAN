@@ -8,10 +8,11 @@ export function CreateAccountForm() {
   const [state, action, pending] = useActionState(createAccount, undefined);
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
-      <h2 className="text-base font-medium text-slate-800">Create a trading account</h2>
+    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 className="text-base font-medium text-slate-900">Create a trading account</h2>
       <p className="mt-1 text-sm text-slate-500">
-        First, add the account these trades belong to. You can add more later.
+        First, name the broker or prop-firm account that will hold the source-backed history.
+        You can add more later.
       </p>
 
       <form action={action} className="mt-4 space-y-4">
@@ -24,7 +25,7 @@ export function CreateAccountForm() {
             name="accountName"
             required
             className={inputClass}
-            placeholder="Topstep 150k"
+            placeholder="IBKR main account"
           />
           <FieldError messages={state?.errors?.accountName} />
         </div>

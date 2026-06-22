@@ -6,14 +6,14 @@ import { ChevronDown } from "lucide-react";
 import { logout } from "./actions";
 
 const ITEMS = [
-  { href: "/upload", label: "Import data" },
+  { href: "/upload", label: "Connect broker" },
   { href: "/reports", label: "My briefs" },
   { href: "/settings", label: "Settings" },
 ];
 
 /**
  * Account dropdown for the app shell — keeps the top nav to a few primary tabs
- * and tucks the secondary destinations (import, briefs, settings) plus sign-out
+ * and tucks the secondary destinations (broker connection, briefs, settings) plus sign-out
  * behind the user's name. Closes on outside click or Escape.
  */
 export function AccountMenu({ label }: { label: string }) {

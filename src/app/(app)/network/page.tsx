@@ -5,11 +5,11 @@ import {
   Bot,
   CheckCircle2,
   FileText,
+  Link2,
   LockKeyhole,
   MessageSquare,
   ShieldCheck,
   Trophy,
-  UploadCloud,
   Users,
 } from "lucide-react";
 import { requireUser } from "@/lib/auth/dal";
@@ -45,14 +45,14 @@ const TYPE_STYLES: Record<Exclude<NetworkType, "all">, string> = {
 
 const STEPS = [
   {
-    icon: UploadCloud,
-    title: "Import real history",
-    body: "Start from broker or prop-firm CSV exports, then attach statements or tax records for stronger proof.",
+    icon: Link2,
+    title: "Connect real history",
+    body: "Start from a read-only broker or prop-firm source, then attach statements or tax records for stronger proof.",
   },
   {
     icon: ShieldCheck,
     title: "Publish a proof-backed profile",
-    body: "Quantidive calculates risk, PnL, freshness, and score from the imported data. Public pages show the proof level.",
+    body: "Quantidive calculates risk, PnL, freshness, and score from source-linked history. Public pages show the proof level.",
   },
   {
     icon: Trophy,
@@ -200,8 +200,8 @@ export default async function NetworkPage({
                 href="/upload"
                 className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-200 hover:border-cyan-400 hover:text-white"
               >
-                <UploadCloud className="h-4 w-4" aria-hidden="true" />
-                Import data
+                <Link2 className="h-4 w-4" aria-hidden="true" />
+                Connect broker
               </Link>
             </div>
           </aside>

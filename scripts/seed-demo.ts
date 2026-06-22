@@ -108,7 +108,7 @@ const SEED_TRADERS: SeedTrader[] = [
     reportPeriod: "2026-05",
     report: {
       executive_summary:
-        "Ava's seeded profile finished the period positive with a recovered mid-window drawdown and a clear evidence trail from imported broker data plus private tax-record verification.",
+        "Ava's seeded profile finished the period positive with a recovered mid-window drawdown and a clear evidence trail from broker-reported data plus private tax-record verification.",
       performance_summary:
         "The account produced steady gains across an active futures sample, with a few outsized sessions contributing meaningfully to total return.",
       risk_summary:
