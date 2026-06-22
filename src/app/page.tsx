@@ -15,17 +15,15 @@ import { BrokerLogos } from "@/components/broker-logos";
 import { SiteFooter } from "@/components/site-footer";
 
 const HERO_STATS = [
-  { value: "L1–L5", label: "Proof levels" },
+  { value: "3-step", label: "Verification" },
   { value: "14+", label: "Brokers & prop firms" },
   { value: "100%", label: "Code-computed" },
 ];
 
 const PROOF_LEVELS = [
-  { level: "L1", label: "Self-reported", body: "Numbers entered by hand." },
-  { level: "L2", label: "CSV imported", body: "Parsed from a broker or prop-firm export." },
-  { level: "L3", label: "Statement checked", body: "A broker or prop-firm statement is on file." },
-  { level: "L4", label: "Tax return checked", body: "A tax return or official tax record backs it." },
-  { level: "L5", label: "Third-party verified", body: "Reviewed by an external auditor." },
+  { level: "01", label: "Broker-connected", body: "Read-only history imported straight from your broker or prop firm." },
+  { level: "02", label: "Statement-checked", body: "A broker or prop-firm statement is on file behind the numbers." },
+  { level: "03", label: "Tax-return-checked", body: "A tax return or official tax record backs the account." },
 ];
 
 const RESEARCH = [
@@ -148,9 +146,9 @@ export default function Home() {
         <FeatureRow
           flip
           eyebrow="Verification"
-          title="Five proof levels, not a screenshot"
-          body="Every profile carries a proof level — how the data was checked. A broker statement reaches L3; a tax return or official tax record reaches L4; a third-party audit reaches L5."
-          points={["Evidence locker for statements & tax records", "Proof Level on every public card", "$-amount and broker redaction", "Immutable published versions"]}
+          title="Verified at the source, not by screenshot"
+          body="It starts with read-only broker history — no self-reported numbers. Add a statement or a tax record to raise your proof level. That's it: connect, then strengthen if you want to."
+          points={["Connect your broker (read-only)", "Add statements & tax records", "Proof level on every public card", "$-amount & broker redaction"]}
           visual={<ProofPanel />}
         />
 
@@ -342,7 +340,7 @@ function OperatorCard() {
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-          Proof L4
+          Tax-verified
         </span>
       </div>
       <div className="mt-4">
@@ -384,7 +382,7 @@ function ProofPanel() {
       <p className="text-sm font-medium text-white">Proof ladder</p>
       <ol className="mt-3 space-y-2">
         {PROOF_LEVELS.map((p) => {
-          const active = p.level === "L4";
+          const active = p.level === "03";
           return (
             <li
               key={p.level}
@@ -410,10 +408,10 @@ function ProofPanel() {
 }
 
 const LEADERS = [
-  { rank: "1", name: "Sofia Alvarez", style: "SPX gamma · ES", score: "91", proof: "L4" },
-  { rank: "2", name: "Priya Nair", style: "Options flow", score: "88", proof: "L4" },
-  { rank: "3", name: "Marcus Chen", style: "Stat-arb · ETFs", score: "84", proof: "L3" },
-  { rank: "4", name: "Diego Santos", style: "Macro · FX/rates", score: "79", proof: "L3" },
+  { rank: "1", name: "Sofia Alvarez", style: "SPX gamma · ES", score: "91", proof: "Tax" },
+  { rank: "2", name: "Priya Nair", style: "Options flow", score: "88", proof: "Tax" },
+  { rank: "3", name: "Marcus Chen", style: "Stat-arb · ETFs", score: "84", proof: "Stmt" },
+  { rank: "4", name: "Diego Santos", style: "Macro · FX/rates", score: "79", proof: "Stmt" },
 ];
 
 function LeaderboardPanel() {
