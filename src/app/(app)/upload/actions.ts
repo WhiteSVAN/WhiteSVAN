@@ -12,7 +12,7 @@ export type AccountFormState =
   | { errors?: { accountName?: string[] }; message?: string }
   | undefined;
 
-/** Create a brokerage/prop-firm account to import trades into. */
+/** Create a brokerage/prop-firm account to attach source-backed trades to. */
 export async function createAccount(
   _prev: AccountFormState,
   formData: FormData,
@@ -43,8 +43,8 @@ export async function createAccount(
 export type ImportFormState = { message?: string } | undefined;
 
 /**
- * Re-parse the CSV on the server (never trust client-computed numbers) using
- * the user's chosen mapping, then write through the shared import core.
+ * Re-parse the source file on the server (never trust client-computed numbers)
+ * using the user's chosen mapping, then write through the shared import core.
  */
 export async function confirmImport(
   _prev: ImportFormState,
@@ -61,7 +61,7 @@ export async function confirmImport(
     where: { id: accountId, userId },
     select: { id: true, broker: true },
   });
-  if (!account) return { message: "Choose an account to import into." };
+  if (!account) return { message: "Choose an account to load history into." };
 
   const fileName = String(formData.get("fileName") ?? "").trim() || null;
 
@@ -84,8 +84,8 @@ export async function confirmImport(
     return {
       message:
         format === "auto"
-          ? "No valid rows to import — check your column mapping."
-          : "No closed trades found to import — check the file matches the selected broker.",
+          ? "No valid rows to load — check your column mapping."
+          : "No closed trades found to load — check the file matches the selected broker.",
     };
   }
 
@@ -99,7 +99,7 @@ export async function confirmImport(
     });
   } catch (error) {
     if (error instanceof DuplicateImportError) {
-      return { message: "This file was already imported for this account." };
+      return { message: "This source file was already loaded for this account." };
     }
     throw error;
   }

@@ -3,12 +3,13 @@
 # Quantidive
 
 Trader verification and diligence workspace for clients, firms, allocators, and collaborators.
-Prop-firm traders, independent traders, brokers, and research teams upload broker / prop-firm
-history (CSV), review verified performance dashboards, publish research briefs, and share a public
-profile that reviewers can screen, diligence, monitor, and summarize. The network layer is evolving
-toward proof-gated Discord/private-chat rooms where verified traders can discuss GEX, systematic
-research, portfolio construction, and private-market diligence with structured evidence and AI
-summaries.
+Prop-firm traders, independent traders, brokers, and research teams connect or load broker /
+prop-firm source history, review verified performance dashboards, publish research briefs, and
+share a public profile that reviewers can screen, diligence, monitor, and summarize. Direct
+read-only broker connections are the product direction; the current source-file loader is a bridge
+while OAuth/API/clearing-firm connectors are built. The network layer is evolving toward
+proof-gated Discord/private-chat rooms where verified traders can discuss GEX, systematic research,
+portfolio construction, and private-market diligence with structured evidence and AI summaries.
 
 **It is a pure SaaS reporting tool.** It does **not** manage money, execute or copy trades, send
 signals, give allocation advice, predict returns, or take performance fees. Those boundaries are not
@@ -38,7 +39,7 @@ against what's here:
 drawdown. The flow is strictly one-directional:
 
 ```
-CSV / manual entry  →  parse + auto-map (src/lib/csv)  →  trades  →  daily rollup
+Broker / prop-firm source history  →  normalize (src/lib/csv bridge today)  →  trades  →  daily rollup
    →  metrics engine (src/lib/metrics) + trust engine (src/lib/trust)  →  metrics JSON
    →  AI layer (src/lib/ai)  →  written report sections  →  review/publish  →  /p/[slug]
 ```
@@ -48,11 +49,12 @@ CSV / manual entry  →  parse + auto-map (src/lib/csv)  →  trades  →  daily
 - [src/lib/trust.ts](src/lib/trust.ts) - research profile layer over metrics: Big-Win Dependency,
   Biggest-Drop severity, Bounce-Back Time, five sub-scores + the weighted Transparency Score, and a
   plain-English verdict. Drives the dashboard **Client view** (the **Trader view** shows raw metrics).
-- [src/lib/csv/parse.ts](src/lib/csv/parse.ts) — PapaParse + **alias-based auto-detection** that maps
+- [src/lib/csv/parse.ts](src/lib/csv/parse.ts) - bridge parser with **alias-based auto-detection** that maps
   IBKR Flex (`FifoPnlRealized`/`IBCommission`/`Buy/Sell`/`TradeDate` YYYYMMDD), IBKR Activity, the
-  manual template, and the **realized gain/loss exports** from Fidelity (`Total Gain/Loss`) and E*TRADE
-  (`Gain/Loss`) — no manual mapping. Retail *transaction* exports (Robinhood/Webull/Fidelity activity)
-  carry no per-row realized P&L, so the importer flags them and they await a FIFO round-trip matcher.
+  bridge template, and the **realized gain/loss exports** from Fidelity (`Total Gain/Loss`) and E*TRADE
+  (`Gain/Loss`) - no column mapping for known sources. Retail *transaction* exports
+  (Robinhood/Webull/Fidelity activity) carry no per-row realized P&L, so the bridge parser flags them
+  and they await a FIFO round-trip matcher.
   Tolerant date/number parsing; fees stored as magnitude.
 - [src/lib/ai/](src/lib/ai/) — provider-agnostic report generator. One `(ReportInput) => AiReport`
   contract; `AI_PROVIDER` picks **OpenAI** (default) or **Claude**. The strict system prompt + the
@@ -70,8 +72,8 @@ Prisma schema: [prisma/schema.prisma](prisma/schema.prisma). Two groups:
   OAuth/credentials provider link. A user's *brokerage* account is **`TradingAccount`** — don't
   confuse them. Credentials sign-in uses `User.passwordHash` (bcryptjs).
 - **Domain** - `TraderProfile` (public research-profile identity, unique `slug` -> `/p/[slug]`),
-  `TradingAccount`, `Trade` (raw imported rows, original CSV kept in `raw` Json), `DailyPnl`
-  (per-account/day rollup, rebuilt from trades on import, `@@unique([accountId, tradeDate])`),
+  `TradingAccount`, `Trade` (raw source rows kept in `raw` Json), `DailyPnl`
+  (per-account/day rollup, rebuilt from loaded trades, `@@unique([accountId, tradeDate])`),
   `Report` (`metrics` + `aiReport` JSON, `DRAFT`/`PUBLISHED`).
 
 Money is `Decimal(18,2)`; prices `Decimal(18,6)`; quantity `Decimal(18,4)`. Dates that are
@@ -99,10 +101,11 @@ generation needs a key for whichever provider is active. `prisma.config.ts` load
 ## Conventions
 
 - **TypeScript everywhere**, strict. Code in `src/`. App Router pages/handlers under `src/app/`.
-- **Naming:** canonical fields and TS use `camelCase` (`tradeDate`, `realizedPnl`); CSV templates and
-  SQL use `snake_case` (`trade_date`). The CSV layer maps between them — see `CANONICAL_FIELDS`.
+- **Naming:** canonical fields and TS use `camelCase` (`tradeDate`, `realizedPnl`); bridge source
+  templates and SQL use `snake_case` (`trade_date`). The parser layer maps between them - see
+  `CANONICAL_FIELDS`.
 - **Tests colocate** next to source as `*.test.ts` (e.g. `metrics.test.ts`). Pure logic gets unit
-  tests; cover the metric math and CSV edge cases (currency symbols, `(parenthesized)` negatives,
+  tests; cover the metric math and source-file edge cases (currency symbols, `(parenthesized)` negatives,
   US vs ISO dates).
 - **Prisma client** is imported from `src/generated/prisma` (custom output), *not* `@prisma/client`.
   After any schema change: `npm run db:migrate` then `npm run db:generate`. Don't hand-edit generated
@@ -121,8 +124,8 @@ A **banned-language filter** must reject drafts containing: *guaranteed returns,
 investment, you should invest, allocate X percent, copy my trade, will make money, assured profits.*
 Every public card and brief carries a "past performance does not guarantee future results" disclaimer.
 
-Out of scope for v1: broker OAuth/APIs, auto-execution/copy trading, signals, personalized advice,
-AUM/performance fees, custody, full RIA/CTA compliance workflow.
+Out of scope for v1 implementation: live broker OAuth/APIs, auto-execution/copy trading, signals,
+personalized advice, AUM/performance fees, custody, full RIA/CTA compliance workflow.
 
 Community/chat guardrail: verified rooms can discuss methods, assumptions, source data, risks,
 counterviews, and post-mortems. They must not become paid signal rooms, copy-trading groups, or
@@ -134,7 +137,7 @@ proof-level metadata gates access without exposing private evidence files.
 On branch `feat/foundation-and-auth`.
 
 - ✅ **M1 App shell** — NextAuth (Credentials + JWT), DAL, `/login` `/signup` `/onboarding`, protected layout.
-- ✅ **M2 CSV import** — `/upload`: account → file → auto-mapped preview → import → `DailyPnl` rebuild.
+- ✅ **M2 source-history bridge** - `/upload`: account -> source file -> auto-mapped preview -> load -> `DailyPnl` rebuild.
 - ✅ **M3 Metrics + dashboard** — equity-curve & daily-P&L charts, account/range filters, risk panel.
 - **Quantidive dashboard** - **Research view** (risk metrics, severity, verdict, Transparency
   Score, Proof Level) ⇄ technical **Trader view**, via `?view`. Editable starting balance.
@@ -144,17 +147,17 @@ On branch `feat/foundation-and-auth`.
   toggle + share link in the dashboard, Print / Save-PDF.
 - ✅ **M6 Launch** — polished landing (hero + waitlist), `WaitlistEntry` capture, seeded demo at `/p/demo`
   (`npm run db:seed`). **MVP complete (M1–M6).**
-- ✅ **Trust features** — evidence locker + dynamic **Proof Levels** (CSV data = L2, uploaded broker
-  statement = L3, uploaded tax return / official tax record = L4) via [src/lib/proof.ts](src/lib/proof.ts); `/settings` (visibility, $-redaction via
+- ✅ **Trust features** - evidence locker + dynamic **Proof Levels** (source-linked history = L2,
+  uploaded broker statement = L3, uploaded tax return / official tax record = L4) via [src/lib/proof.ts](src/lib/proof.ts); `/settings` (visibility, $-redaction via
   `hideAmounts`, disclaimer, evidence upload/serve at `/api/evidence/[id]`); public trader directory
   `/explore`. Files stored under `storage/` (git-ignored).
 
 - ✅ **Transparency Score breakdown** (weighted sub-scores in the UI) + **monthly calendar heatmap**.
 
-**Deferred / next:** more broker CSV formats (Fidelity, Webull, Robinhood, E*TRADE — note most retail
-	transaction exports lack per-row realized P&L, so they need a FIFO round-trip matcher), Proof Level 5
-	(third-party verification), IBKR Flex Web Service auto-pull, multi-account research profiles,
-hosting/deploy.
+**Deferred / next:** direct read-only broker connectors (OAuth/API/clearing-firm integrations),
+stronger broker source adapters (note most retail transaction exports lack per-row realized P&L,
+so they need a FIFO round-trip matcher), Proof Level 5 (third-party verification), IBKR Flex Web
+Service auto-pull, multi-account research profiles, hosting/deploy.
 
 Planned routes: `/login`, `/onboarding`, `/upload`, `/dashboard`, `/reports`, `/p/[slug]`,
 `/settings`. Planned APIs: `/api/profile`, `/api/accounts`, `/api/import/{preview,confirm}`,

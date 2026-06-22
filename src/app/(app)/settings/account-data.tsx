@@ -42,7 +42,7 @@ export function AccountData({ accounts }: { accounts: AccountRow[] }) {
                 <form
                   action={clearAccountTrades}
                   onSubmit={confirmSubmit(
-                    `Clear all ${a.tradeCount} imported trades from “${a.accountName}”? ` +
+                    `Clear all ${a.tradeCount} loaded trades from “${a.accountName}”? ` +
                       `The account is kept. This can’t be undone.`,
                   )}
                 >
@@ -79,7 +79,7 @@ export function AccountData({ accounts }: { accounts: AccountRow[] }) {
       <form
         action={clearAllData}
         onSubmit={confirmSubmit(
-          "Clear ALL imported trades across every account? " +
+          "Clear ALL loaded trades across every account? " +
             "Accounts, reports, and evidence are kept. This can’t be undone.",
         )}
       >

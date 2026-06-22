@@ -1,7 +1,7 @@
 # Quantidive
 
 Quantidive combines trader verification with a diligence workspace and verified discussion network
-for clients, firms, allocators, and collaborators. Traders import broker or prop-firm history,
+for clients, firms, allocators, and collaborators. Traders connect broker or prop-firm history,
 publish proof-backed profiles, keep verified metrics current, and join proof-gated strategy rooms;
 reviewers screen profiles, inspect evidence, monitor changes, and turn code-computed metrics or
 discussion threads into research or diligence updates.
@@ -31,10 +31,10 @@ It does not manage money, execute trades, copy trades, provide investment advice
 ## Core Rules
 
 - Code calculates numbers. AI only explains already-computed metrics.
-- Public performance reads from published `ProfileVersion` snapshots, not live imports.
-- CSV/import hashes are recorded and duplicate source files are rejected per account.
+- Public performance reads from published `ProfileVersion` snapshots, not live source loads.
+- Source-history hashes are recorded and duplicate source files are rejected per account.
 - Privacy redaction affects public display only; metrics are not recalculated.
-- Proof Levels currently support CSV imports, broker statements, and tax-return / official-tax-record evidence.
+- Proof Levels currently support source-linked history, broker statements, and tax-return / official-tax-record evidence.
 - Discord/community access should eventually use OAuth/linked roles so Quantidive can expose proof-level metadata without manually granting chat permissions.
 
 ## Commands
@@ -61,5 +61,5 @@ creates additional public profiles for the verified trader directory.
 - `prisma/schema.prisma` - data model
 - `src/lib/metrics.ts` - code-of-record metrics engine
 - `src/lib/trust.ts` - research score and risk layer
-- `src/lib/ingest/import.ts` - source-agnostic import write path
+- `src/lib/ingest/import.ts` - source-history write path
 - `src/lib/published-profile.ts` - public snapshot reconstruction

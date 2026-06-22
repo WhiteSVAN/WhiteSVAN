@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { auth } from "@/auth";
@@ -79,12 +80,31 @@ export default async function ExplorePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-10">
-        <h1 className="text-2xl font-semibold tracking-tight text-white">Verified traders</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Public Quantidive research profiles with strategy, proof level, risk context, and performance snapshots.
-        </p>
+      <section className="relative overflow-hidden border-b border-slate-800 bg-slate-950">
+        <Image
+          src="/images/quantidive-city-night.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-[54%_36%] opacity-35"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.94)_0%,rgba(2,6,23,0.78)_52%,rgba(2,6,23,0.52)_100%)]" />
+        <div className="relative mx-auto max-w-5xl px-4 py-12">
+          <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-cyan-200">
+            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+            Verified directory
+          </p>
+          <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+            Traders with proof, context, and a visible record.
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+            Browse Quantidive profiles by strategy, proof level, risk context, and performance
+            snapshot before starting a diligence conversation.
+          </p>
+        </div>
+      </section>
 
+      <main className="mx-auto max-w-5xl px-4 py-10">
         {cards.length === 0 ? (
           <p className="mt-8 text-sm text-slate-400">No public research profiles yet.</p>
         ) : (

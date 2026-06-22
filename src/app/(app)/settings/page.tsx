@@ -147,7 +147,7 @@ export default async function SettingsPage() {
           </span>
           <p className="mt-0.5 text-slate-500">{PROOF_LEVELS[proofLevel].blurb}</p>
           <p className="mt-1 text-xs text-slate-400">
-            Upload a broker statement for Level 3, or a tax return / official tax record for Level 4.
+            Add a broker statement for Level 3, or a tax return / official tax record for Level 4.
           </p>
         </div>
 
@@ -218,7 +218,7 @@ export default async function SettingsPage() {
       <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
         <h2 className="text-base font-medium text-slate-800">Publishing history</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Your import audit trail and the immutable versions visible on your research profile.
+          Your source-history audit trail and the immutable versions visible on your research profile.
         </p>
         <div className="mt-4">
           <UpdateHistory
@@ -233,8 +233,8 @@ export default async function SettingsPage() {
       <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
         <h2 className="text-base font-medium text-slate-800">Trading accounts and data</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Imported the wrong CSV? Clear an account&apos;s trades and re-import, delete an account
-          entirely, or reset everything. These actions can&apos;t be undone.
+          Loaded the wrong source history? Clear an account&apos;s trades, delete an account entirely,
+          or reset everything. These actions can&apos;t be undone.
         </p>
         <div className="mt-4">
           <AccountData

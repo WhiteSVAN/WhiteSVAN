@@ -39,7 +39,7 @@ export async function publishUpdate(
     select: { id: true, startingBalance: true },
     orderBy: { createdAt: "asc" },
   });
-  if (!account) return { error: "Add an account and import trades before publishing." };
+  if (!account) return { error: "Add an account and connect trading history before publishing." };
 
   const dayRows = await prisma.dailyPnl.findMany({
     where: { accountId: account.id },

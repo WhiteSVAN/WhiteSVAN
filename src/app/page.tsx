@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   Activity,
@@ -6,10 +7,10 @@ import {
   CheckCircle2,
   ClipboardCheck,
   FileSearch,
+  Link2,
   LockKeyhole,
   MessageSquare,
   ShieldCheck,
-  UploadCloud,
 } from "lucide-react";
 import { WaitlistForm } from "./waitlist-form";
 import { BrokerLogos } from "@/components/broker-logos";
@@ -25,7 +26,7 @@ const TRUST_CARDS = [
   },
   {
     title: "The solution",
-    body: "A public Quantidive profile ties performance, proof level, freshness, and risk metrics to a record that can be reviewed.",
+    body: "A public Quantidive profile ties broker-reported performance, proof level, freshness, and risk metrics to a record that can be reviewed.",
   },
 ];
 
@@ -146,25 +147,33 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-slate-800">
-          <div className="absolute inset-0 opacity-35">
-            <div className="h-full w-full bg-[linear-gradient(to_right,rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.08)_1px,transparent_1px)] bg-[size:48px_48px]" />
-          </div>
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-slate-950 to-transparent" />
+        <section className="relative overflow-hidden border-b border-slate-800 bg-slate-950">
+          <Image
+            src="/images/quantidive-city-night.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[54%_44%] opacity-55"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.96)_0%,rgba(2,6,23,0.82)_46%,rgba(2,6,23,0.5)_100%)]" />
+          <div className="absolute inset-0 bg-slate-950/20" />
+          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-950 to-transparent" />
 
           <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-18 sm:py-24 lg:grid-cols-[1fr_0.9fr] lg:items-center">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-cyan-200">
                 <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                Verification + diligence workspace
+                Private verification network
               </p>
               <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight text-white sm:text-6xl">
-                The proof layer for traders, plus the diligence workspace for clients.
+                A private network for verified market operators.
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
                 Quantidive combines public trader verification with an AI-ready workflow for
                 screening, reviewing, monitoring, and reporting on trading talent. Traders prove the
-                record; clients and firms get a cleaner way to diligence it.
+                record through source-linked history; clients and firms get a cleaner way to
+                diligence it.
               </p>
               <div className="mt-8 max-w-xl">
                 <WaitlistForm />
@@ -380,13 +389,14 @@ export default function Home() {
                   Verify from the broker or prop firm you already use
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                  CSV and statement imports work today. Direct connections can sit behind the same
-                  proof system later without changing the public profile model.
+                  Quantidive is designed around read-only broker and prop-firm connections:
+                  broker-reported transactions, automatic performance metrics, no trade execution,
+                  and no hand-edited track records.
                 </p>
               </div>
               <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-200">
-                <UploadCloud className="h-4 w-4" aria-hidden="true" />
-                14+ brokers &amp; prop firms
+                <Link2 className="h-4 w-4" aria-hidden="true" />
+                Read-only broker links
               </span>
             </div>
             <div className="mt-6">

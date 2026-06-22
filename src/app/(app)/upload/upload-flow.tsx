@@ -115,10 +115,10 @@ export function UploadFlow({
 
   return (
     <div className="space-y-5">
-      {/* Broker / import format */}
+      {/* Broker source */}
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <label htmlFor="format" className={labelClass}>
-          Broker / import format
+          Broker source
         </label>
         <select
           id="format"
@@ -134,8 +134,9 @@ export function UploadFlow({
           ))}
         </select>
         <p className="mt-2 text-xs text-slate-500">
-          Pick your broker, or leave it on auto-detect. More brokers coming soon — Fidelity and
-          Webull transaction exports are matched into closed trades for you.
+          Pick a supported broker source or leave detection on automatic. Direct read-only
+          connections are the product direction; this bridge workflow loads broker-reported history
+          while connectors are added.
         </p>
       </div>
 
@@ -222,7 +223,7 @@ export function UploadFlow({
         </div>
         <div>
           <label htmlFor="file" className={labelClass}>
-            CSV file
+            Broker statement/export file
           </label>
           <input
             id="file"
@@ -244,7 +245,7 @@ export function UploadFlow({
                 <>
                   <span className="text-emerald-600">✓</span>
                   <span className="font-medium text-slate-800">
-                    Columns auto-mapped from your file
+                    Columns matched from your source file
                   </span>
                   <span className="text-slate-400">— click to review or adjust</span>
                 </>
@@ -286,7 +287,7 @@ export function UploadFlow({
           {!mapping.realizedPnl && (
             <p className="mt-3 text-xs text-slate-500">
               No <strong>realized P&amp;L</strong> column found. If this is a Robinhood, Webull, or
-              Fidelity <em>transaction</em> export, pick your broker above and we&apos;ll pair
+              Fidelity <em>transaction</em> export, pick your broker above and Quantidive will pair
               buys/sells into closed trades for you.
             </p>
           )}
@@ -320,7 +321,7 @@ export function UploadFlow({
       {result && (
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-slate-800">Preview</h3>
+            <h3 className="text-sm font-medium text-slate-800">Broker history preview</h3>
             <span className="text-xs text-slate-500">
               {result.trades.length} valid · {result.errors.length} skipped
             </span>
@@ -385,7 +386,7 @@ export function UploadFlow({
         </div>
       )}
 
-      {/* Import */}
+      {/* Load source history */}
       <form action={action} className="space-y-3">
         <input type="hidden" name="accountId" value={accountId} />
         <input type="hidden" name="format" value={format} />
@@ -399,10 +400,10 @@ export function UploadFlow({
           className={`${btnPrimary} sm:w-auto sm:px-6`}
         >
           {pending
-            ? "Importing…"
+            ? "Loading..."
             : result && result.trades.length > 0
-              ? `Import ${result.trades.length} trades`
-              : "Import"}
+              ? `Load ${result.trades.length} trades`
+              : "Load history"}
         </button>
       </form>
     </div>
