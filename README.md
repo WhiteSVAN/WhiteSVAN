@@ -50,7 +50,8 @@ npm run typecheck
 npm run lint
 ```
 
-Demo after seeding: `/p/demo`, login `demo@quantidive.local` / `demo1234`.
+Demo after seeding: `/p/demo`, login `demo@quantidive.local` / `demo1234`. The seed also
+creates additional public profiles for the verified trader directory.
 
 ## Important Files
 
