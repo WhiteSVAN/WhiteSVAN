@@ -82,17 +82,17 @@ const SEED_TRADERS: SeedTrader[] = [
   {
     email: "demo@quantidive.local",
     password: "demo1234",
-    name: "Ava Rao",
+    name: "Sofia Alvarez",
     slug: "demo",
     headline: "Proof L4 futures operator - GEX and intraday risk",
     strategy: "Systematic futures momentum with SPX gamma context",
     instruments: "ES, NQ, SPX options",
-    bio: "Ava runs a rules-led futures process that combines opening-range structure, volatility context, and strict daily loss limits. This seeded profile shows how a verified Quantidive operator page should read.",
+    bio: "Sofia runs a rules-led futures process that combines opening-range structure, volatility context, and strict daily loss limits. This seeded profile shows how a verified Quantidive operator page should read.",
     services: "Market-structure research, futures execution review, and risk-process consulting for prop desks and independent operators.",
-    contactUrl: "https://cal.com/quantidive/ava-rao-demo",
+    contactUrl: "https://cal.com/quantidive/sofia-alvarez-demo",
     openToWork: true,
     updateCadence: "WEEKLY",
-    accountName: "Ava Futures Process",
+    accountName: "Sofia Futures Process",
     broker: "Interactive Brokers",
     startingBalance: 50000,
     startDate: "2026-04-06",
@@ -108,7 +108,7 @@ const SEED_TRADERS: SeedTrader[] = [
     reportPeriod: "2026-05",
     report: {
       executive_summary:
-        "Ava's seeded profile finished the period positive with a recovered mid-window drawdown and a clear evidence trail from broker-reported data plus private tax-record verification.",
+        "Sofia's seeded profile finished the period positive with a recovered mid-window drawdown and a clear evidence trail from broker-reported data plus private tax-record verification.",
       performance_summary:
         "The account produced steady gains across an active futures sample, with a few outsized sessions contributing meaningfully to total return.",
       risk_summary:
@@ -129,14 +129,14 @@ const SEED_TRADERS: SeedTrader[] = [
       {
         kind: "TAX_RETURN",
         label: "Private tax-record verification",
-        originalName: "ava-rao-redacted-tax-record.txt",
+        originalName: "sofia-alvarez-redacted-tax-record.txt",
         isPublic: false,
         accountScoped: false,
       },
       {
         kind: "STATEMENT",
         label: "Redacted futures statement",
-        originalName: "ava-rao-redacted-broker-statement.txt",
+        originalName: "sofia-alvarez-redacted-broker-statement.txt",
         isPublic: true,
         accountScoped: true,
       },
@@ -411,6 +411,224 @@ const SEED_TRADERS: SeedTrader[] = [
   },
 ];
 
+// ── Generated traders ──────────────────────────────────────────────────────
+// Deterministic (seeded) random P&L so the explore leaderboard, network board,
+// and individual profiles are populated with varied-but-stable demo data.
+function mulberry32(seed: number): () => number {
+  return () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+type GenSpec = {
+  days: number;
+  winRate: number;
+  avgWin: number;
+  avgLoss: number;
+  outlierAt?: number;
+  drawdownAt?: number;
+};
+
+/** Realistic-looking daily P&L for a seeded trader (rounded to $10). */
+function genDailyPnl(seed: number, g: GenSpec): number[] {
+  const rand = mulberry32(seed);
+  const out: number[] = [];
+  for (let i = 0; i < g.days; i++) {
+    const win = rand() < g.winRate;
+    const mag = 0.4 + 1.6 * rand();
+    const v = win ? g.avgWin * mag : -g.avgLoss * mag;
+    out.push(Math.round(v / 10) * 10);
+  }
+  if (g.drawdownAt != null) {
+    for (let k = 0; k < 4 && g.drawdownAt + k < out.length; k++) {
+      out[g.drawdownAt + k] = -Math.round((g.avgLoss * (1.1 + rand())) / 10) * 10;
+    }
+  }
+  if (g.outlierAt != null && g.outlierAt < out.length) {
+    out[g.outlierAt] = Math.round((g.avgWin * (3 + 2 * rand())) / 10) * 10;
+  }
+  return out;
+}
+
+type GenTrader = Pick<
+  SeedTrader,
+  | "email"
+  | "name"
+  | "slug"
+  | "headline"
+  | "strategy"
+  | "instruments"
+  | "bio"
+  | "services"
+  | "broker"
+  | "startingBalance"
+  | "startDate"
+  | "symbols"
+  | "proofLevel"
+  | "updateReliability"
+  | "updateCadence"
+  | "openToWork"
+  | "reportPeriod"
+> & { seed: number; gen: GenSpec };
+
+/** Build a complete SeedTrader from concise params + generated P&L. */
+function makeTrader(p: GenTrader): SeedTrader {
+  const first = p.name.split(" ")[0];
+  return {
+    ...p,
+    contactUrl: `https://cal.com/quantidive/${p.slug}`,
+    accountName: `${first} ${p.symbols[0]} book`,
+    dailyPnl: genDailyPnl(p.seed, p.gen),
+    report: {
+      executive_summary: `${first}'s seeded profile shows a verified ${p.strategy.toLowerCase()} record across an active sample, computed from imported history rather than self-reported screenshots.`,
+      performance_summary: `The account traded ${p.instruments} with returns driven by repeatable structure instead of a single session.`,
+      risk_summary: `Drawdowns stayed inside the stated process limits and the account closed the window near its published equity context.`,
+      discipline_review: `Daily participation was steady and loss clusters stayed contained relative to starting capital.`,
+      notable_days: [
+        `The strongest session followed a clean setup in ${p.symbols[0]}.`,
+        `The weakest stretch was a short drawdown that later stabilized.`,
+      ],
+      warnings: [
+        `Outlier-day contribution should be reviewed with and without the best session.`,
+        `Freshness updates should keep publishing as market regimes shift.`,
+      ],
+      client_disclaimer: DISCLAIMER,
+    },
+    evidence: [
+      {
+        kind: "STATEMENT",
+        label: `Redacted ${p.broker} statement`,
+        originalName: `${p.slug}-redacted-statement.txt`,
+        isPublic: true,
+        accountScoped: true,
+      },
+    ],
+    riskEvents: [
+      {
+        type: "RECOVERY",
+        severity: "INFO",
+        title: "Drawdown recovered before publishing",
+        description:
+          "The account reclaimed its prior equity context before this version was published.",
+      },
+    ],
+  };
+}
+
+const GENERATED_TRADERS: SeedTrader[] = [
+  makeTrader({
+    email: "liang.wu@quantidive.local",
+    name: "Liang Wu",
+    slug: "liang-wu",
+    headline: "Index futures scalper - ES/NQ open",
+    strategy: "Opening-range index futures scalping",
+    instruments: "ES, NQ",
+    bio: "Liang trades a tight opening-range futures process with hard daily loss limits and a fixed session window.",
+    services: "Execution review and intraday risk-process consulting.",
+    broker: "AMP Futures",
+    startingBalance: 35000,
+    startDate: "2026-03-09",
+    symbols: ["ES", "NQ"],
+    proofLevel: 3,
+    updateReliability: 78,
+    updateCadence: "WEEKLY",
+    openToWork: true,
+    reportPeriod: "2026-05",
+    seed: 101,
+    gen: { days: 46, winRate: 0.57, avgWin: 380, avgLoss: 300, outlierAt: 30, drawdownAt: 18 },
+  }),
+  makeTrader({
+    email: "sara.cohen@quantidive.local",
+    name: "Sara Cohen",
+    slug: "sara-cohen",
+    headline: "Equity swing researcher - factor tilts",
+    strategy: "Multi-day equity swing with factor filters",
+    instruments: "US equities, sector ETFs",
+    bio: "Sara publishes swing research with regime filters, cost assumptions, and post-trade drift checks.",
+    services: "Research reviews and systematic process documentation.",
+    broker: "Charles Schwab",
+    startingBalance: 60000,
+    startDate: "2026-02-02",
+    symbols: ["AAPL", "XLF", "SMH"],
+    proofLevel: 4,
+    updateReliability: 88,
+    updateCadence: "MONTHLY",
+    openToWork: false,
+    reportPeriod: "2026-05",
+    seed: 202,
+    gen: { days: 52, winRate: 0.52, avgWin: 520, avgLoss: 470, outlierAt: 41, drawdownAt: 22 },
+  }),
+  makeTrader({
+    email: "diego.santos@quantidive.local",
+    name: "Diego Santos",
+    slug: "diego-santos",
+    headline: "FX and rates macro - systematic overlays",
+    strategy: "Systematic macro with rates and FX overlays",
+    instruments: "6E, 6B, ZN",
+    bio: "Diego runs a slower systematic macro book with explicit hedges and a documented monitoring plan.",
+    services: "Macro overlay design and hedge-process consulting.",
+    broker: "Interactive Brokers",
+    startingBalance: 80000,
+    startDate: "2026-01-12",
+    symbols: ["6E", "6B", "ZN"],
+    proofLevel: 3,
+    updateReliability: 70,
+    updateCadence: "WEEKLY",
+    openToWork: true,
+    reportPeriod: "2026-05",
+    seed: 303,
+    gen: { days: 58, winRate: 0.49, avgWin: 640, avgLoss: 520, outlierAt: 12, drawdownAt: 33 },
+  }),
+  makeTrader({
+    email: "hana.kim@quantidive.local",
+    name: "Hana Kim",
+    slug: "hana-kim",
+    headline: "Options premium seller - defined risk",
+    strategy: "Defined-risk options premium selling",
+    instruments: "SPX, SPY, QQQ options",
+    bio: "Hana sells defined-risk options structures with strict position sizing and event-risk filters.",
+    services: "Options structure review and event-risk process consulting.",
+    broker: "tastytrade",
+    startingBalance: 45000,
+    startDate: "2026-03-02",
+    symbols: ["SPX", "SPY", "QQQ"],
+    proofLevel: 2,
+    updateReliability: 64,
+    updateCadence: "WEEKLY",
+    openToWork: true,
+    reportPeriod: "2026-05",
+    seed: 404,
+    gen: { days: 44, winRate: 0.66, avgWin: 240, avgLoss: 520, drawdownAt: 26 },
+  }),
+  makeTrader({
+    email: "tomas.novak@quantidive.local",
+    name: "Tomas Novak",
+    slug: "tomas-novak",
+    headline: "Micro futures momentum - small book",
+    strategy: "Momentum rotation on liquid micro futures",
+    instruments: "MES, MNQ, MGC",
+    bio: "Tomas trades a small momentum-rotation book on micro futures while building a verified track record.",
+    services: "Open to junior research collaboration and accountability partnerships.",
+    broker: "NinjaTrader",
+    startingBalance: 15000,
+    startDate: "2026-04-01",
+    symbols: ["MES", "MNQ", "MGC"],
+    proofLevel: 2,
+    updateReliability: 52,
+    updateCadence: "DAILY",
+    openToWork: true,
+    reportPeriod: "2026-05",
+    seed: 505,
+    gen: { days: 38, winRate: 0.5, avgWin: 180, avgLoss: 170, outlierAt: 20, drawdownAt: 9 },
+  }),
+];
+
+const ALL_TRADERS: SeedTrader[] = [...SEED_TRADERS, ...GENERATED_TRADERS];
+
 function tradingDates(startISO: string, n: number): string[] {
   const dates: string[] = [];
   const d = new Date(`${startISO}T00:00:00Z`);
@@ -597,7 +815,7 @@ async function seedTrader(trader: SeedTrader, passwordHash: string) {
 }
 
 async function main() {
-  const emails = SEED_TRADERS.map((trader) => trader.email);
+  const emails = ALL_TRADERS.map((trader) => trader.email);
   const existingUsers = await prisma.user.findMany({
     where: { email: { in: emails } },
     select: { id: true },
@@ -613,7 +831,7 @@ async function main() {
   await prisma.user.deleteMany({ where: { email: { in: emails } } });
 
   const sharedHash = await bcrypt.hash("demo1234", 10);
-  for (const trader of SEED_TRADERS) {
+  for (const trader of ALL_TRADERS) {
     const passwordHash =
       trader.password && trader.password !== "demo1234"
         ? await bcrypt.hash(trader.password, 10)
@@ -622,7 +840,7 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${SEED_TRADERS.length} demo traders -> /explore and /p/demo (login: demo@quantidive.local / demo1234)`,
+    `Seeded ${ALL_TRADERS.length} demo traders -> /explore and /p/demo (login: demo@quantidive.local / demo1234)`,
   );
 }
 

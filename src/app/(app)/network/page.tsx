@@ -61,7 +61,7 @@ const STEPS = [
   },
 ];
 
-const DISCUSSION_ROOMS = [
+const FORUM_CATEGORIES = [
   {
     name: "GEX and market structure",
     access: "Public profile + Proof L3+",
@@ -79,15 +79,15 @@ const DISCUSSION_ROOMS = [
   },
   {
     name: "Private markets desk",
-    access: "Invite-only reviewer room",
+    access: "Invite-only reviewer board",
     prompt: "Use PE-style diligence: thesis, comps, operating metric, covenant/risk signal, source, and next check.",
   },
 ];
 
 const ACCESS_FLOW = [
-  "Connect Discord or a private chat identity",
+  "Create a verified Quantidive identity",
   "Quantidive publishes proof metadata for linked roles",
-  "Rooms unlock by proof level, style, and reviewer status",
+  "Forum categories open by proof level, style, and reviewer status",
   "AI summarizes threads into non-advisory research briefs",
 ];
 
@@ -228,15 +228,15 @@ export default async function NetworkPage({
           <div>
             <p className="flex items-center gap-2 text-sm font-medium text-cyan-300">
               <MessageSquare className="h-4 w-4" aria-hidden="true" />
-              Verified discussion rooms
+              Verified research forum
             </p>
             <h2 className="mt-3 text-xl font-semibold tracking-tight text-white">
-              Join chat by proof, not hype.
+              Post by proof, not hype.
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-400">
-              Quantidive can sit in front of Discord or private chat groups as the verification
-              layer. Traders keep the conversation practical by posting evidence, assumptions,
-              counterviews, and monitoring notes instead of raw alerts.
+              A forum, not a chat room — threads stay practical because participants post
+              evidence, assumptions, counterviews, and monitoring notes instead of raw alerts,
+              with proof and freshness visible on every poster. (Use Discord for live chat.)
             </p>
             <div className="mt-5 rounded-lg border border-slate-800 bg-slate-950/70 p-4">
               <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -257,7 +257,7 @@ export default async function NetworkPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {DISCUSSION_ROOMS.map((room) => (
+            {FORUM_CATEGORIES.map((room) => (
               <article key={room.name} className="rounded-lg border border-slate-800 bg-slate-950/60 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="font-semibold text-white">{room.name}</h3>
@@ -274,7 +274,7 @@ export default async function NetworkPage({
         <div className="mt-5 rounded-lg border border-slate-800 bg-slate-950/70 p-4">
           <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400">
             <Bot className="h-4 w-4 text-cyan-300" aria-hidden="true" />
-            AI room assistant
+            AI thread assistant
           </p>
           <p className="mt-2 text-sm leading-6 text-slate-300">
             Turn this thread into a diligence memo: thesis, evidence cited, assumptions, risks,

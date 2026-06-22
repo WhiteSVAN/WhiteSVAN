@@ -21,8 +21,8 @@ const TRUST_CARDS = [
     body: "Broker-reported history, statements, and tax records behind the public profile.",
   },
   {
-    title: "Rooms",
-    body: "Verified access for GEX, systematic research, portfolios, and private diligence.",
+    title: "Forum",
+    body: "Threaded, source-backed research across GEX, systematic strategies, portfolios, and diligence.",
   },
   {
     title: "Briefs",
@@ -53,25 +53,25 @@ const WORKSPACE_STEPS = [
   },
 ];
 
-const ROOM_STEPS = [
+const FORUM_STEPS = [
   {
     icon: LockKeyhole,
-    title: "Proof-gated rooms",
-    body: "Discord or private chat access can be tied to Quantidive proof level, freshness, and public profile status.",
+    title: "Proof-gated posting",
+    body: "Posting weight and badges tie to Quantidive proof level, freshness, and public profile status — verified voices stand out.",
   },
   {
     icon: MessageSquare,
     title: "Structured strategy threads",
-    body: "Rooms are organized around thesis, data source, backtest, risk, counterview, and monitoring notes.",
+    body: "Threads are organized around thesis, data source, backtest, risk, counterview, and monitoring notes.",
   },
   {
     icon: Bot,
     title: "AI research operator",
-    body: "AI turns long discussions into source-linked summaries, unanswered questions, and diligence-ready briefs.",
+    body: "AI turns long threads into source-linked summaries, unanswered questions, and diligence-ready briefs.",
   },
 ];
 
-const COMMUNITY_ROOMS = [
+const FORUM_CATEGORIES = [
   "GEX and market structure",
   "Systematic research lab",
   "Portfolio construction",
@@ -80,14 +80,14 @@ const COMMUNITY_ROOMS = [
 
 const FEATURED_PROFILES = [
   {
-    name: "Ava Rao",
-    initials: "AR",
+    name: "Sofia Alvarez",
+    initials: "SA",
     headline: "Proof L4 futures operator",
     style: "SPX gamma / ES / NQ",
     proof: "L4",
     score: "91",
     drawdown: "6%",
-    room: "GEX desk",
+    focus: "GEX desk",
   },
   {
     name: "Marcus Chen",
@@ -97,7 +97,7 @@ const FEATURED_PROFILES = [
     proof: "L3",
     score: "84",
     drawdown: "3%",
-    room: "Systematic lab",
+    focus: "Systematic lab",
   },
   {
     name: "Priya Nair",
@@ -107,7 +107,7 @@ const FEATURED_PROFILES = [
     proof: "L4",
     score: "88",
     drawdown: "8%",
-    room: "Market structure",
+    focus: "Market structure",
   },
   {
     name: "Noah Okafor",
@@ -117,7 +117,7 @@ const FEATURED_PROFILES = [
     proof: "L3",
     score: "82",
     drawdown: "5%",
-    room: "Private markets desk",
+    focus: "Private markets desk",
   },
 ];
 
@@ -126,7 +126,7 @@ const HERO_TAPE = [
   "Proof L4",
   "GEX deep dives",
   "Tax-record verification",
-  "Private rooms",
+  "Research forum",
   "AI research briefs",
   "Risk context",
 ];
@@ -139,9 +139,9 @@ const VISUAL_PANELS = [
     position: "object-[42%_52%]",
   },
   {
-    title: "The room",
+    title: "The forum",
     label: "Verified access",
-    body: "Strategy discussion gated by proof, freshness, and role.",
+    body: "Threaded strategy research gated by proof, freshness, and role.",
     position: "object-[58%_42%]",
   },
   {
@@ -154,8 +154,20 @@ const VISUAL_PANELS = [
 
 export default function Home() {
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-800/80 bg-slate-950/85 backdrop-blur">
+    <div className="relative flex min-h-full flex-1 flex-col text-slate-100">
+      {/* Single full-page city backdrop — one image, no repeat, covers the whole landing. */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <Image
+          src="/images/quantidive-city-night.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,10,0.78)_0%,rgba(3,5,10,0.9)_52%,rgba(3,5,10,0.97)_100%)]" />
+      </div>
+      <header className="relative z-10 border-b border-slate-800/80 bg-slate-950/70 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:flex-nowrap sm:py-4">
           <Link href="/" className="text-base font-semibold tracking-[0.14em] text-slate-100 sm:tracking-[0.18em]">
             QUANTI<span className="text-cyan-300">DIVE</span>
@@ -178,20 +190,9 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-slate-800 bg-slate-950">
-          <Image
-            src="/images/quantidive-city-night.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="qd-hero-pan object-cover object-[54%_44%] opacity-90"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.78)_0%,rgba(2,6,23,0.48)_48%,rgba(2,6,23,0.2)_100%)]" />
-          <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-slate-950 to-transparent" />
-
-          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:gap-10 sm:py-20 lg:grid-cols-[0.9fr_1fr] lg:items-center">
+      <main className="relative z-10 flex-1">
+        <section className="relative overflow-hidden border-b border-slate-800/70">
+          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:gap-10 sm:py-24 lg:grid-cols-[0.9fr_1fr] lg:items-center">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border border-cyan-300/35 bg-slate-950/35 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-cyan-100 backdrop-blur sm:tracking-[0.22em]">
                 <ShieldCheck className="h-4 w-4" aria-hidden="true" />
@@ -201,7 +202,7 @@ export default function Home() {
                 Verified traders. Real records.
               </h1>
               <p className="mt-6 max-w-xl text-base leading-7 text-slate-200 sm:text-lg">
-                Broker-reported history becomes profiles, private rooms, and research briefs.
+                Broker-reported history becomes profiles, a verified forum, and research briefs.
               </p>
               <div className="mt-8 max-w-xl">
                 <WaitlistForm />
@@ -220,27 +221,28 @@ export default function Home() {
                   Explore traders
                 </Link>
               </div>
-              <div className="mt-8 overflow-hidden border-y border-white/10 py-3">
-                <div className="qd-tape-track flex w-max gap-3 text-xs font-medium uppercase tracking-[0.18em] text-slate-200">
-                  {[...HERO_TAPE, ...HERO_TAPE].map((item, index) => (
-                    <span key={`${item}-${index}`} className="inline-flex items-center gap-3">
-                      {item}
-                      <span className="h-1 w-1 rounded-full bg-cyan-300" aria-hidden="true" />
-                    </span>
-                  ))}
-                </div>
+              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/10 pt-5 text-xs font-medium uppercase tracking-[0.16em] text-slate-300">
+                {HERO_TAPE.map((item) => (
+                  <span key={item} className="inline-flex items-center gap-2">
+                    <span className="h-1 w-1 rounded-full bg-cyan-300" aria-hidden="true" />
+                    {item}
+                  </span>
+                ))}
               </div>
             </div>
 
-            <div className="qd-fade-up relative min-h-[28rem] overflow-hidden rounded-lg border border-white/15 shadow-2xl shadow-black/40 sm:min-h-[34rem]">
-              <Image
-                src="/images/quantidive-city-night.jpg"
-                alt=""
-                fill
-                sizes="(min-width: 1024px) 44rem, 100vw"
-                className="object-cover object-[58%_40%]"
-              />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.08)_0%,rgba(2,6,23,0.14)_44%,rgba(2,6,23,0.78)_100%)]" />
+            <div className="qd-fade-up relative min-h-[28rem] overflow-hidden rounded-lg border border-white/15 bg-slate-900/70 shadow-2xl shadow-black/40 sm:min-h-[34rem]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_15%,rgba(34,211,238,0.10),transparent_60%),linear-gradient(180deg,#0b1120_0%,#070a12_100%)]" />
+              <div className="absolute inset-x-5 top-5 flex items-center justify-between">
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">Public profile</p>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/35 bg-emerald-400/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+                  Verified
+                </span>
+              </div>
+              <div className="absolute inset-x-5 top-16">
+                <p className="text-xl font-semibold text-white">Sofia Alvarez</p>
+                <p className="mt-1 text-sm text-slate-400">Systematic futures / SPX gamma</p>
+              </div>
               <div className="absolute inset-x-4 bottom-4 grid gap-3 sm:grid-cols-2">
                 <ProfileMetric label="Proof" value="L4" detail="Tax record + statement" />
                 <ProfileMetric label="Fresh" value="7d" detail="Updated this week" />
@@ -309,7 +311,7 @@ export default function Home() {
                   <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
                     <ProfileMini label="Score" value={profile.score} />
                     <ProfileMini label="Drop" value={profile.drawdown} />
-                    <ProfileMini label="Room" value={profile.room} />
+                    <ProfileMini label="Focus" value={profile.focus} />
                   </div>
                 </article>
               ))}
@@ -360,17 +362,17 @@ export default function Home() {
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-cyan-200">
                 <MessageSquare className="h-4 w-4" aria-hidden="true" />
-                Verified strategy rooms
+                Verified research forum
               </p>
               <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white">
-                Private strategy rooms.
+                A forum, not a chat room.
               </h2>
               <p className="mt-3 text-sm leading-6 text-slate-400">
                 Verified participants, organized evidence, clear ownership, and a record of what
                 changed.
               </p>
               <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                {COMMUNITY_ROOMS.map((room) => (
+                {FORUM_CATEGORIES.map((room) => (
                   <div
                     key={room}
                     className="rounded-md border border-slate-800 bg-slate-900/70 px-3 py-2 text-sm text-slate-300"
@@ -381,7 +383,7 @@ export default function Home() {
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-              {ROOM_STEPS.map((step) => {
+              {FORUM_STEPS.map((step) => {
                 const Icon = step.icon;
                 return (
                   <article key={step.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
@@ -418,7 +420,9 @@ export default function Home() {
         </section>
       </main>
 
-      <SiteFooter />
+      <div className="relative z-10">
+        <SiteFooter />
+      </div>
     </div>
   );
 }
@@ -435,7 +439,7 @@ function ProfileMetric({
   return (
     <div className="rounded-md border border-slate-800 bg-slate-900/80 p-3">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
+      <p className="mt-2 text-lg font-semibold tabular-nums tracking-tight text-white">{value}</p>
       <p className="mt-1 text-xs text-slate-400">{detail}</p>
     </div>
   );
@@ -445,23 +449,14 @@ function ImagePanel({
   title,
   label,
   body,
-  position,
 }: {
   title: string;
   label: string;
   body: string;
-  position: string;
 }) {
   return (
     <article className="qd-fade-up group relative min-h-72 overflow-hidden rounded-lg border border-slate-800 bg-slate-900/60">
-      <Image
-        src="/images/quantidive-city-night.jpg"
-        alt=""
-        fill
-        sizes="(min-width: 768px) 33vw, 100vw"
-        className={`object-cover opacity-80 transition duration-700 group-hover:scale-105 group-hover:opacity-95 ${position}`}
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.1)_0%,rgba(2,6,23,0.18)_42%,rgba(2,6,23,0.86)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(34,211,238,0.10),transparent_55%),linear-gradient(180deg,#0b1120_0%,#070a12_100%)] transition duration-700 group-hover:bg-[radial-gradient(circle_at_25%_20%,rgba(34,211,238,0.16),transparent_55%),linear-gradient(180deg,#0b1120_0%,#070a12_100%)]" />
       <div className="absolute inset-x-0 bottom-0 p-5">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-cyan-200">{label}</p>
         <h3 className="mt-2 text-2xl font-semibold tracking-tight text-white">{title}</h3>
@@ -475,7 +470,7 @@ function ProfileMini({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-[11px] font-medium uppercase text-slate-500">{label}</p>
-      <p className="mt-1 truncate text-sm font-semibold text-white">{value}</p>
+      <p className="mt-1 truncate text-sm font-semibold tabular-nums text-white">{value}</p>
     </div>
   );
 }
