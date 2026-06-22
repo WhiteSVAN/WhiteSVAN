@@ -1,188 +1,79 @@
-import Image from "next/image";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   Activity,
-  Bot,
-  BookOpenCheck,
+  BarChart3,
   ClipboardCheck,
   FileSearch,
-  Link2,
-  LockKeyhole,
-  MessageSquare,
+  Layers,
+  LineChart,
   ShieldCheck,
 } from "lucide-react";
 import { WaitlistForm } from "./waitlist-form";
 import { BrokerLogos } from "@/components/broker-logos";
 import { SiteFooter } from "@/components/site-footer";
 
-const TRUST_CARDS = [
-  {
-    title: "Proof",
-    body: "Broker-reported history, statements, and tax records behind the public profile.",
-  },
-  {
-    title: "Forum",
-    body: "Threaded, source-backed research across GEX, systematic strategies, portfolios, and diligence.",
-  },
-  {
-    title: "Briefs",
-    body: "AI-ready notes from code-computed metrics and source-backed discussions.",
-  },
+const HERO_STATS = [
+  { value: "L1–L5", label: "Proof levels" },
+  { value: "14+", label: "Brokers & prop firms" },
+  { value: "100%", label: "Code-computed" },
 ];
 
-const WORKSPACE_STEPS = [
+const PROOF_LEVELS = [
+  { level: "L1", label: "Self-reported", body: "Numbers entered by hand." },
+  { level: "L2", label: "CSV imported", body: "Parsed from a broker or prop-firm export." },
+  { level: "L3", label: "Statement checked", body: "A broker or prop-firm statement is on file." },
+  { level: "L4", label: "Tax return checked", body: "A tax return or official tax record backs it." },
+  { level: "L5", label: "Third-party verified", body: "Reviewed by an external auditor." },
+];
+
+const RESEARCH = [
+  {
+    icon: BarChart3,
+    title: "Market structure & GEX",
+    body: "Dealer positioning, gamma maps into expiry, 0DTE flow, and the levels that invalidate the read.",
+  },
+  {
+    icon: LineChart,
+    title: "Systematic & factor studies",
+    body: "The rule, sample window, costs, out-of-sample behavior, deflated Sharpe, and the failure mode.",
+  },
+  {
+    icon: Layers,
+    title: "Portfolio construction",
+    body: "Risk contribution, factor concentration, correlation, drawdown behavior, and rebalancing discipline.",
+  },
   {
     icon: FileSearch,
-    title: "Screen",
-    body: "Find verified traders by strategy, instrument, proof level, open-to-work status, drawdown, and research score.",
-  },
-  {
-    icon: ClipboardCheck,
-    title: "Diligence",
-    body: "Review source-linked performance, evidence, freshness, redactions, and risk flags from one profile.",
-  },
-  {
-    icon: Activity,
-    title: "Monitor",
-    body: "Track version changes, stale profiles, proof upgrades, and meaningful shifts in drawdown or concentration.",
-  },
-  {
-    icon: BookOpenCheck,
-    title: "Report",
-    body: "Turn verified metrics into research briefs and client-ready summaries without reassembling spreadsheets.",
+    title: "Single-name diligence",
+    body: "Thesis, counterview, catalyst path, and earnings-revision context — with the source attached.",
   },
 ];
 
-const FORUM_STEPS = [
-  {
-    icon: LockKeyhole,
-    title: "Proof-gated posting",
-    body: "Posting weight and badges tie to Quantidive proof level, freshness, and public profile status — verified voices stand out.",
-  },
-  {
-    icon: MessageSquare,
-    title: "Structured strategy threads",
-    body: "Threads are organized around thesis, data source, backtest, risk, counterview, and monitoring notes.",
-  },
-  {
-    icon: Bot,
-    title: "AI research operator",
-    body: "AI turns long threads into source-linked summaries, unanswered questions, and diligence-ready briefs.",
-  },
-];
-
-const FORUM_CATEGORIES = [
-  "GEX and market structure",
-  "Systematic research lab",
-  "Portfolio construction",
-  "Private markets diligence",
-];
-
-const FEATURED_PROFILES = [
-  {
-    name: "Sofia Alvarez",
-    initials: "SA",
-    headline: "Proof L4 futures operator",
-    style: "SPX gamma / ES / NQ",
-    proof: "L4",
-    score: "91",
-    drawdown: "6%",
-    focus: "GEX desk",
-  },
-  {
-    name: "Marcus Chen",
-    initials: "MC",
-    headline: "Systematic stat-arb researcher",
-    style: "Equities / sector ETFs",
-    proof: "L3",
-    score: "84",
-    drawdown: "3%",
-    focus: "Systematic lab",
-  },
-  {
-    name: "Priya Nair",
-    initials: "PN",
-    headline: "Options flow and volatility analyst",
-    style: "SPX / SPY / QQQ options",
-    proof: "L4",
-    score: "88",
-    drawdown: "8%",
-    focus: "Market structure",
-  },
-  {
-    name: "Noah Okafor",
-    initials: "NO",
-    headline: "Macro futures researcher",
-    style: "Rates / FX / index hedges",
-    proof: "L3",
-    score: "82",
-    drawdown: "5%",
-    focus: "Private markets desk",
-  },
-];
-
-const HERO_TAPE = [
-  "Read-only broker links",
-  "Proof L4",
-  "GEX deep dives",
-  "Tax-record verification",
-  "Research forum",
-  "AI research briefs",
-  "Risk context",
-];
-
-const VISUAL_PANELS = [
-  {
-    title: "The record",
-    label: "Broker connected",
-    body: "Source-backed performance without editable screenshots.",
-    position: "object-[42%_52%]",
-  },
-  {
-    title: "The forum",
-    label: "Verified access",
-    body: "Threaded strategy research gated by proof, freshness, and role.",
-    position: "object-[58%_42%]",
-  },
-  {
-    title: "The brief",
-    label: "Research desk",
-    body: "Metrics, risk events, and notes ready for review.",
-    position: "object-[50%_62%]",
-  },
+const STEPS = [
+  { n: "01", title: "Connect or import", body: "Read-only broker history, statement, or CSV export — no trade execution, ever." },
+  { n: "02", title: "Get a proof level", body: "Code computes the metrics; statements and tax records lift you up the proof ladder." },
+  { n: "03", title: "Publish & get discovered", body: "Share an operator card clients, allocators, and prop firms can actually inspect." },
 ];
 
 export default function Home() {
   return (
-    <div className="relative flex min-h-full flex-1 flex-col text-slate-100">
-      {/* Single full-page city backdrop — one image, no repeat, covers the whole landing. */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <Image
-          src="/images/quantidive-city-night.jpg"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,10,0.78)_0%,rgba(3,5,10,0.9)_52%,rgba(3,5,10,0.97)_100%)]" />
-      </div>
-      <header className="relative z-10 border-b border-slate-800/80 bg-slate-950/70 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:flex-nowrap sm:py-4">
-          <Link href="/" className="text-base font-semibold tracking-[0.14em] text-slate-100 sm:tracking-[0.18em]">
+    <div className="flex min-h-full flex-1 flex-col bg-[#05070d] text-slate-100">
+      <header className="sticky top-0 z-20 border-b border-slate-900 bg-[#05070d]/85 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+          <Link href="/" className="text-sm font-semibold tracking-[0.18em] text-slate-100">
             QUANTI<span className="text-cyan-300">DIVE</span>
           </Link>
-          <div className="flex items-center gap-2 text-sm sm:gap-4">
-            <Link href="/explore" className="text-slate-300 hover:text-white">
-              <span className="sm:hidden">Traders</span>
-              <span className="hidden sm:inline">Verified traders</span>
+          <div className="flex items-center gap-5 text-sm">
+            <Link href="/explore" className="text-slate-400 hover:text-white">
+              Verified traders
             </Link>
-            <Link href="/login" className="hidden text-slate-300 hover:text-white sm:inline">
+            <Link href="/login" className="hidden text-slate-400 hover:text-white sm:inline">
               Sign in
             </Link>
             <Link
               href="/signup"
-              className="rounded-md bg-cyan-500 px-2.5 py-1.5 font-medium text-slate-950 hover:bg-cyan-300 sm:px-3"
+              className="rounded-md bg-cyan-500 px-3 py-1.5 font-medium text-slate-950 hover:bg-cyan-300"
             >
               Get verified
             </Link>
@@ -190,287 +81,408 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="relative z-10 flex-1">
-        <section className="relative overflow-hidden border-b border-slate-800/70">
-          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:gap-10 sm:py-24 lg:grid-cols-[0.9fr_1fr] lg:items-center">
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="border-b border-slate-900">
+          <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-cyan-300/35 bg-slate-950/35 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-cyan-100 backdrop-blur sm:tracking-[0.22em]">
-                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+              <p className="inline-flex items-center gap-2 rounded-full border border-slate-800 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
+                <ShieldCheck className="h-3.5 w-3.5 text-cyan-300" aria-hidden="true" />
                 Verified trading network
               </p>
-              <h1 className="mt-6 max-w-3xl text-5xl font-semibold tracking-tight text-white sm:text-7xl">
-                Verified traders. Real records.
+              <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl">
+                Performance you can&apos;t fake. Research you can inspect.
               </h1>
-              <p className="mt-6 max-w-xl text-base leading-7 text-slate-200 sm:text-lg">
-                Broker-reported history becomes profiles, a verified forum, and research briefs.
+              <p className="mt-5 max-w-xl text-base leading-7 text-slate-400">
+                Quantidive turns broker-reported history into proof-backed profiles, then layers
+                structured research — market structure, factor studies, portfolio construction, and
+                single-name diligence — that anyone can scrutinize.
               </p>
-              <div className="mt-8 max-w-xl">
+              <div className="mt-7 max-w-md">
                 <WaitlistForm />
               </div>
-              <div className="mt-5 grid gap-3 text-sm sm:flex sm:flex-wrap">
-                <Link
-                  href="/signup"
-                  className="rounded-md bg-cyan-500 px-4 py-2 text-center font-medium text-slate-950 hover:bg-cyan-300"
-                >
+              <div className="mt-5 flex flex-wrap gap-3 text-sm">
+                <Link href="/signup" className="rounded-md bg-cyan-500 px-4 py-2 font-medium text-slate-950 hover:bg-cyan-300">
                   Get verified
                 </Link>
-                <Link
-                  href="/explore"
-                  className="rounded-md border border-slate-700 px-4 py-2 text-center font-medium text-slate-200 hover:border-cyan-400 hover:text-white"
-                >
+                <Link href="/explore" className="rounded-md border border-slate-800 px-4 py-2 font-medium text-slate-300 hover:border-cyan-400 hover:text-white">
                   Explore traders
                 </Link>
               </div>
-              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/10 pt-5 text-xs font-medium uppercase tracking-[0.16em] text-slate-300">
-                {HERO_TAPE.map((item) => (
-                  <span key={item} className="inline-flex items-center gap-2">
-                    <span className="h-1 w-1 rounded-full bg-cyan-300" aria-hidden="true" />
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="qd-fade-up relative min-h-[28rem] overflow-hidden rounded-lg border border-white/15 bg-slate-900/70 shadow-2xl shadow-black/40 sm:min-h-[34rem]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_15%,rgba(34,211,238,0.10),transparent_60%),linear-gradient(180deg,#0b1120_0%,#070a12_100%)]" />
-              <div className="absolute inset-x-5 top-5 flex items-center justify-between">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">Public profile</p>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/35 bg-emerald-400/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
-                  Verified
-                </span>
-              </div>
-              <div className="absolute inset-x-5 top-16">
-                <p className="text-xl font-semibold text-white">Sofia Alvarez</p>
-                <p className="mt-1 text-sm text-slate-400">Systematic futures / SPX gamma</p>
-              </div>
-              <div className="absolute inset-x-4 bottom-4 grid gap-3 sm:grid-cols-2">
-                <ProfileMetric label="Proof" value="L4" detail="Tax record + statement" />
-                <ProfileMetric label="Fresh" value="7d" detail="Updated this week" />
-                <ProfileMetric label="Score" value="91" detail="Code computed" />
-                <ProfileMetric label="Drop" value="5.8%" detail="Published window" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
-          <div className="grid gap-4 md:grid-cols-3">
-            {TRUST_CARDS.map((card) => (
-              <article key={card.title} className="qd-fade-up rounded-lg border border-slate-800 bg-slate-900/60 p-5">
-                <h2 className="text-lg font-semibold text-white">{card.title}</h2>
-                <p className="mt-3 text-sm leading-6 text-slate-400">{card.body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 pb-16">
-          <div className="grid gap-4 md:grid-cols-3">
-            {VISUAL_PANELS.map((panel) => (
-              <ImagePanel key={panel.title} {...panel} />
-            ))}
-          </div>
-        </section>
-
-        <section className="border-y border-slate-800 bg-slate-950/70">
-          <div className="mx-auto max-w-6xl px-4 py-16">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-cyan-200">
-                  More verified profiles
-                </p>
-                <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">
-                  Verified desks.
-                </h2>
-              </div>
-              <Link
-                href="/explore"
-                className="rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:border-cyan-400 hover:text-white"
-              >
-                View directory
-              </Link>
-            </div>
-            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {FEATURED_PROFILES.map((profile) => (
-                <article key={profile.name} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 gap-3">
-                      <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-slate-950 text-sm font-semibold text-white">
-                        {profile.initials}
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="truncate font-semibold text-white">{profile.name}</h3>
-                        <p className="mt-0.5 truncate text-sm text-slate-400">{profile.headline}</p>
-                      </div>
-                    </div>
-                    <span className="rounded border border-cyan-400/30 bg-cyan-400/10 px-2 py-1 text-xs font-medium text-cyan-200">
-                      {profile.proof}
-                    </span>
-                  </div>
-                  <p className="mt-4 text-sm text-slate-300">{profile.style}</p>
-                  <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
-                    <ProfileMini label="Score" value={profile.score} />
-                    <ProfileMini label="Drop" value={profile.drawdown} />
-                    <ProfileMini label="Focus" value={profile.focus} />
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="border-y border-slate-800 bg-slate-950/70">
-          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-            <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-cyan-200">
-                <FileSearch className="h-4 w-4" aria-hidden="true" />
-                From proof to workflow
-              </p>
-              <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white">
-                Diligence, simplified.
-              </h2>
-              <p className="mt-3 text-sm leading-6 text-slate-400">
-                Compare candidates, review evidence, monitor changes, and publish clean updates.
-              </p>
-              <div className="mt-5 rounded-lg border border-slate-800 bg-slate-900/70 p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
-                  Ask Quantidive
-                </p>
-                <p className="mt-3 text-sm leading-6 text-slate-300">
-                  Show verified systematic futures traders with Proof L3+, fresh data, max drawdown
-                  under 12%, and published research in the last 30 days.
-                </p>
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {WORKSPACE_STEPS.map((point) => {
-                const Icon = point.icon;
-                return (
-                  <article key={point.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
-                    <Icon className="h-6 w-6 text-cyan-300" aria-hidden="true" />
-                    <h3 className="mt-4 font-semibold text-white">{point.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-400">{point.body}</p>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 py-16">
-          <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-            <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-cyan-200">
-                <MessageSquare className="h-4 w-4" aria-hidden="true" />
-                Verified research forum
-              </p>
-              <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white">
-                A forum, not a chat room.
-              </h2>
-              <p className="mt-3 text-sm leading-6 text-slate-400">
-                Verified participants, organized evidence, clear ownership, and a record of what
-                changed.
-              </p>
-              <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                {FORUM_CATEGORIES.map((room) => (
-                  <div
-                    key={room}
-                    className="rounded-md border border-slate-800 bg-slate-900/70 px-3 py-2 text-sm text-slate-300"
-                  >
-                    {room}
+              <dl className="mt-9 grid max-w-md grid-cols-3 gap-6 border-t border-slate-900 pt-6">
+                {HERO_STATS.map((s) => (
+                  <div key={s.label}>
+                    <dt className="text-xs text-slate-500">{s.label}</dt>
+                    <dd className="mt-1 text-xl font-semibold tabular-nums tracking-tight text-white">{s.value}</dd>
                   </div>
                 ))}
-              </div>
+              </dl>
             </div>
-            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-              {FORUM_STEPS.map((step) => {
-                const Icon = step.icon;
-                return (
-                  <article key={step.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
-                    <Icon className="h-6 w-6 text-cyan-300" aria-hidden="true" />
-                    <h3 className="mt-4 font-semibold text-white">{step.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-400">{step.body}</p>
-                  </article>
-                );
-              })}
-            </div>
+            <OperatorCard />
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-16">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6 sm:p-8">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="text-2xl font-semibold tracking-tight text-white">
-                  Connect the broker you use.
-                </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                  Read-only history, automatic metrics, no trade execution, no hand-edited records.
-                </p>
-              </div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-200">
-                <Link2 className="h-4 w-4" aria-hidden="true" />
-                Read-only broker links
-              </span>
-            </div>
+        {/* Logo wall */}
+        <section className="border-b border-slate-900 bg-[#070a12]">
+          <div className="mx-auto max-w-6xl px-4 py-12">
+            <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
+              Verify from the broker or prop firm you already trade
+            </p>
             <div className="mt-6">
               <BrokerLogos />
             </div>
           </div>
         </section>
+
+        {/* Feature: verified performance */}
+        <FeatureRow
+          eyebrow="Verified performance"
+          title="Every number is computed from your trades"
+          body="Import once and Quantidive derives the equity curve, drawdown, win rate, and profit factor in code — the record can't be edited into a screenshot."
+          points={["Equity curve & daily P&L", "Max drawdown & recovery", "Win rate & profit factor", "Big-win dependency"]}
+          visual={<PerformancePanel />}
+        />
+
+        {/* Feature: proof levels */}
+        <FeatureRow
+          flip
+          eyebrow="Verification"
+          title="Five proof levels, not a screenshot"
+          body="Every profile carries a proof level — how the data was checked. A broker statement reaches L3; a tax return or official tax record reaches L4; a third-party audit reaches L5."
+          points={["Evidence locker for statements & tax records", "Proof Level on every public card", "$-amount and broker redaction", "Immutable published versions"]}
+          visual={<ProofPanel />}
+        />
+
+        {/* Feature: discovery */}
+        <FeatureRow
+          eyebrow="Discovery"
+          title="A leaderboard of verified operators"
+          body="Browse by strategy, instrument, proof level, drawdown, and research score — ranked by a transparency score computed from the record, not follower count."
+          points={["Open-to-work signals", "Strategy & instrument filters", "Proof-level badges", "Freshness & risk context"]}
+          visual={<LeaderboardPanel />}
+        />
+
+        {/* Feature: diligence */}
+        <FeatureRow
+          flip
+          eyebrow="For allocators"
+          title="Run diligence like a desk — then keep monitoring"
+          body="A PE-style read of any verified operator: strengths, risk flags, and what to monitor, drawn from the verified record. A summary of past performance — never an allocation recommendation."
+          points={["Strengths & risk flags", "What-to-monitor watchlist", "Proof + freshness context", "Source-linked evidence"]}
+          visual={<DiligencePanel />}
+        />
+
+        {/* Research depth */}
+        <section className="border-b border-slate-900 bg-[#070a12]">
+          <div className="mx-auto max-w-6xl px-4 py-16">
+            <SectionHead
+              eyebrow="Research"
+              title="Depth, structured the way analysts work"
+              sub="Posts are framed around thesis, evidence, assumptions, counterview, risk, and what would invalidate the idea — not alerts or hype."
+            />
+            <div className="mt-8 grid gap-px overflow-hidden rounded-xl border border-slate-800 bg-slate-800 md:grid-cols-2">
+              {RESEARCH.map((r) => {
+                const Icon = r.icon;
+                return (
+                  <article key={r.title} className="bg-[#070a12] p-6">
+                    <Icon className="h-5 w-5 text-cyan-300" aria-hidden="true" />
+                    <h3 className="mt-4 font-semibold text-white">{r.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-400">{r.body}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="border-b border-slate-900">
+          <div className="mx-auto max-w-6xl px-4 py-16">
+            <SectionHead eyebrow="How it works" title="From broker export to verified card" />
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {STEPS.map((s) => (
+                <div key={s.n} className="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
+                  <span className="text-sm font-semibold tabular-nums text-cyan-300">{s.n}</span>
+                  <h3 className="mt-3 font-semibold text-white">{s.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-400">{s.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Close */}
+        <section>
+          <div className="mx-auto flex max-w-6xl flex-col items-start gap-5 px-4 py-16 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight text-white">
+                Get verified. Get inspected. Get hired.
+              </h2>
+              <p className="mt-2 text-sm text-slate-400">
+                Build a proof-backed track record serious people can trust.
+              </p>
+            </div>
+            <Link href="/signup" className="rounded-md bg-cyan-500 px-5 py-2.5 text-sm font-medium text-slate-950 hover:bg-cyan-300">
+              Create your operator card
+            </Link>
+          </div>
+        </section>
       </main>
 
-      <div className="relative z-10">
-        <SiteFooter />
-      </div>
+      <SiteFooter />
     </div>
   );
 }
 
-function ProfileMetric({
-  label,
-  value,
-  detail,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-}) {
+/* ── Layout helpers ─────────────────────────────────────────────── */
+
+function SectionHead({ eyebrow, title, sub }: { eyebrow: string; title: string; sub?: string }) {
   return (
-    <div className="rounded-md border border-slate-800 bg-slate-900/80 p-3">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-2 text-lg font-semibold tabular-nums tracking-tight text-white">{value}</p>
-      <p className="mt-1 text-xs text-slate-400">{detail}</p>
+    <div className="max-w-2xl">
+      <p className="text-xs font-medium uppercase tracking-[0.18em] text-cyan-300">{eyebrow}</p>
+      <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">{title}</h2>
+      {sub && <p className="mt-3 text-sm leading-6 text-slate-400">{sub}</p>}
     </div>
   );
 }
 
-function ImagePanel({
+function FeatureRow({
+  eyebrow,
   title,
-  label,
   body,
+  points,
+  visual,
+  flip,
 }: {
+  eyebrow: string;
   title: string;
-  label: string;
   body: string;
+  points: string[];
+  visual: ReactNode;
+  flip?: boolean;
 }) {
   return (
-    <article className="qd-fade-up group relative min-h-72 overflow-hidden rounded-lg border border-slate-800 bg-slate-900/60">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(34,211,238,0.10),transparent_55%),linear-gradient(180deg,#0b1120_0%,#070a12_100%)] transition duration-700 group-hover:bg-[radial-gradient(circle_at_25%_20%,rgba(34,211,238,0.16),transparent_55%),linear-gradient(180deg,#0b1120_0%,#070a12_100%)]" />
-      <div className="absolute inset-x-0 bottom-0 p-5">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-cyan-200">{label}</p>
-        <h3 className="mt-2 text-2xl font-semibold tracking-tight text-white">{title}</h3>
-        <p className="mt-2 text-sm leading-6 text-slate-300">{body}</p>
+    <section className="border-b border-slate-900">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2 lg:py-20">
+        <div className={flip ? "lg:order-2" : ""}>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-cyan-300">{eyebrow}</p>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">{title}</h2>
+          <p className="mt-4 max-w-lg text-sm leading-7 text-slate-400">{body}</p>
+          <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+            {points.map((p) => (
+              <li key={p} className="flex items-start gap-2 text-sm text-slate-300">
+                <span className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-cyan-400" aria-hidden="true" />
+                {p}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className={flip ? "lg:order-1" : ""}>{visual}</div>
       </div>
-    </article>
+    </section>
   );
 }
 
-function ProfileMini({ label, value }: { label: string; value: string }) {
+/* ── Product mockups (in-code, on-brand) ────────────────────────── */
+
+const EQUITY = [
+  100, 102, 99, 106, 111, 108, 116, 122, 119, 128, 121, 118, 131, 139, 134, 144, 152, 149, 158, 166,
+];
+
+function EquityChart({ height = 132 }: { height?: number }) {
+  const w = 320;
+  const pad = 6;
+  const min = Math.min(...EQUITY);
+  const max = Math.max(...EQUITY);
+  const x = (i: number) => pad + (i / (EQUITY.length - 1)) * (w - 2 * pad);
+  const y = (v: number) => pad + (1 - (v - min) / (max - min)) * (height - 2 * pad);
+  const line = EQUITY.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
+  const area = `${line} L${x(EQUITY.length - 1).toFixed(1)} ${height - pad} L${x(0).toFixed(1)} ${height - pad} Z`;
   return (
-    <div>
-      <p className="text-[11px] font-medium uppercase text-slate-500">{label}</p>
-      <p className="mt-1 truncate text-sm font-semibold tabular-nums text-white">{value}</p>
+    <svg viewBox={`0 0 ${w} ${height}`} className="w-full" role="img" aria-label="Equity curve">
+      <defs>
+        <linearGradient id="eq" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill="url(#eq)" />
+      <path d={line} fill="none" stroke="#22d3ee" strokeWidth="2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function Panel({ children }: { children: ReactNode }) {
+  return (
+    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 shadow-2xl shadow-black/30">
+      {children}
     </div>
+  );
+}
+
+function Stat({ label, value, tone = "white" }: { label: string; value: string; tone?: "white" | "good" | "bad" }) {
+  const color = tone === "good" ? "text-emerald-300" : tone === "bad" ? "text-red-300" : "text-white";
+  return (
+    <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+      <p className="text-[11px] text-slate-500">{label}</p>
+      <p className={`mt-1 text-base font-semibold tabular-nums tracking-tight ${color}`}>{value}</p>
+    </div>
+  );
+}
+
+function OperatorCard() {
+  return (
+    <Panel>
+      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">Operator card</p>
+          <p className="mt-2 text-base font-semibold text-white">Sofia Alvarez</p>
+          <p className="text-sm text-slate-500">Systematic futures · SPX gamma</p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+          <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+          Proof L4
+        </span>
+      </div>
+      <div className="mt-4">
+        <EquityChart />
+      </div>
+      <dl className="mt-4 grid grid-cols-2 gap-3">
+        <Stat label="Return" value="+38.4%" tone="good" />
+        <Stat label="Max drawdown" value="5.8%" />
+        <Stat label="Research score" value="91" />
+        <Stat label="Freshness" value="7d" />
+      </dl>
+    </Panel>
+  );
+}
+
+function PerformancePanel() {
+  return (
+    <Panel>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-white">Account equity</p>
+        <span className="rounded bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-300">Code-computed</span>
+      </div>
+      <div className="mt-3">
+        <EquityChart height={150} />
+      </div>
+      <dl className="mt-4 grid grid-cols-4 gap-2">
+        <Stat label="Net P&L" value="+$19.2k" tone="good" />
+        <Stat label="Win rate" value="61%" />
+        <Stat label="Profit factor" value="1.8" />
+        <Stat label="Worst day" value="-$1.0k" tone="bad" />
+      </dl>
+    </Panel>
+  );
+}
+
+function ProofPanel() {
+  return (
+    <Panel>
+      <p className="text-sm font-medium text-white">Proof ladder</p>
+      <ol className="mt-3 space-y-2">
+        {PROOF_LEVELS.map((p) => {
+          const active = p.level === "L4";
+          return (
+            <li
+              key={p.level}
+              className={`flex items-center gap-3 rounded-lg border px-3 py-2 ${
+                active ? "border-cyan-400/40 bg-cyan-400/10" : "border-slate-800 bg-slate-950/40"
+              }`}
+            >
+              <span className={`text-xs font-semibold tabular-nums ${active ? "text-cyan-300" : "text-slate-500"}`}>
+                {p.level}
+              </span>
+              <span className={`text-sm ${active ? "font-medium text-white" : "text-slate-400"}`}>{p.label}</span>
+              {active && (
+                <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-cyan-300">
+                  <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> Current
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </Panel>
+  );
+}
+
+const LEADERS = [
+  { rank: "1", name: "Sofia Alvarez", style: "SPX gamma · ES", score: "91", proof: "L4" },
+  { rank: "2", name: "Priya Nair", style: "Options flow", score: "88", proof: "L4" },
+  { rank: "3", name: "Marcus Chen", style: "Stat-arb · ETFs", score: "84", proof: "L3" },
+  { rank: "4", name: "Diego Santos", style: "Macro · FX/rates", score: "79", proof: "L3" },
+];
+
+function LeaderboardPanel() {
+  return (
+    <Panel>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-white">Verified traders</p>
+        <span className="text-xs text-slate-500">by research score</span>
+      </div>
+      <ul className="mt-3 divide-y divide-slate-800">
+        {LEADERS.map((l) => (
+          <li key={l.rank} className="flex items-center gap-3 py-2.5">
+            <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-slate-800 text-xs font-semibold tabular-nums text-slate-300">
+              {l.rank}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-white">{l.name}</p>
+              <p className="truncate text-xs text-slate-500">{l.style}</p>
+            </div>
+            <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-medium text-cyan-300">
+              {l.proof}
+            </span>
+            <span className="w-7 text-right text-sm font-semibold tabular-nums text-white">{l.score}</span>
+          </li>
+        ))}
+      </ul>
+    </Panel>
+  );
+}
+
+function DiligencePanel() {
+  return (
+    <Panel>
+      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <p className="text-sm font-medium text-white">Diligence brief</p>
+        <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+          Constructive record
+        </span>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div>
+          <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-300">
+            <Activity className="h-3.5 w-3.5" aria-hidden="true" /> Strengths
+          </p>
+          <ul className="mt-2 space-y-1.5 text-xs text-slate-400">
+            <li>Controlled drawdown</li>
+            <li>Tax-record verified</li>
+          </ul>
+        </div>
+        <div>
+          <p className="flex items-center gap-1.5 text-xs font-medium text-red-300">
+            <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" /> Risk flags
+          </p>
+          <ul className="mt-2 space-y-1.5 text-xs text-slate-400">
+            <li>Big-win dependency</li>
+          </ul>
+        </div>
+        <div>
+          <p className="flex items-center gap-1.5 text-xs font-medium text-cyan-300">
+            <ClipboardCheck className="h-3.5 w-3.5" aria-hidden="true" /> Monitor
+          </p>
+          <ul className="mt-2 space-y-1.5 text-xs text-slate-400">
+            <li>Concentration</li>
+            <li>Recovery speed</li>
+          </ul>
+        </div>
+      </div>
+      <p className="mt-4 border-t border-slate-800 pt-3 text-[11px] leading-5 text-slate-500">
+        A summary of past performance — not investment advice or an allocation recommendation.
+      </p>
+    </Panel>
   );
 }
