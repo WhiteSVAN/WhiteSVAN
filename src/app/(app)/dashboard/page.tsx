@@ -172,7 +172,7 @@ export default async function DashboardPage({
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
             {account
               ? "Try a wider date range, or import more trades."
-            : "Import a broker or prop-firm CSV to build your Quant Connect research profile and analytics dashboard."}
+            : "Import a broker or prop-firm CSV to build your Quantidive research profile and analytics dashboard."}
           </p>
           <Link
             href="/upload"

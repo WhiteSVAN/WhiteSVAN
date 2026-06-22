@@ -6,7 +6,7 @@ import type { DrawdownSeverity } from "@/lib/trust";
 import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 
-export const metadata: Metadata = { title: "Researcher directory - Quant Connect" };
+export const metadata: Metadata = { title: "Researcher directory - Quantidive" };
 
 const SEVERITY: Record<DrawdownSeverity, { label: string; cls: string }> = {
   controlled: { label: "Controlled", cls: "bg-emerald-50 text-emerald-700" },
@@ -26,6 +26,8 @@ export default async function ExplorePage() {
       displayName: true,
       strategy: true,
       instruments: true,
+      openToWork: true,
+      headline: true,
       versions: {
         orderBy: { versionNumber: "desc" },
         take: 1,
@@ -48,7 +50,7 @@ export default async function ExplorePage() {
             href={loggedIn ? "/dashboard" : "/"}
             className="text-base font-semibold tracking-[0.18em] text-slate-100"
           >
-            QUANT <span className="text-cyan-300">CONNECT</span>
+            QUANTI<span className="text-cyan-300">DIVE</span>
           </Link>
           {loggedIn ? (
             <Link
@@ -71,7 +73,7 @@ export default async function ExplorePage() {
       <main className="mx-auto max-w-5xl px-4 py-10">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Researcher directory</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Public Quant Connect research profiles with strategy, proof level, risk context, and performance snapshots.
+          Public Quantidive research profiles with strategy, proof level, risk context, and performance snapshots.
         </p>
 
         {cards.length === 0 ? (
@@ -86,9 +88,17 @@ export default async function ExplorePage() {
                   href={`/p/${p.slug}`}
                   className="block rounded-lg border border-slate-800 bg-slate-900/70 p-5 transition hover:border-cyan-400 hover:shadow-sm"
                 >
-                  <h3 className="font-semibold text-slate-900">{p.displayName}</h3>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="truncate font-semibold text-slate-900">{p.displayName}</h3>
+                    {p.openToWork && (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+                        Open to work
+                      </span>
+                    )}
+                  </div>
                   <p className="mt-0.5 truncate text-sm text-slate-500">
-                    {[p.strategy, p.instruments].filter(Boolean).join(" / ") || "Trader"}
+                    {p.headline || [p.strategy, p.instruments].filter(Boolean).join(" / ") || "Trader"}
                   </p>
 
                   {trust ? (

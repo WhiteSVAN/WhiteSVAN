@@ -82,7 +82,7 @@ export default async function ReportsPage() {
       <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
         <h2 className="text-base font-medium text-slate-800">Generate a brief</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Quant Connect computes the numbers; AI only drafts the research-facing narrative.
+          Quantidive computes the numbers; AI only drafts the research-facing narrative.
         </p>
         <div className="mt-4">
           {accountOptions.length === 0 ? (

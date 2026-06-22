@@ -18,6 +18,10 @@ export function PortalSettingsForm({
   hideBrokers,
   updateCadence,
   disclaimer,
+  openToWork,
+  headline,
+  services,
+  contactUrl,
 }: {
   slug: string;
   isPublic: boolean;
@@ -25,6 +29,10 @@ export function PortalSettingsForm({
   hideBrokers: boolean;
   updateCadence: string;
   disclaimer: string;
+  openToWork: boolean;
+  headline: string;
+  services: string;
+  contactUrl: string;
 }) {
   const [state, action, pending] = useActionState(savePortalSettings, undefined);
 
@@ -87,6 +95,73 @@ export function PortalSettingsForm({
         </select>
       </div>
 
+      <div className="space-y-4 rounded-lg border border-slate-800 bg-slate-950/40 p-4">
+        <div>
+          <p className="text-sm font-medium text-slate-700">Work &amp; availability</p>
+          <p className="text-xs text-slate-500">
+            Let allocators, prop firms, and clients know you&apos;re open to work and how to reach
+            you. Shown on your public operator card and in the directory.
+          </p>
+        </div>
+
+        <label className="flex items-start gap-3">
+          <input type="checkbox" name="openToWork" defaultChecked={openToWork} className="mt-1" />
+          <span>
+            <span className="text-sm font-medium text-slate-700">Open to work</span>
+            <span className="block text-xs text-slate-500">
+              Adds an &ldquo;Open to work&rdquo; badge and a contact button to your public card.
+            </span>
+          </span>
+        </label>
+
+        <div>
+          <label htmlFor="headline" className="text-sm font-medium text-slate-700">
+            Headline <span className="text-slate-400">(optional)</span>
+          </label>
+          <input
+            id="headline"
+            name="headline"
+            type="text"
+            maxLength={140}
+            defaultValue={headline}
+            placeholder="Systematic futures trader · 3y verified track record"
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="services" className="text-sm font-medium text-slate-700">
+            What you offer <span className="text-slate-400">(optional)</span>
+          </label>
+          <textarea
+            id="services"
+            name="services"
+            rows={2}
+            maxLength={600}
+            defaultValue={services}
+            placeholder="Managed research, strategy consulting, prop-firm evaluations…"
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="contactUrl" className="text-sm font-medium text-slate-700">
+            Contact link <span className="text-slate-400">(optional)</span>
+          </label>
+          <input
+            id="contactUrl"
+            name="contactUrl"
+            type="text"
+            defaultValue={contactUrl}
+            placeholder="you@email.com, cal.com/you, or https://…"
+            className={inputClass}
+          />
+          <p className="mt-1 text-xs text-slate-500">
+            An email or link you control. We never expose your sign-in email.
+          </p>
+        </div>
+      </div>
+
       <div>
         <label htmlFor="disclaimer" className="text-sm font-medium text-slate-700">
           Disclaimer <span className="text-slate-400">(optional)</span>
@@ -96,7 +171,7 @@ export function PortalSettingsForm({
           name="disclaimer"
           rows={3}
           defaultValue={disclaimer}
-          placeholder="Leave blank to use the default Quant Connect disclaimer."
+          placeholder="Leave blank to use the default Quantidive disclaimer."
           className={inputClass}
         />
       </div>

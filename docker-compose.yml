@@ -2,12 +2,12 @@
 services:
   db:
     image: postgres:16
-    container_name: whitesvan-db
+    container_name: quantidive-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: whitesvan
-      POSTGRES_PASSWORD: whitesvan
-      POSTGRES_DB: whitesvan
+      POSTGRES_USER: quantidive
+      POSTGRES_PASSWORD: quantidive
+      POSTGRES_DB: quantidive
     ports:
       - "5432:5432"
     volumes:

@@ -17,7 +17,22 @@ export type SettingsState = { saved?: boolean; error?: string } | undefined;
 const CADENCES = ["DAILY", "WEEKLY", "MONTHLY", "MANUAL"] as const;
 type Cadence = (typeof CADENCES)[number];
 
-/** Save portal settings: visibility, dollar-amount redaction, cadence, and disclaimer. */
+/**
+ * Normalize a contact link to a safe, clickable URL. Accepts http(s)/mailto as
+ * given; turns a bare email into `mailto:` and a bare domain into `https://`.
+ * Returns null for empty input or anything that isn't a safe scheme (blocks
+ * `javascript:` and friends).
+ */
+function normalizeContactUrl(raw: string): string | null {
+  const v = raw.trim();
+  if (!v) return null;
+  if (/^(https?:|mailto:)/i.test(v)) return v;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return `mailto:${v}`;
+  if (/^[^\s/]+\.[^\s/]+/.test(v)) return `https://${v}`;
+  return null;
+}
+
+/** Save portal settings: visibility, redaction, cadence, disclaimer, and client-attraction fields. */
 export async function savePortalSettings(
   _prev: SettingsState,
   formData: FormData,
@@ -27,7 +42,15 @@ export async function savePortalSettings(
   const hideAmounts = formData.get("hideAmounts") === "on";
   const hideBrokers = formData.get("hideBrokers") === "on";
   const disclaimer = String(formData.get("disclaimer") ?? "").trim();
-  const complianceMessage = publicCopyError(publicCopyIssues([disclaimer]));
+
+  // Client-attraction fields — public-facing, so run the free text through the
+  // same banned-language compliance filter as the disclaimer.
+  const openToWork = formData.get("openToWork") === "on";
+  const headline = String(formData.get("headline") ?? "").trim().slice(0, 140);
+  const services = String(formData.get("services") ?? "").trim().slice(0, 600);
+  const contactUrl = normalizeContactUrl(String(formData.get("contactUrl") ?? ""));
+
+  const complianceMessage = publicCopyError(publicCopyIssues([disclaimer, headline, services]));
   if (complianceMessage) return { error: complianceMessage };
 
   const cadenceRaw = String(formData.get("updateCadence") ?? "MANUAL");
@@ -37,7 +60,17 @@ export async function savePortalSettings(
 
   await prisma.traderProfile.update({
     where: { userId },
-    data: { isPublic, hideAmounts, hideBrokers, updateCadence, disclaimer: disclaimer || null },
+    data: {
+      isPublic,
+      hideAmounts,
+      hideBrokers,
+      updateCadence,
+      disclaimer: disclaimer || null,
+      openToWork,
+      headline: headline || null,
+      services: services || null,
+      contactUrl,
+    },
   });
   revalidatePath("/settings");
   revalidatePath("/dashboard");

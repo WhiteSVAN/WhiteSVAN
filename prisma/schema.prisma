@@ -1,4 +1,4 @@
-// Quant Connect - trader analytics and research-network SaaS
+// Quantidive - trader analytics and research-network SaaS
 // Schema docs: https://pris.ly/d/prisma-schema
 // DB URL is provided via prisma.config.ts (process.env.DATABASE_URL).
 
@@ -86,6 +86,16 @@ model TraderProfile {
   hideAmounts Boolean  @default(false) // redact dollar figures on the public portal
   hideBrokers Boolean  @default(false) // redact broker + account names on the public portal
   disclaimer  String?
+
+  // Client attraction — opt-in "open to work" signal + how prospects reach out.
+  // Surfaced on the public operator card (/p/[slug]) and the /explore directory.
+  // contactUrl is a single link the operator controls (email mailto:, Calendly,
+  // X/LinkedIn, site) so we never expose their login email. headline is a short
+  // professional tagline; services describes what they offer.
+  openToWork Boolean @default(false)
+  headline   String? // e.g. "Systematic futures trader · 3y verified track record"
+  services   String? // e.g. "Managed research, strategy consulting, prop evaluations"
+  contactUrl String? // e.g. "mailto:me@x.com", "https://cal.com/me"
 
   // MVP2 — living trust profile: how often the trader commits to refreshing, and
   // when the profile data was last refreshed (drives the freshness status). The
