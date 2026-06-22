@@ -47,11 +47,11 @@ export function PublishUpdate({
         </p>
       )}
       {state?.published && (
-        <p className="mt-3 text-sm text-emerald-600">
+        <p className="mt-3 text-sm text-zinc-100">
           Published v{state.version}. Your research profile is updated.
         </p>
       )}
-      {state?.error && <p className="mt-3 text-sm text-red-600">{state.error}</p>}
+      {state?.error && <p className="mt-3 text-sm text-zinc-300">{state.error}</p>}
     </section>
   );
 }

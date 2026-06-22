@@ -18,9 +18,9 @@ export default async function ResetPasswordPage({
           <ResetForm token={token} />
         </>
       ) : (
-        <div className="mt-6 rounded-lg border border-red-900/60 bg-red-950/60 px-3 py-2 text-sm text-red-200">
+        <div className="mt-6 rounded-lg border border-zinc-700 bg-zinc-950/80 px-3 py-2 text-sm text-zinc-200">
           This reset link is missing its token.{" "}
-          <Link href="/forgot" className="font-medium underline hover:text-red-100">
+          <Link href="/forgot" className="font-medium underline hover:text-zinc-100">
             Request a new one
           </Link>
           .

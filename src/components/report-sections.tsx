@@ -52,7 +52,7 @@ function Prose({ title, text }: { title: string; text: string }) {
   if (!text) return null;
   return (
     <div>
-      <h4 className="text-xs font-medium uppercase tracking-wide text-zinc-400">{title}</h4>
+      <h4 className="text-xs font-medium uppercase text-zinc-400">{title}</h4>
       <p className="mt-1 text-sm leading-relaxed text-zinc-300">{text}</p>
     </div>
   );
@@ -61,7 +61,7 @@ function Prose({ title, text }: { title: string; text: string }) {
 function Bullets({ title, items }: { title: string; items: string[] }) {
   return (
     <div>
-      <h4 className="text-xs font-medium uppercase tracking-wide text-zinc-400">{title}</h4>
+      <h4 className="text-xs font-medium uppercase text-zinc-400">{title}</h4>
       <ul className="mt-1 list-inside list-disc text-sm text-zinc-300">
         {items.map((it) => (
           <li key={it}>{it}</li>

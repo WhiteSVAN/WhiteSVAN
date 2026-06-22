@@ -60,8 +60,8 @@ export default async function ReportsPage() {
   }
 
   const STATUS_BADGE: Record<string, string> = {
-    PUBLISHED: "bg-emerald-50 text-emerald-700",
-    APPROVED: "bg-amber-50 text-amber-700",
+    PUBLISHED: "bg-zinc-900/70 text-zinc-100",
+    APPROVED: "bg-zinc-900/70 text-zinc-300",
     DRAFT: "bg-zinc-100 text-zinc-500",
   };
   const STATUS_LABEL: Record<string, string> = {
@@ -73,7 +73,7 @@ export default async function ReportsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Research briefs</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900">Research briefs</h1>
         <p className="mt-1 text-sm text-zinc-500">
           Generate a monthly research brief from verified metrics, edit it, then publish it to your profile.
         </p>
@@ -103,7 +103,7 @@ export default async function ReportsPage() {
           <div className="mt-3 space-y-5">
             {[...byMonth.entries()].map(([period, group]) => (
               <div key={period}>
-                <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+                <h3 className="text-xs font-medium uppercase text-zinc-400">
                   {periodLabel(period)}
                 </h3>
                   <ul className="mt-2 divide-y divide-zinc-100 rounded-lg border border-zinc-800 bg-zinc-900/70">

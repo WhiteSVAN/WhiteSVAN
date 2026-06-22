@@ -60,7 +60,7 @@ export default function Home() {
     <div className="flex min-h-full flex-1 flex-col bg-[#030303] text-zinc-100">
       <header className="sticky top-0 z-20 border-b border-zinc-900 bg-[#030303]/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
-          <Link href="/" className="text-sm font-semibold tracking-[0.18em] text-zinc-100">
+          <Link href="/" className="text-sm font-semibold text-zinc-100">
             <SvanLogo />
           </Link>
           <div className="flex items-center gap-5 text-sm">
@@ -85,11 +85,11 @@ export default function Home() {
         <section className="border-b border-zinc-900">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-zinc-800 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-zinc-400">
+              <p className="inline-flex items-center gap-2 rounded-full border border-zinc-800 px-3 py-1 text-xs font-medium uppercase text-zinc-400">
                 <ShieldCheck className="h-3.5 w-3.5 text-zinc-200" aria-hidden="true" />
                 Verified trading network
               </p>
-              <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl">
+              <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.08] text-white sm:text-5xl">
                 Performance you can&apos;t fake. Research you can inspect.
               </h1>
               <p className="mt-5 max-w-xl text-base leading-7 text-zinc-400">
@@ -112,7 +112,7 @@ export default function Home() {
                 {HERO_STATS.map((s) => (
                   <div key={s.label}>
                     <dt className="text-xs text-zinc-500">{s.label}</dt>
-                    <dd className="mt-1 text-xl font-semibold tabular-nums tracking-tight text-white">{s.value}</dd>
+                    <dd className="mt-1 text-xl font-semibold tabular-nums text-white">{s.value}</dd>
                   </div>
                 ))}
               </dl>
@@ -124,7 +124,7 @@ export default function Home() {
         {/* Logo wall */}
         <section className="border-b border-zinc-900 bg-[#080808]">
           <div className="mx-auto max-w-6xl px-4 py-12">
-            <p className="text-center text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
+            <p className="text-center text-xs font-medium uppercase text-zinc-500">
               Verify from the broker or prop firm you already trade
             </p>
             <div className="mt-6">
@@ -214,7 +214,7 @@ export default function Home() {
         <section>
           <div className="mx-auto flex max-w-6xl flex-col items-start gap-5 px-4 py-16 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-white">
+              <h2 className="text-2xl font-semibold text-white">
                 Get verified. Get inspected. Get hired.
               </h2>
               <p className="mt-2 text-sm text-zinc-400">
@@ -238,8 +238,8 @@ export default function Home() {
 function SectionHead({ eyebrow, title, sub }: { eyebrow: string; title: string; sub?: string }) {
   return (
     <div className="max-w-2xl">
-      <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-200">{eyebrow}</p>
-      <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">{title}</h2>
+      <p className="text-xs font-medium uppercase text-zinc-200">{eyebrow}</p>
+      <h2 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">{title}</h2>
       {sub && <p className="mt-3 text-sm leading-6 text-zinc-400">{sub}</p>}
     </div>
   );
@@ -264,8 +264,8 @@ function FeatureRow({
     <section className="border-b border-zinc-900">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2 lg:py-20">
         <div className={flip ? "lg:order-2" : ""}>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-200">{eyebrow}</p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">{title}</h2>
+          <p className="text-xs font-medium uppercase text-zinc-200">{eyebrow}</p>
+          <h2 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">{title}</h2>
           <p className="mt-4 max-w-lg text-sm leading-7 text-zinc-400">{body}</p>
           <ul className="mt-6 grid gap-2 sm:grid-cols-2">
             {points.map((p) => (
@@ -320,11 +320,11 @@ function Panel({ children }: { children: ReactNode }) {
 }
 
 function Stat({ label, value, tone = "white" }: { label: string; value: string; tone?: "white" | "good" | "bad" }) {
-  const color = tone === "good" ? "text-emerald-300" : tone === "bad" ? "text-red-300" : "text-white";
+  const color = tone === "good" ? "text-zinc-100" : tone === "bad" ? "text-zinc-400" : "text-white";
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
       <p className="text-[11px] text-zinc-500">{label}</p>
-      <p className={`mt-1 text-base font-semibold tabular-nums tracking-tight ${color}`}>{value}</p>
+      <p className={`mt-1 text-base font-semibold tabular-nums ${color}`}>{value}</p>
     </div>
   );
 }
@@ -334,11 +334,11 @@ function OperatorCard() {
     <Panel>
       <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">Operator card</p>
+          <p className="text-xs font-medium uppercase text-zinc-500">Operator card</p>
           <p className="mt-2 text-base font-semibold text-white">Sofia Alvarez</p>
           <p className="text-sm text-zinc-500">Systematic futures · SPX gamma</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-300/30 bg-zinc-300/10 px-2.5 py-0.5 text-xs font-medium text-zinc-100">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
           Tax-verified
         </span>
@@ -447,13 +447,13 @@ function DiligencePanel() {
     <Panel>
       <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
         <p className="text-sm font-medium text-white">Diligence brief</p>
-        <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+        <span className="rounded-full border border-zinc-300/30 bg-zinc-300/10 px-2.5 py-0.5 text-xs font-medium text-zinc-100">
           Constructive record
         </span>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div>
-          <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-300">
+          <p className="flex items-center gap-1.5 text-xs font-medium text-zinc-100">
             <Activity className="h-3.5 w-3.5" aria-hidden="true" /> Strengths
           </p>
           <ul className="mt-2 space-y-1.5 text-xs text-zinc-400">
@@ -462,7 +462,7 @@ function DiligencePanel() {
           </ul>
         </div>
         <div>
-          <p className="flex items-center gap-1.5 text-xs font-medium text-red-300">
+          <p className="flex items-center gap-1.5 text-xs font-medium text-zinc-400">
             <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" /> Risk flags
           </p>
           <ul className="mt-2 space-y-1.5 text-xs text-zinc-400">

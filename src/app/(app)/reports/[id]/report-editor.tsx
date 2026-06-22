@@ -48,8 +48,8 @@ export function ReportEditor({
       : status;
   const readOnly = effectiveStatus === "PUBLISHED";
   const STATUS_BADGE: Record<string, string> = {
-    PUBLISHED: "bg-emerald-50 text-emerald-700",
-    APPROVED: "bg-amber-50 text-amber-700",
+    PUBLISHED: "bg-zinc-900/70 text-zinc-100",
+    APPROVED: "bg-zinc-900/70 text-zinc-300",
     DRAFT: "bg-zinc-100 text-zinc-500",
   };
   const STATUS_LABEL: Record<string, string> = {
@@ -67,7 +67,7 @@ export function ReportEditor({
           <Link href="/reports" className="text-sm text-zinc-200 hover:text-zinc-100">
             Back to briefs
           </Link>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900">
+          <h1 className="mt-1 text-2xl font-semibold text-zinc-900">
             {accountName} / {periodLabel(period)}
           </h1>
         </div>
@@ -79,12 +79,12 @@ export function ReportEditor({
       </div>
 
       {state?.published && (
-        <div className="rounded-lg bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
+        <div className="rounded-lg bg-zinc-900/70 px-4 py-2 text-sm text-zinc-100">
           Brief published.
         </div>
       )}
       {state?.approved && (
-        <div className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800">
+        <div className="rounded-lg bg-zinc-900/70 px-4 py-2 text-sm text-zinc-200">
           Brief approved. Ready to publish.
         </div>
       )}
@@ -92,10 +92,10 @@ export function ReportEditor({
         <div className="rounded-lg bg-zinc-100 px-4 py-2 text-sm text-zinc-600">Draft saved.</div>
       )}
       {state?.message && (
-        <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{state.message}</div>
+        <div className="rounded-lg bg-zinc-950/80 px-4 py-2 text-sm text-zinc-300">{state.message}</div>
       )}
       {(liveIssues.length > 0 || (state?.issues && state.issues.length > 0)) && (
-        <div className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="rounded-lg bg-zinc-900/70 px-4 py-3 text-sm text-zinc-200">
           <p className="font-medium">Compliance check: remove before publishing:</p>
           <ul className="mt-1 list-inside list-disc">
             {[...new Set([...liveIssues, ...(state?.issues ?? [])])].map((p) => (
@@ -136,7 +136,7 @@ export function ReportEditor({
                   name="intent"
                   value="approve"
                   disabled={pending || liveIssues.length > 0}
-                  className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg border border-zinc-600 bg-zinc-900/70 px-4 py-2 text-sm font-medium text-zinc-200 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
                   title={liveIssues.length > 0 ? "Resolve compliance issues first" : undefined}
                 >
                   Approve
@@ -161,7 +161,7 @@ export function ReportEditor({
 
       <form action={deleteReport} className="border-t border-zinc-100 pt-4" onSubmit={confirmDelete}>
         <input type="hidden" name="id" value={id} />
-        <button type="submit" className="text-sm text-red-600 hover:text-red-700">
+        <button type="submit" className="text-sm text-zinc-300 hover:text-zinc-300">
           Delete brief
         </button>
       </form>

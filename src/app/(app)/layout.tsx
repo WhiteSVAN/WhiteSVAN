@@ -22,7 +22,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <Link
             href="/dashboard"
-            className="self-start text-base font-semibold tracking-[0.14em] text-zinc-100 sm:tracking-[0.18em]"
+            className="self-start text-base font-semibold text-zinc-100"
           >
             <SvanLogo />
           </Link>

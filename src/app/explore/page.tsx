@@ -12,10 +12,10 @@ import { SiteFooter } from "@/components/site-footer";
 export const metadata: Metadata = { title: "Verified traders - TrustSVAN" };
 
 const SEVERITY: Record<DrawdownSeverity, { label: string; cls: string }> = {
-  controlled: { label: "Controlled", cls: "border border-emerald-400/30 bg-emerald-400/10 text-emerald-300" },
-  elevated: { label: "Elevated", cls: "border border-amber-400/30 bg-amber-400/10 text-amber-300" },
-  high: { label: "High", cls: "border border-orange-400/30 bg-orange-400/10 text-orange-300" },
-  severe: { label: "Severe", cls: "border border-red-400/30 bg-red-400/10 text-red-300" },
+  controlled: { label: "Controlled", cls: "border border-zinc-300/30 bg-zinc-300/10 text-zinc-100" },
+  elevated: { label: "Elevated", cls: "border border-zinc-500/30 bg-zinc-500/15 text-zinc-300" },
+  high: { label: "High", cls: "border border-zinc-600/30 bg-zinc-600/15 text-zinc-300" },
+  severe: { label: "Severe", cls: "border border-zinc-600/40 bg-zinc-700/20 text-zinc-400" },
 };
 
 export default async function ExplorePage() {
@@ -59,7 +59,7 @@ export default async function ExplorePage() {
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Link
             href={loggedIn ? "/dashboard" : "/"}
-            className="text-base font-semibold tracking-[0.14em] text-zinc-100 sm:tracking-[0.18em]"
+            className="text-base font-semibold text-zinc-100"
           >
             <SvanLogo />
           </Link>
@@ -84,11 +84,11 @@ export default async function ExplorePage() {
       <section className="relative overflow-hidden border-b border-zinc-800 bg-zinc-950">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(250,250,250,0.055),transparent_55%),linear-gradient(180deg,#080808_0%,#030303_100%)]" />
         <div className="relative mx-auto max-w-5xl px-4 py-10 sm:py-12">
-          <p className="inline-flex items-center gap-2 rounded-full border border-zinc-500/50 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-zinc-200 sm:tracking-[0.2em]">
+          <p className="inline-flex items-center gap-2 rounded-full border border-zinc-500/50 bg-white/5 px-3 py-1 text-xs font-medium uppercase text-zinc-200">
             <ShieldCheck className="h-4 w-4" aria-hidden="true" />
             Verified directory
           </p>
-          <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+          <h1 className="mt-5 text-3xl font-semibold text-white sm:text-4xl">
             Traders with proof, context, and a visible record.
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-300 sm:text-base">
@@ -120,8 +120,8 @@ export default async function ExplorePage() {
                       <h3 className="truncate font-semibold text-white">{p.displayName}</h3>
                     </div>
                     {p.openToWork && (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-300/40 bg-zinc-300/10 px-2 py-0.5 text-[10px] font-medium text-zinc-100">
+                        <span className="h-1.5 w-1.5 rounded-full bg-zinc-200" aria-hidden="true" />
                         Open to work
                       </span>
                     )}
@@ -175,7 +175,7 @@ export default async function ExplorePage() {
 function Mini({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</p>
+      <p className="text-xs font-medium uppercase text-zinc-400">{label}</p>
       <p className="mt-0.5 font-semibold tabular-nums text-white">{value}</p>
     </div>
   );

@@ -180,8 +180,8 @@ export function PortalSettingsForm({
         <button type="submit" disabled={pending} className={`${btnPrimary} sm:w-auto sm:px-6`}>
           {pending ? "Saving..." : "Save settings"}
         </button>
-        {state?.saved && <span className="text-sm text-emerald-600">Saved.</span>}
-        {state?.error && <span className="text-sm text-red-600">{state.error}</span>}
+        {state?.saved && <span className="text-sm text-zinc-100">Saved.</span>}
+        {state?.error && <span className="text-sm text-zinc-300">{state.error}</span>}
       </div>
     </form>
   );

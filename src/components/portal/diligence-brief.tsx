@@ -2,14 +2,14 @@ import { AlertTriangle, Eye, ShieldCheck, TrendingUp } from "lucide-react";
 import type { DiligenceBrief, DiligenceItem, DiligencePosture } from "@/lib/diligence";
 
 const POSTURE_STYLE: Record<DiligencePosture, string> = {
-  constructive: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300",
-  mixed: "border-amber-400/40 bg-amber-400/10 text-amber-300",
-  cautious: "border-red-400/40 bg-red-400/10 text-red-300",
+  constructive: "border-zinc-300/40 bg-zinc-300/10 text-zinc-100",
+  mixed: "border-zinc-500/40 bg-zinc-500/15 text-zinc-300",
+  cautious: "border-zinc-600/40 bg-zinc-700/20 text-zinc-400",
 };
 
 const TONE: Record<string, string> = {
-  emerald: "text-emerald-300",
-  red: "text-red-300",
+  bright: "text-zinc-100",
+  muted: "text-zinc-400",
   steel: "text-zinc-200",
 };
 
@@ -70,14 +70,14 @@ export function DiligenceBriefView({ brief }: { brief: DiligenceBrief }) {
         <Column
           title="Strengths"
           icon={TrendingUp}
-          tone="emerald"
+          tone="bright"
           items={brief.strengths}
           empty="No standout strengths in the verified record."
         />
         <Column
           title="Risk flags"
           icon={AlertTriangle}
-          tone="red"
+          tone="muted"
           items={brief.risks}
           empty="No material risk flags surfaced."
         />

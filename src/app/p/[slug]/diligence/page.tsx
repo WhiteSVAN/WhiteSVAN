@@ -54,7 +54,7 @@ export default async function DiligencePage({ params }: { params: Promise<{ slug
     <div className="min-h-full bg-zinc-950 text-zinc-100">
       <nav className="border-b border-zinc-800 bg-zinc-950/90">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link href="/" className="text-base font-semibold tracking-[0.18em] text-zinc-100">
+          <Link href="/" className="text-base font-semibold text-zinc-100">
             <SvanLogo />
           </Link>
           <Link
@@ -68,10 +68,10 @@ export default async function DiligencePage({ params }: { params: Promise<{ slug
 
       <main className="mx-auto max-w-4xl space-y-8 px-4 py-8">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+          <p className="text-xs font-medium uppercase text-zinc-400">
             Allocator diligence
           </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-900">
+          <h1 className="mt-1 text-2xl font-semibold text-zinc-900">
             {profile.displayName}
           </h1>
           {profile.headline && (

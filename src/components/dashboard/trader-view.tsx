@@ -78,7 +78,7 @@ export function TraderView({
         {flags.length > 0 && (
           <ul className="mt-4 space-y-1">
             {flags.map((f) => (
-              <li key={f} className="flex items-start gap-2 text-sm text-amber-700">
+              <li key={f} className="flex items-start gap-2 text-sm text-zinc-300">
                 <span className="mt-0.5">⚠</span>
                 {f}
               </li>
@@ -111,10 +111,10 @@ function Card({
   tone?: "pos" | "neg";
 }) {
   const valueColor =
-    tone === "pos" ? "text-emerald-600" : tone === "neg" ? "text-red-600" : "text-zinc-900";
+    tone === "pos" ? "text-zinc-100" : tone === "neg" ? "text-zinc-300" : "text-zinc-900";
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</p>
+      <p className="text-xs font-medium uppercase text-zinc-400">{label}</p>
       <p className={`mt-2 text-2xl font-semibold ${valueColor}`}>{value}</p>
       {sub && <p className="mt-0.5 text-xs text-zinc-400">{sub}</p>}
     </div>
@@ -123,10 +123,10 @@ function Card({
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "pos" | "neg" }) {
   const valueColor =
-    tone === "pos" ? "text-emerald-600" : tone === "neg" ? "text-red-600" : "text-zinc-700";
+    tone === "pos" ? "text-zinc-100" : tone === "neg" ? "text-zinc-300" : "text-zinc-700";
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</p>
+      <p className="text-xs font-medium uppercase text-zinc-400">{label}</p>
       <p className={`mt-1 font-semibold tabular-nums ${valueColor}`}>{value}</p>
     </div>
   );

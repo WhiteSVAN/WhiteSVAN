@@ -210,9 +210,9 @@ Two‑sided positioning: verified traders ↔ allocators. Copy is structured
 | CTA hover / solid     | `#ffffff` / `#e4e4e7` | Primary buttons           |
 | Secondary accent      | `#71717a`  | Smoky ambient glow                   |
 | Muted text            | `#a1a1aa` → `#71717a` | Secondary / tertiary text |
-| Semantic — good       | `#34d399` (emerald) | Positive P&L, verified, open‑to‑work |
-| Semantic — warn       | `#fbbf24` (amber) / `#fb923c` (orange) | Elevated/high risk |
-| Semantic — bad        | `#f87171` (red) | Losses, severe risk                  |
+| Semantic — good       | `#e4e4e7`  | Positive P&L, verified, open‑to‑work |
+| Semantic — warn       | `#a1a1aa`  | Elevated/high risk                   |
+| Semantic — bad        | `#71717a`  | Losses, severe risk                  |
 
 Page has a fixed radial‑gradient ambient backdrop with subtle white and graphite
 halos plus a linear black gradient. Selection is steel‑tinted.
@@ -225,18 +225,22 @@ halos plus a linear black gradient. Selection is steel‑tinted.
 
 ### 5.3 Typography
 
-- **Geist Sans** (`--font-geist-sans`) for UI; **Geist Mono** for numbers/codes/wordmark tracking.
-- Headings: `font-semibold tracking-tight`, hero up to `text-5xl/6xl`.
+- **Apple system stack** (`-apple-system`, `SF Pro Display`, `SF Pro Text`,
+  `Helvetica Neue`) for UI; **SF Mono** stack for numbers/codes.
+- A restrained `New York` / Baskerville-style serif accent is reserved for the
+  `Trust` portion of the wordmark, nodding to LoveFrom's serif identity without
+  importing or copying proprietary type.
+- Headings: `font-semibold`, no artificial tracking, hero up to `text-5xl/6xl`.
 - Numbers use `tabular-nums` for alignment in stats/leaderboards.
-- Brand wordmark: `Trust` + swan-as-`S` + `VAN`, in metallic monochrome.
+- Brand wordmark: serif `Trust` + swan-as-`S` + sans `VAN`, in metallic monochrome.
 
 ### 5.4 Component patterns
 
 - **Card:** `rounded-lg border border-slate-800 bg-slate-900/70 p-5`.
-- **Badge / pill:** `rounded-full border <tone>/30 bg <tone>/10 text-<tone>` (e.g. steel “Verified · Proof L4”, emerald “Open to work”, severity chips).
+- **Badge / pill:** monochrome steel/graphite treatment, using border opacity, fill opacity, and text weight rather than hue.
 - **Primary button:** steel fill, `text-slate-950`, hover white. **Secondary:** slate border, steel hover.
-- **Inputs:** shared in `components/form.tsx`; `color-scheme: dark`; errors as red field/banner, success as emerald banner.
-- **Charts:** 240px tall, gridlines `#27272a`, axis ticks `#a1a1aa`, green/red series, dark tooltip (`#080808` bg, `#27272a` border).
+- **Inputs:** shared in `components/form.tsx`; `color-scheme: dark`; errors and success states use neutral banners.
+- **Charts:** 240px tall, gridlines `#27272a`, axis ticks `#a1a1aa`, steel/charcoal series, dark tooltip (`#080808` bg, `#27272a` border).
 - **Leaderboard card** (`/explore`): rank chip, name, “Open to work”, “Verified · Proof L_n_” badge, Growth/Drop/Trust mini‑stats, severity chip.
 - **Layout widths:** `max-w-6xl` (marketing), `max-w-5xl` (directory), `max-w-4xl` (profile), `max-w-3xl` (settings). Generous vertical rhythm (`space-y-8/10`).
 

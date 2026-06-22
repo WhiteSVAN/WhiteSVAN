@@ -8,7 +8,7 @@ export function WaitlistForm() {
 
   if (state?.ok) {
     return (
-      <p className="rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+      <p className="rounded-lg bg-zinc-900/70 px-4 py-3 text-sm font-medium text-zinc-100">
         You&apos;re on the list. We&apos;ll be in touch.
       </p>
     );
@@ -31,7 +31,7 @@ export function WaitlistForm() {
         {pending ? "Joining..." : "Join the beta"}
       </button>
       {state?.error && (
-        <p className="text-sm text-red-400 sm:absolute sm:mt-12">{state.error}</p>
+        <p className="text-sm text-zinc-300 sm:absolute sm:mt-12">{state.error}</p>
       )}
     </form>
   );

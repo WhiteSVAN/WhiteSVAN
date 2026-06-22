@@ -86,7 +86,7 @@ export function EvidenceUploader({ accounts }: { accounts: { id: string; account
         >
           {pending ? "Uploading…" : "Upload"}
         </button>
-        {state?.error && <span className="text-sm text-red-600">{state.error}</span>}
+        {state?.error && <span className="text-sm text-zinc-300">{state.error}</span>}
       </div>
     </form>
   );

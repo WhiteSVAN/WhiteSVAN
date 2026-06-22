@@ -9,9 +9,9 @@ import { PROOF_LEVELS, type ProofLevel } from "@/lib/trust";
 
 /** Badge colors by freshness tone. */
 const TONE: Record<FreshnessTone, string> = {
-  good: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20",
-  warn: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20",
-  bad: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
+  good: "bg-zinc-900/70 text-zinc-100 ring-1 ring-inset ring-zinc-400/20",
+  warn: "bg-zinc-900/70 text-zinc-300 ring-1 ring-inset ring-zinc-500/25",
+  bad: "bg-zinc-950/80 text-zinc-300 ring-1 ring-inset ring-zinc-600/30",
   neutral: "bg-zinc-100 text-zinc-600 ring-1 ring-inset ring-zinc-500/20",
 };
 
@@ -28,7 +28,7 @@ function relativeAge(hours: number | null): string {
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</dt>
+      <dt className="text-xs font-medium uppercase text-zinc-400">{label}</dt>
       <dd className="mt-1 text-sm text-zinc-800">{children}</dd>
     </div>
   );
@@ -79,7 +79,7 @@ export function ProfileStatusCard({
 
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 lg:grid-cols-6">
         <Stat label="Visibility">
-          <span className={isPublic ? "text-emerald-700" : "text-zinc-500"}>
+          <span className={isPublic ? "text-zinc-100" : "text-zinc-500"}>
             {isPublic ? "Public" : "Private"}
           </span>
         </Stat>

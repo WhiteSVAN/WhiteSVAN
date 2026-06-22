@@ -3,19 +3,39 @@
 :root {
   --background: #030303;
   --foreground: #f4f4f5;
+  --font-apple-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-apple-mono: "SF Mono", "SFMono-Regular", ui-monospace, "Menlo", "Monaco",
+    "Cascadia Mono", "Segoe UI Mono", monospace;
+  --font-lovefrom-serif: "New York", "Iowan Old Style", "Baskerville", "Times New Roman",
+    serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-apple-sans);
+  --font-mono: var(--font-apple-mono);
+  --font-serif: var(--font-lovefrom-serif);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-apple-sans);
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1,
+    "calt" 1;
+  text-rendering: geometricPrecision;
+}
+
+.font-serif {
+  font-family: var(--font-lovefrom-serif) !important;
+}
+
+.font-mono {
+  font-family: var(--font-apple-mono) !important;
 }
 
 ::selection {
@@ -100,43 +120,8 @@ body::before {
   background-color: #18181b !important;
 }
 
-.bg-emerald-50 {
-  background-color: rgba(6, 78, 59, 0.42) !important;
-}
-
-.bg-amber-50 {
-  background-color: rgba(120, 53, 15, 0.42) !important;
-}
-
-.bg-orange-50 {
-  background-color: rgba(124, 45, 18, 0.42) !important;
-}
-
-.bg-red-50 {
-  background-color: rgba(127, 29, 29, 0.42) !important;
-}
-
 .bg-neutral-900 {
   background-color: rgba(39, 39, 42, 0.58) !important;
-}
-
-.text-emerald-700,
-.text-emerald-600 {
-  color: #34d399 !important;
-}
-
-.text-amber-700,
-.text-amber-600 {
-  color: #fbbf24 !important;
-}
-
-.text-orange-700 {
-  color: #fb923c !important;
-}
-
-.text-red-700,
-.text-red-600 {
-  color: #f87171 !important;
 }
 
 .shadow-sm {

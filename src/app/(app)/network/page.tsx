@@ -38,7 +38,7 @@ const TYPE_LABELS: Record<Exclude<NetworkType, "all">, string> = {
 
 const TYPE_STYLES: Record<Exclude<NetworkType, "all">, string> = {
   gex: "bg-zinc-950/70 text-zinc-200",
-  "deep-dive": "bg-amber-950/70 text-amber-200",
+  "deep-dive": "bg-zinc-900/70 text-zinc-300",
   portfolio: "bg-zinc-950/70 text-zinc-200",
   systematic: "bg-neutral-950/70 text-zinc-200",
 };
@@ -147,7 +147,7 @@ export default async function NetworkPage({
               <Users className="h-4 w-4" aria-hidden="true" />
               Verified trader board
             </p>
-            <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+            <h1 className="mt-3 max-w-3xl text-3xl font-semibold text-white sm:text-4xl">
               Public profiles with proof, freshness, and computed risk.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-zinc-400 sm:text-base">
@@ -171,7 +171,7 @@ export default async function NetworkPage({
               <span
                 className={`rounded px-2 py-1 text-xs font-medium ${
                   user.profile.isPublic
-                    ? "bg-emerald-50 text-emerald-700"
+                    ? "bg-zinc-900/70 text-zinc-100"
                     : "bg-zinc-800 text-zinc-300"
                 }`}
               >
@@ -230,7 +230,7 @@ export default async function NetworkPage({
               <MessageSquare className="h-4 w-4" aria-hidden="true" />
               Verified research forum
             </p>
-            <h2 className="mt-3 text-xl font-semibold tracking-tight text-white">
+            <h2 className="mt-3 text-xl font-semibold text-white">
               Post by proof, not hype.
             </h2>
             <p className="mt-2 text-sm leading-6 text-zinc-400">
@@ -239,7 +239,7 @@ export default async function NetworkPage({
               with proof and freshness visible on every poster. (Use Discord for live chat.)
             </p>
             <div className="mt-5 rounded-lg border border-zinc-800 bg-zinc-950/70 p-4">
-              <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-400">
+              <p className="flex items-center gap-2 text-xs font-medium uppercase text-zinc-400">
                 <LockKeyhole className="h-4 w-4 text-zinc-200" aria-hidden="true" />
                 Access model
               </p>
@@ -272,7 +272,7 @@ export default async function NetworkPage({
         </div>
 
         <div className="mt-5 rounded-lg border border-zinc-800 bg-zinc-950/70 p-4">
-          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-400">
+          <p className="flex items-center gap-2 text-xs font-medium uppercase text-zinc-400">
             <Bot className="h-4 w-4 text-zinc-200" aria-hidden="true" />
             AI thread assistant
           </p>
@@ -286,7 +286,7 @@ export default async function NetworkPage({
       <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-5 shadow-sm">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight text-white">Verified profiles</h2>
+            <h2 className="text-xl font-semibold text-white">Verified profiles</h2>
             <p className="mt-1 text-sm text-zinc-400">
               Filter by research style and inspect the published track record behind each profile.
             </p>
@@ -403,8 +403,8 @@ function MemberCard({
         </span>
       </div>
       {openToWork && (
-        <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-300">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+        <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-zinc-300/30 bg-zinc-300/10 px-2 py-0.5 text-xs font-medium text-zinc-100">
+          <span className="h-1.5 w-1.5 rounded-full bg-zinc-200" aria-hidden="true" />
           Open to work
         </span>
       )}

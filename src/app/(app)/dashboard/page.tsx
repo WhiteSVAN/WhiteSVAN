@@ -111,7 +111,7 @@ export default async function DashboardPage({
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+          <h1 className="text-2xl font-semibold text-zinc-900">
             {user.profile.displayName}
           </h1>
           <PortalShare slug={user.profile.slug} isPublic={user.profile.isPublic} />
@@ -149,7 +149,7 @@ export default async function DashboardPage({
       )}
 
       {imported && (
-        <div className="rounded-lg bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
+        <div className="rounded-lg bg-zinc-900/70 px-4 py-2 text-sm text-zinc-100">
           Loaded {imported} trades. Your metrics are updated below.
         </div>
       )}

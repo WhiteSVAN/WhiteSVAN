@@ -116,7 +116,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Settings</h1>
+      <h1 className="text-2xl font-semibold text-zinc-900">Settings</h1>
 
       <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
         <h2 className="text-base font-medium text-zinc-800">Research profile and privacy</h2>
@@ -193,7 +193,7 @@ export default async function SettingsPage() {
                           type="submit"
                           className={`rounded px-2 py-0.5 text-xs font-medium ${
                             e.isPublic
-                              ? "bg-emerald-50 text-emerald-700"
+                              ? "bg-zinc-900/70 text-zinc-100"
                               : "bg-zinc-100 text-zinc-500"
                           }`}
                         >
@@ -203,7 +203,7 @@ export default async function SettingsPage() {
                     )}
                     <form action={deleteEvidence}>
                       <input type="hidden" name="id" value={e.id} />
-                      <button type="submit" className="text-xs text-red-600 hover:text-red-700">
+                      <button type="submit" className="text-xs text-zinc-300 hover:text-zinc-300">
                         Delete
                       </button>
                     </form>

@@ -34,7 +34,7 @@ export function BrokerageBreakdown({
             <>
               {" "}
               · net{" "}
-              <span className={totalNet >= 0 ? "text-emerald-600" : "text-red-600"}>
+              <span className={totalNet >= 0 ? "text-zinc-100" : "text-zinc-300"}>
                 {formatMoney(totalNet)}
               </span>
             </>
@@ -45,7 +45,7 @@ export function BrokerageBreakdown({
       <div className="mt-3 overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wide text-zinc-400">
+            <tr className="text-left text-xs uppercase text-zinc-400">
               <th className="py-1 pr-4 font-medium">Broker / account</th>
               <th className="py-1 pr-4 font-medium">Share</th>
               <th className="py-1 pr-4 text-right font-medium">Net P&amp;L</th>
@@ -69,7 +69,7 @@ function ShareBar({ share, positive }: { share: number; positive: boolean }) {
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-20 overflow-hidden rounded-full bg-zinc-100">
         <div
-          className={`h-full rounded-full ${positive ? "bg-emerald-500" : "bg-red-500"}`}
+          className={`h-full rounded-full ${positive ? "bg-zinc-200" : "bg-zinc-700"}`}
           style={{ width: `${Math.round(share * 100)}%` }}
         />
       </div>
@@ -100,7 +100,7 @@ function BrokerGroup({
         </td>
         <td
           className={`py-1.5 pr-4 text-right font-semibold tabular-nums ${
-            b.netPnl >= 0 ? "text-emerald-600" : "text-red-600"
+            b.netPnl >= 0 ? "text-zinc-100" : "text-zinc-300"
           }`}
         >
           {money(b.netPnl)}
@@ -118,7 +118,7 @@ function BrokerGroup({
             </td>
             <td
               className={`py-1.5 pr-4 text-right tabular-nums ${
-                a.netPnl >= 0 ? "text-emerald-600" : "text-red-600"
+                a.netPnl >= 0 ? "text-zinc-100" : "text-zinc-300"
               }`}
             >
               {money(a.netPnl)}

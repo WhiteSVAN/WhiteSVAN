@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div className="flex min-h-full flex-1 items-center justify-center bg-zinc-950 px-4 py-12">
       <div className="w-full max-w-sm">
         <Link href="/" className="mb-8 flex items-center justify-center">
-          <span className="text-xl font-semibold tracking-[0.18em] text-zinc-100">
+          <span className="text-xl font-semibold text-zinc-100">
             <SvanLogo />
           </span>
         </Link>
