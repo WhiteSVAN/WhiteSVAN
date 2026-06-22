@@ -14,6 +14,7 @@ import {
 } from "@/lib/auth/schemas";
 import { createPasswordResetToken, consumePasswordResetToken } from "@/lib/auth/reset";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { logger } from "@/lib/logger";
 
 export type AuthFormState =
   | {
