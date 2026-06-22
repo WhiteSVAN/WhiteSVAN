@@ -9,14 +9,27 @@ export const loginSchema = z.object({
   password: z.string().min(1, { error: "Password is required." }),
 });
 
+/** Shared password strength rule for signup and password reset. */
+const passwordField = z
+  .string()
+  .min(8, { error: "Use at least 8 characters." })
+  .regex(/[a-zA-Z]/, { error: "Include at least one letter." })
+  .regex(/[0-9]/, { error: "Include at least one number." });
+
 export const signupSchema = z.object({
   name: z.string().min(2, { error: "Name must be at least 2 characters." }).trim(),
   email: z.email({ error: "Enter a valid email." }).trim(),
-  password: z
-    .string()
-    .min(8, { error: "Use at least 8 characters." })
-    .regex(/[a-zA-Z]/, { error: "Include at least one letter." })
-    .regex(/[0-9]/, { error: "Include at least one number." }),
+  password: passwordField,
+});
+
+/** Forgot-password: just an email to send the reset link to. */
+export const requestResetSchema = z.object({
+  email: z.email({ error: "Enter a valid email." }).trim(),
+});
+
+/** Reset-password: the new password (token is validated separately). */
+export const resetPasswordSchema = z.object({
+  password: passwordField,
 });
 
 /** Public portal handle: lowercase letters, numbers and dashes (3–30 chars). */

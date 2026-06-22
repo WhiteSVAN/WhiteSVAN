@@ -1,15 +1,25 @@
 "use server";
 
 import { AuthError } from "next-auth";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import bcrypt from "bcryptjs";
 import { signIn } from "@/auth";
 import { prisma } from "@/lib/db";
-import { loginSchema, signupSchema } from "@/lib/auth/schemas";
+import {
+  loginSchema,
+  signupSchema,
+  requestResetSchema,
+  resetPasswordSchema,
+} from "@/lib/auth/schemas";
+import { createPasswordResetToken, consumePasswordResetToken } from "@/lib/auth/reset";
+import { sendPasswordResetEmail } from "@/lib/email";
 
 export type AuthFormState =
   | {
       errors?: { name?: string[]; email?: string[]; password?: string[] };
       message?: string;
+      sent?: boolean;
     }
   | undefined;
 
@@ -67,4 +77,52 @@ export async function signup(
     if (error instanceof AuthError) return { message: "Account created — please sign in." };
     throw error;
   }
+}
+
+/**
+ * Forgot password: email a single-use reset link. Always returns the same
+ * neutral result whether or not the email matches an account, so this can't be
+ * used to discover which emails are registered. When no email provider is wired,
+ * the link is logged to the server console (see src/lib/email.ts).
+ */
+export async function requestPasswordReset(
+  _prev: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const parsed = requestResetSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors };
+
+  const { email } = parsed.data;
+  const user = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+  if (user) {
+    const token = await createPasswordResetToken(email);
+    const h = await headers();
+    const host = h.get("host") ?? "localhost:3000";
+    const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+    await sendPasswordResetEmail(email, `${proto}://${host}/reset?token=${token}`);
+  }
+  return { sent: true };
+}
+
+/** Reset password using a token from the emailed link, then send the user to sign in. */
+export async function resetPassword(
+  _prev: AuthFormState,
+  formData: FormData,
+): Promise<AuthFormState> {
+  const token = String(formData.get("token") ?? "");
+  const parsed = resetPasswordSchema.safeParse({ password: formData.get("password") });
+  if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors };
+
+  const email = await consumePasswordResetToken(token);
+  if (!email) {
+    return { message: "This reset link is invalid or has expired. Request a new one." };
+  }
+
+  const passwordHash = await bcrypt.hash(parsed.data.password, 10);
+  const updated = await prisma.user
+    .update({ where: { email }, data: { passwordHash } })
+    .catch(() => null);
+  if (!updated) return { message: "Could not reset the password for that account." };
+
+  redirect("/login?reset=1");
 }
