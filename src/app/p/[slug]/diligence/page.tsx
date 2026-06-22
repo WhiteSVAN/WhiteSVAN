@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SvanLogo } from "@/components/svan-logo";
 import { prisma } from "@/lib/db";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 import { buildDiligenceBrief } from "@/lib/diligence";
 import { DiligenceBriefView } from "@/components/portal/diligence-brief";
 
 const DISCLAIMER =
-  "Diligence summarizes this operator's verified past performance for evaluation. Quantidive does not manage money, execute trades, or provide investment advice, and nothing here is an allocation recommendation. Past performance does not guarantee future results.";
+  "Diligence summarizes this operator's verified past performance for evaluation. TrustSVAN does not manage money, execute trades, or provide investment advice, and nothing here is an allocation recommendation. Past performance does not guarantee future results.";
 
 export async function generateMetadata({
   params,
@@ -19,7 +20,7 @@ export async function generateMetadata({
     select: { displayName: true, isPublic: true },
   });
   return {
-    title: profile?.isPublic ? `Diligence · ${profile.displayName} — Quantidive` : "Quantidive",
+    title: profile?.isPublic ? `Diligence · ${profile.displayName} — TrustSVAN` : "TrustSVAN",
     robots: { index: false },
   };
 }
@@ -54,7 +55,7 @@ export default async function DiligencePage({ params }: { params: Promise<{ slug
       <nav className="border-b border-slate-800 bg-slate-950/90">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
           <Link href="/" className="text-base font-semibold tracking-[0.18em] text-slate-100">
-            QUANTI<span className="text-cyan-300">DIVE</span>
+            <SvanLogo />
           </Link>
           <Link
             href={`/p/${slug}`}

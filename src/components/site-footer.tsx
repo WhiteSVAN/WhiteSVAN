@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SvanLogo } from "@/components/svan-logo";
 
 const FOOTER_GROUPS = [
   {
@@ -33,14 +34,14 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:py-12 lg:grid-cols-[1.1fr_1.4fr]">
         <div>
           <Link href="/" className="text-base font-semibold tracking-[0.18em] text-slate-100">
-            QUANTI<span className="text-cyan-300">DIVE</span>
+            <SvanLogo />
           </Link>
           <p className="mt-4 max-w-md text-sm leading-6 text-slate-400">
             A verification and diligence network for market operators, brokers, prop firms, and
             research teams that need source-backed trading records.
           </p>
           <p className="mt-4 text-xs leading-5 text-slate-500">
-            Quantidive does not manage money, execute trades, copy trades, provide investment
+            TrustSVAN does not manage money, execute trades, copy trades, provide investment
             advice, or guarantee performance.
           </p>
         </div>
@@ -70,7 +71,7 @@ export function SiteFooter() {
 
       <div className="border-t border-slate-800">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <span>Copyright 2026 Quantidive. All rights reserved.</span>
+          <span>Copyright 2026 TrustSVAN. All rights reserved.</span>
           <span>Past performance is not indicative of future results.</span>
         </div>
       </div>

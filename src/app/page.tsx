@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { SvanLogo } from "@/components/svan-logo";
 import {
   Activity,
   BarChart3,
@@ -62,7 +63,7 @@ export default function Home() {
       <header className="sticky top-0 z-20 border-b border-slate-900 bg-[#05070d]/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
           <Link href="/" className="text-sm font-semibold tracking-[0.18em] text-slate-100">
-            QUANTI<span className="text-cyan-300">DIVE</span>
+            <SvanLogo />
           </Link>
           <div className="flex items-center gap-5 text-sm">
             <Link href="/explore" className="text-slate-400 hover:text-white">
@@ -94,7 +95,7 @@ export default function Home() {
                 Performance you can&apos;t fake. Research you can inspect.
               </h1>
               <p className="mt-5 max-w-xl text-base leading-7 text-slate-400">
-                Quantidive turns broker-reported history into proof-backed profiles, then layers
+                TrustSVAN turns broker-reported history into proof-backed profiles, then layers
                 structured research — market structure, factor studies, portfolio construction, and
                 single-name diligence — that anyone can scrutinize.
               </p>
@@ -136,10 +137,10 @@ export default function Home() {
 
         {/* Feature: verified performance */}
         <FeatureRow
-          eyebrow="Verified performance"
-          title="Every number is computed from your trades"
-          body="Import once and Quantidive derives the equity curve, drawdown, win rate, and profit factor in code — the record can't be edited into a screenshot."
-          points={["Equity curve & daily P&L", "Max drawdown & recovery", "Win rate & profit factor", "Big-win dependency"]}
+          eyebrow="Fund-grade performance"
+          title="Institutional metrics, computed — not claimed"
+          body="Import once and TrustSVAN derives the risk- and return-adjusted metrics allocators actually underwrite — Sharpe, Sortino, CAGR, volatility, max drawdown, and verified capital base — all in code, from the trades."
+          points={["Sharpe, Sortino & volatility", "CAGR & verified AUM", "Max drawdown & recovery", "Win rate & profit factor"]}
           visual={<PerformancePanel />}
         />
 
@@ -348,10 +349,10 @@ function OperatorCard() {
         <EquityChart />
       </div>
       <dl className="mt-4 grid grid-cols-2 gap-3">
-        <Stat label="Return" value="+38.4%" tone="good" />
+        <Stat label="AUM (capital base)" value="$1.2M" />
+        <Stat label="CAGR" value="+38.4%" tone="good" />
+        <Stat label="Sharpe" value="2.1" tone="good" />
         <Stat label="Max drawdown" value="5.8%" />
-        <Stat label="Research score" value="91" />
-        <Stat label="Freshness" value="7d" />
       </dl>
     </Panel>
   );
@@ -368,10 +369,10 @@ function PerformancePanel() {
         <EquityChart height={150} />
       </div>
       <dl className="mt-4 grid grid-cols-4 gap-2">
-        <Stat label="Net P&L" value="+$19.2k" tone="good" />
-        <Stat label="Win rate" value="61%" />
-        <Stat label="Profit factor" value="1.8" />
-        <Stat label="Worst day" value="-$1.0k" tone="bad" />
+        <Stat label="CAGR" value="+38%" tone="good" />
+        <Stat label="Sharpe" value="2.1" />
+        <Stat label="Sortino" value="3.0" />
+        <Stat label="Volatility" value="12%" />
       </dl>
     </Panel>
   );

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SvanLogo } from "@/components/svan-logo";
 import { ShieldCheck } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
@@ -8,7 +9,7 @@ import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 import { SiteFooter } from "@/components/site-footer";
 
-export const metadata: Metadata = { title: "Verified traders - Quantidive" };
+export const metadata: Metadata = { title: "Verified traders - TrustSVAN" };
 
 const SEVERITY: Record<DrawdownSeverity, { label: string; cls: string }> = {
   controlled: { label: "Controlled", cls: "border border-emerald-400/30 bg-emerald-400/10 text-emerald-300" },
@@ -60,7 +61,7 @@ export default async function ExplorePage() {
             href={loggedIn ? "/dashboard" : "/"}
             className="text-base font-semibold tracking-[0.14em] text-slate-100 sm:tracking-[0.18em]"
           >
-            QUANTI<span className="text-cyan-300">DIVE</span>
+            <SvanLogo />
           </Link>
           {loggedIn ? (
             <Link
@@ -91,7 +92,7 @@ export default async function ExplorePage() {
             Traders with proof, context, and a visible record.
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-            Browse Quantidive profiles by strategy, proof level, risk context, and performance
+            Browse TrustSVAN profiles by strategy, proof level, risk context, and performance
             snapshot before starting a diligence conversation.
           </p>
         </div>

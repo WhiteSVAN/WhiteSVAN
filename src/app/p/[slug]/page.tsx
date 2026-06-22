@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SvanLogo } from "@/components/svan-logo";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { toISODate } from "@/lib/format";
@@ -19,7 +20,7 @@ import { PrintButton } from "./print-button";
 import { FollowForm } from "./follow-form";
 
 const DEFAULT_DISCLAIMER =
-  "Quantidive is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
+  "TrustSVAN is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
 
 export async function generateMetadata({
   params,
@@ -32,7 +33,7 @@ export async function generateMetadata({
     select: { displayName: true, isPublic: true },
   });
   return {
-    title: profile?.isPublic ? `${profile.displayName} - Quantidive` : "Quantidive",
+    title: profile?.isPublic ? `${profile.displayName} - TrustSVAN` : "TrustSVAN",
     robots: { index: false }, // private share links shouldn't be indexed
   };
 }
@@ -152,7 +153,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             href={loggedIn ? "/dashboard" : "/"}
             className="text-sm font-semibold tracking-[0.14em] text-slate-100"
           >
-            QUANTI<span className="text-cyan-300">DIVE</span>
+            <SvanLogo />
           </Link>
           <Link
             href={loggedIn ? "/network" : "/explore"}
@@ -171,7 +172,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
                 href={loggedIn ? "/dashboard" : "/"}
                 className="transition hover:text-cyan-300"
               >
-                QUANTI<span className="text-cyan-300">DIVE</span>
+                <SvanLogo />
               </Link>{" "}
               / research profile
             </p>
