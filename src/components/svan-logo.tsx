@@ -7,19 +7,19 @@
 export function SvanLogo({ className }: { className?: string }) {
   return (
     <span
-      className={`inline-flex items-center font-semibold leading-none tracking-[0.08em] ${className ?? ""}`}
+      className={`inline-flex items-center gap-[0.05em] font-semibold uppercase leading-none tracking-[0.04em] ${className ?? ""}`}
     >
-      <span className="lowercase text-slate-400">tru</span>
+      <span className="text-slate-400">tru</span>
       {/* the swan mark stands in for the "S" of SVAN */}
-      <SwanMark className="mx-[0.06em] h-[1.3em] w-[1.3em] shrink-0 text-white" />
-      <span className="-ml-[0.02em] text-white">VAN</span>
+      <SwanMark className="h-[0.92em] w-auto shrink-0 text-white" />
+      <span className="text-white">van</span>
     </span>
   );
 }
 
 export function SwanMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 554 589" className={className} aria-hidden="true">
+    <svg viewBox="80 81 393 426" className={className} aria-hidden="true">
       <path
         fill="currentColor"
         fillRule="evenodd"
