@@ -1,10 +1,13 @@
 import Link from "next/link";
 import {
   Activity,
+  Bot,
   BookOpenCheck,
   CheckCircle2,
   ClipboardCheck,
   FileSearch,
+  LockKeyhole,
+  MessageSquare,
   ShieldCheck,
   UploadCloud,
 } from "lucide-react";
@@ -54,6 +57,31 @@ const WORKSPACE_STEPS = [
     title: "Report",
     body: "Turn verified metrics into research briefs and client-ready summaries without reassembling spreadsheets.",
   },
+];
+
+const ROOM_STEPS = [
+  {
+    icon: LockKeyhole,
+    title: "Proof-gated rooms",
+    body: "Discord or private chat access can be tied to Quantidive proof level, freshness, and public profile status.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Structured strategy threads",
+    body: "Rooms are organized around thesis, data source, backtest, risk, counterview, and monitoring notes.",
+  },
+  {
+    icon: Bot,
+    title: "AI research operator",
+    body: "AI turns long discussions into source-linked summaries, unanswered questions, and diligence-ready briefs.",
+  },
+];
+
+const COMMUNITY_ROOMS = [
+  "GEX and market structure",
+  "Systematic research lab",
+  "Portfolio construction",
+  "Private markets diligence",
 ];
 
 export default function Home() {
@@ -206,6 +234,48 @@ export default function Home() {
                     <Icon className="h-6 w-6 text-cyan-300" aria-hidden="true" />
                     <h3 className="mt-4 font-semibold text-white">{point.title}</h3>
                     <p className="mt-2 text-sm leading-6 text-slate-400">{point.body}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 py-16">
+          <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+            <div>
+              <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-cyan-200">
+                <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                Verified strategy rooms
+              </p>
+              <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white">
+                Make quant discussion easier to trust.
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                The community layer should work like a private-market diligence room: verified
+                participants, organized evidence, clear ownership, and a record of what changed.
+                Traders can discuss GEX, systematic rules, portfolio construction, and deep dives
+                without every thread becoming a signal channel.
+              </p>
+              <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                {COMMUNITY_ROOMS.map((room) => (
+                  <div
+                    key={room}
+                    className="rounded-md border border-slate-800 bg-slate-900/70 px-3 py-2 text-sm text-slate-300"
+                  >
+                    {room}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+              {ROOM_STEPS.map((step) => {
+                const Icon = step.icon;
+                return (
+                  <article key={step.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
+                    <Icon className="h-6 w-6 text-cyan-300" aria-hidden="true" />
+                    <h3 className="mt-4 font-semibold text-white">{step.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-400">{step.body}</p>
                   </article>
                 );
               })}
