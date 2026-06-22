@@ -121,7 +121,7 @@ export default async function SettingsPage() {
       <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
         <h2 className="text-base font-medium text-slate-800">Research profile and privacy</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Control who can see your truSVAN profile and what it reveals.
+          Control who can see your TrustSVAN profile and what it reveals.
         </p>
         <div className="mt-4">
           <PortalSettingsForm

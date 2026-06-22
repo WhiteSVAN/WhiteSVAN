@@ -7,7 +7,7 @@ import { buildDiligenceBrief } from "@/lib/diligence";
 import { DiligenceBriefView } from "@/components/portal/diligence-brief";
 
 const DISCLAIMER =
-  "Diligence summarizes this operator's verified past performance for evaluation. truSVAN does not manage money, execute trades, or provide investment advice, and nothing here is an allocation recommendation. Past performance does not guarantee future results.";
+  "Diligence summarizes this operator's verified past performance for evaluation. TrustSVAN does not manage money, execute trades, or provide investment advice, and nothing here is an allocation recommendation. Past performance does not guarantee future results.";
 
 export async function generateMetadata({
   params,
@@ -20,7 +20,7 @@ export async function generateMetadata({
     select: { displayName: true, isPublic: true },
   });
   return {
-    title: profile?.isPublic ? `Diligence · ${profile.displayName} — truSVAN` : "truSVAN",
+    title: profile?.isPublic ? `Diligence · ${profile.displayName} — TrustSVAN` : "TrustSVAN",
     robots: { index: false },
   };
 }

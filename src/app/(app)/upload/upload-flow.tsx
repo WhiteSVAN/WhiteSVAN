@@ -287,7 +287,7 @@ export function UploadFlow({
           {!mapping.realizedPnl && (
             <p className="mt-3 text-xs text-slate-500">
               No <strong>realized P&amp;L</strong> column found. If this is a Robinhood, Webull, or
-              Fidelity <em>transaction</em> export, pick your broker above and truSVAN will pair
+              Fidelity <em>transaction</em> export, pick your broker above and TrustSVAN will pair
               buys/sells into closed trades for you.
             </p>
           )}

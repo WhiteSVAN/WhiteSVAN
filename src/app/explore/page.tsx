@@ -9,7 +9,7 @@ import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 import { SiteFooter } from "@/components/site-footer";
 
-export const metadata: Metadata = { title: "Verified traders - truSVAN" };
+export const metadata: Metadata = { title: "Verified traders - TrustSVAN" };
 
 const SEVERITY: Record<DrawdownSeverity, { label: string; cls: string }> = {
   controlled: { label: "Controlled", cls: "border border-emerald-400/30 bg-emerald-400/10 text-emerald-300" },
@@ -92,7 +92,7 @@ export default async function ExplorePage() {
             Traders with proof, context, and a visible record.
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-            Browse truSVAN profiles by strategy, proof level, risk context, and performance
+            Browse TrustSVAN profiles by strategy, proof level, risk context, and performance
             snapshot before starting a diligence conversation.
           </p>
         </div>

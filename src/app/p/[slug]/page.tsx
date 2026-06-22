@@ -20,7 +20,7 @@ import { PrintButton } from "./print-button";
 import { FollowForm } from "./follow-form";
 
 const DEFAULT_DISCLAIMER =
-  "truSVAN is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
+  "TrustSVAN is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
 
 export async function generateMetadata({
   params,
@@ -33,7 +33,7 @@ export async function generateMetadata({
     select: { displayName: true, isPublic: true },
   });
   return {
-    title: profile?.isPublic ? `${profile.displayName} - truSVAN` : "truSVAN",
+    title: profile?.isPublic ? `${profile.displayName} - TrustSVAN` : "TrustSVAN",
     robots: { index: false }, // private share links shouldn't be indexed
   };
 }

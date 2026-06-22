@@ -172,7 +172,7 @@ export default async function DashboardPage({
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
             {account
               ? "Try a wider date range, or connect more trading history."
-            : "Connect broker or prop-firm history to build your truSVAN research profile and analytics dashboard."}
+            : "Connect broker or prop-firm history to build your TrustSVAN research profile and analytics dashboard."}
           </p>
           <Link
             href="/upload"

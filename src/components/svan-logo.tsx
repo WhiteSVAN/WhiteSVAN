@@ -1,5 +1,5 @@
 /**
- * truSVAN brand lockup — swan mark + wordmark.
+ * TrustSVAN brand lockup — swan mark + wordmark.
  *
  * The swan is the official vector (public/images/svan-logo.svg), inlined here so
  * it inherits text color via `currentColor` and stays crisp at any size.

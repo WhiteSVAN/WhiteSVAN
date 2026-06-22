@@ -28,7 +28,7 @@ export default async function UploadPage({
           Connect source-backed trading history
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-          truSVAN verification is built for read-only broker and prop-firm sources. The platform
+          TrustSVAN verification is built for read-only broker and prop-firm sources. The platform
           turns broker-reported transactions into performance, proof, freshness, and risk metrics
           without exposing account numbers or allowing trade execution.
         </p>
@@ -36,7 +36,7 @@ export default async function UploadPage({
 
       <div className="grid gap-3 sm:grid-cols-3">
         {[
-          ["Read-only access", "truSVAN should never trade, move funds, or change broker accounts."],
+          ["Read-only access", "TrustSVAN should never trade, move funds, or change broker accounts."],
           ["Broker-reported record", "Metrics come from source history rather than editable screenshots."],
           ["Private by default", "Account size, account numbers, and raw evidence stay controlled by the trader."],
         ].map(([title, body]) => (

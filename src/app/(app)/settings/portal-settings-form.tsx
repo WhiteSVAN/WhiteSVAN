@@ -171,7 +171,7 @@ export function PortalSettingsForm({
           name="disclaimer"
           rows={3}
           defaultValue={disclaimer}
-          placeholder="Leave blank to use the default truSVAN disclaimer."
+          placeholder="Leave blank to use the default TrustSVAN disclaimer."
           className={inputClass}
         />
       </div>
