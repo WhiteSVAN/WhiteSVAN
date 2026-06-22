@@ -14,6 +14,7 @@ import { ClientView } from "@/components/dashboard/client-view";
 import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
 import { ReportSections } from "@/components/report-sections";
 import { ProfileTrust } from "@/components/portal/profile-trust";
+import { SiteFooter } from "@/components/site-footer";
 import { PrintButton } from "./print-button";
 import { FollowForm } from "./follow-form";
 
@@ -146,7 +147,13 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
     <div className="min-h-full bg-slate-950 text-slate-100">
       {/* Slim nav hidden when printing / saving the report as PDF. */}
       <nav className="border-b border-slate-800 bg-slate-950/90 print:hidden">
-        <div className="mx-auto flex max-w-4xl items-center justify-end px-4 py-3">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
+          <Link
+            href={loggedIn ? "/dashboard" : "/"}
+            className="text-sm font-semibold tracking-[0.14em] text-slate-100"
+          >
+            QUANTI<span className="text-cyan-300">DIVE</span>
+          </Link>
           <Link
             href={loggedIn ? "/network" : "/explore"}
             className="text-sm font-medium text-cyan-300 hover:text-cyan-100"
@@ -294,12 +301,15 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
         </section>
       </main>
 
-      <footer className="border-t border-slate-800 bg-slate-950">
+      <footer className="border-t border-slate-800 bg-slate-950 print:hidden">
         <div className="mx-auto max-w-4xl space-y-2 px-4 py-6 text-xs leading-relaxed text-slate-400">
           {profile.disclaimer && <p>{profile.disclaimer}</p>}
           <p>{DEFAULT_DISCLAIMER}</p>
         </div>
       </footer>
+      <div className="print:hidden">
+        <SiteFooter />
+      </div>
     </div>
   );
 }

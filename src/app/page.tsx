@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { WaitlistForm } from "./waitlist-form";
 import { BrokerLogos } from "@/components/broker-logos";
+import { SiteFooter } from "@/components/site-footer";
 
 const TRUST_CARDS = [
   {
@@ -125,20 +126,21 @@ export default function Home() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-slate-950 text-slate-100">
       <header className="border-b border-slate-800/80 bg-slate-950/85 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <Link href="/" className="text-base font-semibold tracking-[0.18em] text-slate-100">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:flex-nowrap sm:py-4">
+          <Link href="/" className="text-base font-semibold tracking-[0.14em] text-slate-100 sm:tracking-[0.18em]">
             QUANTI<span className="text-cyan-300">DIVE</span>
           </Link>
-          <div className="flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-2 text-sm sm:gap-4">
             <Link href="/explore" className="text-slate-300 hover:text-white">
-              Verified traders
+              <span className="sm:hidden">Traders</span>
+              <span className="hidden sm:inline">Verified traders</span>
             </Link>
             <Link href="/login" className="hidden text-slate-300 hover:text-white sm:inline">
               Sign in
             </Link>
             <Link
               href="/signup"
-              className="rounded-md bg-cyan-500 px-3 py-1.5 font-medium text-slate-950 hover:bg-cyan-300"
+              className="rounded-md bg-cyan-500 px-2.5 py-1.5 font-medium text-slate-950 hover:bg-cyan-300 sm:px-3"
             >
               Get verified
             </Link>
@@ -160,13 +162,13 @@ export default function Home() {
           <div className="absolute inset-0 bg-slate-950/20" />
           <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-950 to-transparent" />
 
-          <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-18 sm:py-24 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:gap-10 sm:py-24 lg:grid-cols-[1fr_0.9fr] lg:items-center">
             <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-cyan-200">
+              <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-cyan-200 sm:tracking-[0.24em]">
                 <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                 Private verification network
               </p>
-              <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight text-white sm:text-6xl">
+              <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-tight text-white sm:text-6xl">
                 A private network for verified market operators.
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
@@ -178,16 +180,16 @@ export default function Home() {
               <div className="mt-8 max-w-xl">
                 <WaitlistForm />
               </div>
-              <div className="mt-5 flex flex-wrap gap-3 text-sm">
+              <div className="mt-5 grid gap-3 text-sm sm:flex sm:flex-wrap">
                 <Link
                   href="/signup"
-                  className="rounded-md bg-cyan-500 px-4 py-2 font-medium text-slate-950 hover:bg-cyan-300"
+                  className="rounded-md bg-cyan-500 px-4 py-2 text-center font-medium text-slate-950 hover:bg-cyan-300"
                 >
                   Get verified
                 </Link>
                 <Link
                   href="/explore"
-                  className="rounded-md border border-slate-700 px-4 py-2 font-medium text-slate-200 hover:border-cyan-400 hover:text-white"
+                  className="rounded-md border border-slate-700 px-4 py-2 text-center font-medium text-slate-200 hover:border-cyan-400 hover:text-white"
                 >
                   Browse verified traders
                 </Link>
@@ -406,12 +408,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-slate-800 bg-slate-950">
-        <div className="mx-auto max-w-6xl px-4 py-6 text-xs leading-6 text-slate-500">
-          Quantidive is research, analytics, and professional networking software. It does not manage
-          money, execute trades, provide investment advice, or guarantee performance.
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

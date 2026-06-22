@@ -18,16 +18,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-full bg-slate-950 text-slate-100">
       <header className="border-b border-slate-800 bg-slate-950/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <Link
             href="/dashboard"
-            className="text-base font-semibold tracking-[0.18em] text-slate-100"
+            className="self-start text-base font-semibold tracking-[0.14em] text-slate-100 sm:tracking-[0.18em]"
           >
             QUANTI<span className="text-cyan-300">DIVE</span>
           </Link>
-          <nav className="flex items-center justify-end gap-x-5 gap-y-2 text-sm">
+          <nav className="flex w-full items-center gap-x-4 gap-y-2 overflow-x-auto pb-1 text-sm sm:w-auto sm:justify-end sm:overflow-visible sm:pb-0">
             {NAV.map((item) => (
-              <Link key={item.href} href={item.href} className="text-slate-400 hover:text-white">
+              <Link
+                key={item.href}
+                href={item.href}
+                className="shrink-0 text-slate-400 hover:text-white"
+              >
                 {item.label}
               </Link>
             ))}

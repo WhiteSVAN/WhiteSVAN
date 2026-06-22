@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { PROOF_LEVELS, type DrawdownSeverity } from "@/lib/trust";
 import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
+import { SiteFooter } from "@/components/site-footer";
 
 export const metadata: Metadata = { title: "Verified traders - Quantidive" };
 
@@ -55,10 +56,10 @@ export default async function ExplorePage() {
   return (
     <div className="min-h-full bg-slate-950 text-slate-100">
       <header className="border-b border-slate-800 bg-slate-950/90">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Link
             href={loggedIn ? "/dashboard" : "/"}
-            className="text-base font-semibold tracking-[0.18em] text-slate-100"
+            className="text-base font-semibold tracking-[0.14em] text-slate-100 sm:tracking-[0.18em]"
           >
             QUANTI<span className="text-cyan-300">DIVE</span>
           </Link>
@@ -89,8 +90,8 @@ export default async function ExplorePage() {
           className="object-cover object-[54%_36%] opacity-35"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.94)_0%,rgba(2,6,23,0.78)_52%,rgba(2,6,23,0.52)_100%)]" />
-        <div className="relative mx-auto max-w-5xl px-4 py-12">
-          <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-cyan-200">
+        <div className="relative mx-auto max-w-5xl px-4 py-10 sm:py-12">
+          <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-cyan-200 sm:tracking-[0.2em]">
             <ShieldCheck className="h-4 w-4" aria-hidden="true" />
             Verified directory
           </p>
@@ -104,7 +105,7 @@ export default async function ExplorePage() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-5xl px-4 py-10">
+      <main className="mx-auto max-w-5xl px-4 py-10 sm:py-12">
         {cards.length === 0 ? (
           <p className="mt-8 text-sm text-slate-400">No public research profiles yet.</p>
         ) : (
@@ -173,6 +174,7 @@ export default async function ExplorePage() {
           </div>
         )}
       </main>
+      <SiteFooter />
     </div>
   );
 }
