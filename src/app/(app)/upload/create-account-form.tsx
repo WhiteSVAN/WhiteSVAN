@@ -8,9 +8,9 @@ export function CreateAccountForm() {
   const [state, action, pending] = useActionState(createAccount, undefined);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-base font-medium text-slate-900">Create a trading account</h2>
-      <p className="mt-1 text-sm text-slate-500">
+    <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
+      <h2 className="text-base font-medium text-zinc-900">Create a trading account</h2>
+      <p className="mt-1 text-sm text-zinc-500">
         First, name the broker or prop-firm account that will hold the source-backed history.
         You can add more later.
       </p>
@@ -32,7 +32,7 @@ export function CreateAccountForm() {
 
         <div>
           <label htmlFor="broker" className={labelClass}>
-            Broker <span className="text-slate-400">(optional)</span>
+            Broker <span className="text-zinc-400">(optional)</span>
           </label>
           <input
             id="broker"
@@ -44,7 +44,7 @@ export function CreateAccountForm() {
 
         <div>
           <label htmlFor="startingBalance" className={labelClass}>
-            Starting balance <span className="text-slate-400">(optional)</span>
+            Starting balance <span className="text-zinc-400">(optional)</span>
           </label>
           <input
             id="startingBalance"
@@ -55,7 +55,7 @@ export function CreateAccountForm() {
             className={inputClass}
             placeholder="150000"
           />
-          <p className="mt-1 text-xs text-slate-400">Used for return % and drawdown %.</p>
+          <p className="mt-1 text-xs text-zinc-400">Used for return % and drawdown %.</p>
         </div>
 
         <button type="submit" disabled={pending} className={btnPrimary}>

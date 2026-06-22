@@ -193,28 +193,29 @@ authorization boundary), with a slim nav (**Dashboard · Verified traders**) + a
 
 ### 5.1 Design language
 
-A **dark, institutional “research terminal”** aesthetic — calm, data‑forward,
-high‑contrast, minimal chrome. Two‑sided positioning: verified traders ↔
-allocators. Copy is structured (thesis/evidence/risk), never hype.
+A **black, institutional “night terminal”** aesthetic — calm, data‑forward,
+high‑contrast, minimal chrome, with graphite surfaces and metallic white accents.
+Two‑sided positioning: verified traders ↔ allocators. Copy is structured
+(thesis/evidence/risk), never hype.
 
 ### 5.2 Color tokens (`globals.css`)
 
 | Token                 | Value      | Use                                  |
 | --------------------- | ---------- | ------------------------------------ |
-| `--background`        | `#05070d`  | Page background (near‑black navy)    |
-| `--foreground`        | `#e5edf5`  | Body text                            |
-| Surface / card        | `#0b1120`  | Panels (`bg-white` remapped)         |
-| Border                | `#1f2937`  | Hairline borders / dividers          |
-| **Accent (cyan)**     | `#22d3ee`  | Brand, links, CTAs, focus, selection |
-| CTA hover / solid     | `#0891b2` / `#06b6d4` | Primary buttons           |
-| Secondary accent      | `#f59e0b`  | Amber ambient glow                   |
-| Muted text            | `#94a3b8` → `#64748b` | Secondary / tertiary text |
+| `--background`        | `#030303`  | Page background (near black)         |
+| `--foreground`        | `#f4f4f5`  | Body text                            |
+| Surface / card        | `#080808`  | Panels (`bg-white` remapped)         |
+| Border                | `#27272a`  | Hairline borders / dividers          |
+| **Accent (steel)**    | `#e4e4e7`  | Brand, links, CTAs, focus, selection |
+| CTA hover / solid     | `#ffffff` / `#e4e4e7` | Primary buttons           |
+| Secondary accent      | `#71717a`  | Smoky ambient glow                   |
+| Muted text            | `#a1a1aa` → `#71717a` | Secondary / tertiary text |
 | Semantic — good       | `#34d399` (emerald) | Positive P&L, verified, open‑to‑work |
 | Semantic — warn       | `#fbbf24` (amber) / `#fb923c` (orange) | Elevated/high risk |
 | Semantic — bad        | `#f87171` (red) | Losses, severe risk                  |
 
-Page has a fixed radial‑gradient ambient backdrop (cyan top‑left, amber top‑right)
-plus a linear navy gradient. Selection is cyan‑tinted.
+Page has a fixed radial‑gradient ambient backdrop with subtle white and graphite
+halos plus a linear black gradient. Selection is steel‑tinted.
 
 > **Dark‑theme shim:** much of the MVP was authored with light Tailwind classes
 > (`bg-white`, `text-slate-900`, …). `globals.css` remaps those utility **classes**
@@ -227,21 +228,21 @@ plus a linear navy gradient. Selection is cyan‑tinted.
 - **Geist Sans** (`--font-geist-sans`) for UI; **Geist Mono** for numbers/codes/wordmark tracking.
 - Headings: `font-semibold tracking-tight`, hero up to `text-5xl/6xl`.
 - Numbers use `tabular-nums` for alignment in stats/leaderboards.
-- Brand wordmark: `QUANTI` + cyan `DIVE`, letter‑spaced (`tracking-[0.18em]`).
+- Brand wordmark: `Trust` + swan-as-`S` + `VAN`, in metallic monochrome.
 
 ### 5.4 Component patterns
 
 - **Card:** `rounded-lg border border-slate-800 bg-slate-900/70 p-5`.
-- **Badge / pill:** `rounded-full border <tone>/30 bg <tone>/10 text-<tone>` (e.g. cyan “Verified · Proof L4”, emerald “Open to work”, severity chips).
-- **Primary button:** cyan fill, `text-slate-950`, hover lighter cyan. **Secondary:** slate border, cyan hover.
+- **Badge / pill:** `rounded-full border <tone>/30 bg <tone>/10 text-<tone>` (e.g. steel “Verified · Proof L4”, emerald “Open to work”, severity chips).
+- **Primary button:** steel fill, `text-slate-950`, hover white. **Secondary:** slate border, steel hover.
 - **Inputs:** shared in `components/form.tsx`; `color-scheme: dark`; errors as red field/banner, success as emerald banner.
-- **Charts:** 240px tall, gridlines `#1f2937`, axis ticks `#94a3b8`, green/red series, dark tooltip (`#0b1120` bg, `#1f2937` border).
+- **Charts:** 240px tall, gridlines `#27272a`, axis ticks `#a1a1aa`, green/red series, dark tooltip (`#080808` bg, `#27272a` border).
 - **Leaderboard card** (`/explore`): rank chip, name, “Open to work”, “Verified · Proof L_n_” badge, Growth/Drop/Trust mini‑stats, severity chip.
 - **Layout widths:** `max-w-6xl` (marketing), `max-w-5xl` (directory), `max-w-4xl` (profile), `max-w-3xl` (settings). Generous vertical rhythm (`space-y-8/10`).
 
 ### 5.5 Interaction & accessibility
 
-- Hover lifts borders to cyan; dropdowns close on outside‑click / Escape; `aria-haspopup`/`aria-expanded` on menus, `role="status|alert"` on banners, `aria-hidden` on decorative icons.
+- Hover lifts borders to steel; dropdowns close on outside‑click / Escape; `aria-haspopup`/`aria-expanded` on menus, `role="status|alert"` on banners, `aria-hidden` on decorative icons.
 - Responsive grids (`sm:`/`md:`/`lg:` columns); mobile‑first.
 - **Print:** `print:hidden` chrome and a white print background for Save‑as‑PDF of profiles/reports.
 

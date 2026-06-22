@@ -62,7 +62,7 @@ export default async function ReportsPage() {
   const STATUS_BADGE: Record<string, string> = {
     PUBLISHED: "bg-emerald-50 text-emerald-700",
     APPROVED: "bg-amber-50 text-amber-700",
-    DRAFT: "bg-slate-100 text-slate-500",
+    DRAFT: "bg-zinc-100 text-zinc-500",
   };
   const STATUS_LABEL: Record<string, string> = {
     PUBLISHED: "Published",
@@ -73,20 +73,20 @@ export default async function ReportsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Research briefs</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Research briefs</h1>
+        <p className="mt-1 text-sm text-zinc-500">
           Generate a monthly research brief from verified metrics, edit it, then publish it to your profile.
         </p>
       </div>
 
-      <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
-        <h2 className="text-base font-medium text-slate-800">Generate a brief</h2>
-        <p className="mt-1 text-sm text-slate-500">
+      <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
+        <h2 className="text-base font-medium text-zinc-800">Generate a brief</h2>
+        <p className="mt-1 text-sm text-zinc-500">
           TrustSVAN computes the numbers; AI only drafts the research-facing narrative.
         </p>
         <div className="mt-4">
           {accountOptions.length === 0 ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-zinc-500">
               Connect trading history first, then generate a monthly research brief.
             </p>
           ) : (
@@ -96,24 +96,24 @@ export default async function ReportsPage() {
       </div>
 
       <div>
-        <h2 className="text-base font-medium text-slate-800">Brief archive</h2>
+        <h2 className="text-base font-medium text-zinc-800">Brief archive</h2>
         {reports.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">No reports yet.</p>
+          <p className="mt-2 text-sm text-zinc-500">No reports yet.</p>
         ) : (
           <div className="mt-3 space-y-5">
             {[...byMonth.entries()].map(([period, group]) => (
               <div key={period}>
-                <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-400">
                   {periodLabel(period)}
                 </h3>
-                  <ul className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-800 bg-slate-900/70">
+                  <ul className="mt-2 divide-y divide-zinc-100 rounded-lg border border-zinc-800 bg-zinc-900/70">
                   {group.map((r) => (
                     <li key={r.id}>
                       <Link
                         href={`/reports/${r.id}`}
-                        className="flex items-center justify-between px-4 py-3 text-sm hover:bg-slate-800/70"
+                        className="flex items-center justify-between px-4 py-3 text-sm hover:bg-zinc-800/70"
                       >
-                        <span className="text-slate-800">{r.account.accountName}</span>
+                        <span className="text-zinc-800">{r.account.accountName}</span>
                         <span
                           className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[r.status] ?? STATUS_BADGE.DRAFT}`}
                         >

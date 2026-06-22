@@ -23,17 +23,17 @@ export function AccountData({ accounts }: { accounts: AccountRow[] }) {
   return (
     <div className="space-y-4">
       {accounts.length === 0 ? (
-        <p className="text-sm text-slate-500">No trading accounts yet.</p>
+        <p className="text-sm text-zinc-500">No trading accounts yet.</p>
       ) : (
-        <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200">
+        <ul className="divide-y divide-zinc-100 rounded-xl border border-zinc-200">
           {accounts.map((a) => (
             <li
               key={a.id}
               className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
             >
               <div className="min-w-0">
-                <p className="font-medium text-slate-800">{a.accountName}</p>
-                <p className="text-xs text-slate-400">
+                <p className="font-medium text-zinc-800">{a.accountName}</p>
+                <p className="text-xs text-zinc-400">
                   {a.broker ? `${a.broker} · ` : ""}
                   {a.tradeCount} {a.tradeCount === 1 ? "trade" : "trades"}
                 </p>

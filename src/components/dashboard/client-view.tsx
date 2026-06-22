@@ -87,7 +87,7 @@ export function ClientView({
       {/* Verdict */}
       <div className={`rounded-xl border p-5 ${sev.border} ${sev.bg}`}>
         <h2 className={`text-lg font-semibold ${sev.text}`}>{trust.verdict.headline}</h2>
-        <p className="mt-1 text-sm text-slate-300">{trust.verdict.body}</p>
+        <p className="mt-1 text-sm text-zinc-300">{trust.verdict.body}</p>
       </div>
 
       {/* Charts */}
@@ -101,7 +101,7 @@ export function ClientView({
       </div>
 
       {/* Risk explained simply */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5">
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5">
         <h2 className="text-sm font-medium text-white">Risk and structure</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Plain
@@ -153,15 +153,15 @@ export function ClientView({
       </div>
 
       {/* Trust scores */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5">
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5">
         <div className="flex items-baseline justify-between">
           <h2 className="text-sm font-medium text-white">Research profile score</h2>
           <span className="text-2xl font-semibold text-white">
             {trust.scores.transparency}
-            <span className="text-base font-normal text-slate-400">/100</span>
+            <span className="text-base font-normal text-zinc-400">/100</span>
           </span>
         </div>
-        <p className="mt-0.5 text-xs text-slate-400">
+        <p className="mt-0.5 text-xs text-zinc-400">
           A weighted blend of six factors: proof, risk control, and reporting discipline carry the
           most weight.
         </p>
@@ -173,33 +173,33 @@ export function ClientView({
           <ScoreBar label="Profit" weight="10%" value={trust.scores.profit} />
           <ScoreBar label="Discipline" weight="5%" value={trust.scores.discipline} />
         </div>
-        <p className="mt-4 text-xs text-slate-400">
+        <p className="mt-4 text-xs text-zinc-400">
           Not an investment recommendation. It measures data quality, risk visibility, and publishing
           discipline.
         </p>
       </div>
 
       {/* Proof & privacy */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5">
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5">
         <h2 className="text-sm font-medium text-white">Proof and privacy</h2>
         <div className="mt-3 grid gap-4 sm:grid-cols-3 text-sm">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Data source</p>
-            <p className="mt-1 text-slate-300">Broker-reported history</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Data source</p>
+            <p className="mt-1 text-zinc-300">Broker-reported history</p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Proof level</p>
-            <p className="mt-1 text-slate-300">
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Proof level</p>
+            <p className="mt-1 text-zinc-300">
               Level {trust.proofLevel}: {proof.label}
             </p>
-            <p className="mt-0.5 text-xs text-slate-400">{proof.blurb}</p>
+            <p className="mt-0.5 text-xs text-zinc-400">{proof.blurb}</p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Redactions</p>
-            <p className="mt-1 text-slate-300">
+            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">Redactions</p>
+            <p className="mt-1 text-zinc-300">
               {hideAmounts ? "Dollar amounts hidden" : "Full detail shown"}
             </p>
-            <p className="mt-0.5 text-xs text-slate-400">
+            <p className="mt-0.5 text-xs text-zinc-400">
               Public privacy settings change display only; metrics are not recalculated.
             </p>
           </div>
@@ -230,18 +230,18 @@ function Snapshot({
 }) {
   const color = tone === "pos" ? "text-emerald-300" : tone === "neg" ? "text-red-300" : "text-white";
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</p>
       <p className={`mt-2 font-semibold ${small ? "text-lg" : "text-2xl"} ${color}`}>
         {value}
-        {suffix && <span className="text-base font-normal text-slate-400">{suffix}</span>}
+        {suffix && <span className="text-base font-normal text-zinc-400">{suffix}</span>}
       </p>
       {badge ? (
         <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-xs font-medium ${badgeClass}`}>
           {badge}
         </span>
       ) : (
-        <p className="mt-0.5 text-xs text-slate-400">{hint}</p>
+        <p className="mt-0.5 text-xs text-zinc-400">{hint}</p>
       )}
     </div>
   );
@@ -261,15 +261,15 @@ function Plain({
   return (
     <div
       className={`rounded-lg border p-3 ${
-        warn ? "border-amber-400/30 bg-amber-400/10" : "border-slate-800 bg-slate-950/60"
+        warn ? "border-amber-400/30 bg-amber-400/10" : "border-zinc-800 bg-zinc-950/60"
       }`}
     >
       <div className="flex items-center gap-1.5">
         {warn && <span className="text-amber-300">!</span>}
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</p>
       </div>
       <p className="mt-1 font-semibold tabular-nums text-white">{value}</p>
-      <p className="mt-0.5 text-xs text-slate-400">{note}</p>
+      <p className="mt-0.5 text-xs text-zinc-400">{note}</p>
     </div>
   );
 }
@@ -280,13 +280,13 @@ function ScoreBar({ label, value, weight }: { label: string; value: number; weig
   return (
     <div>
       <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-slate-300">
+        <span className="font-medium text-zinc-300">
           {label}
-          {weight && <span className="font-normal text-slate-400"> / {weight}</span>}
+          {weight && <span className="font-normal text-zinc-400"> / {weight}</span>}
         </span>
-        <span className="tabular-nums text-slate-400">{pct}</span>
+        <span className="tabular-nums text-zinc-400">{pct}</span>
       </div>
-      <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-800">
+      <div className="mt-1 h-2 overflow-hidden rounded-full bg-zinc-800">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -303,9 +303,9 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
       <h3 className="text-sm font-medium text-white">{title}</h3>
-      <p className="mb-2 text-xs text-slate-400">{subtitle}</p>
+      <p className="mb-2 text-xs text-zinc-400">{subtitle}</p>
       {children}
     </div>
   );

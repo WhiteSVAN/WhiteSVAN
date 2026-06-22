@@ -21,13 +21,13 @@ export function PortalShare({ slug, isPublic }: { slug: string; isPublic: boolea
   }
 
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+    <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-zinc-500">
       <span>
-        Research profile: <span className="font-mono text-slate-300">/p/{slug}</span>
+        Research profile: <span className="font-mono text-zinc-300">/p/{slug}</span>
       </span>
       <span
         className={`rounded px-1.5 py-0.5 text-xs font-medium ${
-          live ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
+          live ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
         }`}
       >
         {live ? "Public" : "Private"}
@@ -37,18 +37,18 @@ export function PortalShare({ slug, isPublic }: { slug: string; isPublic: boolea
         <button
           type="submit"
           disabled={pending}
-          className="text-blue-700 hover:text-blue-800 disabled:opacity-60"
+          className="text-zinc-200 hover:text-zinc-100 disabled:opacity-60"
         >
           {live ? "Make private" : "Make public"}
         </button>
       </form>
       {live && (
         <>
-          <span className="text-slate-600">/</span>
-          <button type="button" onClick={copy} className="text-blue-700 hover:text-blue-800">
+          <span className="text-zinc-600">/</span>
+          <button type="button" onClick={copy} className="text-zinc-200 hover:text-zinc-100">
             {copied ? "Copied!" : "Copy link"}
           </button>
-          <Link href={`/p/${slug}`} target="_blank" className="text-cyan-300 hover:text-cyan-100">
+          <Link href={`/p/${slug}`} target="_blank" className="text-zinc-200 hover:text-zinc-100">
             Open
           </Link>
         </>

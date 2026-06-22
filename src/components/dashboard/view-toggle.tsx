@@ -21,14 +21,14 @@ export function ViewToggle({ view }: { view: string }) {
   }
 
   return (
-    <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-sm">
+    <div className="inline-flex rounded-lg border border-zinc-200 bg-white p-0.5 text-sm">
       {VIEWS.map((v) => (
         <button
           key={v.k}
           type="button"
           onClick={() => set(v.k)}
           className={`rounded-md px-3 py-1 transition ${
-            view === v.k ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"
+            view === v.k ? "bg-zinc-900 text-white" : "text-zinc-600 hover:bg-zinc-50"
           }`}
         >
           {v.label}

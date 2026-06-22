@@ -67,8 +67,8 @@ export function TraderView({
         </ChartCard>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="text-sm font-medium text-slate-800">Risk &amp; discipline</h2>
+      <div className="rounded-xl border border-zinc-200 bg-white p-4">
+        <h2 className="text-sm font-medium text-zinc-800">Risk &amp; discipline</h2>
         <div className="mt-3 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
           <Stat label="Best day" value={formatMoney(metrics.bestDay)} tone="pos" />
           <Stat label="Worst day" value={formatMoney(metrics.worstDay)} tone="neg" />
@@ -92,8 +92,8 @@ export function TraderView({
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <h2 className="mb-2 text-sm font-medium text-slate-800">{title}</h2>
+    <div className="rounded-xl border border-zinc-200 bg-white p-4">
+      <h2 className="mb-2 text-sm font-medium text-zinc-800">{title}</h2>
       {children}
     </div>
   );
@@ -111,22 +111,22 @@ function Card({
   tone?: "pos" | "neg";
 }) {
   const valueColor =
-    tone === "pos" ? "text-emerald-600" : tone === "neg" ? "text-red-600" : "text-slate-900";
+    tone === "pos" ? "text-emerald-600" : tone === "neg" ? "text-red-600" : "text-zinc-900";
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
+    <div className="rounded-xl border border-zinc-200 bg-white p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</p>
       <p className={`mt-2 text-2xl font-semibold ${valueColor}`}>{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-slate-400">{sub}</p>}
+      {sub && <p className="mt-0.5 text-xs text-zinc-400">{sub}</p>}
     </div>
   );
 }
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "pos" | "neg" }) {
   const valueColor =
-    tone === "pos" ? "text-emerald-600" : tone === "neg" ? "text-red-600" : "text-slate-700";
+    tone === "pos" ? "text-emerald-600" : tone === "neg" ? "text-red-600" : "text-zinc-700";
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</p>
       <p className={`mt-1 font-semibold tabular-nums ${valueColor}`}>{value}</p>
     </div>
   );

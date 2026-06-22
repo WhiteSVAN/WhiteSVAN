@@ -8,13 +8,13 @@ export default async function OnboardingPage() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+      <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
         Set up your research profile
       </h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-1 text-sm text-zinc-500">
         This is your TrustSVAN identity for research rooms, public profiles, and the researcher directory.
       </p>
-      <div className="mt-6 rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
+      <div className="mt-6 rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
         <OnboardingForm defaultName={user.name ?? ""} />
       </div>
     </div>

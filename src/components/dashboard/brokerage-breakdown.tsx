@@ -25,10 +25,10 @@ export function BrokerageBreakdown({
   const money = (v: number) => (hideAmounts ? "Private" : formatMoney(v, { cents: true }));
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4">
+    <section className="rounded-xl border border-zinc-200 bg-white p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-base font-medium text-slate-800">{title}</h2>
-        <span className="text-xs text-slate-500">
+        <h2 className="text-base font-medium text-zinc-800">{title}</h2>
+        <span className="text-xs text-zinc-500">
           Across all accounts
           {!hideAmounts && (
             <>
@@ -45,7 +45,7 @@ export function BrokerageBreakdown({
       <div className="mt-3 overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+            <tr className="text-left text-xs uppercase tracking-wide text-zinc-400">
               <th className="py-1 pr-4 font-medium">Broker / account</th>
               <th className="py-1 pr-4 font-medium">Share</th>
               <th className="py-1 pr-4 text-right font-medium">Net P&amp;L</th>
@@ -67,13 +67,13 @@ export function BrokerageBreakdown({
 function ShareBar({ share, positive }: { share: number; positive: boolean }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100">
+      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-zinc-100">
         <div
           className={`h-full rounded-full ${positive ? "bg-emerald-500" : "bg-red-500"}`}
           style={{ width: `${Math.round(share * 100)}%` }}
         />
       </div>
-      <span className="tabular-nums text-xs text-slate-500">{formatPercent(share)}</span>
+      <span className="tabular-nums text-xs text-zinc-500">{formatPercent(share)}</span>
     </div>
   );
 }
@@ -90,10 +90,10 @@ function BrokerGroup({
 
   return (
     <>
-      <tr className="border-t border-slate-200 bg-slate-50/60">
-        <td className="py-1.5 pr-4 font-semibold text-slate-800">
+      <tr className="border-t border-zinc-200 bg-zinc-50/60">
+        <td className="py-1.5 pr-4 font-semibold text-zinc-800">
           {b.broker}
-          {!single && <span className="ml-1 font-normal text-slate-400">({b.accounts.length})</span>}
+          {!single && <span className="ml-1 font-normal text-zinc-400">({b.accounts.length})</span>}
         </td>
         <td className="py-1.5 pr-4">
           <ShareBar share={b.share} positive={b.netPnl >= 0} />
@@ -105,14 +105,14 @@ function BrokerGroup({
         >
           {money(b.netPnl)}
         </td>
-        <td className="py-1.5 pr-4 text-right tabular-nums text-slate-600">{b.tradeCount}</td>
-        <td className="py-1.5 text-right tabular-nums text-slate-600">{b.tradingDays}</td>
+        <td className="py-1.5 pr-4 text-right tabular-nums text-zinc-600">{b.tradeCount}</td>
+        <td className="py-1.5 text-right tabular-nums text-zinc-600">{b.tradingDays}</td>
       </tr>
 
       {!single &&
         b.accounts.map((a) => (
-          <tr key={a.accountId} className="border-t border-slate-100">
-            <td className="py-1.5 pr-4 pl-4 text-slate-600">{a.accountName}</td>
+          <tr key={a.accountId} className="border-t border-zinc-100">
+            <td className="py-1.5 pr-4 pl-4 text-zinc-600">{a.accountName}</td>
             <td className="py-1.5 pr-4">
               <ShareBar share={a.share} positive={a.netPnl >= 0} />
             </td>
@@ -123,8 +123,8 @@ function BrokerGroup({
             >
               {money(a.netPnl)}
             </td>
-            <td className="py-1.5 pr-4 text-right tabular-nums text-slate-500">{a.tradeCount}</td>
-            <td className="py-1.5 text-right tabular-nums text-slate-500">{a.tradingDays}</td>
+            <td className="py-1.5 pr-4 text-right tabular-nums text-zinc-500">{a.tradeCount}</td>
+            <td className="py-1.5 text-right tabular-nums text-zinc-500">{a.tradingDays}</td>
           </tr>
         ))}
     </>

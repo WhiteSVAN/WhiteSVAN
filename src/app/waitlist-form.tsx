@@ -21,12 +21,12 @@ export function WaitlistForm() {
         name="email"
         required
         placeholder="research@sitename.com"
-        className="flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 shadow-sm focus:border-cyan-500 focus:outline-none"
+        className="flex-1 rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 shadow-sm focus:border-zinc-400 focus:outline-none"
       />
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-cyan-500 px-5 py-2.5 text-sm font-medium text-slate-950 shadow-sm hover:bg-cyan-300 disabled:opacity-60"
+        className="rounded-md bg-zinc-100 px-5 py-2.5 text-sm font-medium text-zinc-950 shadow-sm hover:bg-white disabled:opacity-60"
       >
         {pending ? "Joining..." : "Join the beta"}
       </button>

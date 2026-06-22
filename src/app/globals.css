@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #05070d;
-  --foreground: #e5edf5;
+  --background: #030303;
+  --foreground: #f4f4f5;
 }
 
 @theme inline {
@@ -19,8 +19,8 @@ body {
 }
 
 ::selection {
-  background: rgba(34, 211, 238, 0.28);
-  color: #f8fafc;
+  background: rgba(212, 212, 216, 0.28);
+  color: #ffffff;
 }
 
 body::before {
@@ -30,73 +30,74 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(circle at 18% 10%, rgba(34, 211, 238, 0.11), transparent 26rem),
-    radial-gradient(circle at 82% 2%, rgba(245, 158, 11, 0.09), transparent 24rem),
-    linear-gradient(180deg, #070a12 0%, #05070d 46%, #03050a 100%);
+    radial-gradient(circle at 16% 8%, rgba(250, 250, 250, 0.055), transparent 24rem),
+    radial-gradient(circle at 86% 2%, rgba(113, 113, 122, 0.075), transparent 24rem),
+    linear-gradient(180deg, #080808 0%, #030303 46%, #000000 100%);
 }
 
 /* Dark institutional theme shim for the existing Tailwind-only MVP screens. */
 .bg-white {
-  background-color: #0b1120 !important;
+  background-color: #080808 !important;
 }
 
-.bg-slate-50,
-.bg-slate-100 {
-  background-color: #05070d !important;
+.bg-zinc-50,
+.bg-zinc-100 {
+  background-color: #030303 !important;
 }
 
-.bg-slate-200 {
-  background-color: #1e293b !important;
+.bg-zinc-200 {
+  background-color: #27272a !important;
 }
 
-.border-slate-100,
-.border-slate-200,
-.border-slate-300 {
-  border-color: #1f2937 !important;
+.border-zinc-100,
+.border-zinc-200,
+.border-zinc-300 {
+  border-color: #27272a !important;
 }
 
-.divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #1f2937 !important;
+.divide-zinc-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #27272a !important;
 }
 
-.text-slate-950,
-.text-slate-900 {
-  color: #f8fafc !important;
+.text-zinc-950,
+.text-zinc-900 {
+  color: #fafafa !important;
 }
 
-.text-slate-800,
-.text-slate-700 {
-  color: #dbeafe !important;
+.text-zinc-800,
+.text-zinc-700 {
+  color: #e4e4e7 !important;
 }
 
-.text-slate-600,
-.text-slate-500 {
-  color: #94a3b8 !important;
+.text-zinc-600,
+.text-zinc-500 {
+  color: #a1a1aa !important;
 }
 
-.text-slate-400 {
-  color: #64748b !important;
+.text-zinc-400 {
+  color: #71717a !important;
 }
 
-.text-blue-700,
-.text-blue-800 {
-  color: #22d3ee !important;
+.text-zinc-200,
+.text-zinc-100 {
+  color: #e4e4e7 !important;
 }
 
-.bg-blue-700,
-.hover\:bg-blue-800:hover {
-  background-color: #0891b2 !important;
+.bg-zinc-100,
+.hover\:bg-white:hover {
+  background-color: #e4e4e7 !important;
+  color: #050505 !important;
 }
 
-.border-blue-300,
-.hover\:border-blue-300:hover {
-  border-color: #22d3ee !important;
+.border-zinc-500,
+.hover\:border-zinc-500:hover {
+  border-color: #a1a1aa !important;
 }
 
-.hover\:bg-slate-50:hover,
-.hover\:bg-slate-100:hover,
-.hover\:bg-slate-200:hover {
-  background-color: #111827 !important;
+.hover\:bg-zinc-50:hover,
+.hover\:bg-zinc-100:hover,
+.hover\:bg-zinc-200:hover {
+  background-color: #18181b !important;
 }
 
 .bg-emerald-50 {
@@ -115,8 +116,8 @@ body::before {
   background-color: rgba(127, 29, 29, 0.42) !important;
 }
 
-.bg-violet-50 {
-  background-color: rgba(76, 29, 149, 0.42) !important;
+.bg-neutral-900 {
+  background-color: rgba(39, 39, 42, 0.58) !important;
 }
 
 .text-emerald-700,

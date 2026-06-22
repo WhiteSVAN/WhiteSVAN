@@ -31,13 +31,13 @@ export function BalanceEditor({
 
   if (!showForm) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-zinc-500">
         Starting investment{" "}
-        <span className="font-medium text-slate-700">{formatMoney(startingBalance)}</span>
+        <span className="font-medium text-zinc-700">{formatMoney(startingBalance)}</span>
         <button
           type="button"
           onClick={() => setManualEditing(true)}
-          className="ml-2 text-blue-700 hover:text-blue-800"
+          className="ml-2 text-zinc-200 hover:text-zinc-100"
         >
           Edit
         </button>
@@ -49,14 +49,14 @@ export function BalanceEditor({
     <form
       action={action}
       onSubmit={() => setManualEditing(false)}
-      className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+      className="flex flex-wrap items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm"
     >
       <input type="hidden" name="accountId" value={accountId} />
-      <label htmlFor="startingBalance" className="font-medium text-slate-600">
+      <label htmlFor="startingBalance" className="font-medium text-zinc-600">
         Starting investment
       </label>
       <div className="flex items-center">
-        <span className="text-slate-400">$</span>
+        <span className="text-zinc-400">$</span>
         <input
           id="startingBalance"
           name="startingBalance"
@@ -67,13 +67,13 @@ export function BalanceEditor({
           onChange={(e) => setValue(e.target.value)}
           placeholder="e.g. 20000"
           autoFocus
-          className="w-32 rounded border border-slate-300 px-2 py-1 text-slate-900 focus:border-blue-600 focus:outline-none"
+          className="w-32 rounded border border-zinc-300 px-2 py-1 text-zinc-900 focus:border-zinc-400 focus:outline-none"
         />
       </div>
       <button
         type="submit"
         disabled={pending || !value}
-        className="rounded bg-slate-900 px-3 py-1 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded bg-zinc-900 px-3 py-1 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? "Saving…" : "Set"}
       </button>
@@ -81,12 +81,12 @@ export function BalanceEditor({
         <button
           type="button"
           onClick={() => setManualEditing(false)}
-          className="text-slate-400 hover:text-slate-600"
+          className="text-zinc-400 hover:text-zinc-600"
         >
           Cancel
         </button>
       )}
-      <span className="text-slate-400">— used for growth rate &amp; drawdown.</span>
+      <span className="text-zinc-400">— used for growth rate &amp; drawdown.</span>
       {state?.error && <span className="text-red-600">{state.error}</span>}
     </form>
   );

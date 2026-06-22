@@ -25,7 +25,7 @@ export function ResetForm({ token }: { token: string }) {
           className={inputClass}
         />
         <FieldError messages={state?.errors?.password} />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-zinc-500">
           At least 8 characters, with a letter and a number.
         </p>
       </div>

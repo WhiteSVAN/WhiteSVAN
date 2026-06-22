@@ -10,11 +10,11 @@ export default async function ResetPasswordPage({
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-slate-100">Set a new password</h1>
+      <h1 className="text-lg font-semibold text-zinc-100">Set a new password</h1>
 
       {token ? (
         <>
-          <p className="mt-1 text-sm text-slate-500">Choose a new password for your account.</p>
+          <p className="mt-1 text-sm text-zinc-500">Choose a new password for your account.</p>
           <ResetForm token={token} />
         </>
       ) : (
@@ -27,8 +27,8 @@ export default async function ResetPasswordPage({
         </div>
       )}
 
-      <p className="mt-6 text-center text-sm text-slate-500">
-        <Link href="/login" className="font-medium text-blue-700 hover:text-blue-800">
+      <p className="mt-6 text-center text-sm text-zinc-500">
+        <Link href="/login" className="font-medium text-zinc-200 hover:text-zinc-100">
           Back to sign in
         </Link>
       </p>

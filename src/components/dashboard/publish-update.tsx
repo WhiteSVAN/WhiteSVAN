@@ -20,11 +20,11 @@ export function PublishUpdate({
   const [state, action, pending] = useActionState(publishUpdate, undefined);
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 shadow-sm">
+    <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-medium text-slate-800">Publish research record</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="text-base font-medium text-zinc-800">Publish research record</h2>
+          <p className="mt-1 text-sm text-zinc-500">
             {lastVersionNumber
               ? `Last published: v${lastVersionNumber}${lastPublishedLabel ? ` / ${lastPublishedLabel}` : ""}`
               : "Not published yet. Publish to make your latest numbers visible on your research profile."}
@@ -34,7 +34,7 @@ export function PublishUpdate({
           <button
             type="submit"
             disabled={pending}
-            className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending ? "Publishing..." : "Publish record"}
           </button>
@@ -42,7 +42,7 @@ export function PublishUpdate({
       </div>
 
       {lastChangeSummary && !state?.published && (
-        <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+        <p className="mt-3 rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-500">
           {lastChangeSummary}
         </p>
       )}

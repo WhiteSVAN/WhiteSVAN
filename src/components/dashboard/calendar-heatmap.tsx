@@ -21,9 +21,9 @@ export function CalendarHeatmap({ data, hideAmounts }: { data: CalendarDay[]; hi
   const maxAbs = Math.max(1, ...data.map((d) => Math.abs(d.netPnl)));
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
       <h2 className="text-sm font-medium text-white">Calendar</h2>
-      <p className="text-xs text-slate-400">Green and red days at a glance.</p>
+      <p className="text-xs text-zinc-400">Green and red days at a glance.</p>
       <div className="mt-3 grid gap-6 md:grid-cols-3">
         {months.map((mk) => (
           <Month key={mk} mk={mk} byDate={byDate} maxAbs={maxAbs} hideAmounts={hideAmounts} />
@@ -59,10 +59,10 @@ function Month({
 
   return (
     <div>
-      <p className="text-xs font-medium text-slate-300">{label}</p>
+      <p className="text-xs font-medium text-zinc-300">{label}</p>
       <div className="mt-2 grid grid-cols-7 gap-1">
         {WEEKDAYS.map((w, i) => (
-          <span key={i} className="text-center text-[10px] text-slate-400">
+          <span key={i} className="text-center text-[10px] text-zinc-400">
             {w}
           </span>
         ))}
@@ -84,11 +84,11 @@ function Month({
               style={{ backgroundColor: bg }}
               title={has && !hideAmounts ? formatMoney(pnl) : undefined}
             >
-              <div className={`text-[10px] ${has ? "font-medium text-white" : "text-slate-500"}`}>
+              <div className={`text-[10px] ${has ? "font-medium text-white" : "text-zinc-500"}`}>
                 {d}
               </div>
               {has && !hideAmounts && (
-                <div className="text-[9px] tabular-nums text-slate-300">{compact(pnl)}</div>
+                <div className="text-[9px] tabular-nums text-zinc-300">{compact(pnl)}</div>
               )}
             </div>
           );
