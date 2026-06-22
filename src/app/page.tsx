@@ -1,22 +1,18 @@
 import Link from "next/link";
 import {
   Activity,
+  Bot,
   BookOpenCheck,
   CheckCircle2,
   ClipboardCheck,
   FileSearch,
+  LockKeyhole,
+  MessageSquare,
   ShieldCheck,
   UploadCloud,
 } from "lucide-react";
 import { WaitlistForm } from "./waitlist-form";
 import { BrokerLogos } from "@/components/broker-logos";
-
-const PROOF_STEPS = [
-  "Import broker or prop-firm history",
-  "Quantidive computes the metrics",
-  "Attach statements or tax records",
-  "Share a verified public profile",
-];
 
 const TRUST_CARDS = [
   {
@@ -53,6 +49,74 @@ const WORKSPACE_STEPS = [
     icon: BookOpenCheck,
     title: "Report",
     body: "Turn verified metrics into research briefs and client-ready summaries without reassembling spreadsheets.",
+  },
+];
+
+const ROOM_STEPS = [
+  {
+    icon: LockKeyhole,
+    title: "Proof-gated rooms",
+    body: "Discord or private chat access can be tied to Quantidive proof level, freshness, and public profile status.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Structured strategy threads",
+    body: "Rooms are organized around thesis, data source, backtest, risk, counterview, and monitoring notes.",
+  },
+  {
+    icon: Bot,
+    title: "AI research operator",
+    body: "AI turns long discussions into source-linked summaries, unanswered questions, and diligence-ready briefs.",
+  },
+];
+
+const COMMUNITY_ROOMS = [
+  "GEX and market structure",
+  "Systematic research lab",
+  "Portfolio construction",
+  "Private markets diligence",
+];
+
+const FEATURED_PROFILES = [
+  {
+    name: "Ava Rao",
+    initials: "AR",
+    headline: "Proof L4 futures operator",
+    style: "SPX gamma / ES / NQ",
+    proof: "L4",
+    score: "91",
+    drawdown: "6%",
+    room: "GEX desk",
+  },
+  {
+    name: "Marcus Chen",
+    initials: "MC",
+    headline: "Systematic stat-arb researcher",
+    style: "Equities / sector ETFs",
+    proof: "L3",
+    score: "84",
+    drawdown: "3%",
+    room: "Systematic lab",
+  },
+  {
+    name: "Priya Nair",
+    initials: "PN",
+    headline: "Options flow and volatility analyst",
+    style: "SPX / SPY / QQQ options",
+    proof: "L4",
+    score: "88",
+    drawdown: "8%",
+    room: "Market structure",
+  },
+  {
+    name: "Noah Okafor",
+    initials: "NO",
+    headline: "Macro futures researcher",
+    style: "Rates / FX / index hedges",
+    proof: "L3",
+    score: "82",
+    drawdown: "5%",
+    room: "Private markets desk",
   },
 ];
 
@@ -125,10 +189,12 @@ export default function Home() {
               <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
-                    Public profile
+                    Verified operator profile
                   </p>
-                  <h2 className="mt-2 text-xl font-semibold text-white">Ava Demo</h2>
-                  <p className="mt-1 text-sm text-slate-400">Systematic futures / SPX gamma</p>
+                  <h2 className="mt-2 text-xl font-semibold text-white">Ava Rao</h2>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Proof L4 futures operator / SPX gamma and intraday risk
+                  </p>
                 </div>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/35 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
                   <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -137,19 +203,23 @@ export default function Home() {
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <ProfileMetric label="Proof level" value="L4" detail="Tax record checked" />
-                <ProfileMetric label="Freshness" value="Fresh" detail="Updated 2d ago" />
-                <ProfileMetric label="Research score" value="87/100" detail="Code computed" />
-                <ProfileMetric label="Data source" value="Broker CSV" detail="Hash recorded" />
+                <ProfileMetric label="Proof level" value="L4" detail="Tax record + statement" />
+                <ProfileMetric label="Freshness" value="Fresh" detail="Updated this week" />
+                <ProfileMetric label="Quantidive score" value="91/100" detail="Code computed" />
+                <ProfileMetric label="Max drawdown" value="5.8%" detail="Published window" />
               </div>
 
               <div className="mt-5 rounded-md border border-slate-800 bg-slate-900/70 p-4">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
-                  Verification path
+                  Diligence snapshot
                 </p>
-                <div className="mt-4 space-y-3">
-                  {PROOF_STEPS.map((step, index) => (
-                    <div key={step} className="flex items-center gap-3 text-sm">
+                <div className="mt-4 grid gap-3">
+                  {[
+                    "GEX and futures process is published, not implied from screenshots",
+                    "Mid-period drawdown recovered before the latest profile update",
+                    "Best-day dependency is flagged for reviewer follow-up",
+                  ].map((step, index) => (
+                    <div key={step} className="flex gap-3 text-sm">
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-400/10 text-xs font-semibold text-cyan-300">
                         {index + 1}
                       </span>
@@ -170,6 +240,53 @@ export default function Home() {
                 <p className="mt-3 text-sm leading-6 text-slate-400">{card.body}</p>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section className="border-y border-slate-800 bg-slate-950/70">
+          <div className="mx-auto max-w-6xl px-4 py-16">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-cyan-200">
+                  More verified profiles
+                </p>
+                <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">
+                  A network should look like a desk, not a directory of claims.
+                </h2>
+              </div>
+              <Link
+                href="/explore"
+                className="rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:border-cyan-400 hover:text-white"
+              >
+                View directory
+              </Link>
+            </div>
+            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {FEATURED_PROFILES.map((profile) => (
+                <article key={profile.name} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 gap-3">
+                      <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-slate-950 text-sm font-semibold text-white">
+                        {profile.initials}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="truncate font-semibold text-white">{profile.name}</h3>
+                        <p className="mt-0.5 truncate text-sm text-slate-400">{profile.headline}</p>
+                      </div>
+                    </div>
+                    <span className="rounded border border-cyan-400/30 bg-cyan-400/10 px-2 py-1 text-xs font-medium text-cyan-200">
+                      {profile.proof}
+                    </span>
+                  </div>
+                  <p className="mt-4 text-sm text-slate-300">{profile.style}</p>
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
+                    <ProfileMini label="Score" value={profile.score} />
+                    <ProfileMini label="Drop" value={profile.drawdown} />
+                    <ProfileMini label="Room" value={profile.room} />
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -206,6 +323,48 @@ export default function Home() {
                     <Icon className="h-6 w-6 text-cyan-300" aria-hidden="true" />
                     <h3 className="mt-4 font-semibold text-white">{point.title}</h3>
                     <p className="mt-2 text-sm leading-6 text-slate-400">{point.body}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 py-16">
+          <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+            <div>
+              <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-cyan-200">
+                <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                Verified strategy rooms
+              </p>
+              <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white">
+                Make quant discussion easier to trust.
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                The community layer should work like a private-market diligence room: verified
+                participants, organized evidence, clear ownership, and a record of what changed.
+                Traders can discuss GEX, systematic rules, portfolio construction, and deep dives
+                without every thread becoming a signal channel.
+              </p>
+              <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                {COMMUNITY_ROOMS.map((room) => (
+                  <div
+                    key={room}
+                    className="rounded-md border border-slate-800 bg-slate-900/70 px-3 py-2 text-sm text-slate-300"
+                  >
+                    {room}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+              {ROOM_STEPS.map((step) => {
+                const Icon = step.icon;
+                return (
+                  <article key={step.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
+                    <Icon className="h-6 w-6 text-cyan-300" aria-hidden="true" />
+                    <h3 className="mt-4 font-semibold text-white">{step.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-400">{step.body}</p>
                   </article>
                 );
               })}
@@ -261,6 +420,15 @@ function ProfileMetric({
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-2 text-lg font-semibold text-white">{value}</p>
       <p className="mt-1 text-xs text-slate-400">{detail}</p>
+    </div>
+  );
+}
+
+function ProfileMini({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[11px] font-medium uppercase text-slate-500">{label}</p>
+      <p className="mt-1 truncate text-sm font-semibold text-white">{value}</p>
     </div>
   );
 }

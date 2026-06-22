@@ -1,6 +1,10 @@
 # Quantidive
 
-Quantidive combines trader verification with a diligence workspace for clients, firms, allocators, and collaborators. Traders import broker or prop-firm history, publish proof-backed profiles, and keep verified metrics current; reviewers screen profiles, inspect evidence, monitor changes, and turn code-computed metrics into research or diligence updates.
+Quantidive combines trader verification with a diligence workspace and verified discussion network
+for clients, firms, allocators, and collaborators. Traders import broker or prop-firm history,
+publish proof-backed profiles, keep verified metrics current, and join proof-gated strategy rooms;
+reviewers screen profiles, inspect evidence, monitor changes, and turn code-computed metrics or
+discussion threads into research or diligence updates.
 
 It does not manage money, execute trades, copy trades, provide investment advice, or guarantee performance. Public pages must keep the past-performance disclaimer.
 
@@ -19,9 +23,10 @@ It does not manage money, execute trades, copy trades, provide investment advice
 
 - Verification-first product, not a consumer investing app.
 - `/network` is the authenticated verified-trader board: screen profiles by style, proof level, and track-record context.
+- Verified rooms are the planned Discord/private-chat layer: proof-gated channels for GEX, systematic research, portfolio construction, and private-market diligence.
 - `/p/[slug]` is a public research profile backed by published `ProfileVersion` snapshots.
 - `/reports` acts as a diligence/research brief archive; AI drafts prose only from code-computed metrics.
-- All profile, GEX, and market-structure discussion must remain non-advisory and evidence-led.
+- All profile, GEX, market-structure, private-equity, and chat discussion must remain non-advisory and evidence-led.
 
 ## Core Rules
 
@@ -30,6 +35,7 @@ It does not manage money, execute trades, copy trades, provide investment advice
 - CSV/import hashes are recorded and duplicate source files are rejected per account.
 - Privacy redaction affects public display only; metrics are not recalculated.
 - Proof Levels currently support CSV imports, broker statements, and tax-return / official-tax-record evidence.
+- Discord/community access should eventually use OAuth/linked roles so Quantidive can expose proof-level metadata without manually granting chat permissions.
 
 ## Commands
 
@@ -44,7 +50,8 @@ npm run typecheck
 npm run lint
 ```
 
-Demo after seeding: `/p/demo`, login `demo@quantidive.local` / `demo1234`.
+Demo after seeding: `/p/demo`, login `demo@quantidive.local` / `demo1234`. The seed also
+creates additional public profiles for the verified trader directory.
 
 ## Important Files
 

@@ -5,7 +5,10 @@
 Trader verification and diligence workspace for clients, firms, allocators, and collaborators.
 Prop-firm traders, independent traders, brokers, and research teams upload broker / prop-firm
 history (CSV), review verified performance dashboards, publish research briefs, and share a public
-profile that reviewers can screen, diligence, monitor, and summarize.
+profile that reviewers can screen, diligence, monitor, and summarize. The network layer is evolving
+toward proof-gated Discord/private-chat rooms where verified traders can discuss GEX, systematic
+research, portfolio construction, and private-market diligence with structured evidence and AI
+summaries.
 
 **It is a pure SaaS reporting tool.** It does **not** manage money, execute or copy trades, send
 signals, give allocation advice, predict returns, or take performance fees. Those boundaries are not
@@ -120,6 +123,11 @@ Every public card and brief carries a "past performance does not guarantee futur
 
 Out of scope for v1: broker OAuth/APIs, auto-execution/copy trading, signals, personalized advice,
 AUM/performance fees, custody, full RIA/CTA compliance workflow.
+
+Community/chat guardrail: verified rooms can discuss methods, assumptions, source data, risks,
+counterviews, and post-mortems. They must not become paid signal rooms, copy-trading groups, or
+personalized allocation channels. Future Discord integration should use OAuth/linked roles so
+proof-level metadata gates access without exposing private evidence files.
 
 ## Build status & roadmap
 
