@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { signIn } from "@/auth";
 import { prisma } from "@/lib/db";
 import { loginSchema, signupSchema } from "@/lib/auth/schemas";
+import { logger } from "@/lib/logger";
 
 export type AuthFormState =
   | {
@@ -31,7 +32,10 @@ export async function authenticate(
     return undefined;
   } catch (error) {
     // `signIn` throws a redirect on success — let it propagate.
-    if (error instanceof AuthError) return { message: "Invalid email or password." };
+    if (error instanceof AuthError) {
+      logger.warn("auth.signin.failed", { email: parsed.data.email });
+      return { message: "Invalid email or password." };
+    }
     throw error;
   }
 }
@@ -54,11 +58,16 @@ export async function signup(
 
   const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
   if (existing) {
+    logger.warn("auth.signup.duplicate", { email });
     return { errors: { email: ["An account with this email already exists."] } };
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  await prisma.user.create({ data: { name, email, passwordHash } });
+  const created = await prisma.user.create({
+    data: { name, email, passwordHash },
+    select: { id: true },
+  });
+  logger.info("auth.signup.created", { userId: created.id, email });
 
   try {
     await signIn("credentials", { email, password, redirectTo: "/onboarding" });
