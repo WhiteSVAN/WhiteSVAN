@@ -7,12 +7,12 @@
 export function SvanLogo({ className }: { className?: string }) {
   return (
     <span
-      className={`inline-flex items-center gap-[0.05em] font-semibold uppercase leading-none tracking-[0.04em] ${className ?? ""}`}
+      className={`inline-flex items-center gap-[0.04em] font-semibold leading-none tracking-[0.01em] ${className ?? ""}`}
     >
-      <span className="text-slate-400">tru</span>
+      <span className="lowercase text-[#97a4c9]">tru</span>
       {/* the swan mark stands in for the "S" of SVAN */}
-      <SwanMark className="h-[0.92em] w-auto shrink-0 text-white" />
-      <span className="text-white">van</span>
+      <SwanMark className="h-[1.12em] w-auto shrink-0 text-white drop-shadow-[0_0_6px_rgba(96,165,250,0.55)]" />
+      <span className="text-white">VAN</span>
     </span>
   );
 }
