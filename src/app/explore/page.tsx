@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { auth } from "@/auth";
@@ -82,14 +81,7 @@ export default async function ExplorePage() {
       </header>
 
       <section className="relative overflow-hidden border-b border-slate-800 bg-slate-950">
-        <Image
-          src="/images/quantidive-city-night.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover object-[54%_36%] opacity-35"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.94)_0%,rgba(2,6,23,0.78)_52%,rgba(2,6,23,0.52)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,211,238,0.08),transparent_55%),linear-gradient(180deg,#070a12_0%,#05070d_100%)]" />
         <div className="relative mx-auto max-w-5xl px-4 py-10 sm:py-12">
           <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-cyan-200 sm:tracking-[0.2em]">
             <ShieldCheck className="h-4 w-4" aria-hidden="true" />
