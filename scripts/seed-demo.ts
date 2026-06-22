@@ -80,16 +80,16 @@ const DISCLAIMER =
 
 const SEED_TRADERS: SeedTrader[] = [
   {
-    email: "demo@quantidive.local",
+    email: "demo@trustsvan.local",
     password: "demo1234",
     name: "Sofia Alvarez",
     slug: "demo",
     headline: "Proof L4 futures operator - GEX and intraday risk",
     strategy: "Systematic futures momentum with SPX gamma context",
     instruments: "ES, NQ, SPX options",
-    bio: "Sofia runs a rules-led futures process that combines opening-range structure, volatility context, and strict daily loss limits. This seeded profile shows how a verified Quantidive operator page should read.",
+    bio: "Sofia runs a rules-led futures process that combines opening-range structure, volatility context, and strict daily loss limits. This seeded profile shows how a verified TrustSVAN operator page should read.",
     services: "Market-structure research, futures execution review, and risk-process consulting for prop desks and independent operators.",
-    contactUrl: "https://cal.com/quantidive/sofia-alvarez-demo",
+    contactUrl: "https://cal.com/trustsvan/sofia-alvarez-demo",
     openToWork: true,
     updateCadence: "WEEKLY",
     accountName: "Sofia Futures Process",
@@ -158,7 +158,7 @@ const SEED_TRADERS: SeedTrader[] = [
     ],
   },
   {
-    email: "marcus.chen@quantidive.local",
+    email: "marcus.chen@trustsvan.local",
     name: "Marcus Chen",
     slug: "marcus-chen",
     headline: "Systematic stat-arb researcher - equities and ETFs",
@@ -166,7 +166,7 @@ const SEED_TRADERS: SeedTrader[] = [
     instruments: "US equities, sector ETFs",
     bio: "Marcus publishes reproducible stat-arb notes with cost assumptions, regime filters, and post-trade drift checks. His seeded profile is designed for clients who want process clarity before discussing collaboration.",
     services: "Research reviews, scanner design, execution-cost analysis, and systematic process documentation.",
-    contactUrl: "https://cal.com/quantidive/marcus-chen-demo",
+    contactUrl: "https://cal.com/trustsvan/marcus-chen-demo",
     openToWork: true,
     updateCadence: "MONTHLY",
     accountName: "Equity Stat-Arb Sleeve",
@@ -221,7 +221,7 @@ const SEED_TRADERS: SeedTrader[] = [
     ],
   },
   {
-    email: "priya.nair@quantidive.local",
+    email: "priya.nair@trustsvan.local",
     name: "Priya Nair",
     slug: "priya-nair",
     headline: "Options flow and GEX analyst - index volatility",
@@ -229,7 +229,7 @@ const SEED_TRADERS: SeedTrader[] = [
     instruments: "SPX, SPY, QQQ options",
     bio: "Priya focuses on market-structure research: gamma walls, skew shifts, expiration concentration, and intraday invalidation levels. Her seeded profile demonstrates how discussion rooms can stay evidence-led.",
     services: "GEX briefings, market-structure dashboards, options-flow education, and risk review.",
-    contactUrl: "https://cal.com/quantidive/priya-nair-demo",
+    contactUrl: "https://cal.com/trustsvan/priya-nair-demo",
     openToWork: true,
     updateCadence: "WEEKLY",
     accountName: "Index Volatility Research",
@@ -284,15 +284,15 @@ const SEED_TRADERS: SeedTrader[] = [
     ],
   },
   {
-    email: "elena.brooks@quantidive.local",
+    email: "elena.brooks@trustsvan.local",
     name: "Elena Brooks",
     slug: "elena-brooks",
     headline: "Portfolio-construction operator - factor and drawdown control",
     strategy: "Multi-strategy allocation, factor overlap, and risk contribution",
     instruments: "ETFs, futures, liquid alternatives",
-    bio: "Elena evaluates portfolios like an operating review: factor overlap, correlation, drawdown contribution, and rebalancing discipline. This profile rounds out the diligence side of the Quantidive network.",
+    bio: "Elena evaluates portfolios like an operating review: factor overlap, correlation, drawdown contribution, and rebalancing discipline. This profile rounds out the diligence side of the TrustSVAN network.",
     services: "Portfolio diagnostics, factor exposure review, and model governance documentation.",
-    contactUrl: "https://cal.com/quantidive/elena-brooks-demo",
+    contactUrl: "https://cal.com/trustsvan/elena-brooks-demo",
     openToWork: false,
     updateCadence: "MONTHLY",
     accountName: "Portfolio Overlay Sleeve",
@@ -347,7 +347,7 @@ const SEED_TRADERS: SeedTrader[] = [
     ],
   },
   {
-    email: "noah.okafor@quantidive.local",
+    email: "noah.okafor@trustsvan.local",
     name: "Noah Okafor",
     slug: "noah-okafor",
     headline: "Macro futures researcher - rates, FX, and private-market context",
@@ -355,7 +355,7 @@ const SEED_TRADERS: SeedTrader[] = [
     instruments: "Treasury futures, FX futures, equity index hedges",
     bio: "Noah writes macro strategy reviews in a diligence format: thesis, scenario map, source data, and what would invalidate the position. His seeded profile bridges trader verification with private-market operating discipline.",
     services: "Macro risk memos, scenario monitoring, and portfolio hedge process reviews.",
-    contactUrl: "https://cal.com/quantidive/noah-okafor-demo",
+    contactUrl: "https://cal.com/trustsvan/noah-okafor-demo",
     openToWork: true,
     updateCadence: "WEEKLY",
     accountName: "Macro Scenario Sleeve",
@@ -480,7 +480,7 @@ function makeTrader(p: GenTrader): SeedTrader {
   const first = p.name.split(" ")[0];
   return {
     ...p,
-    contactUrl: `https://cal.com/quantidive/${p.slug}`,
+    contactUrl: `https://cal.com/trustsvan/${p.slug}`,
     accountName: `${first} ${p.symbols[0]} book`,
     dailyPnl: genDailyPnl(p.seed, p.gen),
     report: {
@@ -521,7 +521,7 @@ function makeTrader(p: GenTrader): SeedTrader {
 
 const GENERATED_TRADERS: SeedTrader[] = [
   makeTrader({
-    email: "liang.wu@quantidive.local",
+    email: "liang.wu@trustsvan.local",
     name: "Liang Wu",
     slug: "liang-wu",
     headline: "Index futures scalper - ES/NQ open",
@@ -542,7 +542,7 @@ const GENERATED_TRADERS: SeedTrader[] = [
     gen: { days: 46, winRate: 0.57, avgWin: 380, avgLoss: 300, outlierAt: 30, drawdownAt: 18 },
   }),
   makeTrader({
-    email: "sara.cohen@quantidive.local",
+    email: "sara.cohen@trustsvan.local",
     name: "Sara Cohen",
     slug: "sara-cohen",
     headline: "Equity swing researcher - factor tilts",
@@ -563,7 +563,7 @@ const GENERATED_TRADERS: SeedTrader[] = [
     gen: { days: 52, winRate: 0.52, avgWin: 520, avgLoss: 470, outlierAt: 41, drawdownAt: 22 },
   }),
   makeTrader({
-    email: "diego.santos@quantidive.local",
+    email: "diego.santos@trustsvan.local",
     name: "Diego Santos",
     slug: "diego-santos",
     headline: "FX and rates macro - systematic overlays",
@@ -584,7 +584,7 @@ const GENERATED_TRADERS: SeedTrader[] = [
     gen: { days: 58, winRate: 0.49, avgWin: 640, avgLoss: 520, outlierAt: 12, drawdownAt: 33 },
   }),
   makeTrader({
-    email: "hana.kim@quantidive.local",
+    email: "hana.kim@trustsvan.local",
     name: "Hana Kim",
     slug: "hana-kim",
     headline: "Options premium seller - defined risk",
@@ -605,7 +605,7 @@ const GENERATED_TRADERS: SeedTrader[] = [
     gen: { days: 44, winRate: 0.66, avgWin: 240, avgLoss: 520, drawdownAt: 26 },
   }),
   makeTrader({
-    email: "tomas.novak@quantidive.local",
+    email: "tomas.novak@trustsvan.local",
     name: "Tomas Novak",
     slug: "tomas-novak",
     headline: "Micro futures momentum - small book",
@@ -627,7 +627,96 @@ const GENERATED_TRADERS: SeedTrader[] = [
   }),
 ];
 
-const ALL_TRADERS: SeedTrader[] = [...SEED_TRADERS, ...GENERATED_TRADERS];
+// Regular investors — long-horizon, lower-turnover profiles so the directory is a
+// mixed bag (buy-and-hold / dividend / index / multi-asset), not only active traders.
+const INVESTORS: SeedTrader[] = [
+  makeTrader({
+    email: "grace.bennett@trustsvan.local",
+    name: "Grace Bennett",
+    slug: "grace-bennett",
+    headline: "Long-term value investor — quality compounders",
+    strategy: "Concentrated quality value, 3–5 year holds",
+    instruments: "US equities",
+    bio: "Grace runs a concentrated book of quality compounders with a multi-year horizon and a written sell discipline.",
+    services: "Long-term equity research and portfolio review for family offices and RIAs.",
+    broker: "Fidelity",
+    startingBalance: 250000,
+    startDate: "2026-01-05",
+    symbols: ["AAPL", "MSFT", "COST"],
+    proofLevel: 4,
+    updateReliability: 84,
+    updateCadence: "MONTHLY",
+    openToWork: false,
+    reportPeriod: "2026-05",
+    seed: 606,
+    gen: { days: 64, winRate: 0.6, avgWin: 900, avgLoss: 800, drawdownAt: 28 },
+  }),
+  makeTrader({
+    email: "owen.fletcher@trustsvan.local",
+    name: "Owen Fletcher",
+    slug: "owen-fletcher",
+    headline: "Dividend-growth portfolio — income + compounding",
+    strategy: "Dividend-growth equities with reinvestment",
+    instruments: "Dividend equities, ETFs",
+    bio: "Owen builds a dividend-growth portfolio focused on rising payouts, coverage, and balance-sheet quality.",
+    services: "Income-portfolio construction and dividend-sustainability reviews.",
+    broker: "Charles Schwab",
+    startingBalance: 180000,
+    startDate: "2026-01-20",
+    symbols: ["SCHD", "JNJ", "PEP"],
+    proofLevel: 3,
+    updateReliability: 76,
+    updateCadence: "MONTHLY",
+    openToWork: true,
+    reportPeriod: "2026-05",
+    seed: 707,
+    gen: { days: 60, winRate: 0.62, avgWin: 540, avgLoss: 520, drawdownAt: 35 },
+  }),
+  makeTrader({
+    email: "mei.tanaka@trustsvan.local",
+    name: "Mei Tanaka",
+    slug: "mei-tanaka",
+    headline: "Index core + satellite allocator",
+    strategy: "Low-cost index core with tactical satellites",
+    instruments: "ETFs, index funds",
+    bio: "Mei keeps a low-cost index core and rotates small satellite sleeves by valuation and breadth.",
+    services: "Allocation reviews and cost/tax-drag analysis for individual investors.",
+    broker: "Vanguard",
+    startingBalance: 320000,
+    startDate: "2026-02-09",
+    symbols: ["VOO", "VXUS", "VNQ"],
+    proofLevel: 3,
+    updateReliability: 72,
+    updateCadence: "MONTHLY",
+    openToWork: false,
+    reportPeriod: "2026-05",
+    seed: 808,
+    gen: { days: 56, winRate: 0.58, avgWin: 700, avgLoss: 760, drawdownAt: 24 },
+  }),
+  makeTrader({
+    email: "raj.malhotra@trustsvan.local",
+    name: "Raj Malhotra",
+    slug: "raj-malhotra",
+    headline: "Multi-asset allocator — equities, bonds, gold",
+    strategy: "Risk-balanced multi-asset allocation",
+    instruments: "ETFs, bonds, gold",
+    bio: "Raj runs a risk-balanced multi-asset book with explicit rebalancing bands and a drawdown budget.",
+    services: "Multi-asset allocation design and rebalancing-discipline consulting.",
+    broker: "Interactive Brokers",
+    startingBalance: 500000,
+    startDate: "2026-01-12",
+    symbols: ["VTI", "BND", "GLD"],
+    proofLevel: 4,
+    updateReliability: 80,
+    updateCadence: "MONTHLY",
+    openToWork: true,
+    reportPeriod: "2026-05",
+    seed: 909,
+    gen: { days: 62, winRate: 0.61, avgWin: 1100, avgLoss: 980, drawdownAt: 40 },
+  }),
+];
+
+const ALL_TRADERS: SeedTrader[] = [...SEED_TRADERS, ...GENERATED_TRADERS, ...INVESTORS];
 
 function tradingDates(startISO: string, n: number): string[] {
   const dates: string[] = [];
@@ -676,7 +765,7 @@ async function seedEvidence(trader: SeedTrader, userId: string, accountId: strin
 
     const body = [
       `${trader.name} - ${item.label}`,
-      "Sanitized demo evidence generated by Quantidive seed data.",
+      "Sanitized demo evidence generated by TrustSVAN seed data.",
       "This file exists only to make the demo profile links behave like real evidence links.",
     ].join("\n");
     await saveEvidenceFile(evidence.id, Buffer.from(body, "utf8"));
@@ -776,7 +865,7 @@ async function seedTrader(trader: SeedTrader, passwordHash: string) {
       transparencyScore: trust.scores.transparency,
       proofLevel: trader.proofLevel,
       freshnessStatus: "fresh",
-      changeSummary: `First published update: ${trust.metrics.tradingDays} trading days, net $${trust.metrics.netPnl.toFixed(0)}, Quantidive Score ${trust.scores.transparency}.`,
+      changeSummary: `First published update: ${trust.metrics.tradingDays} trading days, net $${trust.metrics.netPnl.toFixed(0)}, TrustSVAN Score ${trust.scores.transparency}.`,
       publishedAt,
     },
     select: { id: true },
@@ -840,7 +929,7 @@ async function main() {
   }
 
   console.log(
-    `Seeded ${ALL_TRADERS.length} demo traders -> /explore and /p/demo (login: demo@quantidive.local / demo1234)`,
+    `Seeded ${ALL_TRADERS.length} demo traders -> /explore and /p/demo (login: demo@trustsvan.local / demo1234)`,
   );
 }
 

@@ -1,6 +1,6 @@
-# Quantidive
+# TrustSVAN
 
-Quantidive combines trader verification with a diligence workspace and verified discussion network
+TrustSVAN combines trader verification with a diligence workspace and verified discussion network
 for clients, firms, allocators, and collaborators. Traders connect broker or prop-firm history,
 publish proof-backed profiles, keep verified metrics current, and join proof-gated strategy rooms;
 reviewers screen profiles, inspect evidence, monitor changes, and turn code-computed metrics or
@@ -35,7 +35,7 @@ It does not manage money, execute trades, copy trades, provide investment advice
 - Source-history hashes are recorded and duplicate source files are rejected per account.
 - Privacy redaction affects public display only; metrics are not recalculated.
 - Proof Levels currently support source-linked history, broker statements, and tax-return / official-tax-record evidence.
-- Discord/community access should eventually use OAuth/linked roles so Quantidive can expose proof-level metadata without manually granting chat permissions.
+- Discord/community access should eventually use OAuth/linked roles so TrustSVAN can expose proof-level metadata without manually granting chat permissions.
 
 ## Commands
 
@@ -50,7 +50,7 @@ npm run typecheck
 npm run lint
 ```
 
-Demo after seeding: `/p/demo`, login `demo@quantidive.local` / `demo1234`. The seed also
+Demo after seeding: `/p/demo`, login `demo@trustsvan.local` / `demo1234`. The seed also
 creates additional public profiles for the verified trader directory.
 
 ## Important Files

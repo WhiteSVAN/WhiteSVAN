@@ -2,12 +2,12 @@
 services:
   db:
     image: postgres:16
-    container_name: quantidive-db
+    container_name: trustsvan-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: quantidive
-      POSTGRES_PASSWORD: quantidive
-      POSTGRES_DB: quantidive
+      POSTGRES_USER: trustsvan
+      POSTGRES_PASSWORD: trustsvan
+      POSTGRES_DB: trustsvan
     ports:
       - "5432:5432"
     volumes:

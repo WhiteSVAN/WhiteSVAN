@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quantidive - verified trader diligence workspace",
+  title: "TrustSVAN - verified trader diligence workspace",
   description:
     "A verification layer for traders and a diligence workspace for clients, firms, allocators, and collaborators reviewing proof-backed trading performance.",
 };

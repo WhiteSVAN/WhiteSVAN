@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SvanLogo } from "@/components/svan-logo";
 
 /** Centered card shell for the sign-in / sign-up screens. */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -7,7 +8,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="w-full max-w-sm">
         <Link href="/" className="mb-8 flex items-center justify-center">
           <span className="text-xl font-semibold tracking-[0.18em] text-slate-100">
-            QUANTI<span className="text-cyan-300">DIVE</span>
+            <SvanLogo />
           </span>
         </Link>
         <div className="rounded-lg border border-slate-800 bg-slate-900/80 p-8 shadow-sm">

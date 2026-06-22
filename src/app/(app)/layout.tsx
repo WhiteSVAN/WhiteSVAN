@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SvanLogo } from "@/components/svan-logo";
 import { requireUser } from "@/lib/auth/dal";
 import { AccountMenu } from "./account-menu";
 
@@ -23,7 +24,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             href="/dashboard"
             className="self-start text-base font-semibold tracking-[0.14em] text-slate-100 sm:tracking-[0.18em]"
           >
-            QUANTI<span className="text-cyan-300">DIVE</span>
+            <SvanLogo />
           </Link>
           <nav className="flex w-full items-center gap-x-4 gap-y-2 overflow-x-auto pb-1 text-sm sm:w-auto sm:justify-end sm:overflow-visible sm:pb-0">
             {NAV.map((item) => (
