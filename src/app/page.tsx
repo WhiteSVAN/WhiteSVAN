@@ -4,7 +4,6 @@ import {
   Activity,
   Bot,
   BookOpenCheck,
-  CheckCircle2,
   ClipboardCheck,
   FileSearch,
   Link2,
@@ -18,16 +17,16 @@ import { SiteFooter } from "@/components/site-footer";
 
 const TRUST_CARDS = [
   {
-    title: "The situation",
-    body: "Trading results online are usually screenshots, cropped charts, and claims that cannot be inspected.",
+    title: "Proof",
+    body: "Broker-reported history, statements, and tax records behind the public profile.",
   },
   {
-    title: "The problem",
-    body: "Serious traders look the same as promoters when clients, firms, and peers cannot tell what is real.",
+    title: "Rooms",
+    body: "Verified access for GEX, systematic research, portfolios, and private diligence.",
   },
   {
-    title: "The solution",
-    body: "A public Quantidive profile ties broker-reported performance, proof level, freshness, and risk metrics to a record that can be reviewed.",
+    title: "Briefs",
+    body: "AI-ready notes from code-computed metrics and source-backed discussions.",
   },
 ];
 
@@ -122,6 +121,37 @@ const FEATURED_PROFILES = [
   },
 ];
 
+const HERO_TAPE = [
+  "Read-only broker links",
+  "Proof L4",
+  "GEX deep dives",
+  "Tax-record verification",
+  "Private rooms",
+  "AI research briefs",
+  "Risk context",
+];
+
+const VISUAL_PANELS = [
+  {
+    title: "The record",
+    label: "Broker connected",
+    body: "Source-backed performance without editable screenshots.",
+    position: "object-[42%_52%]",
+  },
+  {
+    title: "The room",
+    label: "Verified access",
+    body: "Strategy discussion gated by proof, freshness, and role.",
+    position: "object-[58%_42%]",
+  },
+  {
+    title: "The brief",
+    label: "Research desk",
+    body: "Metrics, risk events, and notes ready for review.",
+    position: "object-[50%_62%]",
+  },
+];
+
 export default function Home() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-slate-950 text-slate-100">
@@ -156,26 +186,22 @@ export default function Home() {
             fill
             priority
             sizes="100vw"
-            className="object-cover object-[54%_44%] opacity-55"
+            className="qd-hero-pan object-cover object-[54%_44%] opacity-90"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.96)_0%,rgba(2,6,23,0.82)_46%,rgba(2,6,23,0.5)_100%)]" />
-          <div className="absolute inset-0 bg-slate-950/20" />
-          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-slate-950 to-transparent" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.78)_0%,rgba(2,6,23,0.48)_48%,rgba(2,6,23,0.2)_100%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-slate-950 to-transparent" />
 
-          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:gap-10 sm:py-24 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+          <div className="relative mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:gap-10 sm:py-20 lg:grid-cols-[0.9fr_1fr] lg:items-center">
             <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-cyan-200 sm:tracking-[0.24em]">
+              <p className="inline-flex items-center gap-2 rounded-full border border-cyan-300/35 bg-slate-950/35 px-3 py-1 text-xs font-medium uppercase tracking-[0.14em] text-cyan-100 backdrop-blur sm:tracking-[0.22em]">
                 <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                Private verification network
+                Verified trading network
               </p>
-              <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-tight text-white sm:text-6xl">
-                A private network for verified market operators.
+              <h1 className="mt-6 max-w-3xl text-5xl font-semibold tracking-tight text-white sm:text-7xl">
+                Verified traders. Real records.
               </h1>
-              <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                Quantidive combines public trader verification with an AI-ready workflow for
-                screening, reviewing, monitoring, and reporting on trading talent. Traders prove the
-                record through source-linked history; clients and firms get a cleaner way to
-                diligence it.
+              <p className="mt-6 max-w-xl text-base leading-7 text-slate-200 sm:text-lg">
+                Broker-reported history becomes profiles, private rooms, and research briefs.
               </p>
               <div className="mt-8 max-w-xl">
                 <WaitlistForm />
@@ -191,65 +217,55 @@ export default function Home() {
                   href="/explore"
                   className="rounded-md border border-slate-700 px-4 py-2 text-center font-medium text-slate-200 hover:border-cyan-400 hover:text-white"
                 >
-                  Browse verified traders
+                  Explore traders
                 </Link>
+              </div>
+              <div className="mt-8 overflow-hidden border-y border-white/10 py-3">
+                <div className="qd-tape-track flex w-max gap-3 text-xs font-medium uppercase tracking-[0.18em] text-slate-200">
+                  {[...HERO_TAPE, ...HERO_TAPE].map((item, index) => (
+                    <span key={`${item}-${index}`} className="inline-flex items-center gap-3">
+                      {item}
+                      <span className="h-1 w-1 rounded-full bg-cyan-300" aria-hidden="true" />
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="rounded-lg border border-slate-800 bg-slate-950/90 p-5 shadow-2xl shadow-black/30">
-              <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
-                    Verified operator profile
-                  </p>
-                  <h2 className="mt-2 text-xl font-semibold text-white">Ava Rao</h2>
-                  <p className="mt-1 text-sm text-slate-400">
-                    Proof L4 futures operator / SPX gamma and intraday risk
-                  </p>
-                </div>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/35 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
-                  <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  Verified
-                </span>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <ProfileMetric label="Proof level" value="L4" detail="Tax record + statement" />
-                <ProfileMetric label="Freshness" value="Fresh" detail="Updated this week" />
-                <ProfileMetric label="Quantidive score" value="91/100" detail="Code computed" />
-                <ProfileMetric label="Max drawdown" value="5.8%" detail="Published window" />
-              </div>
-
-              <div className="mt-5 rounded-md border border-slate-800 bg-slate-900/70 p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
-                  Diligence snapshot
-                </p>
-                <div className="mt-4 grid gap-3">
-                  {[
-                    "GEX and futures process is published, not implied from screenshots",
-                    "Mid-period drawdown recovered before the latest profile update",
-                    "Best-day dependency is flagged for reviewer follow-up",
-                  ].map((step, index) => (
-                    <div key={step} className="flex gap-3 text-sm">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-400/10 text-xs font-semibold text-cyan-300">
-                        {index + 1}
-                      </span>
-                      <span className="text-slate-300">{step}</span>
-                    </div>
-                  ))}
-                </div>
+            <div className="qd-fade-up relative min-h-[28rem] overflow-hidden rounded-lg border border-white/15 shadow-2xl shadow-black/40 sm:min-h-[34rem]">
+              <Image
+                src="/images/quantidive-city-night.jpg"
+                alt=""
+                fill
+                sizes="(min-width: 1024px) 44rem, 100vw"
+                className="object-cover object-[58%_40%]"
+              />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.08)_0%,rgba(2,6,23,0.14)_44%,rgba(2,6,23,0.78)_100%)]" />
+              <div className="absolute inset-x-4 bottom-4 grid gap-3 sm:grid-cols-2">
+                <ProfileMetric label="Proof" value="L4" detail="Tax record + statement" />
+                <ProfileMetric label="Fresh" value="7d" detail="Updated this week" />
+                <ProfileMetric label="Score" value="91" detail="Code computed" />
+                <ProfileMetric label="Drop" value="5.8%" detail="Published window" />
               </div>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-16">
+        <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
           <div className="grid gap-4 md:grid-cols-3">
             {TRUST_CARDS.map((card) => (
-              <article key={card.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
+              <article key={card.title} className="qd-fade-up rounded-lg border border-slate-800 bg-slate-900/60 p-5">
                 <h2 className="text-lg font-semibold text-white">{card.title}</h2>
                 <p className="mt-3 text-sm leading-6 text-slate-400">{card.body}</p>
               </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pb-16">
+          <div className="grid gap-4 md:grid-cols-3">
+            {VISUAL_PANELS.map((panel) => (
+              <ImagePanel key={panel.title} {...panel} />
             ))}
           </div>
         </section>
@@ -262,7 +278,7 @@ export default function Home() {
                   More verified profiles
                 </p>
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">
-                  A network should look like a desk, not a directory of claims.
+                  Verified desks.
                 </h2>
               </div>
               <Link
@@ -309,12 +325,10 @@ export default function Home() {
                 From proof to workflow
               </p>
               <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white">
-                Screen. Diligence. Monitor. Report.
+                Diligence, simplified.
               </h2>
               <p className="mt-3 text-sm leading-6 text-slate-400">
-                The verification layer answers whether a record is real. The workspace layer answers
-                what to do next: compare candidates, review evidence, monitor changes, and generate
-                diligence-ready updates.
+                Compare candidates, review evidence, monitor changes, and publish clean updates.
               </p>
               <div className="mt-5 rounded-lg border border-slate-800 bg-slate-900/70 p-4">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
@@ -349,13 +363,11 @@ export default function Home() {
                 Verified strategy rooms
               </p>
               <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white">
-                Make quant discussion easier to trust.
+                Private strategy rooms.
               </h2>
               <p className="mt-3 text-sm leading-6 text-slate-400">
-                The community layer should work like a private-market diligence room: verified
-                participants, organized evidence, clear ownership, and a record of what changed.
-                Traders can discuss GEX, systematic rules, portfolio construction, and deep dives
-                without every thread becoming a signal channel.
+                Verified participants, organized evidence, clear ownership, and a record of what
+                changed.
               </p>
               <div className="mt-5 grid gap-2 sm:grid-cols-2">
                 {COMMUNITY_ROOMS.map((room) => (
@@ -388,12 +400,10 @@ export default function Home() {
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight text-white">
-                  Verify from the broker or prop firm you already use
+                  Connect the broker you use.
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                  Quantidive is designed around read-only broker and prop-firm connections:
-                  broker-reported transactions, automatic performance metrics, no trade execution,
-                  and no hand-edited track records.
+                  Read-only history, automatic metrics, no trade execution, no hand-edited records.
                 </p>
               </div>
               <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-200">
@@ -428,6 +438,36 @@ function ProfileMetric({
       <p className="mt-2 text-lg font-semibold text-white">{value}</p>
       <p className="mt-1 text-xs text-slate-400">{detail}</p>
     </div>
+  );
+}
+
+function ImagePanel({
+  title,
+  label,
+  body,
+  position,
+}: {
+  title: string;
+  label: string;
+  body: string;
+  position: string;
+}) {
+  return (
+    <article className="qd-fade-up group relative min-h-72 overflow-hidden rounded-lg border border-slate-800 bg-slate-900/60">
+      <Image
+        src="/images/quantidive-city-night.jpg"
+        alt=""
+        fill
+        sizes="(min-width: 768px) 33vw, 100vw"
+        className={`object-cover opacity-80 transition duration-700 group-hover:scale-105 group-hover:opacity-95 ${position}`}
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.1)_0%,rgba(2,6,23,0.18)_42%,rgba(2,6,23,0.86)_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 p-5">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-cyan-200">{label}</p>
+        <h3 className="mt-2 text-2xl font-semibold tracking-tight text-white">{title}</h3>
+        <p className="mt-2 text-sm leading-6 text-slate-300">{body}</p>
+      </div>
+    </article>
   );
 }
 
