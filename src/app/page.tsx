@@ -1,69 +1,58 @@
 import Link from "next/link";
-import { BookOpenText, Briefcase, CandlestickChart, RadioTower, ShieldCheck } from "lucide-react";
+import {
+  Activity,
+  BookOpenCheck,
+  CheckCircle2,
+  ClipboardCheck,
+  FileSearch,
+  ShieldCheck,
+  UploadCloud,
+} from "lucide-react";
 import { WaitlistForm } from "./waitlist-form";
 import { BrokerLogos } from "@/components/broker-logos";
 
-const FEED = [
+const PROOF_STEPS = [
+  "Import broker or prop-firm history",
+  "Quantidive computes the metrics",
+  "Attach statements or tax records",
+  "Share a verified public profile",
+];
+
+const TRUST_CARDS = [
   {
-    source: "Validation note",
-    title: "When a clean Sharpe is just selection bias",
-    meta: "Backtest hygiene / deflated Sharpe / parameter sweeps",
+    title: "The situation",
+    body: "Trading results online are usually screenshots, cropped charts, and claims that cannot be inspected.",
   },
   {
-    source: "Portfolio research",
-    title: "Capital weights can hide factor concentration",
-    meta: "Risk contribution / diversification / stress behavior",
+    title: "The problem",
+    body: "Serious traders look the same as promoters when clients, firms, and peers cannot tell what is real.",
   },
   {
-    source: "Market structure",
-    title: "SPX gamma map into weekly expiration",
-    meta: "Dealer positioning / 0DTE / invalidation levels",
-  },
-  {
-    source: "Equity memo",
-    title: "Semiconductor capex cycle and earnings revisions",
-    meta: "Thesis / counterview / catalyst path",
+    title: "The solution",
+    body: "A public Quantidive profile ties performance, proof level, freshness, and risk metrics to a record that can be reviewed.",
   },
 ];
 
-const WORKFLOW = ["Screen", "Validate", "Combine", "Compare", "Diagnose", "Refine"];
-
-const PILLARS = [
+const WORKSPACE_STEPS = [
   {
-    icon: ShieldCheck,
-    title: "Get verified",
-    body: "Import broker or prop-firm history and attach statements or tax records. Every number carries a Proof Level and Transparency Score — computed in code from your trades, never self-claimed.",
+    icon: FileSearch,
+    title: "Screen",
+    body: "Find verified traders by strategy, instrument, proof level, open-to-work status, drawdown, and research score.",
   },
   {
-    icon: Briefcase,
-    title: "Get discovered & hired",
-    body: "A public operator card with your verified track record, an open-to-work signal, and a direct line for allocators, prop firms, and clients to reach you.",
+    icon: ClipboardCheck,
+    title: "Diligence",
+    body: "Review source-linked performance, evidence, freshness, redactions, and risk flags from one profile.",
   },
   {
-    icon: RadioTower,
-    title: "Build a reputation",
-    body: "Follow research by topic, publish briefs that can be challenged, and grow a following among serious quants, systematic traders, and market professionals.",
-  },
-];
-
-const ACCESS = [
-  {
-    name: "Free",
-    price: "$0",
-    blurb: "Verified operator card, proof levels (CSV → broker statement → tax return), public profile, and an open-to-work signal. Get verified and discovered at no cost.",
-    highlight: true,
+    icon: Activity,
+    title: "Monitor",
+    body: "Track version changes, stale profiles, proof upgrades, and meaningful shifts in drawdown or concentration.",
   },
   {
-    name: "Pro",
-    price: "$12",
-    blurb: "Everything in Free, plus published research briefs, follower email updates, multiple accounts, and directory priority.",
-    highlight: false,
-  },
-  {
-    name: "Team",
-    price: "$49",
-    blurb: "Team profiles, private research rooms, and a shared research archive.",
-    highlight: false,
+    icon: BookOpenCheck,
+    title: "Report",
+    body: "Turn verified metrics into research briefs and client-ready summaries without reassembling spreadsheets.",
   },
 ];
 
@@ -76,11 +65,8 @@ export default function Home() {
             QUANTI<span className="text-cyan-300">DIVE</span>
           </Link>
           <div className="flex items-center gap-4 text-sm">
-            <Link href="/network" className="text-slate-300 hover:text-white">
-              Network
-            </Link>
             <Link href="/explore" className="text-slate-300 hover:text-white">
-              Directory
+              Verified traders
             </Link>
             <Link href="/login" className="hidden text-slate-300 hover:text-white sm:inline">
               Sign in
@@ -89,7 +75,7 @@ export default function Home() {
               href="/signup"
               className="rounded-md bg-cyan-500 px-3 py-1.5 font-medium text-slate-950 hover:bg-cyan-300"
             >
-              Join beta
+              Get verified
             </Link>
           </div>
         </div>
@@ -102,19 +88,19 @@ export default function Home() {
           </div>
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-slate-950 to-transparent" />
 
-          <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-18 sm:py-24 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+          <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-18 sm:py-24 lg:grid-cols-[1fr_0.9fr] lg:items-center">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-cyan-200">
-                <CandlestickChart className="h-4 w-4" aria-hidden="true" />
-                Verified quant &amp; trader network
+                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                Verification + diligence workspace
               </p>
               <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight text-white sm:text-6xl">
-                Quantidive is where quants and traders prove their edge — and get discovered.
+                The proof layer for traders, plus the diligence workspace for clients.
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                A professional network for systematic and algo traders, quant researchers, prop-firm
-                operators, brokers, and independent analysts to publish a verified track record, build
-                a research reputation, and connect with clients and collaborators.
+                Quantidive combines public trader verification with an AI-ready workflow for
+                screening, reviewing, monitoring, and reporting on trading talent. Traders prove the
+                record; clients and firms get a cleaner way to diligence it.
               </p>
               <div className="mt-8 max-w-xl">
                 <WaitlistForm />
@@ -124,48 +110,50 @@ export default function Home() {
                   href="/signup"
                   className="rounded-md bg-cyan-500 px-4 py-2 font-medium text-slate-950 hover:bg-cyan-300"
                 >
-                  Create research profile
+                  Get verified
                 </Link>
                 <Link
-                  href="/network"
+                  href="/explore"
                   className="rounded-md border border-slate-700 px-4 py-2 font-medium text-slate-200 hover:border-cyan-400 hover:text-white"
                 >
-                  View network preview
+                  Browse verified traders
                 </Link>
               </div>
             </div>
 
-            <div className="rounded-lg border border-slate-800 bg-slate-950/85 p-5 shadow-2xl shadow-black/30">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
-                  Research feed
-                </p>
-                <span className="rounded bg-cyan-400/10 px-2 py-1 text-xs font-medium text-cyan-300">
-                  Peer review
+            <div className="rounded-lg border border-slate-800 bg-slate-950/90 p-5 shadow-2xl shadow-black/30">
+              <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+                    Public profile
+                  </p>
+                  <h2 className="mt-2 text-xl font-semibold text-white">Ava Demo</h2>
+                  <p className="mt-1 text-sm text-slate-400">Systematic futures / SPX gamma</p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/35 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
+                  <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  Verified
                 </span>
               </div>
-              <div className="mt-4 space-y-3">
-                {FEED.map((item, index) => (
-                  <article key={item.title} className="rounded-md border border-slate-800 bg-slate-900/75 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-xs font-medium uppercase tracking-wide text-cyan-300">
-                        {item.source}
-                      </p>
-                      <span className="font-mono text-xs text-slate-500">0{index + 1}</span>
-                    </div>
-                    <h2 className="mt-2 text-base font-semibold text-white">{item.title}</h2>
-                    <p className="mt-1 text-sm text-slate-400">{item.meta}</p>
-                  </article>
-                ))}
+
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <ProfileMetric label="Proof level" value="L4" detail="Tax record checked" />
+                <ProfileMetric label="Freshness" value="Fresh" detail="Updated 2d ago" />
+                <ProfileMetric label="Research score" value="87/100" detail="Code computed" />
+                <ProfileMetric label="Data source" value="Broker CSV" detail="Hash recorded" />
               </div>
-              <div className="mt-5 rounded-md border border-slate-800 bg-slate-950 p-4">
+
+              <div className="mt-5 rounded-md border border-slate-800 bg-slate-900/70 p-4">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
-                  Research loop
+                  Verification path
                 </p>
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {WORKFLOW.map((step) => (
-                    <div key={step} className="rounded-md border border-slate-800 bg-slate-900 px-3 py-2">
-                      <p className="text-sm font-medium text-slate-100">{step}</p>
+                <div className="mt-4 space-y-3">
+                  {PROOF_STEPS.map((step, index) => (
+                    <div key={step} className="flex items-center gap-3 text-sm">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-400/10 text-xs font-semibold text-cyan-300">
+                        {index + 1}
+                      </span>
+                      <span className="text-slate-300">{step}</span>
                     </div>
                   ))}
                 </div>
@@ -175,46 +163,70 @@ export default function Home() {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 py-16">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-white">
-                Built like a research terminal, not a noisy feed
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                Quantidive borrows the best pattern from quant aggregators, long-form research,
-                and strategy libraries: useful work is structured, timestamped, and open to scrutiny.
-              </p>
-            </div>
-            <BookOpenText className="h-8 w-8 text-cyan-300" aria-hidden="true" />
-          </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {PILLARS.map((pillar) => {
-              const Icon = pillar.icon;
-              return (
-                <article key={pillar.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
-                  <Icon className="h-6 w-6 text-cyan-300" aria-hidden="true" />
-                  <h3 className="mt-4 font-semibold text-white">{pillar.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-400">{pillar.body}</p>
-                </article>
-              );
-            })}
+          <div className="grid gap-4 md:grid-cols-3">
+            {TRUST_CARDS.map((card) => (
+              <article key={card.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
+                <h2 className="text-lg font-semibold text-white">{card.title}</h2>
+                <p className="mt-3 text-sm leading-6 text-slate-400">{card.body}</p>
+              </article>
+            ))}
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 pb-16">
+        <section className="border-y border-slate-800 bg-slate-950/70">
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+            <div>
+              <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-cyan-200">
+                <FileSearch className="h-4 w-4" aria-hidden="true" />
+                From proof to workflow
+              </p>
+              <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white">
+                Screen. Diligence. Monitor. Report.
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                The verification layer answers whether a record is real. The workspace layer answers
+                what to do next: compare candidates, review evidence, monitor changes, and generate
+                diligence-ready updates.
+              </p>
+              <div className="mt-5 rounded-lg border border-slate-800 bg-slate-900/70 p-4">
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
+                  Ask Quantidive
+                </p>
+                <p className="mt-3 text-sm leading-6 text-slate-300">
+                  Show verified systematic futures traders with Proof L3+, fresh data, max drawdown
+                  under 12%, and published research in the last 30 days.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {WORKSPACE_STEPS.map((point) => {
+                const Icon = point.icon;
+                return (
+                  <article key={point.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5">
+                    <Icon className="h-6 w-6 text-cyan-300" aria-hidden="true" />
+                    <h3 className="mt-4 font-semibold text-white">{point.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-400">{point.body}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 py-16">
           <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6 sm:p-8">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight text-white">
-                  Works with the broker you already trade
+                  Verify from the broker or prop firm you already use
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                  Verify from your real trade history — import a CSV or statement export today, with
-                  more direct broker connections on the way. Your numbers are computed from the
-                  trades, never self-claimed.
+                  CSV and statement imports work today. Direct connections can sit behind the same
+                  proof system later without changing the public profile model.
                 </p>
               </div>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-200">
+              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-200">
+                <UploadCloud className="h-4 w-4" aria-hidden="true" />
                 14+ brokers &amp; prop firms
               </span>
             </div>
@@ -223,51 +235,32 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        <section className="border-y border-slate-800 bg-slate-950/70">
-          <div className="mx-auto max-w-6xl px-4 py-16">
-            <h2 className="text-2xl font-semibold tracking-tight text-white">
-              Verification is free for every trader
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-400">
-              Any trader can get a verified, proof-backed operator card at no cost — up to
-              tax-return-checked proof. Paid tiers add research, reach, and team tools at a fraction
-              of legacy reporting tools.
-            </p>
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              {ACCESS.map((plan) => (
-                <div
-                  key={plan.name}
-                  className={`rounded-lg border bg-slate-900/70 p-5 ${
-                    plan.highlight ? "border-cyan-400/40 ring-1 ring-cyan-400/20" : "border-slate-800"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-slate-400">{plan.name}</p>
-                    {plan.highlight && (
-                      <span className="rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-300">
-                        Most accessible
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-2 text-3xl font-semibold text-white">
-                    {plan.price}
-                    <span className="text-sm font-normal text-slate-500">/mo</span>
-                  </p>
-                  <p className="mt-3 text-sm leading-6 text-slate-400">{plan.blurb}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
       </main>
 
       <footer className="border-t border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-6xl px-4 py-6 text-xs leading-6 text-slate-500">
-          Quantidive is research, analytics, and professional networking software. It does not
-          manage money, execute trades, provide investment advice, or guarantee performance.
+          Quantidive is research, analytics, and professional networking software. It does not manage
+          money, execute trades, provide investment advice, or guarantee performance.
         </div>
       </footer>
+    </div>
+  );
+}
+
+function ProfileMetric({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <div className="rounded-md border border-slate-800 bg-slate-900/80 p-3">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
+      <p className="mt-1 text-xs text-slate-400">{detail}</p>
     </div>
   );
 }

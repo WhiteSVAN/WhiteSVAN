@@ -3,27 +3,27 @@ import type { FreshnessTone } from "@/lib/freshness";
 import { PROOF_LEVELS, type ProofLevel } from "@/lib/trust";
 
 const TONE: Record<FreshnessTone, string> = {
-  good: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20",
-  warn: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20",
-  bad: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20",
-  neutral: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20",
+  good: "bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30",
+  warn: "bg-amber-400/10 text-amber-300 ring-1 ring-inset ring-amber-400/30",
+  bad: "bg-red-400/10 text-red-300 ring-1 ring-inset ring-red-400/30",
+  neutral: "bg-slate-800 text-slate-300 ring-1 ring-inset ring-slate-700",
 };
 
 // Proof Level badge styling. Tax-return (4) and third-party (5) are the strongest
 // proof, so they read as fully verified; statement (3) is checked; CSV/self (1-2)
 // are muted. Drives the headline "verification" badge on the public operator card.
 const PROOF_BADGE: Record<ProofLevel, string> = {
-  1: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20",
-  2: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-500/20",
+  1: "bg-slate-800 text-slate-300 ring-1 ring-inset ring-slate-700",
+  2: "bg-slate-800 text-slate-300 ring-1 ring-inset ring-slate-700",
   3: "bg-cyan-400/10 text-cyan-300 ring-1 ring-inset ring-cyan-400/30",
-  4: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20",
-  5: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20",
+  4: "bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30",
+  5: "bg-emerald-400/10 text-emerald-300 ring-1 ring-inset ring-emerald-400/30",
 };
 
 const SEVERITY: Record<string, { ring: string; label: string }> = {
-  INFO: { ring: "border-slate-200", label: "text-slate-500" },
-  WARNING: { ring: "border-amber-200 bg-amber-50/40", label: "text-amber-700" },
-  CRITICAL: { ring: "border-red-200 bg-red-50/40", label: "text-red-700" },
+  INFO: { ring: "border-slate-800 bg-slate-900/70", label: "text-slate-300" },
+  WARNING: { ring: "border-amber-400/30 bg-amber-400/10", label: "text-amber-300" },
+  CRITICAL: { ring: "border-red-400/30 bg-red-400/10", label: "text-red-300" },
 };
 
 export interface ClientRiskEvent {
@@ -71,7 +71,7 @@ export function ProfileTrust({
         >
           {freshness.label}
         </span>
-        <span className="text-sm text-slate-500">
+        <span className="text-sm text-slate-400">
           {lastUpdatedLabel ? `Last updated ${lastUpdatedLabel}` : "Not yet published"}
           <span className="text-slate-600"> / </span>
           {cadenceLabel} updates
@@ -83,7 +83,7 @@ export function ProfileTrust({
           <h3 className="text-xs font-medium uppercase tracking-wide text-slate-400">
             Since last update
           </h3>
-          <p className="mt-1 text-sm text-slate-700">{changeSummary}</p>
+          <p className="mt-1 text-sm text-slate-300">{changeSummary}</p>
         </div>
       )}
 
@@ -96,7 +96,7 @@ export function ProfileTrust({
               return (
                 <li key={e.id} className={`rounded-xl border p-3 ${s.ring}`}>
                   <p className={`text-sm font-medium ${s.label}`}>{e.title}</p>
-                  <p className="mt-0.5 text-xs text-slate-500">{e.description}</p>
+                  <p className="mt-0.5 text-xs text-slate-400">{e.description}</p>
                 </li>
               );
             })}

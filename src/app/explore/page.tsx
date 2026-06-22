@@ -7,36 +7,41 @@ import { PROOF_LEVELS, type DrawdownSeverity } from "@/lib/trust";
 import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 
-export const metadata: Metadata = { title: "Researcher directory - Quantidive" };
+export const metadata: Metadata = { title: "Verified traders - Quantidive" };
 
 const SEVERITY: Record<DrawdownSeverity, { label: string; cls: string }> = {
-  controlled: { label: "Controlled", cls: "bg-emerald-50 text-emerald-700" },
-  elevated: { label: "Elevated", cls: "bg-amber-50 text-amber-700" },
-  high: { label: "High", cls: "bg-orange-50 text-orange-700" },
-  severe: { label: "Severe", cls: "bg-red-50 text-red-700" },
+  controlled: { label: "Controlled", cls: "border border-emerald-400/30 bg-emerald-400/10 text-emerald-300" },
+  elevated: { label: "Elevated", cls: "border border-amber-400/30 bg-amber-400/10 text-amber-300" },
+  high: { label: "High", cls: "border border-orange-400/30 bg-orange-400/10 text-orange-300" },
+  severe: { label: "Severe", cls: "border border-red-400/30 bg-red-400/10 text-red-300" },
 };
 
 export default async function ExplorePage() {
   const session = await auth();
   const loggedIn = !!session?.user;
 
-  const profiles = await prisma.traderProfile.findMany({
-    where: { isPublic: true },
-    select: {
-      slug: true,
-      displayName: true,
-      strategy: true,
-      instruments: true,
-      openToWork: true,
-      headline: true,
-      versions: {
-        orderBy: { versionNumber: "desc" },
-        take: 1,
-        select: { metrics: true },
+  const profiles = await prisma.traderProfile
+    .findMany({
+      where: { isPublic: true },
+      select: {
+        slug: true,
+        displayName: true,
+        strategy: true,
+        instruments: true,
+        openToWork: true,
+        headline: true,
+        versions: {
+          orderBy: { versionNumber: "desc" },
+          take: 1,
+          select: { metrics: true },
+        },
       },
-    },
-    orderBy: { displayName: "asc" },
-  });
+      orderBy: { displayName: "asc" },
+    })
+    .catch((error) => {
+      console.error("Unable to load public profiles", error);
+      return [];
+    });
 
   const cards = profiles
     .map((p) => ({
@@ -75,13 +80,13 @@ export default async function ExplorePage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-10">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Verified traders</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-2xl font-semibold tracking-tight text-white">Verified traders</h1>
+        <p className="mt-1 text-sm text-slate-400">
           Public Quantidive research profiles with strategy, proof level, risk context, and performance snapshots.
         </p>
 
         {cards.length === 0 ? (
-          <p className="mt-8 text-sm text-slate-500">No public research profiles yet.</p>
+          <p className="mt-8 text-sm text-slate-400">No public research profiles yet.</p>
         ) : (
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {cards.map(({ p, trust }, i) => {
@@ -98,7 +103,7 @@ export default async function ExplorePage() {
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold tabular-nums text-slate-300">
                         {i + 1}
                       </span>
-                      <h3 className="truncate font-semibold text-slate-900">{p.displayName}</h3>
+                      <h3 className="truncate font-semibold text-white">{p.displayName}</h3>
                     </div>
                     {p.openToWork && (
                       <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
@@ -113,7 +118,7 @@ export default async function ExplorePage() {
                       Verified · Proof L{trust!.proofLevel}
                     </span>
                   )}
-                  <p className="mt-1.5 truncate text-sm text-slate-500">
+                  <p className="mt-1.5 truncate text-sm text-slate-400">
                     {p.headline || [p.strategy, p.instruments].filter(Boolean).join(" / ") || "Trader"}
                   </p>
 
@@ -140,7 +145,7 @@ export default async function ExplorePage() {
                         {sev.label} risk
                       </span>
                     )}
-                    <span className="ml-auto text-sm font-medium text-cyan-300">View card</span>
+                    <span className="ml-auto text-sm font-medium text-cyan-300">View profile</span>
                   </div>
                 </Link>
               );
@@ -156,7 +161,7 @@ function Mini({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-0.5 font-semibold tabular-nums text-slate-800">{value}</p>
+      <p className="mt-0.5 font-semibold tabular-nums text-white">{value}</p>
     </div>
   );
 }

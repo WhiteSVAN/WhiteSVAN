@@ -76,8 +76,8 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
     return (
       <div className="flex min-h-full flex-1 items-center justify-center bg-slate-950 px-4 py-16 text-center">
         <div>
-          <p className="text-lg font-semibold text-slate-900">This research profile isn&apos;t available</p>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="text-lg font-semibold text-white">This research profile isn&apos;t available</p>
+          <p className="mt-1 text-sm text-slate-400">
             The link may be wrong, or the trader has set their profile to private.
           </p>
         </div>
@@ -151,7 +151,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             href={loggedIn ? "/network" : "/explore"}
             className="text-sm font-medium text-cyan-300 hover:text-cyan-100"
           >
-            {loggedIn ? "Network" : "Directory"}
+            Verified traders
           </Link>
         </div>
       </nav>
@@ -162,14 +162,14 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
               <Link
                 href={loggedIn ? "/dashboard" : "/"}
-                className="transition hover:text-slate-600"
+                className="transition hover:text-cyan-300"
               >
                 QUANTI<span className="text-cyan-300">DIVE</span>
               </Link>{" "}
               / research profile
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+              <h1 className="text-2xl font-semibold tracking-tight text-white">
                 {profile.displayName}
               </h1>
               {profile.openToWork && (
@@ -182,7 +182,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             {profile.headline && (
               <p className="mt-1 text-sm font-medium text-slate-300">{profile.headline}</p>
             )}
-            <p className="mt-0.5 text-sm text-slate-500">
+            <p className="mt-0.5 text-sm text-slate-400">
               {[profile.strategy, profile.instruments].filter(Boolean).join(" / ")}
               {period && <span className="text-slate-400"> / {period}</span>}
             </p>
@@ -192,17 +192,17 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
       </header>
 
       <main className="mx-auto max-w-4xl space-y-10 px-4 py-8">
-        {profile.bio && <p className="text-sm leading-relaxed text-slate-600">{profile.bio}</p>}
+        {profile.bio && <p className="text-sm leading-relaxed text-slate-300">{profile.bio}</p>}
 
         {(profile.openToWork || profile.contactUrl) && (
           <section className="rounded-xl border border-cyan-400/25 bg-cyan-400/5 p-5 print:hidden">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
-                <h2 className="text-base font-semibold text-slate-900">Work with {profile.displayName}</h2>
+                <h2 className="text-base font-semibold text-white">Work with {profile.displayName}</h2>
                 {profile.services ? (
-                  <p className="mt-1 text-sm leading-relaxed text-slate-500">{profile.services}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-400">{profile.services}</p>
                 ) : (
-                  <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                  <p className="mt-1 text-sm leading-relaxed text-slate-400">
                     Open to client work and collaboration. Reach out to start a conversation.
                   </p>
                 )}
@@ -238,7 +238,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             hideAmounts={profile.hideAmounts}
           />
         ) : (
-          <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/70 p-10 text-center text-sm text-slate-500">
+          <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/70 p-10 text-center text-sm text-slate-400">
             No published record yet.
           </div>
         )}
@@ -247,7 +247,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
         {reports.length > 0 && (
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Research and performance briefs</h2>
+            <h2 className="text-lg font-semibold tracking-tight text-white">Research and performance briefs</h2>
             {reports.map((r) => (
               <ReportSections
                 key={r.id}
@@ -262,9 +262,9 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
         {evidence.length > 0 && (
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Evidence</h2>
-            <p className="text-sm text-slate-500">Supporting documents shared by the researcher.</p>
-            <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+            <h2 className="text-lg font-semibold tracking-tight text-white">Evidence</h2>
+            <p className="text-sm text-slate-400">Supporting documents shared by the researcher.</p>
+            <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800 bg-slate-900/70">
               {evidence.map((e) => (
                 <li
                   key={e.id}
@@ -274,7 +274,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
                     href={`/api/evidence/${e.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="truncate font-medium text-blue-700 hover:text-blue-800"
+                    className="truncate font-medium text-cyan-300 hover:text-cyan-100"
                   >
                     {e.label || e.originalName}
                   </a>
@@ -286,8 +286,8 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
         )}
 
         <section className="space-y-3 print:hidden">
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Follow this researcher</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="text-lg font-semibold tracking-tight text-white">Follow this researcher</h2>
+          <p className="text-sm text-slate-400">
             Get profile and research updates by email. Not investment advice.
           </p>
           <FollowForm slug={slug} />

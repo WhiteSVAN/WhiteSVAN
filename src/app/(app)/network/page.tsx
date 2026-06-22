@@ -2,24 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  BarChart3,
-  Building2,
   CheckCircle2,
-  Factory,
   FileText,
-  MessageSquareText,
-  Radar,
   ShieldCheck,
-  TrendingUp,
+  Trophy,
+  UploadCloud,
   Users,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { requireUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 
-export const metadata: Metadata = { title: "Network - Quantidive" };
+export const metadata: Metadata = { title: "Verified traders - Quantidive" };
 
 type NetworkType = "all" | "gex" | "deep-dive" | "portfolio" | "systematic";
 
@@ -27,79 +22,39 @@ const FILTERS: { key: NetworkType; label: string }[] = [
   { key: "all", label: "All" },
   { key: "gex", label: "Market structure" },
   { key: "deep-dive", label: "Equity research" },
-  { key: "portfolio", label: "Portfolio work" },
+  { key: "portfolio", label: "Portfolio" },
   { key: "systematic", label: "Systematic" },
 ];
 
 const TYPE_LABELS: Record<Exclude<NetworkType, "all">, string> = {
   gex: "Market structure",
   "deep-dive": "Equity research",
-  portfolio: "Portfolio research",
-  systematic: "Systematic research",
+  portfolio: "Portfolio",
+  systematic: "Systematic",
 };
 
 const TYPE_STYLES: Record<Exclude<NetworkType, "all">, string> = {
   gex: "bg-cyan-950/70 text-cyan-200",
   "deep-dive": "bg-amber-950/70 text-amber-200",
-  portfolio: "bg-blue-50 text-blue-700",
-  systematic: "bg-violet-50 text-violet-700",
+  portfolio: "bg-blue-950/70 text-blue-200",
+  systematic: "bg-violet-950/70 text-violet-200",
 };
 
-const ROOMS: {
-  title: string;
-  description: string;
-  fit: string;
-  icon: LucideIcon;
-  tone: string;
-}[] = [
+const STEPS = [
   {
-    title: "Market structure and GEX",
-    description: "Gamma walls, dealer hedging, 0DTE structure, skew shifts, and volatility regimes by ticker.",
-    fit: "SPX, SPY, QQQ, single-stock options",
-    icon: Radar,
-    tone: "bg-cyan-950/70 text-cyan-200",
+    icon: UploadCloud,
+    title: "Import real history",
+    body: "Start from broker or prop-firm CSV exports, then attach statements or tax records for stronger proof.",
   },
   {
-    title: "Equity deep dives",
-    description: "Long-form stock research with valuation, catalysts, risks, bear cases, and rebuttals.",
-    fit: "Research memos, counterviews, catalysts",
-    icon: FileText,
-    tone: "bg-amber-950/70 text-amber-200",
+    icon: ShieldCheck,
+    title: "Publish a proof-backed profile",
+    body: "Quantidive calculates risk, PnL, freshness, and score from the imported data. Public pages show the proof level.",
   },
   {
-    title: "Portfolio construction",
-    description: "Allocation notes, factor overlap, risk contribution, regime stress, and diversification checks.",
-    fit: "Risk parity, factor mix, drawdowns",
-    icon: Factory,
-    tone: "bg-blue-950/70 text-blue-200",
-  },
-  {
-    title: "Systematic research lab",
-    description: "Rules-based researchers discussing regimes, validation, scanners, backtests, and failure modes.",
-    fit: "Models, data quality, risk controls",
-    icon: Building2,
-    tone: "bg-violet-950/70 text-violet-200",
-  },
-];
-
-const SIGNALS = [
-  {
-    label: "Market structure",
-    title: "SPX positive gamma may dampen realized volatility into the close",
-    detail: "A useful post includes the gamma flip, largest call/put walls, expiration concentration, and invalidation level.",
-    tone: "border-cyan-900/70 bg-cyan-950/40 text-cyan-100",
-  },
-  {
-    label: "Validation",
-    title: "A high in-sample Sharpe can still be noise",
-    detail: "Members are expected to show trial count, assumptions, out-of-sample behavior, costs, and failure cases.",
-    tone: "border-amber-900/70 bg-amber-950/40 text-amber-100",
-  },
-  {
-    label: "Portfolio note",
-    title: "Equal capital weights can still mean concentrated risk",
-    detail: "Portfolio posts should identify factor overlap, correlation, stress behavior, and the benchmark being improved.",
-    tone: "border-emerald-900/70 bg-emerald-950/40 text-emerald-100",
+    icon: Trophy,
+    title: "Get discovered on substance",
+    body: "Clients, peers, brokers, and firms can review a record instead of guessing from screenshots or follower count.",
   },
 ];
 
@@ -120,8 +75,10 @@ export default async function NetworkPage({
       select: {
         slug: true,
         displayName: true,
+        headline: true,
         strategy: true,
         instruments: true,
+        openToWork: true,
         versions: {
           orderBy: { versionNumber: "desc" },
           take: 1,
@@ -145,81 +102,73 @@ export default async function NetworkPage({
 
   const filteredMembers =
     activeType === "all" ? members : members.filter((member) => member.memberType === activeType);
-  const visibleMembers = filteredMembers.slice(0, 9);
-  const proofReadyCount = members.filter((member) => (member.profile.versions[0]?.proofLevel ?? 1) >= 3).length;
+  const verifiedCount = members.filter((member) => (member.profile.versions[0]?.proofLevel ?? 1) >= 3).length;
+  const openToWorkCount = members.filter((member) => member.profile.openToWork).length;
 
   return (
     <div className="space-y-8">
       <section className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900/80">
-        <div className="grid gap-0 lg:grid-cols-[1.4fr_0.8fr]">
+        <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
           <div className="p-6 sm:p-8">
             <p className="flex items-center gap-2 text-sm font-medium text-cyan-300">
               <Users className="h-4 w-4" aria-hidden="true" />
-              Quantidive network
+              Verified trader board
             </p>
-            <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-              A research network for quants, systematic traders, and market analysts.
+            <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              Public profiles with proof, freshness, and computed risk.
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-              Think curated quant links, long-form research memos, and strategy-library discipline,
-              but built around professional profiles, peer review, and evidence-backed performance records.
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
+              Quantidive profiles are built to make real trading records easier to inspect. Every
+              profile can show where the numbers came from, how current they are, and what proof
+              level supports the published record.
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <Metric label="Researchers" value={String(members.length)} />
-              <Metric label="Proof-backed" value={String(proofReadyCount)} />
-              <Metric label="Research rooms" value={String(ROOMS.length)} />
+              <Metric label="Public profiles" value={String(members.length)} />
+              <Metric label="Verified L3+" value={String(verifiedCount)} />
+              <Metric label="Open to work" value={String(openToWorkCount)} />
             </div>
           </div>
+
           <aside className="border-t border-slate-800 bg-slate-950/70 p-6 sm:p-8 lg:border-l lg:border-t-0">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-slate-900">Your research profile</p>
-                <p className="mt-1 text-sm text-slate-500">{user.profile.displayName}</p>
+                <p className="text-sm font-medium text-white">Your profile</p>
+                <p className="mt-1 text-sm text-slate-400">{user.profile.displayName}</p>
               </div>
               <span
                 className={`rounded px-2 py-1 text-xs font-medium ${
                   user.profile.isPublic
                     ? "bg-emerald-50 text-emerald-700"
-                    : "bg-slate-200 text-slate-600"
+                    : "bg-slate-800 text-slate-300"
                 }`}
               >
-                {user.profile.isPublic ? "Visible" : "Private"}
+                {user.profile.isPublic ? "Public" : "Private"}
               </span>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3">
               <Metric
-                label="Proof Level"
-                value={latestVersion ? String(latestVersion.proofLevel) : "-"}
+                label="Proof level"
+                value={latestVersion ? `L${latestVersion.proofLevel}` : "-"}
               />
               <Metric
-                label="Research Score"
+                label="Score"
                 value={latestVersion ? String(latestVersion.transparencyScore) : "-"}
               />
-            </div>
-            <div className="mt-5 space-y-3 text-sm text-slate-600">
-              <p className="flex gap-2">
-                <ShieldCheck className="mt-0.5 h-4 w-4 flex-none text-blue-700" aria-hidden="true" />
-                Network identity is anchored to a published Quantidive profile, not follower count.
-              </p>
-              <p className="flex gap-2">
-                <MessageSquareText className="mt-0.5 h-4 w-4 flex-none text-blue-700" aria-hidden="true" />
-                Posts are structured around thesis, method, evidence, counterview, risk, and replication notes.
-              </p>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href={user.profile.isPublic ? `/p/${user.profile.slug}` : "/settings"}
-                className="inline-flex items-center gap-2 rounded-md bg-blue-700 px-3 py-2 text-sm font-medium text-white hover:bg-blue-800"
+                className="inline-flex items-center gap-2 rounded-md bg-cyan-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-300"
               >
                 <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                 {user.profile.isPublic ? "View profile" : "Publish profile"}
               </Link>
               <Link
-                href="/settings"
-                className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                href="/upload"
+                className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-200 hover:border-cyan-400 hover:text-white"
               >
-                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                Proof settings
+                <UploadCloud className="h-4 w-4" aria-hidden="true" />
+                Import data
               </Link>
             </div>
           </aside>
@@ -227,77 +176,26 @@ export default async function NetworkPage({
       </section>
 
       <section>
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight text-slate-900">Research rooms</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Dedicated areas for market structure, equity research, portfolio construction, and systematic work.
-            </p>
-          </div>
-        </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {ROOMS.map((room) => {
-            const Icon = room.icon;
+        <div className="grid gap-4 md:grid-cols-3">
+          {STEPS.map((step) => {
+            const Icon = step.icon;
             return (
-              <article key={room.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
-                <div className="flex items-start gap-4">
-                  <span className={`rounded-lg p-2 ${room.tone}`}>
-                    <Icon className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <h3 className="font-semibold text-slate-900">{room.title}</h3>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">{room.description}</p>
-                    <p className="mt-3 text-xs font-medium uppercase text-slate-400">{room.fit}</p>
-                  </div>
-                </div>
+              <article key={step.title} className="rounded-lg border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
+                <Icon className="h-6 w-6 text-cyan-300" aria-hidden="true" />
+                <h2 className="mt-4 font-semibold text-white">{step.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{step.body}</p>
               </article>
             );
           })}
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-        <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-blue-700" aria-hidden="true" />
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Research tape</h2>
-          </div>
-          <div className="mt-4 space-y-3">
-            {SIGNALS.map((signal) => (
-              <article key={signal.title} className={`rounded-lg border p-4 ${signal.tone}`}>
-                <p className="text-xs font-semibold uppercase">{signal.label}</p>
-                <h3 className="mt-1 font-semibold">{signal.title}</h3>
-                <p className="mt-1 text-sm leading-6 opacity-85">{signal.detail}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-blue-700" aria-hidden="true" />
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Publishing standards</h2>
-          </div>
-          <ul className="mt-4 space-y-4 text-sm text-slate-600">
-            <Standard title="Professional-only context">
-              The network is for professional market discussion, peer review, and research distribution.
-            </Standard>
-            <Standard title="Evidence before promotion">
-              Research profiles show published versions, Proof Level, and risk metrics before social reach.
-            </Standard>
-            <Standard title="Structured disagreement">
-              Every strong view should include method, counterview, invalidation, and risk context.
-            </Standard>
-          </ul>
-        </div>
-      </section>
-
       <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight text-slate-900">Researcher directory</h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Published profiles become professional research cards with process, proof, and track-record context attached.
+            <h2 className="text-xl font-semibold tracking-tight text-white">Verified profiles</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Filter by research style and inspect the published track record behind each profile.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -305,10 +203,10 @@ export default async function NetworkPage({
               <Link
                 key={filter.key}
                 href={filter.key === "all" ? "/network" : `/network?type=${filter.key}`}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+                className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
                   activeType === filter.key
-                    ? "bg-slate-900 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "border-cyan-500 bg-cyan-500 text-slate-950"
+                    : "border-slate-700 bg-slate-950/70 text-slate-300 hover:border-cyan-400 hover:text-white"
                 }`}
               >
                 {filter.label}
@@ -317,16 +215,15 @@ export default async function NetworkPage({
           </div>
         </div>
 
-        {visibleMembers.length === 0 ? (
+        {filteredMembers.length === 0 ? (
           <div className="mt-5 rounded-lg border border-dashed border-slate-700 bg-slate-950/70 p-8 text-center">
-            <h3 className="text-sm font-medium text-slate-800">No matching public profiles yet</h3>
-            <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
-              Publish your own Quantidive research profile or clear the filter to see every trader
-              currently visible on the network.
+            <h3 className="text-sm font-medium text-white">No matching public profiles yet</h3>
+            <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
+              Publish your profile or clear the filter to see every trader currently visible on the board.
             </p>
             <Link
               href={activeType === "all" ? "/settings" : "/network"}
-              className="mt-4 inline-flex items-center gap-2 rounded-md bg-blue-700 px-3 py-2 text-sm font-medium text-white hover:bg-blue-800"
+              className="mt-4 inline-flex items-center gap-2 rounded-md bg-cyan-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-300"
             >
               <Users className="h-4 w-4" aria-hidden="true" />
               {activeType === "all" ? "Open settings" : "Clear filter"}
@@ -334,13 +231,15 @@ export default async function NetworkPage({
           </div>
         ) : (
           <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {visibleMembers.map((member) => (
+            {filteredMembers.map((member) => (
               <MemberCard
                 key={member.profile.slug}
                 displayName={member.profile.displayName}
                 slug={member.profile.slug}
+                headline={member.profile.headline}
                 strategy={member.profile.strategy}
                 instruments={member.profile.instruments}
+                openToWork={member.profile.openToWork}
                 type={member.memberType}
                 proofLevel={member.profile.versions[0]?.proofLevel ?? null}
                 trustScore={member.profile.versions[0]?.transparencyScore ?? null}
@@ -359,28 +258,18 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2">
       <p className="text-xs font-medium uppercase text-slate-400">{label}</p>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{value}</p>
+      <p className="mt-1 text-lg font-semibold tabular-nums text-white">{value}</p>
     </div>
-  );
-}
-
-function Standard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <li className="flex gap-3">
-      <CheckCircle2 className="mt-0.5 h-4 w-4 flex-none text-emerald-600" aria-hidden="true" />
-      <span>
-        <span className="font-medium text-slate-900">{title}</span>
-        <span className="block leading-6">{children}</span>
-      </span>
-    </li>
   );
 }
 
 function MemberCard({
   displayName,
   slug,
+  headline,
   strategy,
   instruments,
+  openToWork,
   type,
   proofLevel,
   trustScore,
@@ -389,8 +278,10 @@ function MemberCard({
 }: {
   displayName: string;
   slug: string;
+  headline: string | null;
   strategy: string | null;
   instruments: string | null;
+  openToWork: boolean;
   type: Exclude<NetworkType, "all">;
   proofLevel: number | null;
   trustScore: number | null;
@@ -408,9 +299,9 @@ function MemberCard({
             {initials(displayName)}
           </div>
           <div className="min-w-0">
-            <h3 className="truncate font-semibold text-slate-900">{displayName}</h3>
-            <p className="mt-0.5 truncate text-sm text-slate-500">
-              {[strategy, instruments].filter(Boolean).join(" / ") || "Professional trader"}
+            <h3 className="truncate font-semibold text-white">{displayName}</h3>
+            <p className="mt-0.5 truncate text-sm text-slate-400">
+              {headline || [strategy, instruments].filter(Boolean).join(" / ") || "Professional trader"}
             </p>
           </div>
         </div>
@@ -418,13 +309,22 @@ function MemberCard({
           {TYPE_LABELS[type]}
         </span>
       </div>
+      {openToWork && (
+        <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+          Open to work
+        </span>
+      )}
       <div className="mt-5 grid grid-cols-4 gap-2 text-sm">
         <Mini label="Proof" value={proofLevel ? `L${proofLevel}` : "-"} />
         <Mini label="Score" value={trustScore != null ? String(trustScore) : "-"} />
         <Mini label="Return" value={returnPct != null ? formatPercent(returnPct, 0) : "-"} />
         <Mini label="Drop" value={maxDrawdownPct != null ? `${maxDrawdownPct.toFixed(0)}%` : "-"} />
       </div>
-      <p className="mt-4 text-sm font-medium text-cyan-300">View research profile</p>
+      <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-cyan-300">
+        <FileText className="h-4 w-4" aria-hidden="true" />
+        View verified profile
+      </p>
     </Link>
   );
 }
@@ -433,7 +333,7 @@ function Mini({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-[11px] font-medium uppercase text-slate-400">{label}</p>
-      <p className="mt-0.5 font-semibold tabular-nums text-slate-900">{value}</p>
+      <p className="mt-0.5 font-semibold tabular-nums text-white">{value}</p>
     </div>
   );
 }
