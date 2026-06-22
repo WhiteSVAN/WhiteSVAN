@@ -95,7 +95,7 @@ export default function Home() {
                 Performance you can&apos;t fake. Research you can inspect.
               </h1>
               <p className="mt-5 max-w-xl text-base leading-7 text-slate-400">
-                TrustSVAN turns broker-reported history into proof-backed profiles, then layers
+                truSVAN turns broker-reported history into proof-backed profiles, then layers
                 structured research — market structure, factor studies, portfolio construction, and
                 single-name diligence — that anyone can scrutinize.
               </p>
@@ -139,7 +139,7 @@ export default function Home() {
         <FeatureRow
           eyebrow="Fund-grade performance"
           title="Institutional metrics, computed — not claimed"
-          body="Import once and TrustSVAN derives the risk- and return-adjusted metrics allocators actually underwrite — Sharpe, Sortino, CAGR, volatility, max drawdown, and verified capital base — all in code, from the trades."
+          body="Import once and truSVAN derives the risk- and return-adjusted metrics allocators actually underwrite — Sharpe, Sortino, CAGR, volatility, max drawdown, and verified capital base — all in code, from the trades."
           points={["Sharpe, Sortino & volatility", "CAGR & verified AUM", "Max drawdown & recovery", "Win rate & profit factor"]}
           visual={<PerformancePanel />}
         />

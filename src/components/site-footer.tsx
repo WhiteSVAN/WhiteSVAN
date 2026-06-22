@@ -41,7 +41,7 @@ export function SiteFooter() {
             research teams that need source-backed trading records.
           </p>
           <p className="mt-4 text-xs leading-5 text-slate-500">
-            TrustSVAN does not manage money, execute trades, copy trades, provide investment
+            truSVAN does not manage money, execute trades, copy trades, provide investment
             advice, or guarantee performance.
           </p>
         </div>
@@ -71,7 +71,7 @@ export function SiteFooter() {
 
       <div className="border-t border-slate-800">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <span>Copyright 2026 TrustSVAN. All rights reserved.</span>
+          <span>Copyright 2026 truSVAN. All rights reserved.</span>
           <span>Past performance is not indicative of future results.</span>
         </div>
       </div>

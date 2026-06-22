@@ -22,7 +22,7 @@ export default async function LoginPage({
   return (
     <div>
       <h1 className="text-lg font-semibold text-slate-100">Sign in</h1>
-      <p className="mt-1 text-sm text-slate-500">Return to TrustSVAN.</p>
+      <p className="mt-1 text-sm text-slate-500">Return to truSVAN.</p>
 
       <LoginForm initialMessage={initialMessage} notice={notice} />
 

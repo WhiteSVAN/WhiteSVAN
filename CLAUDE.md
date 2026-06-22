@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# TrustSVAN
+# truSVAN
 
 Trader verification and diligence workspace for clients, firms, allocators, and collaborators.
 Prop-firm traders, independent traders, brokers, and research teams connect or load broker /
@@ -139,7 +139,7 @@ On branch `feat/foundation-and-auth`.
 - ✅ **M1 App shell** — NextAuth (Credentials + JWT), DAL, `/login` `/signup` `/onboarding`, protected layout.
 - ✅ **M2 source-history bridge** - `/upload`: account -> source file -> auto-mapped preview -> load -> `DailyPnl` rebuild.
 - ✅ **M3 Metrics + dashboard** — equity-curve & daily-P&L charts, account/range filters, risk panel.
-- **TrustSVAN dashboard** - **Research view** (risk metrics, severity, verdict, Transparency
+- **truSVAN dashboard** - **Research view** (risk metrics, severity, verdict, Transparency
   Score, Proof Level) ⇄ technical **Trader view**, via `?view`. Editable starting balance.
 - ✅ **M4 AI reports** — `/reports`: generate (OpenAI default / Claude) → editor with live compliance →
   publish (blocked on banned phrases) / delete.

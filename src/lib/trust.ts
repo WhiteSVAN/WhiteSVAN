@@ -1,5 +1,5 @@
 /**
- * TrustSVAN client-trust metrics.
+ * truSVAN client-trust metrics.
  *
  * Wraps the raw metrics engine and derives the plain-English signals a
  * non-finance client needs: how big the worst drop was (with a severity
@@ -34,7 +34,7 @@ export interface TrustScores {
   proof: number;
   /** Reporting discipline — how reliably the profile is refreshed (0..100). */
   updateReliability: number;
-  /** Weighted composite (TrustSVAN Score v2), 0..100. */
+  /** Weighted composite (truSVAN Score v2), 0..100. */
   transparency: number;
 }
 
@@ -191,7 +191,7 @@ export function computeTrustMetrics(
   const discipline = clamp(100 - (bestDayShare ?? 0) * 60 - redRatio * 30, 0, 100);
   const proof = proofLevel * 20;
 
-  // TrustSVAN Score v2 — rewards proof quality, risk control, and reporting
+  // truSVAN Score v2 — rewards proof quality, risk control, and reporting
   // discipline over raw profit (profit capped at 10%).
   const reliability = clamp(updateReliability, 0, 100);
   const transparency = Math.round(
