@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quant Connect - professional quant research network",
+  title: "Quantidive — verified quant & trader network",
   description:
-    "A professional network for traders and quant researchers sharing GEX notes, strategy validation, stock deep dives, portfolio research, and verified performance records.",
+    "Where quants, systematic and algo traders, and analysts publish a verified track record, get discovered by clients and allocators, and build a research reputation. Proof-backed performance, not self-claimed numbers.",
 };
 
 export default function RootLayout({

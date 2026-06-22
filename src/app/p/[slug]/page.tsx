@@ -18,7 +18,7 @@ import { PrintButton } from "./print-button";
 import { FollowForm } from "./follow-form";
 
 const DEFAULT_DISCLAIMER =
-  "Quant Connect is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
+  "Quantidive is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
 
 export async function generateMetadata({
   params,
@@ -31,7 +31,7 @@ export async function generateMetadata({
     select: { displayName: true, isPublic: true },
   });
   return {
-    title: profile?.isPublic ? `${profile.displayName} - Quant Connect` : "Quant Connect",
+    title: profile?.isPublic ? `${profile.displayName} - Quantidive` : "Quantidive",
     robots: { index: false }, // private share links shouldn't be indexed
   };
 }
@@ -65,6 +65,10 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
       hideBrokers: true,
       updateCadence: true,
       lastPublishedAt: true,
+      openToWork: true,
+      headline: true,
+      services: true,
+      contactUrl: true,
     },
   });
 
@@ -160,13 +164,24 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
                 href={loggedIn ? "/dashboard" : "/"}
                 className="transition hover:text-slate-600"
               >
-                QUANT <span className="text-cyan-300">CONNECT</span>
+                QUANTI<span className="text-cyan-300">DIVE</span>
               </Link>{" "}
               / research profile
             </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
-              {profile.displayName}
-            </h1>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+                {profile.displayName}
+              </h1>
+              {profile.openToWork && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-xs font-medium text-emerald-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+                  Open to work
+                </span>
+              )}
+            </div>
+            {profile.headline && (
+              <p className="mt-1 text-sm font-medium text-slate-300">{profile.headline}</p>
+            )}
             <p className="mt-0.5 text-sm text-slate-500">
               {[profile.strategy, profile.instruments].filter(Boolean).join(" / ")}
               {period && <span className="text-slate-400"> / {period}</span>}
@@ -178,6 +193,33 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
       <main className="mx-auto max-w-4xl space-y-10 px-4 py-8">
         {profile.bio && <p className="text-sm leading-relaxed text-slate-600">{profile.bio}</p>}
+
+        {(profile.openToWork || profile.contactUrl) && (
+          <section className="rounded-xl border border-cyan-400/25 bg-cyan-400/5 p-5 print:hidden">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="min-w-0">
+                <h2 className="text-base font-semibold text-slate-900">Work with {profile.displayName}</h2>
+                {profile.services ? (
+                  <p className="mt-1 text-sm leading-relaxed text-slate-500">{profile.services}</p>
+                ) : (
+                  <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                    Open to client work and collaboration. Reach out to start a conversation.
+                  </p>
+                )}
+              </div>
+              {profile.contactUrl && (
+                <a
+                  href={profile.contactUrl}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="shrink-0 rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-300"
+                >
+                  Get in touch
+                </a>
+              )}
+            </div>
+          </section>
+        )}
 
         <ProfileTrust
           freshness={{ label: fresh.label, blurb: fresh.blurb, tone: fresh.tone }}

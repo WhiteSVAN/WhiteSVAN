@@ -18,7 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             href="/dashboard"
             className="text-base font-semibold tracking-[0.18em] text-slate-100"
           >
-            QUANT <span className="text-cyan-300">CONNECT</span>
+            QUANTI<span className="text-cyan-300">DIVE</span>
           </Link>
           <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-sm">
             <Link href="/dashboard" className="text-slate-400 hover:text-white">

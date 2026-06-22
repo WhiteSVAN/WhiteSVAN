@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, BookOpenText, CandlestickChart, RadioTower, ShieldCheck } from "lucide-react";
+import { BookOpenText, Briefcase, CandlestickChart, RadioTower, ShieldCheck } from "lucide-react";
 import { WaitlistForm } from "./waitlist-form";
 
 const FEED = [
@@ -29,26 +29,26 @@ const WORKFLOW = ["Screen", "Validate", "Combine", "Compare", "Diagnose", "Refin
 
 const PILLARS = [
   {
-    icon: RadioTower,
-    title: "Curated quant feed",
-    body: "Follow research by topic: market structure, factor studies, portfolio construction, systematic strategies, and single-name deep dives.",
-  },
-  {
-    icon: BarChart3,
-    title: "Validation-first discussion",
-    body: "Posts are framed around thesis, evidence, assumptions, counterview, risk, and what would invalidate the idea.",
-  },
-  {
     icon: ShieldCheck,
-    title: "Research profiles",
-    body: "Members can attach proof-backed performance snapshots, update history, and evidence without turning the network into copy-trading.",
+    title: "Get verified",
+    body: "Import broker or prop-firm history and attach statements or tax records. Every number carries a Proof Level and Transparency Score — computed in code from your trades, never self-claimed.",
+  },
+  {
+    icon: Briefcase,
+    title: "Get discovered & hired",
+    body: "A public operator card with your verified track record, an open-to-work signal, and a direct line for allocators, prop firms, and clients to reach you.",
+  },
+  {
+    icon: RadioTower,
+    title: "Build a reputation",
+    body: "Follow research by topic, publish briefs that can be challenged, and grow a following among serious quants, systematic traders, and market professionals.",
   },
 ];
 
 const ACCESS = [
-  { name: "Reader", price: "$0", blurb: "Read public research profiles and join the beta list" },
-  { name: "Researcher", price: "$49", blurb: "Publish briefs, join research rooms, and maintain a profile" },
-  { name: "Team", price: "$199", blurb: "Private rooms, team profiles, and a shared research archive" },
+  { name: "Reader", price: "$0", blurb: "Browse verified operator cards and the research directory" },
+  { name: "Operator", price: "$49", blurb: "Verified profile, proof locker, published briefs, and client inquiries" },
+  { name: "Team", price: "$199", blurb: "Team profiles, private rooms, and a shared research archive" },
 ];
 
 export default function Home() {
@@ -57,7 +57,7 @@ export default function Home() {
       <header className="border-b border-slate-800/80 bg-slate-950/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <Link href="/" className="text-base font-semibold tracking-[0.18em] text-slate-100">
-            QUANT <span className="text-cyan-300">CONNECT</span>
+            QUANTI<span className="text-cyan-300">DIVE</span>
           </Link>
           <div className="flex items-center gap-4 text-sm">
             <Link href="/network" className="text-slate-300 hover:text-white">
@@ -90,15 +90,15 @@ export default function Home() {
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.24em] text-cyan-200">
                 <CandlestickChart className="h-4 w-4" aria-hidden="true" />
-                Professional quant research network
+                Verified quant &amp; trader network
               </p>
               <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight text-white sm:text-6xl">
-                Quant Connect is where traders publish research that can be challenged.
+                Quantidive is where quants and traders prove their edge — and get discovered.
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                A professional network for systematic traders, quant researchers, prop-firm traders,
-                brokers, and independent analysts to share GEX notes, strategy validation, portfolio
-                research, and stock deep dives with a visible research trail.
+                A professional network for systematic and algo traders, quant researchers, prop-firm
+                operators, brokers, and independent analysts to publish a verified track record, build
+                a research reputation, and connect with clients and collaborators.
               </p>
               <div className="mt-8 max-w-xl">
                 <WaitlistForm />
@@ -165,7 +165,7 @@ export default function Home() {
                 Built like a research terminal, not a noisy feed
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                Quant Connect borrows the best pattern from quant aggregators, long-form research,
+                Quantidive borrows the best pattern from quant aggregators, long-form research,
                 and strategy libraries: useful work is structured, timestamped, and open to scrutiny.
               </p>
             </div>
@@ -207,7 +207,7 @@ export default function Home() {
 
       <footer className="border-t border-slate-800 bg-slate-950">
         <div className="mx-auto max-w-6xl px-4 py-6 text-xs leading-6 text-slate-500">
-          Quant Connect is research, analytics, and professional networking software. It does not
+          Quantidive is research, analytics, and professional networking software. It does not
           manage money, execute trades, provide investment advice, or guarantee performance.
         </div>
       </footer>

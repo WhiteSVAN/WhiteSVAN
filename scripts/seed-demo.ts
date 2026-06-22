@@ -59,7 +59,7 @@ const SAMPLE_REPORT = {
 };
 
 async function main() {
-  const email = "demo@quantconnect.local";
+  const email = "demo@quantidive.local";
   await prisma.user.deleteMany({ where: { email } });
 
   const user = await prisma.user.create({
@@ -75,7 +75,7 @@ async function main() {
           updateCadence: "WEEKLY",
           strategy: "Intraday futures momentum, risk-defined",
           instruments: "ES, NQ",
-          bio: "A demo account showing what a Quant Connect research profile looks like.",
+          bio: "A demo account showing what a Quantidive research profile looks like.",
         },
       },
     },

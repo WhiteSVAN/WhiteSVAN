@@ -1,4 +1,4 @@
-# Quant Connect Backlog
+# Quantidive Backlog
 
 Things to come back to. MVP (M1–M6) and the first round of trust features are done and on `main`.
 
@@ -68,4 +68,4 @@ Things to come back to. MVP (M1–M6) and the first round of trust features are 
 - Most **retail transaction CSVs lack realized P&L** → need the FIFO matcher above.
 - The public research profile currently shows the **primary account only**.
 - The AI report generator needs an API key (`OPENAI_API_KEY` default, or `AI_PROVIDER=anthropic`).
-- Demo: `npm run db:seed` → `/p/demo` (login `demo@quantconnect.local` / `demo1234`).
+- Demo: `npm run db:seed` → `/p/demo` (login `demo@quantidive.local` / `demo1234`).

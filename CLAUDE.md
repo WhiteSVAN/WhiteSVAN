@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Quant Connect
+# Quantidive
 
 Professional quant research network for GEX analysis, strategy validation, portfolio research,
 stock deep dives, and proof-backed research profiles. Prop-firm traders, independent traders,
@@ -128,7 +128,7 @@ On branch `feat/foundation-and-auth`.
 - ✅ **M1 App shell** — NextAuth (Credentials + JWT), DAL, `/login` `/signup` `/onboarding`, protected layout.
 - ✅ **M2 CSV import** — `/upload`: account → file → auto-mapped preview → import → `DailyPnl` rebuild.
 - ✅ **M3 Metrics + dashboard** — equity-curve & daily-P&L charts, account/range filters, risk panel.
-- **Quant Connect dashboard** - **Research view** (risk metrics, severity, verdict, Transparency
+- **Quantidive dashboard** - **Research view** (risk metrics, severity, verdict, Transparency
   Score, Proof Level) ⇄ technical **Trader view**, via `?view`. Editable starting balance.
 - ✅ **M4 AI reports** — `/reports`: generate (OpenAI default / Claude) → editor with live compliance →
   publish (blocked on banned phrases) / delete.

@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <div>
       <h1 className="text-lg font-semibold text-slate-100">Sign in</h1>
-      <p className="mt-1 text-sm text-slate-500">Return to Quant Connect.</p>
+      <p className="mt-1 text-sm text-slate-500">Return to Quantidive.</p>
 
       <form action={action} className="mt-6 space-y-4">
         <FormError message={state?.message} />

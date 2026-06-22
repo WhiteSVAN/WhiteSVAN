@@ -1,6 +1,6 @@
-# Quant Connect
+# Quantidive
 
-Quant Connect is a professional quant research network for GEX analysis, strategy validation, portfolio research, stock deep dives, and proof-backed research profiles. Traders can import broker or prop-firm history, review code-computed metrics, publish immutable profile versions, and share research or performance context with other market professionals.
+Quantidive is a professional quant research network for GEX analysis, strategy validation, portfolio research, stock deep dives, and proof-backed research profiles. Traders can import broker or prop-firm history, review code-computed metrics, publish immutable profile versions, and share research or performance context with other market professionals.
 
 It does not manage money, execute trades, copy trades, provide investment advice, or guarantee performance. Public pages must keep the past-performance disclaimer.
 
@@ -44,7 +44,7 @@ npm run typecheck
 npm run lint
 ```
 
-Demo after seeding: `/p/demo`, login `demo@quantconnect.local` / `demo1234`.
+Demo after seeding: `/p/demo`, login `demo@quantidive.local` / `demo1234`.
 
 ## Important Files
 

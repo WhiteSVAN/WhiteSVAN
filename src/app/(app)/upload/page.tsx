@@ -24,7 +24,7 @@ export default async function UploadPage({
     <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Import trading history</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Upload broker or prop-firm records to back your Quant Connect research profile with real metrics.
+        Upload broker or prop-firm records to back your Quantidive research profile with real metrics.
       </p>
       <div className="mt-6">
         {accounts.length === 0 ? (

@@ -19,7 +19,7 @@ import { prisma } from "@/lib/db";
 import { formatPercent } from "@/lib/format";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 
-export const metadata: Metadata = { title: "Network - Quant Connect" };
+export const metadata: Metadata = { title: "Network - Quantidive" };
 
 type NetworkType = "all" | "gex" | "deep-dive" | "portfolio" | "systematic";
 
@@ -155,7 +155,7 @@ export default async function NetworkPage({
           <div className="p-6 sm:p-8">
             <p className="flex items-center gap-2 text-sm font-medium text-cyan-300">
               <Users className="h-4 w-4" aria-hidden="true" />
-              Quant Connect network
+              Quantidive network
             </p>
             <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
               A research network for quants, systematic traders, and market analysts.
@@ -199,7 +199,7 @@ export default async function NetworkPage({
             <div className="mt-5 space-y-3 text-sm text-slate-600">
               <p className="flex gap-2">
                 <ShieldCheck className="mt-0.5 h-4 w-4 flex-none text-blue-700" aria-hidden="true" />
-                Network identity is anchored to a published Quant Connect profile, not follower count.
+                Network identity is anchored to a published Quantidive profile, not follower count.
               </p>
               <p className="flex gap-2">
                 <MessageSquareText className="mt-0.5 h-4 w-4 flex-none text-blue-700" aria-hidden="true" />
@@ -321,7 +321,7 @@ export default async function NetworkPage({
           <div className="mt-5 rounded-lg border border-dashed border-slate-700 bg-slate-950/70 p-8 text-center">
             <h3 className="text-sm font-medium text-slate-800">No matching public profiles yet</h3>
             <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
-              Publish your own Quant Connect research profile or clear the filter to see every trader
+              Publish your own Quantidive research profile or clear the filter to see every trader
               currently visible on the network.
             </p>
             <Link
