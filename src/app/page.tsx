@@ -82,20 +82,31 @@ export default function Home() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="border-b border-zinc-900">
-          <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <section className="relative overflow-hidden border-b border-zinc-900">
+          {/* NYC skyline backdrop — fades to solid on the left so the headline stays crisp,
+              and glows behind the operator card on the right. Swap /public/images/nyc-skyline.jpg
+              to change the photo. */}
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: "url(/images/nyc-skyline.jpg)" }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#030303] from-[26%] via-[#030303]/80 to-[#030303]/25" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#030303]/40 via-transparent to-[#030303]" />
+          </div>
+          <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:py-24 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-zinc-800 px-3 py-1 text-xs font-medium uppercase text-zinc-400">
+              <p className="inline-flex items-center gap-2 rounded-full border border-zinc-700 bg-[#030303]/40 px-3 py-1 text-xs font-medium uppercase text-zinc-300 backdrop-blur">
                 <ShieldCheck className="h-3.5 w-3.5 text-zinc-200" aria-hidden="true" />
                 Verified trading network
               </p>
               <h1 className="mt-5 max-w-xl text-4xl font-semibold leading-[1.08] text-white sm:text-5xl">
-                Performance you can&apos;t fake. Research you can inspect.
+                Verified performance. Research you can inspect.
               </h1>
-              <p className="mt-5 max-w-xl text-base leading-7 text-zinc-400">
+              <p className="mt-5 max-w-xl text-base leading-7 text-zinc-300">
                 TrustSVAN turns broker-reported history into proof-backed profiles, then layers
-                structured research — market structure, factor studies, portfolio construction, and
-                single-name diligence — that anyone can scrutinize.
+                structured research across market structure, factor studies, portfolio construction,
+                and single-name diligence that anyone can scrutinize.
               </p>
               <div className="mt-7 max-w-md">
                 <WaitlistForm />
