@@ -7,11 +7,31 @@ import { formatMoney, formatPercent } from "@/lib/format";
 import { EquityCurveChart, type EquityPoint } from "@/components/charts/equity-curve";
 import { DailyPnlChart, type DailyPoint } from "@/components/charts/daily-pnl";
 
-const SEVERITY: Record<DrawdownSeverity, { label: string; text: string; bg: string }> = {
-  controlled: { label: "Controlled", text: "text-emerald-700", bg: "bg-emerald-50" },
-  elevated: { label: "Elevated", text: "text-amber-700", bg: "bg-amber-50" },
-  high: { label: "High risk", text: "text-orange-700", bg: "bg-orange-50" },
-  severe: { label: "Severe", text: "text-red-700", bg: "bg-red-50" },
+const SEVERITY: Record<DrawdownSeverity, { label: string; text: string; bg: string; border: string }> = {
+  controlled: {
+    label: "Controlled",
+    text: "text-emerald-300",
+    bg: "bg-emerald-400/10",
+    border: "border-emerald-400/30",
+  },
+  elevated: {
+    label: "Elevated",
+    text: "text-amber-300",
+    bg: "bg-amber-400/10",
+    border: "border-amber-400/30",
+  },
+  high: {
+    label: "High risk",
+    text: "text-orange-300",
+    bg: "bg-orange-400/10",
+    border: "border-orange-400/30",
+  },
+  severe: {
+    label: "Severe",
+    text: "text-red-300",
+    bg: "bg-red-400/10",
+    border: "border-red-400/30",
+  },
 };
 
 export function ClientView({
@@ -53,7 +73,7 @@ export function ClientView({
           hint="Largest fall from a previous high"
           value={`${m.maxDrawdownPct.toFixed(1)}%`}
           badge={sev.label}
-          badgeClass={`${sev.bg} ${sev.text}`}
+          badgeClass={`border ${sev.border} ${sev.bg} ${sev.text}`}
         />
         <Snapshot
           label="Research Score"
@@ -65,9 +85,9 @@ export function ClientView({
       </div>
 
       {/* Verdict */}
-      <div className={`rounded-xl border border-slate-200 p-5 ${sev.bg}`}>
+      <div className={`rounded-xl border p-5 ${sev.border} ${sev.bg}`}>
         <h2 className={`text-lg font-semibold ${sev.text}`}>{trust.verdict.headline}</h2>
-        <p className="mt-1 text-sm text-slate-700">{trust.verdict.body}</p>
+        <p className="mt-1 text-sm text-slate-300">{trust.verdict.body}</p>
       </div>
 
       {/* Charts */}
@@ -81,8 +101,8 @@ export function ClientView({
       </div>
 
       {/* Risk explained simply */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="text-sm font-medium text-slate-800">Risk and structure</h2>
+      <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5">
+        <h2 className="text-sm font-medium text-white">Risk and structure</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Plain
             label="Biggest Drop"
@@ -133,10 +153,10 @@ export function ClientView({
       </div>
 
       {/* Trust scores */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-medium text-slate-800">Research profile score</h2>
-          <span className="text-2xl font-semibold text-slate-900">
+          <h2 className="text-sm font-medium text-white">Research profile score</h2>
+          <span className="text-2xl font-semibold text-white">
             {trust.scores.transparency}
             <span className="text-base font-normal text-slate-400">/100</span>
           </span>
@@ -160,23 +180,23 @@ export function ClientView({
       </div>
 
       {/* Proof & privacy */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="text-sm font-medium text-slate-800">Proof and privacy</h2>
+      <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5">
+        <h2 className="text-sm font-medium text-white">Proof and privacy</h2>
         <div className="mt-3 grid gap-4 sm:grid-cols-3 text-sm">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Data source</p>
-            <p className="mt-1 text-slate-700">CSV import</p>
+            <p className="mt-1 text-slate-300">CSV import</p>
           </div>
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Proof level</p>
-            <p className="mt-1 text-slate-700">
+            <p className="mt-1 text-slate-300">
               Level {trust.proofLevel}: {proof.label}
             </p>
             <p className="mt-0.5 text-xs text-slate-400">{proof.blurb}</p>
           </div>
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Redactions</p>
-            <p className="mt-1 text-slate-700">
+            <p className="mt-1 text-slate-300">
               {hideAmounts ? "Dollar amounts hidden" : "Full detail shown"}
             </p>
             <p className="mt-0.5 text-xs text-slate-400">
@@ -208,9 +228,9 @@ function Snapshot({
   badgeClass?: string;
   small?: boolean;
 }) {
-  const color = tone === "pos" ? "text-emerald-600" : tone === "neg" ? "text-red-600" : "text-slate-900";
+  const color = tone === "pos" ? "text-emerald-300" : tone === "neg" ? "text-red-300" : "text-white";
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
       <p className={`mt-2 font-semibold ${small ? "text-lg" : "text-2xl"} ${color}`}>
         {value}
@@ -239,13 +259,17 @@ function Plain({
   warn?: boolean;
 }) {
   return (
-    <div className={`rounded-lg border p-3 ${warn ? "border-amber-200 bg-amber-50" : "border-slate-100"}`}>
+    <div
+      className={`rounded-lg border p-3 ${
+        warn ? "border-amber-400/30 bg-amber-400/10" : "border-slate-800 bg-slate-950/60"
+      }`}
+    >
       <div className="flex items-center gap-1.5">
-        {warn && <span className="text-amber-600">!</span>}
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
+        {warn && <span className="text-amber-300">!</span>}
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
       </div>
-      <p className="mt-1 font-semibold tabular-nums text-slate-800">{value}</p>
-      <p className="mt-0.5 text-xs text-slate-500">{note}</p>
+      <p className="mt-1 font-semibold tabular-nums text-white">{value}</p>
+      <p className="mt-0.5 text-xs text-slate-400">{note}</p>
     </div>
   );
 }
@@ -256,13 +280,13 @@ function ScoreBar({ label, value, weight }: { label: string; value: number; weig
   return (
     <div>
       <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-slate-600">
+        <span className="font-medium text-slate-300">
           {label}
           {weight && <span className="font-normal text-slate-400"> / {weight}</span>}
         </span>
         <span className="tabular-nums text-slate-400">{pct}</span>
       </div>
-      <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
+      <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-800">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -279,8 +303,8 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <h3 className="text-sm font-medium text-slate-800">{title}</h3>
+    <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+      <h3 className="text-sm font-medium text-white">{title}</h3>
       <p className="mb-2 text-xs text-slate-400">{subtitle}</p>
       {children}
     </div>

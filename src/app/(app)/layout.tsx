@@ -4,8 +4,7 @@ import { AccountMenu } from "./account-menu";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/network", label: "Network" },
-  { href: "/explore", label: "Discover" },
+  { href: "/network", label: "Verified traders" },
 ];
 
 /**

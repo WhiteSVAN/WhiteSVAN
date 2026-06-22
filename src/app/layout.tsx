@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quantidive — verified quant & trader network",
+  title: "Quantidive - verified trader diligence workspace",
   description:
-    "Where quants, systematic and algo traders, and analysts publish a verified track record, get discovered by clients and allocators, and build a research reputation. Proof-backed performance, not self-claimed numbers.",
+    "A verification layer for traders and a diligence workspace for clients, firms, allocators, and collaborators reviewing proof-backed trading performance.",
 };
 
 export default function RootLayout({

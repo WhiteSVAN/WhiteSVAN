@@ -21,8 +21,8 @@ export function CalendarHeatmap({ data, hideAmounts }: { data: CalendarDay[]; hi
   const maxAbs = Math.max(1, ...data.map((d) => Math.abs(d.netPnl)));
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <h2 className="text-sm font-medium text-slate-800">Calendar</h2>
+    <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+      <h2 className="text-sm font-medium text-white">Calendar</h2>
       <p className="text-xs text-slate-400">Green and red days at a glance.</p>
       <div className="mt-3 grid gap-6 md:grid-cols-3">
         {months.map((mk) => (
@@ -59,7 +59,7 @@ function Month({
 
   return (
     <div>
-      <p className="text-xs font-medium text-slate-600">{label}</p>
+      <p className="text-xs font-medium text-slate-300">{label}</p>
       <div className="mt-2 grid grid-cols-7 gap-1">
         {WEEKDAYS.map((w, i) => (
           <span key={i} className="text-center text-[10px] text-slate-400">
@@ -84,11 +84,11 @@ function Month({
               style={{ backgroundColor: bg }}
               title={has && !hideAmounts ? formatMoney(pnl) : undefined}
             >
-              <div className={`text-[10px] ${has ? "font-medium text-slate-700" : "text-slate-500"}`}>
+              <div className={`text-[10px] ${has ? "font-medium text-white" : "text-slate-500"}`}>
                 {d}
               </div>
               {has && !hideAmounts && (
-                <div className="text-[9px] tabular-nums text-slate-600">{compact(pnl)}</div>
+                <div className="text-[9px] tabular-nums text-slate-300">{compact(pnl)}</div>
               )}
             </div>
           );

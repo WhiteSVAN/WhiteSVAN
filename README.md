@@ -1,6 +1,6 @@
 # Quantidive
 
-Quantidive is a professional quant research network for GEX analysis, strategy validation, portfolio research, stock deep dives, and proof-backed research profiles. Traders can import broker or prop-firm history, review code-computed metrics, publish immutable profile versions, and share research or performance context with other market professionals.
+Quantidive combines trader verification with a diligence workspace for clients, firms, allocators, and collaborators. Traders import broker or prop-firm history, publish proof-backed profiles, and keep verified metrics current; reviewers screen profiles, inspect evidence, monitor changes, and turn code-computed metrics into research or diligence updates.
 
 It does not manage money, execute trades, copy trades, provide investment advice, or guarantee performance. Public pages must keep the past-performance disclaimer.
 
@@ -17,11 +17,11 @@ It does not manage money, execute trades, copy trades, provide investment advice
 
 ## Product Direction
 
-- Trader-only network, not a consumer investing app.
-- `/network` is the core surface: market-structure rooms, quant labs, deep-dive prompts, and research profiles.
+- Verification-first product, not a consumer investing app.
+- `/network` is the authenticated verified-trader board: screen profiles by style, proof level, and track-record context.
 - `/p/[slug]` is a public research profile backed by published `ProfileVersion` snapshots.
-- `/reports` now acts as a research brief archive; AI drafts prose only from code-computed metrics.
-- GEX and market-structure discussion must remain non-advisory and evidence-led.
+- `/reports` acts as a diligence/research brief archive; AI drafts prose only from code-computed metrics.
+- All profile, GEX, and market-structure discussion must remain non-advisory and evidence-led.
 
 ## Core Rules
 

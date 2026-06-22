@@ -2,10 +2,10 @@
 
 # Quantidive
 
-Professional quant research network for GEX analysis, strategy validation, portfolio research,
-stock deep dives, and proof-backed research profiles. Prop-firm traders, independent traders,
-brokers, and research teams upload broker / prop-firm history (CSV), review verified performance
-dashboards, publish research briefs, and share a research profile with other market professionals.
+Trader verification and diligence workspace for clients, firms, allocators, and collaborators.
+Prop-firm traders, independent traders, brokers, and research teams upload broker / prop-firm
+history (CSV), review verified performance dashboards, publish research briefs, and share a public
+profile that reviewers can screen, diligence, monitor, and summarize.
 
 **It is a pure SaaS reporting tool.** It does **not** manage money, execute or copy trades, send
 signals, give allocation advice, predict returns, or take performance fees. Those boundaries are not
