@@ -3,7 +3,7 @@
  * you need a known password without going through the forgot-password flow.
  *
  *   npm run db:set-password -- <email> <password>
- *   # e.g. npm run db:set-password -- adityanalluri@gmail.com 123456
+ *   # e.g. npm run db:set-password -- demo.user@example.com 123456
  *
  * Bypasses the signup strength policy on purpose (admin override). The password
  * is bcrypt-hashed the same way signup does. Uses relative imports + the pg
