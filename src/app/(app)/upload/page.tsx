@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
+import { BrokerConnect } from "./broker-connect";
 import { CreateAccountForm } from "./create-account-form";
 import { UploadFlow } from "./upload-flow";
 
@@ -45,6 +46,25 @@ export default async function UploadPage({
             <p className="mt-1 text-xs leading-5 text-zinc-500">{body}</p>
           </div>
         ))}
+      </div>
+
+      {/* Direct read-only connection — the product direction. */}
+      <div className="rounded-xl border border-zinc-200 bg-white p-5">
+        <h2 className="text-sm font-medium text-zinc-900">Direct read-only connection</h2>
+        <p className="mt-1 max-w-2xl text-xs leading-5 text-zinc-500">
+          Connect your broker read-only — no login shared, no trade execution, revocable anytime.
+          Pick your broker to see how linking works. Connectors are rolling out; until then, load
+          broker-reported history below.
+        </p>
+        <div className="mt-4">
+          <BrokerConnect />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-zinc-400">
+        <span className="h-px flex-1 bg-zinc-200" />
+        Or load broker-reported history
+        <span className="h-px flex-1 bg-zinc-200" />
       </div>
 
       <div>
