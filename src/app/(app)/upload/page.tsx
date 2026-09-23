@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth/dal";
+import { requireTrader } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
+import { defaultCurrencyForRegion } from "@/lib/format";
 import { CreateAccountForm } from "./create-account-form";
 import { UploadFlow } from "./upload-flow";
 
@@ -9,16 +9,19 @@ export default async function UploadPage({
 }: {
   searchParams: Promise<{ account?: string }>;
 }) {
-  const user = await requireUser();
-  if (!user.profile) redirect("/onboarding");
+  const user = await requireTrader();
 
   const { account: selectedAccountId } = await searchParams;
 
-  const accounts = await prisma.tradingAccount.findMany({
-    where: { userId: user.id },
-    select: { id: true, accountName: true },
-    orderBy: { createdAt: "asc" },
-  });
+  const [accounts, profile] = await Promise.all([
+    prisma.tradingAccount.findMany({
+      where: { userId: user.id },
+      select: { id: true, accountName: true, currency: true },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.traderProfile.findUnique({ where: { id: user.profile.id }, select: { region: true } }),
+  ]);
+  const defaultCurrency = defaultCurrencyForRegion(profile?.region);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -54,9 +57,13 @@ export default async function UploadPage({
 
       <div>
         {accounts.length === 0 ? (
-          <CreateAccountForm />
+          <CreateAccountForm defaultCurrency={defaultCurrency} />
         ) : (
-          <UploadFlow accounts={accounts} selectedAccountId={selectedAccountId} />
+          <UploadFlow
+            accounts={accounts}
+            selectedAccountId={selectedAccountId}
+            defaultCurrency={defaultCurrency}
+          />
         )}
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireUserId } from "@/lib/auth/dal";
+import { requireTrader } from "@/lib/auth/dal";
 
 export type BalanceState = { error?: string; saved?: boolean } | undefined;
 
@@ -15,7 +15,7 @@ export async function setStartingBalance(
   _prev: BalanceState,
   formData: FormData,
 ): Promise<BalanceState> {
-  const userId = await requireUserId();
+  const { id: userId } = await requireTrader();
   const accountId = String(formData.get("accountId") ?? "");
   const value = Number(formData.get("startingBalance"));
 
@@ -42,12 +42,15 @@ export async function setPortalVisibility(
   _prev: VisibilityState,
   formData: FormData,
 ): Promise<VisibilityState> {
-  const userId = await requireUserId();
+  const { id: userId, profile } = await requireTrader();
   const makePublic = formData.get("isPublic") === "true";
   await prisma.traderProfile.update({
     where: { userId },
     data: { isPublic: makePublic },
   });
   revalidatePath("/dashboard");
+  revalidatePath("/settings");
+  revalidatePath("/explore");
+  revalidatePath(`/p/${profile.slug}`);
   return { isPublic: makePublic };
 }

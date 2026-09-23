@@ -11,9 +11,10 @@ const FREQUENCIES = ["WEEKLY", "MONTHLY", "RISK_CHANGES_ONLY"] as const;
 type Frequency = (typeof FREQUENCIES)[number];
 
 /**
- * Follow a public profile by email (MVP2.5). Stores a follower record so the
- * trader can notify subscribers of updates/risk changes. Email delivery +
- * double opt-in are stubbed for now — this only captures the subscription.
+ * "Email updates" for a public profile (shown to signed-out visitors; signed-in
+ * users follow instead). Stores a ProfileFollower so the trader's republishes
+ * and risk changes can be emailed. Delivery + double opt-in are handled by the
+ * notification queue — this only captures the subscription.
  */
 export async function followProfile(_prev: FollowState, formData: FormData): Promise<FollowState> {
   const slug = String(formData.get("slug") ?? "");
@@ -23,7 +24,7 @@ export async function followProfile(_prev: FollowState, formData: FormData): Pro
     ? (freqRaw as Frequency)
     : "MONTHLY";
 
-  if (!EMAIL.test(email)) return { error: "Enter a valid email address." };
+  if (email.length > 254 || !EMAIL.test(email)) return { error: "Enter a valid email address." };
   const limited = checkRateLimit(await requestIpKey("profile-follow"), {
     limit: 8,
     windowMs: 60 * 60 * 1000,

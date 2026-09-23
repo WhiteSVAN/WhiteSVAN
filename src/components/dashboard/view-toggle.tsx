@@ -26,6 +26,7 @@ export function ViewToggle({ view }: { view: string }) {
         <button
           key={v.k}
           type="button"
+          aria-pressed={view === v.k}
           onClick={() => set(v.k)}
           className={`rounded-md px-3 py-1 transition ${
             view === v.k ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800"

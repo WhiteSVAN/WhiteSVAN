@@ -2,7 +2,7 @@
  * Presentational bits shared by the inquiry surfaces (profile block, inbox,
  * dashboard card). No hooks — safe in Server and Client Components.
  */
-import { format, formatDistanceToNowStrict } from "date-fns";
+import { format, formatDistanceStrict } from "date-fns";
 import { inquiryStatusLabel, type InquiryStatusKey, type Perspective } from "@/lib/inquiries";
 import { optionLabel } from "@/lib/profile-options";
 
@@ -33,7 +33,7 @@ export function InquiryStatusBadge({
 export function whenLabel(date: Date, now: Date = new Date()): string {
   const ageMs = now.getTime() - date.getTime();
   if (ageMs < 60_000) return "just now";
-  if (ageMs < 7 * 24 * 60 * 60 * 1000) return `${formatDistanceToNowStrict(date)} ago`;
+  if (ageMs < 7 * 24 * 60 * 60 * 1000) return `${formatDistanceStrict(date, now)} ago`;
   return format(date, "MMM d, yyyy");
 }
 

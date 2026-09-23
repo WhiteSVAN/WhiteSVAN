@@ -7,6 +7,7 @@ interface AccountRow {
   id: string;
   accountName: string;
   broker: string | null;
+  currency?: string;
   tradeCount: number;
 }
 
@@ -35,6 +36,7 @@ export function AccountData({ accounts }: { accounts: AccountRow[] }) {
                 <p className="font-medium text-zinc-800">{a.accountName}</p>
                 <p className="text-xs text-zinc-400">
                   {a.broker ? `${a.broker} · ` : ""}
+                  {a.currency ? `${a.currency} · ` : ""}
                   {a.tradeCount} {a.tradeCount === 1 ? "trade" : "trades"}
                 </p>
               </div>

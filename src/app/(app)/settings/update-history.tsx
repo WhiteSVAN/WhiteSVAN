@@ -12,6 +12,7 @@ interface Upload {
   periodEnd: Date | null;
   netPnl: number;
   createdAt: Date;
+  currency?: string;
 }
 
 interface Version {
@@ -22,6 +23,7 @@ interface Version {
   netPnl: number;
   changeSummary: string | null;
   publishedAt: Date;
+  currency?: string;
 }
 
 interface Follower {
@@ -73,7 +75,7 @@ export function UpdateHistory({
                   <span className="text-xs text-zinc-400">{fmtDate(v.publishedAt)}</span>
                 </div>
                 <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-zinc-500">
-                  <span>Net {formatMoney(v.netPnl)}</span>
+                  <span>Net {formatMoney(v.netPnl, { currency: v.currency })}</span>
                   <span>Source: {sourceLabel(v.proofLevel)}</span>
                 </div>
                 {v.changeSummary && <p className="mt-1 text-xs text-zinc-500">{v.changeSummary}</p>}
@@ -114,7 +116,7 @@ export function UpdateHistory({
                       {periodLabel(u.periodStart, u.periodEnd)}
                     </td>
                     <td className="px-3 py-2 text-right text-zinc-500">{u.rowCount}</td>
-                    <td className="px-3 py-2 text-right text-zinc-500">{formatMoney(u.netPnl)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-500">{formatMoney(u.netPnl, { currency: u.currency })}</td>
                     <td className="px-3 py-2 font-mono text-xs text-zinc-400" title={u.fileHash}>
                       {u.fileHash.slice(0, 10)}…
                     </td>

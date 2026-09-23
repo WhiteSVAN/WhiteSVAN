@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireUserId } from "@/lib/auth/dal";
+import { requireTrader } from "@/lib/auth/dal";
+import { toCurrency } from "@/lib/format";
 import { parseTradesCsv, type ColumnMapping } from "@/lib/csv/parse";
 import { parseBrokerCsv } from "@/lib/csv/brokers";
 import { DuplicateImportError, OverlappingImportError, importTrades } from "@/lib/ingest/import";
@@ -12,16 +13,18 @@ export type AccountFormState =
   | { errors?: { accountName?: string[] }; message?: string }
   | undefined;
 
-/** Create a brokerage or prop-firm account to receive imported trades. */
+/** Create a brokerage or prop-firm account to receive imported trades. Traders only. */
 export async function createAccount(
   _prev: AccountFormState,
   formData: FormData,
 ): Promise<AccountFormState> {
-  const userId = await requireUserId();
+  const { id: userId } = await requireTrader();
 
-  const accountName = String(formData.get("accountName") ?? "").trim();
-  const broker = String(formData.get("broker") ?? "").trim();
+  const accountName = String(formData.get("accountName") ?? "").trim().slice(0, 80);
+  const broker = String(formData.get("broker") ?? "").trim().slice(0, 80);
   const startingBalance = Number(formData.get("startingBalance") ?? 0);
+  // Untrusted: anything outside the supported list falls back to USD.
+  const currency = toCurrency(formData.get("currency"));
 
   if (accountName.length < 1) {
     return { errors: { accountName: ["Give this account a name."] } };
@@ -32,7 +35,8 @@ export async function createAccount(
       userId,
       accountName,
       broker: broker || null,
-      startingBalance: Number.isFinite(startingBalance) ? startingBalance : 0,
+      currency,
+      startingBalance: Number.isFinite(startingBalance) && startingBalance > 0 ? startingBalance : 0,
     },
   });
 
@@ -50,7 +54,7 @@ export async function confirmImport(
   _prev: ImportFormState,
   formData: FormData,
 ): Promise<ImportFormState> {
-  const userId = await requireUserId();
+  const { id: userId } = await requireTrader();
 
   const accountId = String(formData.get("accountId") ?? "");
   const csvText = String(formData.get("csvText") ?? "");

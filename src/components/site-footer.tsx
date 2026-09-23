@@ -1,30 +1,25 @@
 import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
 
+/** Public pages only — app routes (feed, inbox, communities) need an account. */
 const FOOTER_GROUPS = [
   {
-    title: "Platform",
+    title: "Traders",
     links: [
-      { href: "/explore", label: "Published traders" },
-      { href: "/signup", label: "Build your record" },
+      { href: "/signup", label: "Build your trader record" },
       { href: "/login", label: "Sign in" },
     ],
   },
   {
-    title: "Verification",
+    title: "Clients",
     links: [
-      { href: "/signup", label: "Broker connections" },
-      { href: "/explore", label: "Proof-backed profiles" },
-      { href: "/signup", label: "Research briefs" },
+      { href: "/explore", label: "Discover traders" },
+      { href: "/signup?as=client", label: "Join as a client" },
     ],
   },
   {
-    title: "Network",
-    links: [
-      { href: "/signup", label: "Private rooms" },
-      { href: "/explore", label: "Operator directory" },
-      { href: "/signup", label: "Join beta" },
-    ],
+    title: "Directory",
+    links: [{ href: "/explore", label: "Published traders" }],
   },
 ];
 
@@ -37,8 +32,8 @@ export function SiteFooter() {
             <SvanLogo />
           </Link>
           <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400">
-            A verification and diligence network for market operators, brokers, prop firms, and
-            research teams that need inspectable trading records and clear source coverage.
+            Source-linked trading records for traders, and a place for clients, firms, and
+            allocators to discover and review them — with the source, coverage, and risk in view.
           </p>
           <p className="mt-4 text-xs leading-5 text-zinc-500">
             TrustSVAN does not manage money, execute trades, copy trades, provide investment
@@ -72,7 +67,7 @@ export function SiteFooter() {
       <div className="border-t border-zinc-800">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 font-mono text-[9px] uppercase tracking-wider text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <span>Copyright 2026 TrustSVAN. All rights reserved.</span>
-          <span>Past performance is not indicative of future results.</span>
+          <span>Past performance does not guarantee future results.</span>
         </div>
       </div>
     </footer>

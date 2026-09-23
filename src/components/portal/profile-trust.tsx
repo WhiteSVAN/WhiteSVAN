@@ -35,7 +35,9 @@ export interface ClientRiskEvent {
 
 /**
  * Public research-profile header: freshness badge, last-updated label, change
- * summary since the prior version, and visible risk-event cards.
+ * summary since the prior version, and visible risk-event cards. Pass
+ * `showStatus={false}` when the freshness/source row is already shown elsewhere
+ * (the proof profile's Record summary card does this).
  */
 export function ProfileTrust({
   freshness,
@@ -44,6 +46,7 @@ export function ProfileTrust({
   changeSummary,
   riskEvents,
   proofLevel,
+  showStatus = true,
 }: {
   freshness: { label: string; blurb: string; tone: FreshnessTone };
   lastUpdatedLabel: string | null;
@@ -51,31 +54,35 @@ export function ProfileTrust({
   changeSummary: string | null;
   riskEvents: ClientRiskEvent[];
   proofLevel: ProofLevel | null;
+  showStatus?: boolean;
 }) {
+  if (!showStatus && !changeSummary && riskEvents.length === 0) return null;
   return (
     <section className="space-y-4">
-      <div className="terminal-card flex flex-wrap items-center gap-3 p-4">
-        {proofLevel != null && (
+      {showStatus && (
+        <div className="terminal-card flex flex-wrap items-center gap-3 p-4">
+          {proofLevel != null && (
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${PROOF_BADGE[proofLevel]}`}
+              title={PROOF_LEVELS[proofLevel].blurb}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+              {PROOF_LEVELS[proofLevel].label}
+            </span>
+          )}
           <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${PROOF_BADGE[proofLevel]}`}
-            title={PROOF_LEVELS[proofLevel].blurb}
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${TONE[freshness.tone]}`}
+            title={freshness.blurb}
           >
-            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            {PROOF_LEVELS[proofLevel].label}
+            {freshness.label}
           </span>
-        )}
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${TONE[freshness.tone]}`}
-          title={freshness.blurb}
-        >
-          {freshness.label}
-        </span>
-        <span className="text-sm text-zinc-400">
-          {lastUpdatedLabel ? `Last updated ${lastUpdatedLabel}` : "Not yet published"}
-          <span className="text-zinc-600"> / </span>
-          {cadenceLabel} updates
-        </span>
-      </div>
+          <span className="text-sm text-zinc-400">
+            {lastUpdatedLabel ? `Last updated ${lastUpdatedLabel}` : "Not yet published"}
+            <span className="text-zinc-600"> / </span>
+            {cadenceLabel} updates
+          </span>
+        </div>
+      )}
 
       {changeSummary && (
         <div className="terminal-card p-4">
@@ -88,7 +95,7 @@ export function ProfileTrust({
 
       {riskEvents.length > 0 && (
         <div>
-          <h3 className="text-xs font-medium uppercase text-zinc-400">Risk events</h3>
+          <h3 className="text-xs font-medium uppercase text-zinc-400">Risk events in the latest version</h3>
           <ul className="mt-2 grid gap-2 sm:grid-cols-2">
             {riskEvents.map((e) => {
               const s = SEVERITY[e.severity] ?? SEVERITY.INFO;

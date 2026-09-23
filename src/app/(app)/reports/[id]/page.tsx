@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireUserId } from "@/lib/auth/dal";
+import { requireTrader } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { aiReportSchema } from "@/lib/ai/schema";
 import { ReportEditor } from "./report-editor";
 
 export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
-  const userId = await requireUserId();
+  const { id: userId } = await requireTrader();
   const { id } = await params;
 
   const report = await prisma.report.findFirst({

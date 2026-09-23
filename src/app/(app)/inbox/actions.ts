@@ -28,6 +28,11 @@ import {
 const HOUR_MS = 60 * 60 * 1000;
 const UNAVAILABLE = "This conversation isn't available.";
 
+/** Advisory-lock key shared by every write that can open an inquiry for a client↔profile pair. */
+function pairLockKey(clientId: string, profileId: string): string {
+  return `inquiry:${clientId}:${profileId}`;
+}
+
 function retryMinutes(seconds: number): string {
   const minutes = Math.max(1, Math.ceil(seconds / 60));
   return `${minutes} minute${minutes === 1 ? "" : "s"}`;
@@ -103,8 +108,7 @@ export async function createInquiry(_prev: RequestState, formData: FormData): Pr
   // Serialize per client↔profile pair so two quick submits can't both pass the
   // "one open request" check.
   const outcome = await prisma.$transaction(async (tx) => {
-    const lockKey = `inquiry:${userId}:${profile.id}`;
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`;
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${pairLockKey(userId, profile.id)}, 0))`;
 
     const open = await tx.inquiry.findFirst({
       where: { clientId: userId, profileId: profile.id, status: { in: [...OPEN_STATUSES] } },
@@ -189,25 +193,33 @@ export async function respondToInquiry(_prev: RespondState, formData: FormData):
     return { error: "This request has already been answered." };
   }
 
-  if (to === "ACCEPTED" && inquiry.status === "IGNORED") {
-    const newer = await prisma.inquiry.findFirst({
-      where: {
-        clientId: inquiry.clientId,
-        profileId: inquiry.profileId,
-        id: { not: inquiry.id },
-        status: { in: [...OPEN_STATUSES] },
-      },
-      select: { id: true },
-    });
-    if (newer) return { error: "This client has a newer request open — respond to that one instead." };
-  }
+  // Same per client↔profile lock as createInquiry, so accepting an old ignored
+  // request can't race a brand-new request into two open inquiries.
+  const outcome = await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${pairLockKey(inquiry.clientId, inquiry.profileId)}, 0))`;
 
-  // Conditional on the status we checked, so a double-click can't apply twice.
-  const { count } = await prisma.inquiry.updateMany({
-    where: { id: inquiry.id, status: inquiry.status },
-    data: { status: to, respondedAt: new Date() },
+    if (to === "ACCEPTED" && inquiry.status === "IGNORED") {
+      const newer = await tx.inquiry.findFirst({
+        where: {
+          clientId: inquiry.clientId,
+          profileId: inquiry.profileId,
+          id: { not: inquiry.id },
+          status: { in: [...OPEN_STATUSES] },
+        },
+        select: { id: true },
+      });
+      if (newer) return "newer" as const;
+    }
+
+    // Conditional on the status we checked, so a double-click can't apply twice.
+    const { count } = await tx.inquiry.updateMany({
+      where: { id: inquiry.id, status: inquiry.status },
+      data: { status: to, respondedAt: new Date() },
+    });
+    return count === 0 ? ("changed" as const) : ("ok" as const);
   });
-  if (count === 0) return { error: "This request changed in the meantime. Refresh and try again." };
+  if (outcome === "newer") return { error: "This client has a newer request open — respond to that one instead." };
+  if (outcome === "changed") return { error: "This request changed in the meantime. Refresh and try again." };
 
   const href = `/inbox/${inquiry.id}`;
   if (to === "ACCEPTED") {
