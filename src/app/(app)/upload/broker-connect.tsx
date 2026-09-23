@@ -121,7 +121,7 @@ function BrokerLinkDialog({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="-mr-1 -mt-1 rounded-md p-1 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-200"
+            className="-mr-1 -mt-1 rounded-md p-1 text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"
           >
             <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
               <path d="M5 5l10 10M15 5L5 15" strokeLinecap="round" />
@@ -145,7 +145,7 @@ function BrokerLinkDialog({
                   <a
                     href={ibEmailHref()}
                     onClick={() => setEmailDrafted(true)}
-                    className="rounded-lg border border-zinc-300 bg-zinc-200 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-100"
+                    className="rounded-lg border border-zinc-300 bg-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-950 shadow-sm transition hover:bg-zinc-100"
                   >
                     Generate email to IB
                   </a>
@@ -190,7 +190,7 @@ function BrokerLinkDialog({
               <button
                 type="button"
                 onClick={() => (isUpload ? onClose() : setComingSoon(true))}
-                className="rounded-lg border border-zinc-300 bg-zinc-200 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-100"
+                className="rounded-lg border border-zinc-300 bg-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-950 shadow-sm transition hover:bg-zinc-100"
               >
                 {actionLabelFor(broker)}
               </button>
@@ -236,14 +236,14 @@ function BrokerLinkDialog({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100"
+            className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-400 transition hover:bg-zinc-800"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-zinc-300 bg-zinc-200 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-100"
+            className="rounded-lg border border-zinc-300 bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-950 shadow-sm transition hover:bg-zinc-100"
           >
             Ok, I understand!
           </button>

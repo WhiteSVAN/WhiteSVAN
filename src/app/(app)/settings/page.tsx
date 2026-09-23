@@ -116,9 +116,12 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <h1 className="text-2xl font-semibold text-zinc-900">Settings</h1>
+      <div>
+        <p className="terminal-label">Operator controls / private by default</p>
+        <h1 className="mt-2 text-3xl font-medium tracking-[-0.04em] text-zinc-900">Settings</h1>
+      </div>
 
-      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
+      <section className="terminal-card p-6">
         <h2 className="text-base font-medium text-zinc-800">Research profile and privacy</h2>
         <p className="mt-1 text-sm text-zinc-500">
           Control who can see your TrustSVAN profile and what it reveals.
@@ -139,7 +142,7 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
+      <section className="terminal-card p-6">
         <h2 className="text-base font-medium text-zinc-800">Proof and evidence</h2>
         <div className="mt-3 rounded-lg bg-zinc-50 px-4 py-3 text-sm">
           <span className="font-medium text-zinc-800">
@@ -203,7 +206,7 @@ export default async function SettingsPage() {
                     )}
                     <form action={deleteEvidence}>
                       <input type="hidden" name="id" value={e.id} />
-                      <button type="submit" className="text-xs text-zinc-300 hover:text-zinc-300">
+                      <button type="submit" className="text-xs text-red-400 hover:text-red-300">
                         Delete
                       </button>
                     </form>
@@ -215,7 +218,7 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
+      <section className="terminal-card p-6">
         <h2 className="text-base font-medium text-zinc-800">Publishing history</h2>
         <p className="mt-1 text-sm text-zinc-500">
           Your source-history audit trail and the immutable versions visible on your research profile.
@@ -230,7 +233,7 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
+      <section className="terminal-card p-6">
         <h2 className="text-base font-medium text-zinc-800">Trading accounts and data</h2>
         <p className="mt-1 text-sm text-zinc-500">
           Loaded the wrong source history? Clear an account&apos;s trades, delete an account entirely,

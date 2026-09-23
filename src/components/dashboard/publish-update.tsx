@@ -20,7 +20,7 @@ export function PublishUpdate({
   const [state, action, pending] = useActionState(publishUpdate, undefined);
 
   return (
-    <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
+    <section className="terminal-card p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-medium text-zinc-800">Publish research record</h2>

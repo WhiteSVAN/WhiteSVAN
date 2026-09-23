@@ -42,7 +42,7 @@ export function FollowForm({ slug }: { slug: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending ? "Following..." : "Follow"}
         </button>

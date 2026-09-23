@@ -2,16 +2,17 @@
  * Presentational form primitives shared across screens. No hooks here, so these
  * are safe to import from both Server and Client Components.
  */
-export const labelClass = "block text-sm font-medium text-zinc-300";
+export const labelClass =
+  "block font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-zinc-400";
 
 export const inputClass =
-  "mt-1 block w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm " +
-  "text-zinc-100 placeholder-zinc-500 shadow-sm focus:border-zinc-400 focus:outline-none " +
+  "mt-2 block min-h-11 w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm " +
+  "text-zinc-100 placeholder-zinc-500 shadow-sm transition focus:border-zinc-400 focus:outline-none " +
   "focus:ring-1 focus:ring-zinc-400";
 
 export const btnPrimary =
-  "flex w-full items-center justify-center rounded-lg bg-zinc-200 px-4 py-2 text-sm " +
-  "font-medium text-white shadow-sm transition hover:bg-zinc-100 focus:outline-none " +
+  "flex min-h-11 w-full items-center justify-center rounded-md bg-zinc-100 px-4 py-2.5 text-sm " +
+  "font-medium text-zinc-950 shadow-sm transition hover:bg-white focus:outline-none " +
   "focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 focus:ring-offset-zinc-950 disabled:cursor-not-allowed disabled:opacity-60";
 
 /** Shows the first validation message for a field, if any. */

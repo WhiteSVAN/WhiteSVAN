@@ -18,35 +18,35 @@ export interface DailyPoint {
   netPnl: number;
 }
 
-/** Net P&L per trading day — emerald bars for green days, coral for red. */
+/** Net P&L per trading day — terminal lime for gains, muted coral for losses. */
 export function DailyPnlChart({ data, hideAmounts }: { data: DailyPoint[]; hideAmounts?: boolean }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+        <CartesianGrid strokeDasharray="3 5" stroke="#27312d" vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 11, fill: "#a1a1aa" }}
+          tick={{ fontSize: 10, fill: "#8a9791" }}
           tickFormatter={(d: string) => d.slice(5)}
           minTickGap={24}
         />
         <YAxis
-          tick={{ fontSize: 11, fill: "#a1a1aa" }}
+          tick={{ fontSize: 10, fill: "#8a9791" }}
           tickFormatter={(v: number) => (hideAmounts ? "" : formatMoney(v))}
           width={hideAmounts ? 8 : 56}
         />
-        <ReferenceLine y={0} stroke="#52525b" />
+        <ReferenceLine y={0} stroke="#526057" />
         <Tooltip
-          cursor={{ fill: "rgba(161,161,170,0.12)" }}
+          cursor={{ fill: "rgba(186,242,119,0.07)" }}
           contentStyle={{
             fontSize: 12,
             borderRadius: 8,
-            border: "1px solid #27272a",
-            backgroundColor: "#080808",
-            color: "#f4f4f5",
+            border: "1px solid #3a4a3f",
+            backgroundColor: "#111713",
+            color: "#f0f3ec",
           }}
-          labelStyle={{ color: "#a1a1aa" }}
-          itemStyle={{ color: "#f4f4f5" }}
+          labelStyle={{ color: "#99a59c" }}
+          itemStyle={{ color: "#f0f3ec" }}
           formatter={(value: unknown) => [
             hideAmounts ? "—" : formatMoney(Number(value), { cents: true }),
             "Net P&L",
@@ -54,7 +54,7 @@ export function DailyPnlChart({ data, hideAmounts }: { data: DailyPoint[]; hideA
         />
         <Bar dataKey="netPnl" radius={[2, 2, 0, 0]}>
           {data.map((d) => (
-            <Cell key={d.date} fill={d.netPnl >= 0 ? "#34d399" : "#f87171"} />
+            <Cell key={d.date} fill={d.netPnl >= 0 ? "#baf277" : "#f2907e"} />
           ))}
         </Bar>
       </BarChart>

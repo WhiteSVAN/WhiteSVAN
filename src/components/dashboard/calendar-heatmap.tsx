@@ -13,7 +13,7 @@ function compact(v: number): string {
   return a >= 1000 ? `${sign}${(a / 1000).toFixed(1)}k` : `${sign}${Math.round(a)}`;
 }
 
-/** Monthly P&L calendar with neutral intensity scaled by size. */
+/** Monthly P&L calendar with terminal-theme intensity scaled by size. */
 export function CalendarHeatmap({ data, hideAmounts }: { data: CalendarDay[]; hideAmounts?: boolean }) {
   if (data.length === 0) return null;
   const byDate = new Map(data.map((d) => [d.date, d.netPnl]));
@@ -21,7 +21,7 @@ export function CalendarHeatmap({ data, hideAmounts }: { data: CalendarDay[]; hi
   const maxAbs = Math.max(1, ...data.map((d) => Math.abs(d.netPnl)));
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
+    <div className="terminal-card p-4">
       <h2 className="text-sm font-medium text-white">Calendar</h2>
       <p className="text-xs text-zinc-400">Winning and losing days at a glance.</p>
       <div className="mt-3 grid gap-6 md:grid-cols-3">
@@ -73,10 +73,10 @@ function Month({
           const has = pnl != null;
           const intensity = has ? Math.min(1, Math.abs(pnl) / maxAbs) : 0;
           const bg = !has
-            ? "rgba(113,113,122,0.12)"
+            ? "rgba(117,128,121,0.12)"
             : pnl >= 0
-              ? `rgba(212,212,216,${0.18 + intensity * 0.58})`
-              : `rgba(82,82,91,${0.18 + intensity * 0.58})`;
+              ? `rgba(186,242,119,${0.12 + intensity * 0.45})`
+              : `rgba(242,144,126,${0.12 + intensity * 0.42})`;
           return (
             <div
               key={i}

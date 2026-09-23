@@ -23,33 +23,33 @@ export function EquityCurveChart({ data, hideAmounts }: { data: EquityPoint[]; h
       <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
         <defs>
           <linearGradient id="equityFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#34d399" stopOpacity={0.28} />
-            <stop offset="100%" stopColor="#34d399" stopOpacity={0} />
+            <stop offset="0%" stopColor="#baf277" stopOpacity={0.2} />
+            <stop offset="100%" stopColor="#baf277" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+        <CartesianGrid strokeDasharray="3 5" stroke="#27312d" vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 11, fill: "#a1a1aa" }}
+          tick={{ fontSize: 10, fill: "#8a9791" }}
           tickFormatter={(d: string) => d.slice(5)}
           minTickGap={24}
         />
         <YAxis
-          tick={{ fontSize: 11, fill: "#a1a1aa" }}
+          tick={{ fontSize: 10, fill: "#8a9791" }}
           tickFormatter={(v: number) => (hideAmounts ? "" : formatMoney(v))}
           width={hideAmounts ? 8 : 56}
         />
         <Tooltip
-          cursor={{ stroke: "rgba(148,163,184,0.25)" }}
+          cursor={{ stroke: "rgba(186,242,119,0.24)", strokeDasharray: "3 3" }}
           contentStyle={{
             fontSize: 12,
             borderRadius: 8,
-            border: "1px solid #27272a",
-            backgroundColor: "#080808",
-            color: "#f4f4f5",
+            border: "1px solid #3a4a3f",
+            backgroundColor: "#111713",
+            color: "#f0f3ec",
           }}
-          labelStyle={{ color: "#a1a1aa" }}
-          itemStyle={{ color: "#f4f4f5" }}
+          labelStyle={{ color: "#99a59c" }}
+          itemStyle={{ color: "#baf277" }}
           formatter={(value: unknown) => [
             hideAmounts ? "—" : formatMoney(Number(value), { cents: true }),
             "Equity",
@@ -58,7 +58,7 @@ export function EquityCurveChart({ data, hideAmounts }: { data: EquityPoint[]; h
         <Area
           type="monotone"
           dataKey="equity"
-          stroke="#34d399"
+          stroke="#baf277"
           strokeWidth={2}
           fill="url(#equityFill)"
         />

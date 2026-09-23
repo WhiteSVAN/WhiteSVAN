@@ -67,7 +67,7 @@ export function TraderView({
         </ChartCard>
       </div>
 
-      <div className="rounded-xl border border-zinc-200 bg-white p-4">
+      <div className="terminal-card p-4">
         <h2 className="text-sm font-medium text-zinc-800">Risk &amp; discipline</h2>
         <div className="mt-3 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
           <Stat label="Best day" value={formatMoney(metrics.bestDay)} tone="pos" />
@@ -92,7 +92,7 @@ export function TraderView({
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4">
+    <div className="terminal-card p-4">
       <h2 className="mb-2 text-sm font-medium text-zinc-800">{title}</h2>
       {children}
     </div>
@@ -113,7 +113,7 @@ function Card({
   const valueColor =
     tone === "pos" ? "text-emerald-400" : tone === "neg" ? "text-red-400" : "text-zinc-900";
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4">
+    <div className="terminal-card p-4">
       <p className="text-xs font-medium uppercase text-zinc-400">{label}</p>
       <p className={`mt-2 text-2xl font-semibold ${valueColor}`}>{value}</p>
       {sub && <p className="mt-0.5 text-xs text-zinc-400">{sub}</p>}

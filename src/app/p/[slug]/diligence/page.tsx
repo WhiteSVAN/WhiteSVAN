@@ -52,9 +52,12 @@ export default async function DiligencePage({ params }: { params: Promise<{ slug
 
   return (
     <div className="min-h-full bg-zinc-950 text-zinc-100">
+      <div className="border-b border-[#202a23] bg-[#111711] font-mono text-[9px] uppercase tracking-[0.08em] text-[#8f9d8e]">
+        <div className="mx-auto flex h-8 max-w-4xl items-center justify-between px-4"><span className="flex items-center gap-2"><i className="terminal-dot" /> Diligence terminal</span><span>Past performance / non-advisory</span></div>
+      </div>
       <nav className="border-b border-zinc-800 bg-zinc-950/90">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link href="/" className="text-base font-semibold text-zinc-100">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
+          <Link href="/" className="text-xl font-semibold text-zinc-100">
             <SvanLogo />
           </Link>
           <Link
@@ -68,10 +71,10 @@ export default async function DiligencePage({ params }: { params: Promise<{ slug
 
       <main className="mx-auto max-w-4xl space-y-8 px-4 py-8">
         <div>
-          <p className="text-xs font-medium uppercase text-zinc-400">
+          <p className="terminal-label">
             Allocator diligence
           </p>
-          <h1 className="mt-1 text-2xl font-semibold text-zinc-900">
+          <h1 className="mt-2 text-4xl font-medium tracking-[-0.045em] text-zinc-900">
             {profile.displayName}
           </h1>
           {profile.headline && (
@@ -82,7 +85,7 @@ export default async function DiligencePage({ params }: { params: Promise<{ slug
         {brief ? (
           <DiligenceBriefView brief={brief} />
         ) : (
-          <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/70 p-10 text-center text-sm text-zinc-500">
+          <div className="terminal-card border-dashed p-10 text-center text-sm text-zinc-500">
             No published record yet — there&apos;s nothing to run diligence on.
           </div>
         )}

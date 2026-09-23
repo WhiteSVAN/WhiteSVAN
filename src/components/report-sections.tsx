@@ -24,7 +24,7 @@ export function ReportSections({
       : report;
 
   return (
-    <article className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-6">
+    <article className="terminal-card p-6">
       <h3 className="text-base font-semibold text-white">{periodLabel(period)}</h3>
       {(hideAmounts || (redactTerms && redactTerms.length > 0)) && (
         <p className="mt-2 rounded-lg border border-zinc-800 bg-zinc-950/70 px-3 py-2 text-xs text-zinc-400">

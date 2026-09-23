@@ -101,7 +101,7 @@ export function ClientView({
       </div>
 
       {/* Risk explained simply */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5">
+      <div className="terminal-card p-5">
         <h2 className="text-sm font-medium text-white">Risk and structure</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Plain
@@ -153,7 +153,7 @@ export function ClientView({
       </div>
 
       {/* Trust scores */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5">
+      <div className="terminal-card p-5">
         <div className="flex items-baseline justify-between">
           <h2 className="text-sm font-medium text-white">Research profile score</h2>
           <span className="text-2xl font-semibold text-white">
@@ -180,7 +180,7 @@ export function ClientView({
       </div>
 
       {/* Proof & privacy */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-5">
+      <div className="terminal-card p-5">
         <h2 className="text-sm font-medium text-white">Proof and privacy</h2>
         <div className="mt-3 grid gap-4 sm:grid-cols-3 text-sm">
           <div>
@@ -230,7 +230,7 @@ function Snapshot({
 }) {
   const color = tone === "pos" ? "text-emerald-400" : tone === "neg" ? "text-red-400" : "text-white";
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
+    <div className="terminal-card p-4">
       <p className="text-xs font-medium uppercase text-zinc-400">{label}</p>
       <p className={`mt-2 font-semibold ${small ? "text-lg" : "text-2xl"} ${color}`}>
         {value}
@@ -303,7 +303,7 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-4">
+    <div className="terminal-card p-4">
       <h3 className="text-sm font-medium text-white">{title}</h3>
       <p className="mb-2 text-xs text-zinc-400">{subtitle}</p>
       {children}

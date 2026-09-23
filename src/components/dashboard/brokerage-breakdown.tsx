@@ -25,7 +25,7 @@ export function BrokerageBreakdown({
   const money = (v: number) => (hideAmounts ? "Private" : formatMoney(v, { cents: true }));
 
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-4">
+    <section className="terminal-card p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-base font-medium text-zinc-800">{title}</h2>
         <span className="text-xs text-zinc-500">

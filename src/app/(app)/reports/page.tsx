@@ -73,13 +73,14 @@ export default async function ReportsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-zinc-900">Research briefs</h1>
+        <p className="terminal-label">Research / code-computed record</p>
+        <h1 className="mt-2 text-3xl font-medium tracking-[-0.04em] text-zinc-900">Research briefs</h1>
         <p className="mt-1 text-sm text-zinc-500">
           Generate a monthly research brief from verified metrics, edit it, then publish it to your profile.
         </p>
       </div>
 
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-6 shadow-sm">
+      <div className="terminal-card p-6">
         <h2 className="text-base font-medium text-zinc-800">Generate a brief</h2>
         <p className="mt-1 text-sm text-zinc-500">
           TrustSVAN computes the numbers; AI only drafts the research-facing narrative.

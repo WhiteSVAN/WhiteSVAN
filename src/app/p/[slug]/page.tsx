@@ -146,12 +146,18 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
 
   return (
     <div className="min-h-full bg-zinc-950 text-zinc-100">
+      <div className="border-b border-[#202a23] bg-[#111711] font-mono text-[9px] uppercase tracking-[0.08em] text-[#8f9d8e] print:hidden">
+        <div className="mx-auto flex h-8 max-w-4xl items-center justify-between px-4">
+          <span className="flex items-center gap-2"><i className="terminal-dot" /> Published record</span>
+          <span>Immutable snapshot / operator controlled</span>
+        </div>
+      </div>
       {/* Slim nav hidden when printing / saving the report as PDF. */}
-      <nav className="border-b border-zinc-800 bg-zinc-950/90 print:hidden">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
+      <nav className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-xl print:hidden">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-4">
           <Link
             href={loggedIn ? "/dashboard" : "/"}
-            className="text-sm font-semibold text-zinc-100"
+            className="text-xl font-semibold text-zinc-100"
           >
             <SvanLogo />
           </Link>
@@ -164,10 +170,10 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
         </div>
       </nav>
 
-      <header className="border-b border-zinc-800 bg-zinc-950">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+      <header className="terminal-grid border-b border-zinc-800 bg-zinc-950">
+        <div className="mx-auto flex max-w-4xl flex-wrap items-end justify-between gap-5 px-4 py-10">
           <div>
-            <p className="text-xs font-medium uppercase text-zinc-400">
+            <p className="terminal-label">
               <Link
                 href={loggedIn ? "/dashboard" : "/"}
                 className="transition hover:text-zinc-200"
@@ -177,7 +183,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
               / research profile
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold text-white">
+              <h1 className="text-4xl font-medium tracking-[-0.045em] text-white">
                 {profile.displayName}
               </h1>
               {profile.openToWork && (
@@ -203,7 +209,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
         {profile.bio && <p className="text-sm leading-relaxed text-zinc-300">{profile.bio}</p>}
 
         {(profile.openToWork || profile.contactUrl) && (
-          <section className="rounded-xl border border-zinc-500/40 bg-zinc-300/5 p-5 print:hidden">
+          <section className="terminal-card p-5 print:hidden">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
                 <h2 className="text-base font-semibold text-white">Work with {profile.displayName}</h2>
@@ -246,7 +252,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             hideAmounts={profile.hideAmounts}
           />
         ) : (
-          <div className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/70 p-10 text-center text-sm text-zinc-400">
+          <div className="terminal-card border-dashed p-10 text-center text-sm text-zinc-400">
             No published record yet.
           </div>
         )}

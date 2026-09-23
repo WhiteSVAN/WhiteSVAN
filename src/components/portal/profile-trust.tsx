@@ -56,7 +56,7 @@ export function ProfileTrust({
 }) {
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/70 p-4">
+      <div className="terminal-card flex flex-wrap items-center gap-3 p-4">
         {proofLevel != null && (
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${PROOF_BADGE[proofLevel]}`}
@@ -80,7 +80,7 @@ export function ProfileTrust({
       </div>
 
       {changeSummary && (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-4">
+        <div className="terminal-card p-4">
           <h3 className="text-xs font-medium uppercase text-zinc-400">
             Since last update
           </h3>

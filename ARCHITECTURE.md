@@ -193,60 +193,59 @@ authorization boundary), with a slim nav (**Dashboard · Verified traders**) + a
 
 ### 5.1 Design language
 
-A **black, institutional “night terminal”** aesthetic — calm, data‑forward,
-high‑contrast, minimal chrome, with graphite surfaces and metallic white accents.
-Two‑sided positioning: verified traders ↔ allocators. Copy is structured
-(thesis/evidence/risk), never hype.
+A **proof-terminal** aesthetic adapted from the Manus V2 concept — near-black and
+deep-forest surfaces, code-like metadata, paper-trail details, and a restrained proof-lime
+accent. It is calm, data-forward, high-contrast, and intentionally more like an inspection
+workspace than a social trading product. Two-sided positioning remains verified traders ↔
+allocators, and copy stays structured around thesis, evidence, and risk rather than hype.
 
 ### 5.2 Color tokens (`globals.css`)
 
 | Token                 | Value      | Use                                  |
 | --------------------- | ---------- | ------------------------------------ |
-| `--background`        | `#030303`  | Page background (near black)         |
-| `--foreground`        | `#f4f4f5`  | Body text                            |
-| Surface / card        | `#080808`  | Panels (`bg-white` remapped)         |
-| Border                | `#27272a`  | Hairline borders / dividers          |
-| **Accent (steel)**    | `#e4e4e7`  | Brand, links, CTAs, focus, selection |
-| CTA hover / solid     | `#ffffff` / `#e4e4e7` | Primary buttons           |
-| Secondary accent      | `#71717a`  | Smoky ambient glow                   |
-| Muted text            | `#a1a1aa` → `#71717a` | Secondary / tertiary text |
-| Semantic — good       | `#e4e4e7`  | Positive P&L, verified, open‑to‑work |
-| Semantic — warn       | `#a1a1aa`  | Elevated/high risk                   |
-| Semantic — bad        | `#71717a`  | Losses, severe risk                  |
+| `--background`        | `#0b0f0d`  | Page background (near-black forest)  |
+| `--foreground`        | `#f0f3ec`  | Body text                            |
+| `--card`              | `#111713`  | Base panel surface                   |
+| `--card-raised`       | `#172018`  | Raised / interactive surface         |
+| `--border`            | `#28322b`  | Hairline borders / dividers          |
+| **`--primary`**       | `#baf277`  | Proof accent, CTAs, focus, selection |
+| CTA hover             | `#cdf995`  | Primary button hover                 |
+| Muted text            | `#99a59c` → `#758079` | Secondary / tertiary text |
+| Semantic — good       | `#baf277`  | Positive P&L, verified, open‑to‑work |
+| Semantic — warn       | `#d8c899`  | Elevated risk                        |
+| Semantic — bad        | `#f2907e`  | Losses and destructive actions       |
 
-Page has a fixed radial‑gradient ambient backdrop with subtle white and graphite
-halos plus a linear black gradient. Selection is steel‑tinted.
+Pages use a fixed near-black/forest ambient gradient with a faint proof-lime halo.
+Selection uses the proof-lime accent with dark text.
 
 > **Dark‑theme shim:** much of the MVP was authored with light Tailwind classes
-> (`bg-white`, `text-slate-900`, …). `globals.css` remaps those utility **classes**
+> (`bg-white`, `text-zinc-900`, …). `globals.css` remaps those utility **classes**
 > to dark values with `!important`. **Caveat:** this only covers classes — inline
 > `style` values and Recharts/3rd‑party props bypass it, so chart colors and any
 > inline backgrounds are set explicitly to dark values (lesson learned: white leaks).
 
 ### 5.3 Typography
 
-- **Apple system stack** (`-apple-system`, `SF Pro Display`, `SF Pro Text`,
-  `Helvetica Neue`) for UI; **SF Mono** stack for numbers/codes.
-- A restrained `New York` / Baskerville-style serif accent is reserved for the
-  `Trust` portion of the wordmark, nodding to LoveFrom's serif identity without
-  importing or copying proprietary type.
-- Headings: `font-semibold`, no artificial tracking, hero up to `text-5xl/6xl`.
+- **Space Grotesk** for UI and display typography; **IBM Plex Mono** for metrics,
+  proof metadata, labels, codes, and terminal chrome. Both are self-hosted by `next/font`.
+- Headings use medium weight and tight optical tracking; the landing hero scales to roughly
+  `6rem` on wide screens.
 - Numbers use `tabular-nums` for alignment in stats/leaderboards.
-- Brand wordmark: serif `Trust` + swan-as-`S` + sans `VAN`, in metallic monochrome.
+- Brand wordmark: a three-bar proof mark + `Trust` in white + `SVAN` in proof lime.
 
 ### 5.4 Component patterns
 
-- **Card:** `rounded-lg border border-slate-800 bg-slate-900/70 p-5`.
-- **Badge / pill:** monochrome steel/graphite treatment, using border opacity, fill opacity, and text weight rather than hue.
-- **Primary button:** steel fill, `text-slate-950`, hover white. **Secondary:** slate border, steel hover.
+- **Card:** `.terminal-card` (forest gradient, green-grey hairline, restrained ambient shadow).
+- **Badge / pill:** forest/lime treatment, using border opacity, fill opacity, and text weight rather than loud hue blocks.
+- **Primary button:** proof-lime fill, dark text, brighter lime hover. **Secondary:** forest surface with a green-grey border.
 - **Inputs:** shared in `components/form.tsx`; `color-scheme: dark`; errors and success states use neutral banners.
-- **Charts:** 240px tall, gridlines `#27272a`, axis ticks `#a1a1aa`, steel/charcoal series, dark tooltip (`#080808` bg, `#27272a` border).
-- **Leaderboard card** (`/explore`): rank chip, name, “Open to work”, “Verified · Proof L_n_” badge, Growth/Drop/Trust mini‑stats, severity chip.
-- **Layout widths:** `max-w-6xl` (marketing), `max-w-5xl` (directory), `max-w-4xl` (profile), `max-w-3xl` (settings). Generous vertical rhythm (`space-y-8/10`).
+- **Charts:** 240px tall, green-grey grids and ticks, proof-lime positive series, muted-coral loss series, forest tooltips.
+- **Directory** (`/explore`): real published data with search, proof/strategy filters, sorting, local watchlists, and two-record comparison.
+- **Layout widths:** `max-w-7xl` (marketing/directory/app), `max-w-4xl` (profile), `max-w-3xl` (settings). Generous vertical rhythm (`space-y-8/10`).
 
 ### 5.5 Interaction & accessibility
 
-- Hover lifts borders to steel; dropdowns close on outside‑click / Escape; `aria-haspopup`/`aria-expanded` on menus, `role="status|alert"` on banners, `aria-hidden` on decorative icons.
+- Hover lifts borders toward proof lime; dropdowns and comparison dialogs close on Escape; `aria-haspopup`/`aria-expanded` on menus, `role="status|alert"` on banners, `aria-hidden` on decorative icons.
 - Responsive grids (`sm:`/`md:`/`lg:` columns); mobile‑first.
 - **Print:** `print:hidden` chrome and a white print background for Save‑as‑PDF of profiles/reports.
 
