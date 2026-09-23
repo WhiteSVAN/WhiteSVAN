@@ -1,12 +1,22 @@
 import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
 import { requireUser } from "@/lib/auth/dal";
+import { unreadCount } from "@/lib/notify";
 import { AccountMenu } from "./account-menu";
 
-const NAV = [
+const TRADER_NAV = [
   { href: "/dashboard", label: "My record" },
   { href: "/upload", label: "Import data" },
+  { href: "/feed", label: "Feed" },
   { href: "/explore", label: "Traders" },
+  { href: "/communities", label: "Communities" },
+];
+
+const CLIENT_NAV = [
+  { href: "/dashboard", label: "Home" },
+  { href: "/explore", label: "Traders" },
+  { href: "/feed", label: "Feed" },
+  { href: "/communities", label: "Communities" },
 ];
 
 /**
@@ -16,6 +26,8 @@ const NAV = [
  */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
+  const nav = user.role === "CLIENT" ? CLIENT_NAV : TRADER_NAV;
+  const unread = await unreadCount(user.id);
 
   return (
     <div className="min-h-full bg-zinc-950 text-zinc-100">
@@ -34,7 +46,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <SvanLogo />
           </Link>
           <nav className="flex w-full items-center gap-x-6 gap-y-2 overflow-x-auto pb-1 text-xs sm:w-auto sm:justify-end sm:overflow-visible sm:pb-0">
-            {NAV.map((item) => (
+            {nav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -43,7 +55,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 {item.label}
               </Link>
             ))}
-            <AccountMenu label={user.name ?? user.email ?? "Account"} />
+            <Link href="/inbox" className="relative shrink-0 font-medium text-zinc-400 hover:text-white">
+              Inbox
+              {unread > 0 && (
+                <span className="ml-1.5 rounded-full bg-[#baf277] px-1.5 py-0.5 font-mono text-[9px] text-[#17200e]" aria-label={`${unread} unread`}>
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              )}
+            </Link>
+            <AccountMenu label={user.name ?? user.email ?? "Account"} role={user.role} />
           </nav>
         </div>
       </header>

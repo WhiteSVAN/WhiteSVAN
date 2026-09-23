@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { googleEnabled } from "@/auth";
+import { AuthDivider, GoogleButton } from "@/components/auth/google-button";
 import { LoginForm } from "./login-form";
 
 // NextAuth may redirect a failed credentials sign-in back here with `?error=`
@@ -6,6 +8,7 @@ import { LoginForm } from "./login-form";
 const ERROR_MESSAGES: Record<string, string> = {
   CredentialsSignin: "Invalid email or password.",
   Configuration: "Sign-in is temporarily unavailable. Try again shortly.",
+  AccessDenied: "That Google account's email isn't verified, so we can't sign you in with it.",
 };
 
 export default async function LoginPage({
@@ -25,6 +28,13 @@ export default async function LoginPage({
       <p className="mt-1 text-sm text-zinc-500">Return to TrustSVAN.</p>
 
       <LoginForm initialMessage={initialMessage} notice={notice} />
+
+      {googleEnabled && (
+        <>
+          <AuthDivider />
+          <GoogleButton />
+        </>
+      )}
 
       <p className="mt-6 text-center text-sm text-zinc-500">
         New here?{" "}

@@ -11,18 +11,21 @@ export function ClientView({
   equitySeries,
   dailySeries,
   hideAmounts,
+  currency = "USD",
 }: {
   trust: TrustMetrics;
   equitySeries: EquityPoint[];
   dailySeries: DailyPoint[];
   hideAmounts?: boolean;
+  /** ISO 4217 account currency (default USD). */
+  currency?: string;
 }) {
   const m = trust.metrics;
   const proof = PROOF_LEVELS[trust.proofLevel];
   const capitalKnown = m.startingBalance > 0;
   const concentrated = (trust.bestDayShare ?? 0) > 0.5;
   const lopsided = (trust.badToGoodRatio ?? 0) > 1.3;
-  const money = (v: number) => (hideAmounts ? "Private" : formatMoney(v));
+  const money = (v: number) => (hideAmounts ? "Private" : formatMoney(v, { currency }));
 
   return (
     <div className="space-y-8">
@@ -31,7 +34,7 @@ export function ClientView({
         <Snapshot
           label="Net result"
           hint={hideAmounts ? "Amounts hidden" : "Realized result"}
-          value={hideAmounts ? "Private" : formatMoney(m.netPnl)}
+          value={money(m.netPnl)}
           tone={hideAmounts ? undefined : m.netPnl >= 0 ? "pos" : "neg"}
         />
         <Snapshot
@@ -51,10 +54,10 @@ export function ClientView({
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard title="Equity path" subtitle="Account curve over the selected period">
-          <EquityCurveChart data={equitySeries} hideAmounts={hideAmounts} />
+          <EquityCurveChart data={equitySeries} hideAmounts={hideAmounts} currency={currency} />
         </ChartCard>
         <ChartCard title="Daily P&L" subtitle="Session-level realized performance">
-          <DailyPnlChart data={dailySeries} hideAmounts={hideAmounts} />
+          <DailyPnlChart data={dailySeries} hideAmounts={hideAmounts} currency={currency} />
         </ChartCard>
       </div>
 
@@ -67,7 +70,7 @@ export function ClientView({
             value={
               hideAmounts
                 ? capitalKnown ? `${m.maxDrawdownPct.toFixed(1)}%` : "Not available"
-                : `${formatMoney(m.maxDrawdown)} (${m.maxDrawdownPct.toFixed(1)}%)`
+                : `${money(m.maxDrawdown)} (${m.maxDrawdownPct.toFixed(1)}%)`
             }
             note="The worst fall from a previous high."
             warn={trust.drawdownSeverity === "high" || trust.drawdownSeverity === "severe"}
@@ -92,7 +95,7 @@ export function ClientView({
           <Plain
             label="Typical Good vs Bad Day"
             value={
-              hideAmounts ? "Private" : `${formatMoney(m.avgGreenDay)} vs ${formatMoney(m.avgRedDay)}`
+              hideAmounts ? "Private" : `${money(m.avgGreenDay)} vs ${money(m.avgRedDay)}`
             }
             note={
               trust.badToGoodRatio != null
@@ -126,7 +129,7 @@ export function ClientView({
           <div>
             <p className="text-xs font-medium uppercase text-zinc-400">Redactions</p>
             <p className="mt-1 text-zinc-300">
-              {hideAmounts ? "Dollar amounts hidden" : "Full detail shown"}
+              {hideAmounts ? "Amounts hidden" : "Full detail shown"}
             </p>
             <p className="mt-0.5 text-xs text-zinc-400">
               Public privacy settings change display only; metrics are not recalculated.

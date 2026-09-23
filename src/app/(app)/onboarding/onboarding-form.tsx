@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { createProfile } from "../actions";
 import { btnPrimary, FieldError, FormError, inputClass, labelClass } from "@/components/form";
+import { TraderDetailFields } from "@/components/profile/detail-fields";
 
 /** Mirror of the server `slugSchema` rules for live suggestions. */
 function slugify(value: string): string {
@@ -65,9 +66,11 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
         <FieldError messages={state?.errors?.slug} />
       </div>
 
+      <TraderDetailFields />
+
       <div>
         <label htmlFor="strategy" className={labelClass}>
-          Strategy <span className="text-zinc-400">(optional)</span>
+          Strategy notes <span className="text-zinc-400">(optional)</span>
         </label>
         <textarea
           id="strategy"

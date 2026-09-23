@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { setStartingBalance } from "@/app/(app)/account-settings";
-import { formatMoney } from "@/lib/format";
+import { currencySymbol, formatMoney } from "@/lib/format";
 
 /**
  * Starting-investment control. Compact one-liner once set; a clean inline form
@@ -13,9 +13,12 @@ import { formatMoney } from "@/lib/format";
 export function BalanceEditor({
   accountId,
   startingBalance,
+  currency = "USD",
 }: {
   accountId: string;
   startingBalance: number;
+  /** ISO 4217 account currency (default USD). */
+  currency?: string;
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(setStartingBalance, undefined);
@@ -33,7 +36,7 @@ export function BalanceEditor({
     return (
       <p className="text-sm text-zinc-500">
         Starting investment{" "}
-        <span className="font-medium text-zinc-700">{formatMoney(startingBalance)}</span>
+        <span className="font-medium text-zinc-700">{formatMoney(startingBalance, { currency })}</span>
         <button
           type="button"
           onClick={() => setManualEditing(true)}
@@ -53,10 +56,12 @@ export function BalanceEditor({
     >
       <input type="hidden" name="accountId" value={accountId} />
       <label htmlFor="startingBalance" className="font-medium text-zinc-600">
-        Starting investment
+        Starting investment <span className="text-zinc-400">({currency})</span>
       </label>
       <div className="flex items-center">
-        <span className="text-zinc-400">$</span>
+        <span className="mr-1 text-zinc-400" aria-hidden="true">
+          {currencySymbol(currency)}
+        </span>
         <input
           id="startingBalance"
           name="startingBalance"

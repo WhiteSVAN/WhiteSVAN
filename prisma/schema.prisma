@@ -24,14 +24,40 @@ model User {
   emailVerified DateTime?
   image         String?
   passwordHash  String? // set for credentials sign-in
+  role          UserRole? // chosen at signup (or onboarding for OAuth sign-ins)
+  referralCode  String?   @unique // trader invite code: /signup?ref=CODE
+  referredById  String?
   createdAt     DateTime  @default(now())
 
   accounts        Account[]
   sessions        Session[]
   profile         TraderProfile?
+  clientProfile   ClientProfile?
   tradingAccounts TradingAccount[]
   reports         Report[]
   evidence        Evidence[]
+
+  referredBy        User?             @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals         User[]            @relation("Referrals")
+  follows           Follow[]
+  watchlist         WatchlistItem[]
+  posts             Post[]
+  postComments      PostComment[]
+  postLikes         PostLike[]
+  postFlags         PostFlag[]
+  inquiriesSent     Inquiry[]
+  inquiryMessages   InquiryMessage[]
+  notifications     AppNotification[]
+  communitiesOwned  Community[]
+  memberships       CommunityMember[]
+  communityInvites  CommunityInvite[]
+  profileViews      ProfileView[]
+}
+
+// Trader = publishes a record; Client = allocator / firm / reviewer who discovers traders.
+enum UserRole {
+  TRADER
+  CLIENT
 }
 
 model Account {
@@ -103,6 +129,19 @@ model TraderProfile {
   updateCadence   UpdateCadence @default(MANUAL)
   lastPublishedAt DateTime? // last time the profile's data was refreshed/published
 
+  // V1 structured identity (option keys live in src/lib/profile-options.ts).
+  // Credentials + registration are self-declared and labelled as such in the UI.
+  experienceYears    Int?
+  markets            String[] @default([])
+  strategyTags       String[] @default([])
+  region             String?
+  capitalBand        String?
+  credentials        String?
+  registrationType   String?
+  registrationNumber String?
+  acceptInquiries    Boolean  @default(false) // clients may request a conversation
+  hiddenSections     String[] @default([]) // public-profile sections the trader has hidden
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -111,6 +150,269 @@ model TraderProfile {
   riskEvents    RiskEvent[]
   followers     ProfileFollower[]
   notifications NotificationEvent[]
+  userFollows   Follow[]
+  watchers      WatchlistItem[]
+  inquiries     Inquiry[]
+  views         ProfileView[]
+}
+
+// Client-side identity: what a reviewer/allocator is looking for. Drives discovery defaults.
+model ClientProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  organization String?
+  clientType   String? // key from CLIENT_TYPES
+  markets      String[] @default([])
+  regions      String[] @default([])
+  strategyTags String[] @default([])
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// A signed-in user following a trader profile (public count; feeds their home feed).
+model Follow {
+  userId    String
+  profileId String
+  createdAt DateTime @default(now())
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile TraderProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@id([userId, profileId])
+  @@index([profileId])
+}
+
+// Private watchlist — never shown to the trader or anyone else.
+model WatchlistItem {
+  userId    String
+  profileId String
+  note      String?
+  createdAt DateTime @default(now())
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile TraderProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@id([userId, profileId])
+}
+
+// One row per (profile, viewer key, day) — drives the trader's view analytics.
+model ProfileView {
+  id        String   @id @default(cuid())
+  profileId String
+  viewerId  String?
+  viewerKey String // user id or hashed ip — dedupes a viewer within a day
+  day       DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  profile TraderProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  viewer  User?         @relation(fields: [viewerId], references: [id], onDelete: SetNull)
+
+  @@unique([profileId, viewerKey, day])
+  @@index([profileId, day])
+}
+
+enum PostType {
+  MARKET_VIEW
+  TRADE_THESIS
+  TRADE_REVIEW
+  RESEARCH
+  PERFORMANCE_UPDATE
+  EDUCATIONAL
+}
+
+// Structured research post. `fields` holds the type-specific structure (see src/lib/posts.ts).
+// `verifiedTradeId` is set only when an imported execution of the author's matches the
+// symbol + date the post references — the badge is never self-asserted.
+model Post {
+  id              String    @id @default(cuid())
+  authorId        String
+  communityId     String?
+  type            PostType
+  title           String
+  body            String
+  symbols         String[]  @default([])
+  fields          Json?
+  verifiedTradeId String?
+  versionId       String? // author's latest published record at posting time
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  removedAt       DateTime? // set by the author or a community admin
+
+  author        User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  community     Community?      @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  verifiedTrade Trade?          @relation(fields: [verifiedTradeId], references: [id], onDelete: SetNull)
+  version       ProfileVersion? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+  comments      PostComment[]
+  likes         PostLike[]
+  flags         PostFlag[]
+
+  @@index([authorId, createdAt])
+  @@index([communityId, createdAt])
+  @@index([createdAt])
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+}
+
+model PostLike {
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+}
+
+enum FlagStatus {
+  OPEN
+  RESOLVED
+}
+
+model PostFlag {
+  id         String     @id @default(cuid())
+  postId     String
+  reporterId String
+  reason     String
+  status     FlagStatus @default(OPEN)
+  createdAt  DateTime   @default(now())
+
+  post     Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, reporterId])
+}
+
+enum InquiryStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  IGNORED
+}
+
+// A client asking a trader for a conversation. Messaging unlocks only once ACCEPTED.
+model Inquiry {
+  id          String        @id @default(cuid())
+  clientId    String
+  profileId   String
+  topic       String // key from INQUIRY_TOPICS
+  message     String
+  status      InquiryStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  respondedAt DateTime?
+
+  client   User             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  profile  TraderProfile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  messages InquiryMessage[]
+
+  @@index([profileId, status])
+  @@index([clientId])
+}
+
+model InquiryMessage {
+  id        String   @id @default(cuid())
+  inquiryId String
+  senderId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  sender  User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([inquiryId, createdAt])
+}
+
+// In-app notifications (inquiries, comments, community approvals). Separate from the
+// follower email queue (NotificationEvent).
+model AppNotification {
+  id        String    @id @default(cuid())
+  userId    String
+  kind      String
+  title     String
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+}
+
+enum CommunityVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum CommunityRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum MembershipStatus {
+  PENDING
+  ACTIVE
+  REMOVED
+}
+
+model Community {
+  id              String              @id @default(cuid())
+  slug            String              @unique
+  name            String
+  description     String?
+  rules           String?
+  visibility      CommunityVisibility @default(PUBLIC)
+  requireApproval Boolean             @default(true)
+  ownerId         String
+  createdAt       DateTime            @default(now())
+
+  owner   User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members CommunityMember[]
+  invites CommunityInvite[]
+  posts   Post[]
+}
+
+model CommunityMember {
+  id          String           @id @default(cuid())
+  communityId String
+  userId      String
+  role        CommunityRole    @default(MEMBER)
+  status      MembershipStatus @default(PENDING)
+  adminNote   String? // visible to community admins only
+  createdAt   DateTime         @default(now())
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, userId])
+  @@index([userId])
+}
+
+model CommunityInvite {
+  id          String    @id @default(cuid())
+  communityId String
+  token       String    @unique
+  invitedById String
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  uses        Int       @default(0)
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  invitedBy User      @relation(fields: [invitedById], references: [id], onDelete: Cascade)
 }
 
 // How often a trader commits to refreshing their public profile. Drives the
@@ -176,6 +478,7 @@ model ProfileVersion {
   profile     TraderProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   sourceBatch ImportBatch?  @relation(fields: [sourceBatchId], references: [id], onDelete: SetNull)
   riskEvents  RiskEvent[]
+  posts       Post[]
 
   @@unique([profileId, versionNumber])
   @@index([profileId])
@@ -186,6 +489,7 @@ model TradingAccount {
   userId          String
   broker          String? // e.g. "Interactive Brokers", "Topstep"
   accountName     String
+  currency        String   @default("USD") // ISO 4217; INR for Indian brokers
   startingBalance Decimal  @default(0) @db.Decimal(18, 2)
   createdAt       DateTime @default(now())
 
@@ -215,6 +519,7 @@ model Trade {
   createdAt   DateTime @default(now())
 
   account TradingAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  posts   Post[]
 
   @@index([accountId, tradeDate])
 }

@@ -776,12 +776,41 @@ async function seedEvidence(trader: SeedTrader, userId: string, accountId: strin
   }
 }
 
-async function seedTrader(trader: SeedTrader, passwordHash: string) {
+/** V1 structured identity derived from the free-text seed fields (demo data only). */
+function structuredFields(trader: SeedTrader, index: number) {
+  const text = `${trader.instruments} ${trader.strategy} ${trader.headline}`.toLowerCase();
+  const markets = new Set<string>();
+  if (/option|spx|spy|qqq/.test(text)) markets.add("us_options");
+  if (/\b(es|nq|mes|mnq|mgc|zn|6e|6b)\b|futures/.test(text)) markets.add("us_futures");
+  if (/equit|etf|stock|dividend/.test(text)) markets.add("us_equities");
+  if (/fx|currency/.test(text)) markets.add("forex");
+  if (markets.size === 0) markets.add("us_equities");
+  const tags = new Set<string>();
+  if (/systematic|rules|algo|quant/.test(text)) tags.add("systematic");
+  else tags.add("discretionary");
+  if (/momentum|trend/.test(text)) tags.add("momentum");
+  if (/scalp|intraday|opening/.test(text)) tags.add("intraday");
+  if (/swing/.test(text)) tags.add("swing");
+  if (/allocat|dividend|long-term|multi-asset/.test(text)) tags.add("long_term");
+  if (/premium|income|selling/.test(text)) tags.add("options_selling");
+  const bal = trader.startingBalance;
+  return {
+    markets: [...markets],
+    strategyTags: [...tags],
+    region: "US",
+    experienceYears: 2 + ((index * 3) % 11),
+    capitalBand: bal < 10_000 ? "lt_10k" : bal < 100_000 ? "10k_100k" : bal < 1_000_000 ? "100k_1m" : "gt_1m",
+    acceptInquiries: trader.openToWork,
+  };
+}
+
+async function seedTrader(trader: SeedTrader, passwordHash: string, index = 0) {
   const user = await prisma.user.create({
     data: {
       email: trader.email,
       name: trader.name,
       passwordHash,
+      role: "TRADER",
       profile: {
         create: {
           displayName: trader.name,
@@ -795,6 +824,7 @@ async function seedTrader(trader: SeedTrader, passwordHash: string) {
           headline: trader.headline,
           services: trader.services,
           contactUrl: trader.contactUrl,
+          ...structuredFields(trader, index),
         },
       },
     },
@@ -903,8 +933,124 @@ async function seedTrader(trader: SeedTrader, passwordHash: string) {
   });
 }
 
+const CLIENT_EMAIL = "client@trustsvan.local";
+
+/**
+ * V1 network layer for local testing: a demo client, follows + a private
+ * watchlist, structured posts (one trade review that genuinely matches an
+ * imported execution), a public community, and a pending inquiry.
+ */
+async function seedNetwork(passwordHash: string) {
+  const client = await prisma.user.create({
+    data: {
+      email: CLIENT_EMAIL,
+      name: "Jordan Lee",
+      passwordHash,
+      role: "CLIENT",
+      clientProfile: {
+        create: {
+          organization: "Northgate Family Office (demo)",
+          clientType: "family_office",
+          markets: ["us_futures", "us_options"],
+          regions: ["US"],
+          strategyTags: ["systematic"],
+        },
+      },
+    },
+  });
+
+  const profiles = await prisma.traderProfile.findMany({
+    where: { slug: { in: ["demo", "priya-nair", "liang-wu", "marcus-chen"] } },
+    select: { id: true, userId: true, slug: true, versions: { take: 1, orderBy: { versionNumber: "desc" }, select: { id: true } } },
+  });
+  const bySlug = new Map(profiles.map((p) => [p.slug, p]));
+  const demo = bySlug.get("demo");
+  if (!demo) return;
+
+  for (const slug of ["demo", "priya-nair", "liang-wu"]) {
+    const p = bySlug.get(slug);
+    if (p) await prisma.follow.create({ data: { userId: client.id, profileId: p.id } });
+  }
+  const marcus = bySlug.get("marcus-chen");
+  if (marcus) await prisma.watchlistItem.create({ data: { userId: client.id, profileId: marcus.id } });
+
+  // A trade review that matches a real imported execution of the demo trader.
+  const trade = await prisma.trade.findFirst({
+    where: { account: { userId: demo.userId } },
+    orderBy: { tradeDate: "desc" },
+    select: { id: true, symbol: true, tradeDate: true },
+  });
+  const versionId = demo.versions[0]?.id ?? null;
+  if (trade) {
+    await prisma.post.create({
+      data: {
+        authorId: demo.userId,
+        type: "TRADE_REVIEW",
+        title: `${trade.symbol} review: sized down after the open`,
+        body: "Opening range was wider than my filter allows, so I traded half size. The exit followed the plan; the entry was late by two bars.",
+        symbols: [trade.symbol],
+        fields: { tradeDate: trade.tradeDate.toISOString().slice(0, 10), outcome: "Closed at the planned level after the second push failed.", lesson: "Stage the order before the range completes." },
+        verifiedTradeId: trade.id,
+        versionId,
+      },
+    });
+  }
+  await prisma.post.create({
+    data: {
+      authorId: demo.userId,
+      type: "MARKET_VIEW",
+      title: "Dealer positioning into month-end",
+      body: "Index gamma context looks thinner than last month. I expect wider ranges, which changes position sizing more than direction.",
+      fields: { horizon: "weeks", changeMind: "A rebuild of call-side open interest above spot." },
+      versionId,
+    },
+  });
+
+  const community = await prisma.community.create({
+    data: {
+      slug: "index-futures-process",
+      name: "Index futures process",
+      description: "Traders with published futures records comparing risk process, sizing, and post-mortems.",
+      rules: "Discuss methods and evidence. No signals, no paid groups, no allocation requests.",
+      visibility: "PUBLIC",
+      requireApproval: true,
+      ownerId: demo.userId,
+      members: {
+        create: [
+          { userId: demo.userId, role: "OWNER", status: "ACTIVE" },
+          ...(bySlug.get("liang-wu") ? [{ userId: bySlug.get("liang-wu")!.userId, role: "MEMBER" as const, status: "ACTIVE" as const }] : []),
+          { userId: client.id, role: "MEMBER", status: "PENDING" },
+        ],
+      },
+    },
+  });
+  await prisma.post.create({
+    data: {
+      authorId: demo.userId,
+      communityId: community.id,
+      type: "EDUCATIONAL",
+      title: "How I log slippage per session",
+      body: "One row per fill: intended price, filled price, session window. Weekly review is just a pivot on that table.",
+      fields: { level: "intermediate" },
+      versionId,
+    },
+  });
+
+  await prisma.inquiry.create({
+    data: {
+      clientId: client.id,
+      profileId: demo.id,
+      topic: "diligence",
+      message: "We're reviewing futures process records for a research partnership. Could you walk us through how the April drawdown was handled?",
+    },
+  });
+  await prisma.appNotification.create({
+    data: { userId: demo.userId, kind: "inquiry", title: "New conversation request from Jordan Lee", href: "/inbox" },
+  });
+}
+
 async function main() {
-  const emails = ALL_TRADERS.map((trader) => trader.email);
+  const emails = [...ALL_TRADERS.map((trader) => trader.email), CLIENT_EMAIL];
   const slugs = ALL_TRADERS.map((trader) => trader.slug);
   const existingUsers = await prisma.user.findMany({
     where: {
@@ -923,16 +1069,18 @@ async function main() {
   await prisma.user.deleteMany({ where: { id: { in: existingUserIds } } });
 
   const sharedHash = await bcrypt.hash("demo1234", 10);
-  for (const trader of ALL_TRADERS) {
+  for (const [index, trader] of ALL_TRADERS.entries()) {
     const passwordHash =
       trader.password && trader.password !== "demo1234"
         ? await bcrypt.hash(trader.password, 10)
         : sharedHash;
-    await seedTrader(trader, passwordHash);
+    await seedTrader(trader, passwordHash, index);
   }
+  await prisma.community.deleteMany({ where: { slug: "index-futures-process" } });
+  await seedNetwork(sharedHash);
 
   console.log(
-    `Seeded ${ALL_TRADERS.length} demo traders -> /explore and /p/demo (login: demo@trustsvan.local / demo1234)`,
+    `Seeded ${ALL_TRADERS.length} demo traders + demo client -> /explore and /p/demo (trader: demo@trustsvan.local / demo1234, client: ${CLIENT_EMAIL} / demo1234)`,
   );
 }
 

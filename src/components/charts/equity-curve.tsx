@@ -17,7 +17,16 @@ export interface EquityPoint {
 }
 
 /** Account equity over the selected window (starting balance + cumulative P&L). */
-export function EquityCurveChart({ data, hideAmounts }: { data: EquityPoint[]; hideAmounts?: boolean }) {
+export function EquityCurveChart({
+  data,
+  hideAmounts,
+  currency = "USD",
+}: {
+  data: EquityPoint[];
+  hideAmounts?: boolean;
+  /** ISO 4217 account currency (default USD). */
+  currency?: string;
+}) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
@@ -36,8 +45,8 @@ export function EquityCurveChart({ data, hideAmounts }: { data: EquityPoint[]; h
         />
         <YAxis
           tick={{ fontSize: 10, fill: "#8a9791" }}
-          tickFormatter={(v: number) => (hideAmounts ? "" : formatMoney(v))}
-          width={hideAmounts ? 8 : 56}
+          tickFormatter={(v: number) => (hideAmounts ? "" : formatMoney(v, { currency }))}
+          width={hideAmounts ? 8 : currency === "USD" ? 56 : 72}
         />
         <Tooltip
           cursor={{ stroke: "rgba(186,242,119,0.24)", strokeDasharray: "3 3" }}
@@ -51,7 +60,7 @@ export function EquityCurveChart({ data, hideAmounts }: { data: EquityPoint[]; h
           labelStyle={{ color: "#99a59c" }}
           itemStyle={{ color: "#baf277" }}
           formatter={(value: unknown) => [
-            hideAmounts ? "—" : formatMoney(Number(value), { cents: true }),
+            hideAmounts ? "—" : formatMoney(Number(value), { cents: true, currency }),
             "Equity",
           ]}
         />

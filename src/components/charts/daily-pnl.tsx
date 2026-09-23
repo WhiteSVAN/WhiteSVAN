@@ -19,7 +19,16 @@ export interface DailyPoint {
 }
 
 /** Net P&L per trading day — terminal lime for gains, muted coral for losses. */
-export function DailyPnlChart({ data, hideAmounts }: { data: DailyPoint[]; hideAmounts?: boolean }) {
+export function DailyPnlChart({
+  data,
+  hideAmounts,
+  currency = "USD",
+}: {
+  data: DailyPoint[];
+  hideAmounts?: boolean;
+  /** ISO 4217 account currency (default USD). */
+  currency?: string;
+}) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
@@ -32,8 +41,8 @@ export function DailyPnlChart({ data, hideAmounts }: { data: DailyPoint[]; hideA
         />
         <YAxis
           tick={{ fontSize: 10, fill: "#8a9791" }}
-          tickFormatter={(v: number) => (hideAmounts ? "" : formatMoney(v))}
-          width={hideAmounts ? 8 : 56}
+          tickFormatter={(v: number) => (hideAmounts ? "" : formatMoney(v, { currency }))}
+          width={hideAmounts ? 8 : currency === "USD" ? 56 : 72}
         />
         <ReferenceLine y={0} stroke="#526057" />
         <Tooltip
@@ -48,7 +57,7 @@ export function DailyPnlChart({ data, hideAmounts }: { data: DailyPoint[]; hideA
           labelStyle={{ color: "#99a59c" }}
           itemStyle={{ color: "#f0f3ec" }}
           formatter={(value: unknown) => [
-            hideAmounts ? "—" : formatMoney(Number(value), { cents: true }),
+            hideAmounts ? "—" : formatMoney(Number(value), { cents: true, currency }),
             "Net P&L",
           ]}
         />

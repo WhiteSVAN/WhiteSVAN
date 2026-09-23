@@ -16,10 +16,13 @@ const passwordField = z
   .regex(/[a-zA-Z]/, { error: "Include at least one letter." })
   .regex(/[0-9]/, { error: "Include at least one number." });
 
+export const roleSchema = z.enum(["TRADER", "CLIENT"], { error: "Choose how you'll use TrustSVAN." });
+
 export const signupSchema = z.object({
   name: z.string().min(2, { error: "Name must be at least 2 characters." }).trim(),
   email: z.email({ error: "Enter a valid email." }).trim(),
   password: passwordField,
+  role: roleSchema,
 });
 
 /** Forgot-password: just an email to send the reset link to. */

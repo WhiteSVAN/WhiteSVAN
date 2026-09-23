@@ -1,77 +1,35 @@
-"use client";
-
 import Link from "next/link";
-import { useActionState } from "react";
-import { signup } from "../actions";
-import { btnPrimary, FieldError, FormError, inputClass, labelClass } from "@/components/form";
+import { googleEnabled } from "@/auth";
+import { AuthDivider, GoogleButton } from "@/components/auth/google-button";
+import { SignupForm } from "./signup-form";
 
-export default function SignupPage() {
-  const [state, action, pending] = useActionState(signup, undefined);
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ as?: string; ref?: string }>;
+}) {
+  const sp = await searchParams;
+  const initialRole = sp.as === "client" ? "CLIENT" : "TRADER";
+  const referral = sp.ref?.slice(0, 16);
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-zinc-100">Create your operator card</h1>
+      <h1 className="text-lg font-semibold text-zinc-100">Create your account</h1>
       <p className="mt-1 text-sm text-zinc-500">
-        Build a durable trading record, publish the context, and get discovered.
+        Traders build a source-linked record. Clients discover and review traders.
       </p>
 
-      <form action={action} className="mt-6 space-y-4">
-        <FormError message={state?.message} />
+      <SignupForm initialRole={initialRole} referral={referral} />
 
-        <div>
-          <label htmlFor="name" className={labelClass}>
-            Name
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="name"
-            required
-            className={inputClass}
-          placeholder="Alex Morgan"
-          />
-          <FieldError messages={state?.errors?.name} />
-        </div>
-
-        <div>
-          <label htmlFor="email" className={labelClass}>
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            className={inputClass}
-            placeholder="you@example.com"
-          />
-          <FieldError messages={state?.errors?.email} />
-        </div>
-
-        <div>
-          <label htmlFor="password" className={labelClass}>
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            className={inputClass}
-          />
-          <FieldError messages={state?.errors?.password} />
-          <p className="mt-1 text-xs text-zinc-400">
-            At least 8 characters, with a letter and a number.
+      {googleEnabled && (
+        <>
+          <AuthDivider />
+          <GoogleButton referral={referral} />
+          <p className="mt-2 text-center text-xs text-zinc-500">
+            With Google you&apos;ll choose trader or client on the next screen.
           </p>
-        </div>
-
-        <button type="submit" disabled={pending} className={btnPrimary}>
-          {pending ? "Creating account..." : "Create account"}
-        </button>
-      </form>
+        </>
+      )}
 
       <p className="mt-6 text-center text-sm text-zinc-500">
         Already have an account?{" "}

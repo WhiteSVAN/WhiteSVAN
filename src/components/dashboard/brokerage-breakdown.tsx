@@ -13,16 +13,19 @@ export function BrokerageBreakdown({
   totalNet,
   hideAmounts = false,
   title = "By brokerage",
+  currency = "USD",
 }: {
   brokers: BrokerBreakdown[];
   totalNet: number;
   hideAmounts?: boolean;
   title?: string;
+  /** ISO 4217 currency shared by every account in the breakdown (default USD). */
+  currency?: string;
 }) {
   const accountCount = brokers.reduce((n, b) => n + b.accounts.length, 0);
   if (accountCount < 2) return null;
 
-  const money = (v: number) => (hideAmounts ? "Private" : formatMoney(v, { cents: true }));
+  const money = (v: number) => (hideAmounts ? "Private" : formatMoney(v, { cents: true, currency }));
 
   return (
     <section className="terminal-card p-4">
@@ -35,7 +38,7 @@ export function BrokerageBreakdown({
               {" "}
               · net{" "}
               <span className={totalNet >= 0 ? "text-zinc-100" : "text-zinc-300"}>
-                {formatMoney(totalNet)}
+                {formatMoney(totalNet, { currency })}
               </span>
             </>
           )}

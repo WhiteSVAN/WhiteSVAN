@@ -24,19 +24,23 @@ export function TraderView({
   metrics,
   equitySeries,
   dailySeries,
+  currency = "USD",
 }: {
   metrics: Metrics;
   equitySeries: EquityPoint[];
   dailySeries: DailyPoint[];
+  /** ISO 4217 account currency (default USD). */
+  currency?: string;
 }) {
   const flags = riskFlags(metrics);
+  const money = (v: number) => formatMoney(v, { currency });
 
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card
           label="Net P&L"
-          value={formatMoney(metrics.netPnl)}
+          value={money(metrics.netPnl)}
           tone={metrics.netPnl >= 0 ? "pos" : "neg"}
           sub={metrics.returnPct != null ? `${formatPercent(metrics.returnPct, 1)} return` : undefined}
         />
@@ -47,7 +51,7 @@ export function TraderView({
         />
         <Card
           label="Max drawdown"
-          value={formatMoney(metrics.maxDrawdown)}
+          value={money(metrics.maxDrawdown)}
           tone="neg"
           sub={metrics.startingBalance > 0 ? `${metrics.maxDrawdownPct.toFixed(1)}%` : "Add starting capital for %"}
         />
@@ -60,20 +64,20 @@ export function TraderView({
 
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard title="Equity curve">
-          <EquityCurveChart data={equitySeries} />
+          <EquityCurveChart data={equitySeries} currency={currency} />
         </ChartCard>
         <ChartCard title="Daily P&L">
-          <DailyPnlChart data={dailySeries} />
+          <DailyPnlChart data={dailySeries} currency={currency} />
         </ChartCard>
       </div>
 
       <div className="terminal-card p-4">
         <h2 className="text-sm font-medium text-zinc-800">Risk &amp; discipline</h2>
         <div className="mt-3 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-          <Stat label="Best day" value={formatMoney(metrics.bestDay)} tone="pos" />
-          <Stat label="Worst day" value={formatMoney(metrics.worstDay)} tone="neg" />
-          <Stat label="Avg green day" value={formatMoney(metrics.avgGreenDay)} />
-          <Stat label="Avg red day" value={formatMoney(metrics.avgRedDay)} />
+          <Stat label="Best day" value={money(metrics.bestDay)} tone="pos" />
+          <Stat label="Worst day" value={money(metrics.worstDay)} tone="neg" />
+          <Stat label="Avg green day" value={money(metrics.avgGreenDay)} />
+          <Stat label="Avg red day" value={money(metrics.avgRedDay)} />
         </div>
         {flags.length > 0 && (
           <ul className="mt-4 space-y-1">

@@ -1,4 +1,4 @@
-import { formatMoney } from "@/lib/format";
+import { formatCompactSigned, formatMoney } from "@/lib/format";
 
 export interface CalendarDay {
   date: string; // YYYY-MM-DD
@@ -7,14 +7,17 @@ export interface CalendarDay {
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
-function compact(v: number): string {
-  const a = Math.abs(v);
-  const sign = v < 0 ? "-" : "+";
-  return a >= 1000 ? `${sign}${(a / 1000).toFixed(1)}k` : `${sign}${Math.round(a)}`;
-}
-
 /** Monthly P&L calendar with terminal-theme intensity scaled by size. */
-export function CalendarHeatmap({ data, hideAmounts }: { data: CalendarDay[]; hideAmounts?: boolean }) {
+export function CalendarHeatmap({
+  data,
+  hideAmounts,
+  currency = "USD",
+}: {
+  data: CalendarDay[];
+  hideAmounts?: boolean;
+  /** ISO 4217 account currency (default USD). */
+  currency?: string;
+}) {
   if (data.length === 0) return null;
   const byDate = new Map(data.map((d) => [d.date, d.netPnl]));
   const months = [...new Set(data.map((d) => d.date.slice(0, 7)))].sort().slice(-3);
@@ -26,7 +29,14 @@ export function CalendarHeatmap({ data, hideAmounts }: { data: CalendarDay[]; hi
       <p className="text-xs text-zinc-400">Winning and losing days at a glance.</p>
       <div className="mt-3 grid gap-6 md:grid-cols-3">
         {months.map((mk) => (
-          <Month key={mk} mk={mk} byDate={byDate} maxAbs={maxAbs} hideAmounts={hideAmounts} />
+          <Month
+            key={mk}
+            mk={mk}
+            byDate={byDate}
+            maxAbs={maxAbs}
+            hideAmounts={hideAmounts}
+            currency={currency}
+          />
         ))}
       </div>
     </div>
@@ -38,11 +48,13 @@ function Month({
   byDate,
   maxAbs,
   hideAmounts,
+  currency,
 }: {
   mk: string;
   byDate: Map<string, number>;
   maxAbs: number;
   hideAmounts?: boolean;
+  currency: string;
 }) {
   const [y, m] = mk.split("-").map(Number);
   const startDow = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
@@ -82,13 +94,13 @@ function Month({
               key={i}
               className="rounded px-1 py-1 text-center"
               style={{ backgroundColor: bg }}
-              title={has && !hideAmounts ? formatMoney(pnl) : undefined}
+              title={has && !hideAmounts ? formatMoney(pnl, { currency }) : undefined}
             >
               <div className={`text-[10px] ${has ? "font-medium text-white" : "text-zinc-500"}`}>
                 {d}
               </div>
               {has && !hideAmounts && (
-                <div className="text-[9px] tabular-nums text-zinc-300">{compact(pnl)}</div>
+                <div className="text-[9px] tabular-nums text-zinc-300">{formatCompactSigned(pnl, currency)}</div>
               )}
             </div>
           );

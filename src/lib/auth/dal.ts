@@ -26,6 +26,8 @@ export const requireUser = cache(async () => {
       id: true,
       name: true,
       email: true,
+      role: true,
+      clientProfile: { select: { id: true } },
       profile: {
         select: {
           id: true,
@@ -41,3 +43,25 @@ export const requireUser = cache(async () => {
   if (!user) redirect("/login");
   return user;
 });
+
+/** Signed-in user who has finished onboarding (role chosen + profile created). */
+export const requireOnboardedUser = cache(async () => {
+  const user = await requireUser();
+  if (!user.role) redirect("/onboarding");
+  if (user.role === "TRADER" && !user.profile) redirect("/onboarding");
+  if (user.role === "CLIENT" && !user.clientProfile) redirect("/onboarding");
+  return user;
+});
+
+/** Signed-in trader with a profile, or redirect (clients go to their home). */
+export const requireTrader = cache(async () => {
+  const user = await requireOnboardedUser();
+  if (user.role !== "TRADER" || !user.profile) redirect("/dashboard");
+  return { ...user, profile: user.profile };
+});
+
+/** Session user id or null — for public pages that adapt when signed in. */
+export async function optionalUserId(): Promise<string | null> {
+  const session = await auth();
+  return session?.user?.id ?? null;
+}
