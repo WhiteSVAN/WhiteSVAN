@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireUser } from "@/lib/auth/dal";
+import { requireTrader, requireUserId } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { computeTrustMetrics } from "@/lib/trust";
 import { accountProofLevel } from "@/lib/proof";
@@ -29,15 +29,15 @@ export async function publishUpdate(
 ): Promise<PublishState> {
   void _prev;
 
-  const user = await requireUser();
-  if (!user.profile) return { error: "Set up your profile first." };
+  // Traders only (clients are redirected to their home); profile is guaranteed.
+  const user = await requireTrader();
 
   const accountId = String(formData.get("accountId") ?? "");
   if (!accountId) return { error: "Choose an account before publishing." };
 
   const account = await prisma.tradingAccount.findFirst({
     where: { id: accountId, userId: user.id },
-    select: { id: true, startingBalance: true },
+    select: { id: true, startingBalance: true, currency: true },
   });
   if (!account) return { error: "Add an account and connect trading history before publishing." };
   if (Number(account.startingBalance) <= 0) {
@@ -122,6 +122,8 @@ export async function publishUpdate(
       proofLevel,
       scores: trust.scores,
       verdict: trust.verdict,
+      // ISO 4217 account currency, so public surfaces can format amounts correctly.
+      currency: account.currency,
     }),
   );
 
@@ -191,4 +193,14 @@ export async function publishUpdate(
   revalidatePath("/settings");
   revalidatePath(`/p/${user.profile.slug}`);
   return { published: true, version: versionNumber };
+}
+
+/**
+ * Drop watchlist entries whose trader has since made their profile private
+ * (the public toggle can no longer reach them). Only the caller's own rows.
+ */
+export async function clearHiddenWatchlist() {
+  const userId = await requireUserId();
+  await prisma.watchlistItem.deleteMany({ where: { userId, profile: { isPublic: false } } });
+  revalidatePath("/dashboard");
 }

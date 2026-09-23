@@ -18,10 +18,6 @@ export function PortalSettingsForm({
   hideBrokers,
   updateCadence,
   disclaimer,
-  openToWork,
-  headline,
-  services,
-  contactUrl,
 }: {
   slug: string;
   isPublic: boolean;
@@ -29,10 +25,6 @@ export function PortalSettingsForm({
   hideBrokers: boolean;
   updateCadence: string;
   disclaimer: string;
-  openToWork: boolean;
-  headline: string;
-  services: string;
-  contactUrl: string;
 }) {
   const [state, action, pending] = useActionState(savePortalSettings, undefined);
 
@@ -55,9 +47,9 @@ export function PortalSettingsForm({
       <label className="flex items-start gap-3">
         <input type="checkbox" name="hideAmounts" defaultChecked={hideAmounts} className="mt-1" />
         <span>
-          <span className="text-sm font-medium text-zinc-700">Hide dollar amounts</span>
+          <span className="text-sm font-medium text-zinc-700">Hide amounts</span>
           <span className="block text-xs text-zinc-500">
-            Show percentages on the public profile, but redact exact dollar figures.
+            Show percentages on the public profile, but redact exact currency amounts.
           </span>
         </span>
       </label>
@@ -95,73 +87,6 @@ export function PortalSettingsForm({
         </select>
       </div>
 
-      <div className="space-y-4 rounded-lg border border-zinc-800 bg-zinc-950/40 p-4">
-        <div>
-          <p className="text-sm font-medium text-zinc-700">Work &amp; availability</p>
-          <p className="text-xs text-zinc-500">
-            Let allocators, prop firms, and clients know you&apos;re open to work and how to reach
-            you. Shown on your public operator card and in the directory.
-          </p>
-        </div>
-
-        <label className="flex items-start gap-3">
-          <input type="checkbox" name="openToWork" defaultChecked={openToWork} className="mt-1" />
-          <span>
-            <span className="text-sm font-medium text-zinc-700">Open to work</span>
-            <span className="block text-xs text-zinc-500">
-              Adds an &ldquo;Open to work&rdquo; badge and a contact button to your public card.
-            </span>
-          </span>
-        </label>
-
-        <div>
-          <label htmlFor="headline" className="text-sm font-medium text-zinc-700">
-            Headline <span className="text-zinc-400">(optional)</span>
-          </label>
-          <input
-            id="headline"
-            name="headline"
-            type="text"
-            maxLength={140}
-            defaultValue={headline}
-            placeholder="Systematic futures trader · 3-year published record"
-            className={inputClass}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="services" className="text-sm font-medium text-zinc-700">
-            What you offer <span className="text-zinc-400">(optional)</span>
-          </label>
-          <textarea
-            id="services"
-            name="services"
-            rows={2}
-            maxLength={600}
-            defaultValue={services}
-            placeholder="Managed research, strategy consulting, prop-firm evaluations…"
-            className={inputClass}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="contactUrl" className="text-sm font-medium text-zinc-700">
-            Contact link <span className="text-zinc-400">(optional)</span>
-          </label>
-          <input
-            id="contactUrl"
-            name="contactUrl"
-            type="text"
-            defaultValue={contactUrl}
-            placeholder="you@email.com, cal.com/you, or https://…"
-            className={inputClass}
-          />
-          <p className="mt-1 text-xs text-zinc-500">
-            An email or link you control. We never expose your sign-in email.
-          </p>
-        </div>
-      </div>
-
       <div>
         <label htmlFor="disclaimer" className="text-sm font-medium text-zinc-700">
           Disclaimer <span className="text-zinc-400">(optional)</span>
@@ -170,18 +95,19 @@ export function PortalSettingsForm({
           id="disclaimer"
           name="disclaimer"
           rows={3}
+          maxLength={1000}
           defaultValue={disclaimer}
           placeholder="Leave blank to use the default TrustSVAN disclaimer."
           className={inputClass}
         />
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className={`${btnPrimary} sm:w-auto sm:px-6`}>
-          {pending ? "Saving..." : "Save settings"}
+          {pending ? "Saving..." : "Save privacy settings"}
         </button>
-        {state?.saved && <span className="text-sm text-zinc-100">Saved.</span>}
-        {state?.error && <span className="text-sm text-zinc-300">{state.error}</span>}
+        {state?.saved && <span className="text-sm text-zinc-100" role="status">Saved.</span>}
+        {state?.error && <span className="text-sm text-zinc-300" role="alert">{state.error}</span>}
       </div>
     </form>
   );

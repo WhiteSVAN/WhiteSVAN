@@ -7,6 +7,8 @@
  * post-mortems. They are never paid signal rooms, copy-trading groups, or
  * allocation channels (see CLAUDE.md guardrails).
  */
+import { publicCopyIssues } from "@/lib/public-copy";
+import { postLanguageIssues } from "@/lib/posts";
 
 export type CommunityVisibilityKey = "PUBLIC" | "PRIVATE";
 export type CommunityRoleKey = "OWNER" | "ADMIN" | "MEMBER";
@@ -16,6 +18,9 @@ export interface MembershipLike {
   role: CommunityRoleKey;
   status: MembershipStatusKey;
 }
+
+/** What community server actions return to the inline action buttons. */
+export type CommunityActionResult = { ok: true; message?: string } | { ok: false; error: string };
 
 export const COMMUNITY_GUARDRAIL =
   "Rooms discuss methods, evidence, and post-mortems. Paid signal rooms, copy-trading groups, and allocation channels are not allowed.";
@@ -130,7 +135,7 @@ export function slugifyCommunity(raw: string): string {
   return raw
     .toLowerCase()
     .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, COMMUNITY_LIMITS.slugMax)
@@ -148,4 +153,15 @@ export function communitySlugError(slug: string): string | null {
 
 export function isCommunityVisibility(value: unknown): value is CommunityVisibilityKey {
   return value === "PUBLIC" || value === "PRIVATE";
+}
+
+/**
+ * Compliance + signal-language check for community copy (name, description,
+ * rules). Null when clean, otherwise a user-facing message naming the phrases.
+ */
+export function communityCopyError(values: Array<string | null | undefined>): string | null {
+  const clean = values.filter((v): v is string => !!v);
+  const issues = [...new Set([...publicCopyIssues(clean), ...postLanguageIssues(clean.join("\n"))])];
+  if (issues.length === 0) return null;
+  return `Communities are research rooms, not signal or allocation channels. Remove: ${issues.map((i) => `"${i}"`).join(", ")}.`;
 }

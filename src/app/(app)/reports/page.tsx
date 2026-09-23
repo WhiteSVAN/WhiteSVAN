@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth/dal";
+import { requireTrader } from "@/lib/auth/dal";
 import { prisma } from "@/lib/db";
 import { toISODate } from "@/lib/format";
 import { GenerateReportForm } from "./generate-form";
@@ -11,8 +10,7 @@ function periodLabel(p: string): string {
 }
 
 export default async function ReportsPage() {
-  const user = await requireUser();
-  if (!user.profile) redirect("/onboarding");
+  const user = await requireTrader();
 
   const accounts = await prisma.tradingAccount.findMany({
     where: { userId: user.id },

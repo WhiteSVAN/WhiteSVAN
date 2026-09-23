@@ -39,6 +39,7 @@ export function DashboardControls({
     <div className="flex flex-wrap items-center gap-2">
       {accounts.length > 1 && (
         <select
+          aria-label="Trading account"
           value={accountId}
           onChange={(e) => update("account", e.target.value)}
           className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs text-zinc-300 shadow-sm focus:border-zinc-400 focus:outline-none"
@@ -55,6 +56,7 @@ export function DashboardControls({
           <button
             key={r.k}
             type="button"
+            aria-pressed={range === r.k}
             onClick={() => update("range", r.k)}
             className={`rounded-md px-3 py-1 transition ${
               range === r.k ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800"

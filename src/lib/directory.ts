@@ -18,7 +18,10 @@ export interface DirectoryTrader {
   region: string | null;
   capitalBand: string | null;
   experienceYears: number | null;
+  /** Null when the trader hides their credentials section. */
   registrationType: string | null;
+  /** The trader hides credentials & registration on their public profile. */
+  credentialsHidden: boolean;
   acceptInquiries: boolean;
   followerCount: number;
   record: RecordContext | null;
@@ -28,6 +31,8 @@ export interface DirectoryTrader {
   lastActive: string;
   following: boolean;
   watching: boolean;
+  /** The viewer owns this profile (hide Follow on their own card). */
+  isOwner: boolean;
 }
 
 export async function loadDirectory(viewerId: string | null): Promise<DirectoryTrader[]> {
@@ -35,6 +40,7 @@ export async function loadDirectory(viewerId: string | null): Promise<DirectoryT
     where: { isPublic: true },
     select: {
       id: true,
+      userId: true,
       slug: true,
       displayName: true,
       headline: true,
@@ -84,6 +90,7 @@ export async function loadDirectory(viewerId: string | null): Promise<DirectoryT
         capitalBand: p.capitalBand,
         experienceYears: p.experienceYears,
         registrationType: p.hiddenSections.includes("credentials") ? null : p.registrationType,
+        credentialsHidden: p.hiddenSections.includes("credentials"),
         acceptInquiries: p.acceptInquiries,
         followerCount: p._count.userFollows,
         record: v ? toRecordContext(v) : null,
@@ -92,6 +99,7 @@ export async function loadDirectory(viewerId: string | null): Promise<DirectoryT
         lastActive: lastActive.toISOString(),
         following: followSet.has(p.id),
         watching: watchSet.has(p.id),
+        isOwner: viewerId !== null && p.userId === viewerId,
       };
     })
     .sort((a, b) => b.lastActive.localeCompare(a.lastActive));

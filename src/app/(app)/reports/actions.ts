@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireUserId } from "@/lib/auth/dal";
+import { requireTrader } from "@/lib/auth/dal";
 import { computeTrustMetrics } from "@/lib/trust";
 import { toISODate } from "@/lib/format";
 import { generateAiReport } from "@/lib/ai/report";
@@ -17,7 +17,7 @@ export async function generateReport(
   _prev: GenerateState,
   formData: FormData,
 ): Promise<GenerateState> {
-  const userId = await requireUserId();
+  const { id: userId } = await requireTrader();
   const accountId = String(formData.get("accountId") ?? "");
   const period = String(formData.get("period") ?? "");
 
@@ -122,7 +122,7 @@ export async function submitReport(
   _prev: ReportEditState,
   formData: FormData,
 ): Promise<ReportEditState> {
-  const userId = await requireUserId();
+  const { id: userId } = await requireTrader();
   const id = String(formData.get("id") ?? "");
   const intent = String(formData.get("intent") ?? "save");
 
@@ -168,7 +168,7 @@ export async function submitReport(
 }
 
 export async function deleteReport(formData: FormData) {
-  const userId = await requireUserId();
+  const { id: userId } = await requireTrader();
   const id = String(formData.get("id") ?? "");
   await prisma.report.deleteMany({ where: { id, userId } });
   redirect("/reports");

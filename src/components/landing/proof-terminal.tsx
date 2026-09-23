@@ -56,9 +56,9 @@ function EquityPreview() {
       </svg>
       <div className="grid grid-cols-3 border-t border-[#2d392d] pt-4">
         {[
-          ["CAGR", "+38.4%", true],
-          ["Sharpe ratio", "2.10", false],
+          ["Period return", "+38.4%", true],
           ["Max. drawdown", "5.8%", false],
+          ["Record length", "251 days", false],
         ].map(([label, value, accent], index) => (
           <div key={String(label)} className={`px-3 ${index ? "border-l border-[#334033]" : ""}`}>
             <span className="block text-[9px] text-[#8e9a8d]">{label}</span>
@@ -79,7 +79,7 @@ function RiskPreview() {
         <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" />
         <div>
           <strong className="text-sm font-medium">Look beyond the return.</strong>
-          <p className="mt-1 text-xs leading-5 text-[#b6b18f]">Verification is evidence context, not a safety rating.</p>
+          <p className="mt-1 text-xs leading-5 text-[#b6b18f]">A record source is evidence context, not a safety rating.</p>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -103,9 +103,9 @@ function RiskPreview() {
 
 function EvidencePreview() {
   const rows = [
-    ["Broker connection", "Read-only trade and balance history"],
-    ["Statement check", "Reconciled against account statements"],
-    ["Additional evidence", "Supporting document attached"],
+    ["Imported trading history", "Computed from a trader-uploaded broker export"],
+    ["Statement attached", "Supporting document; not independently reviewed"],
+    ["Coverage window", "Jan 2024 – Dec 2024 · published v7"],
   ];
   return (
     <div>
@@ -122,7 +122,7 @@ function EvidencePreview() {
         </div>
       ))}
       <p className="mt-4 flex items-start gap-2 text-[10px] leading-5 text-[#aeb990]">
-        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Documents remain private unless the operator explicitly publishes them.
+        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Documents remain private unless the trader explicitly lists them on the profile.
       </p>
     </div>
   );
@@ -146,9 +146,9 @@ export function ProofTerminal() {
       <div className="terminal-card overflow-hidden">
         <div className="flex items-center justify-between border-b border-[#2e382a] px-4 py-3 font-mono text-[9px] text-[#93a08a]">
           <span className="flex items-center gap-2">
-            <i className="terminal-dot" /> trustsvan / operator-record
+            <i className="terminal-dot" /> trustsvan / trader-record
           </span>
-          <span className="uppercase tracking-wider">Live product preview</span>
+          <span className="uppercase tracking-wider">Illustrative preview</span>
         </div>
         <div className="flex flex-wrap items-center gap-3 px-5 py-5">
           <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[#5b7738] bg-[#304720] font-mono text-sm text-[#dce9cc]">SA</span>
@@ -180,12 +180,12 @@ export function ProofTerminal() {
           <div className="min-h-[290px] py-5" role="tabpanel">
             {tab === "performance" && (
               <div>
-                <div className="mb-5 flex items-end justify-between gap-4">
+                <div className="mb-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
                   <div>
-                    <span className="terminal-label block">Reported capital band</span>
-                    <strong className="mt-1 block font-mono text-3xl font-normal text-[#eef3e9]">$1.20M</strong>
+                    <span className="terminal-label block">Capital band · self-declared</span>
+                    <strong className="mt-1 block font-mono text-2xl font-normal text-[#eef3e9] sm:text-3xl">$100k–$1M</strong>
                   </div>
-                  <span className="font-mono text-[10px] text-[#baf277]">↗ +38.4% sample year</span>
+                  <span className="font-mono text-[10px] text-[#baf277]">Sample year · 2024</span>
                 </div>
                 <EquityPreview />
               </div>

@@ -7,6 +7,7 @@ import {
   inquiryStatusLabel,
   isDecision,
   requestAgainAt,
+  safeInternalHref,
   validateInquiryMessage,
   INQUIRY_STATUSES,
   REQUEST_COOLDOWN_DAYS,
@@ -151,5 +152,29 @@ describe("inquiryStatusLabel", () => {
     expect(inquiryStatusLabel("IGNORED", "client")).toBe("No response");
     expect(inquiryStatusLabel("PENDING", "trader")).toBe("Awaiting your response");
     expect(inquiryStatusLabel("ACCEPTED", "trader")).toBe("Active");
+  });
+});
+
+describe("safeInternalHref", () => {
+  it("keeps in-app paths", () => {
+    expect(safeInternalHref("/inbox/abc123")).toBe("/inbox/abc123");
+    expect(safeInternalHref("/feed/p1?x=1#c")).toBe("/feed/p1?x=1#c");
+  });
+
+  it("rejects anything that could leave the app", () => {
+    for (const bad of [
+      null,
+      undefined,
+      "",
+      "https://evil.example",
+      "//evil.example",
+      "/\\evil.example",
+      "/ok\\..\\x",
+      "javascript:alert(1)",
+      "/in\nbox",
+      "inbox",
+    ]) {
+      expect(safeInternalHref(bad)).toBeNull();
+    }
   });
 });

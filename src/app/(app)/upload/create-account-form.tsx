@@ -3,8 +3,10 @@
 import { useActionState } from "react";
 import { createAccount } from "./actions";
 import { btnPrimary, FieldError, inputClass, labelClass } from "@/components/form";
+import type { CurrencyCode } from "@/lib/format";
+import { CurrencySelect } from "./currency-select";
 
-export function CreateAccountForm() {
+export function CreateAccountForm({ defaultCurrency = "USD" }: { defaultCurrency?: CurrencyCode }) {
   const [state, action, pending] = useActionState(createAccount, undefined);
 
   return (
@@ -42,9 +44,11 @@ export function CreateAccountForm() {
           />
         </div>
 
+        <CurrencySelect defaultValue={defaultCurrency} />
+
         <div>
           <label htmlFor="startingBalance" className={labelClass}>
-            Starting balance <span className="text-zinc-400">(optional)</span>
+            Starting balance <span className="text-zinc-400">(optional, in the account currency)</span>
           </label>
           <input
             id="startingBalance"

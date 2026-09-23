@@ -1,383 +1,295 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
+import { Lock, Pencil } from "lucide-react";
 import { SvanLogo } from "@/components/svan-logo";
-import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
-import { formatMoney, formatPercent, toISODate } from "@/lib/format";
-import { aiReportSchema } from "@/lib/ai/schema";
-import { publishedTrustFromMetrics } from "@/lib/published-profile";
-import {
-  describeFreshness,
-  toCadence,
-  cadenceLabel,
-} from "@/lib/freshness";
-import { ClientView } from "@/components/dashboard/client-view";
-import { CalendarHeatmap } from "@/components/dashboard/calendar-heatmap";
-import { ReportSections } from "@/components/report-sections";
-import { ProfileTrust } from "@/components/portal/profile-trust";
 import { SiteFooter } from "@/components/site-footer";
+import { RecordBadge } from "@/components/record-badge";
+import { FollowButtons } from "@/components/network/follow-buttons";
+import { RequestConversation } from "@/components/inquiries/request-conversation";
+import { ProfileTabs } from "@/components/portal/profile-tabs";
+import { optionLabel, optionLabels } from "@/lib/profile-options";
+import { coverageLabel, toRecordContext } from "@/lib/record-context";
+import { recordProfileView } from "@/lib/profile-views";
+import {
+  parseTab,
+  parseVersionParam,
+  profileDescription,
+  profileHref,
+  resolveSiteOrigin,
+  yearsTradingLabel,
+} from "@/lib/profile-page";
+import { getFollowState, getLatestVersion, getViewableProfile } from "./data";
+import { OverviewTab } from "./overview-tab";
+import { PerformanceTab } from "./performance-tab";
+import { ProofTab } from "./proof-tab";
+import { PostsTab } from "./posts-tab";
 import { PrintButton } from "./print-button";
+import { ShareLinkButton } from "./share-link-button";
 import { FollowForm } from "./follow-form";
 
 const DEFAULT_DISCLAIMER =
   "TrustSVAN is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
-  const profile = await prisma.traderProfile.findUnique({
-    where: { slug },
-    select: { displayName: true, isPublic: true },
-  });
-  return {
-    title: profile?.isPublic ? `${profile.displayName} - TrustSVAN` : "TrustSVAN",
-    robots: { index: profile?.isPublic === true, follow: profile?.isPublic === true },
-  };
-}
+type Params = Promise<{ slug: string }>;
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-function dateLabel(iso: string): string {
-  return new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
+async function siteOrigin(): Promise<string | null> {
+  const h = await headers();
+  return resolveSiteOrigin({
+    configured: process.env.NEXT_PUBLIC_SITE_URL ?? process.env.AUTH_URL,
+    vercelProductionHost: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    host: h.get("x-forwarded-host") ?? h.get("host"),
+    proto: h.get("x-forwarded-proto"),
   });
 }
 
-export default async function PortalPage({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const session = await auth();
-  const loggedIn = !!session?.user;
+  const [view, origin] = await Promise.all([getViewableProfile(slug), siteOrigin()]);
+  const base: Metadata = origin ? { metadataBase: new URL(origin) } : {};
 
-  const profile = await prisma.traderProfile.findUnique({
-    where: { slug },
-    select: {
-      id: true,
-      userId: true,
-      displayName: true,
-      bio: true,
-      strategy: true,
-      instruments: true,
-      disclaimer: true,
-      isPublic: true,
-      hideAmounts: true,
-      hideBrokers: true,
-      updateCadence: true,
-      lastPublishedAt: true,
-      openToWork: true,
-      headline: true,
-      services: true,
-      contactUrl: true,
-    },
-  });
-
-  if (!profile || !profile.isPublic) {
-    return (
-      <div className="flex min-h-full flex-1 items-center justify-center bg-zinc-950 px-4 py-16 text-center">
-        <div>
-          <p className="text-lg font-semibold text-white">This research profile isn&apos;t available</p>
-          <p className="mt-1 text-sm text-zinc-400">
-            The link may be wrong, or the trader has set their profile to private.
-          </p>
-        </div>
-      </div>
-    );
+  if (!view) {
+    return {
+      ...base,
+      title: "Research profile unavailable — TrustSVAN",
+      robots: { index: false, follow: false },
+    };
   }
 
-  const latestVersion = await prisma.profileVersion.findFirst({
-    where: { profileId: profile.id },
-    orderBy: { versionNumber: "desc" },
-    select: { id: true, changeSummary: true, publishedAt: true, metrics: true },
-  });
-  const versionRows = await prisma.profileVersion.findMany({
-    where: { profileId: profile.id },
-    orderBy: { versionNumber: "desc" },
-    take: 24,
-    select: {
-      id: true,
-      versionNumber: true,
-      periodStart: true,
-      periodEnd: true,
-      publishedAt: true,
-      netPnl: true,
-      returnPct: true,
-      metrics: true,
-      sourceBatch: { select: { source: true } },
-    },
-  });
-  const versionHistory = versionRows.map((version) => ({
-    ...version,
-    maxDrawdownPct:
-      (version.metrics as { maxDrawdownPct?: number } | null)?.maxDrawdownPct ?? null,
-  }));
-  const snapshot = latestVersion ? publishedTrustFromMetrics(latestVersion.metrics) : null;
-  const trust = snapshot?.trust ?? null;
-  const dailySeries = snapshot?.dailySeries ?? [];
-  const equitySeries = snapshot?.equitySeries ?? [];
-  const period =
-    dailySeries.length > 0
-      ? `${dateLabel(dailySeries[0].date)} - ${dateLabel(dailySeries[dailySeries.length - 1].date)}`
-      : null;
+  const { profile } = view;
+  if (!profile.isPublic) {
+    // Owner preview of a private profile: never indexable, no share metadata.
+    return { ...base, title: `${profile.displayName} (private preview) — TrustSVAN`, robots: { index: false, follow: false } };
+  }
 
-  // Account/broker labels are used only to redact brief prose when privacy is on.
-  const privateAccounts = await prisma.tradingAccount.findMany({
-    where: { userId: profile.userId },
-    select: { id: true, accountName: true, broker: true },
-    orderBy: { createdAt: "asc" },
+  const latest = await getLatestVersion(profile.id);
+  const record = latest ? toRecordContext(latest) : null;
+  const title = `${profile.displayName} — TrustSVAN research profile`;
+  const description = profileDescription({
+    displayName: profile.displayName,
+    headline: profile.headline,
+    strategy: profile.strategy,
+    source: record?.source ?? null,
+    coverage: record ? coverageLabel(record) : null,
   });
-  const privateReportTerms = privateAccounts.flatMap((a) => [a.accountName, a.broker ?? ""]);
+  const url = profileHref(profile.slug);
 
-  // Living-profile header (MVP2): freshness + latest version's change summary + risk events.
-  const coverageEndForFreshness = dailySeries.at(-1)?.date
-    ? new Date(`${dailySeries.at(-1)!.date}T00:00:00Z`)
-    : null;
-  const fresh = describeFreshness(toCadence(profile.updateCadence), coverageEndForFreshness);
-  const riskEvents = latestVersion
-    ? await prisma.riskEvent.findMany({
-        where: { versionId: latestVersion.id, isClientVisible: true },
-        select: { id: true, type: true, severity: true, title: true, description: true },
-        orderBy: { createdAt: "asc" },
-      })
-    : [];
-  const lastUpdatedLabel = latestVersion ? dateLabel(toISODate(latestVersion.publishedAt)) : null;
-
-  const reportRows = await prisma.report.findMany({
-    where: { userId: profile.userId, status: "PUBLISHED" },
-    select: { id: true, period: true, aiReport: true },
-    orderBy: { period: "desc" },
-  });
-  const reports = reportRows.flatMap((r) => {
-    const parsed = aiReportSchema.safeParse(r.aiReport);
-    return parsed.success ? [{ id: r.id, period: r.period, report: parsed.data }] : [];
-  });
-
-  const evidence = await prisma.evidence.findMany({
-    where: { userId: profile.userId, isPublic: true },
-    select: { id: true, kind: true, label: true, originalName: true },
-    orderBy: { createdAt: "desc" },
-  });
-  const KIND_LABEL: Record<string, string> = {
-    STATEMENT: "Statement",
-    TAX_RETURN: "Tax return",
-    PAYOUT: "Payout",
-    EXPORT: "Export",
-    OTHER: "Other",
+  return {
+    ...base,
+    title,
+    description,
+    alternates: { canonical: url },
+    // Images come from the colocated opengraph-image / twitter-image routes.
+    openGraph: { type: "profile", title, description, url, siteName: "TrustSVAN" },
+    twitter: { card: "summary_large_image", title, description },
+    robots: { index: true, follow: true },
   };
+}
+
+function Unavailable() {
+  return (
+    <div className="flex min-h-full flex-1 items-center justify-center bg-zinc-950 px-4 py-16 text-center">
+      <div>
+        <p className="text-lg font-semibold text-white">This research profile isn&apos;t available</p>
+        <p className="mt-1 text-sm text-zinc-400">
+          The link may be wrong, or the trader has set their profile to private.
+        </p>
+        <Link href="/explore" className="mt-4 inline-block text-sm text-[#baf277] hover:underline">
+          Explore published records
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="rounded-full border border-zinc-700 bg-zinc-900/70 px-2.5 py-0.5 text-xs text-zinc-300">
+      {children}
+    </li>
+  );
+}
+
+export default async function PortalPage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
+  const { slug } = await params;
+  const sp = await searchParams;
+  const view = await getViewableProfile(slug);
+  if (!view) return <Unavailable />;
+
+  const { profile, viewerId, isOwner } = view;
+  const tab = parseTab(sp.tab);
+  const requestedVersion = tab === "proof" ? parseVersionParam(sp.v) : null;
+
+  const [latest, follow] = await Promise.all([
+    getLatestVersion(profile.id),
+    getFollowState(profile.id, viewerId),
+    profile.isPublic ? recordProfileView(profile.id, profile.userId, viewerId) : Promise.resolve(),
+  ]);
+  const record = latest ? toRecordContext(latest) : null;
+
+  const chips = [
+    ...optionLabels("markets", profile.markets),
+    ...optionLabels("strategyTags", profile.strategyTags),
+    optionLabel("regions", profile.region),
+    yearsTradingLabel(profile.experienceYears),
+    profile.capitalBand ? `Capital ${optionLabel("capitalBands", profile.capitalBand)}` : null,
+  ].filter((c): c is string => !!c);
 
   return (
     <div className="min-h-full bg-zinc-950 text-zinc-100">
       <div className="border-b border-[#202a23] bg-[#111711] font-mono text-[9px] uppercase tracking-[0.08em] text-[#8f9d8e] print:hidden">
-        <div className="mx-auto flex h-8 max-w-4xl items-center justify-between px-4">
-          <span className="flex items-center gap-2"><i className="terminal-dot" /> Published record</span>
-          <span>Immutable snapshot / operator controlled</span>
+        <div className="mx-auto flex h-8 max-w-4xl items-center justify-between gap-3 px-4">
+          <span className="flex items-center gap-2">
+            <i className="terminal-dot" /> Published record
+          </span>
+          <span className="truncate">Immutable snapshots / operator controlled</span>
         </div>
       </div>
-      {/* Slim nav hidden when printing / saving the report as PDF. */}
-      <nav className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-xl print:hidden">
+
+      <nav className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-xl print:hidden" aria-label="Site">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-4">
-          <Link
-            href={loggedIn ? "/dashboard" : "/"}
-            className="text-xl font-semibold text-zinc-100"
-          >
+          <Link href={viewerId ? "/dashboard" : "/"} className="text-xl font-semibold text-zinc-100" aria-label="TrustSVAN home">
             <SvanLogo />
           </Link>
-          <Link
-            href={loggedIn ? "/network" : "/explore"}
-            className="text-sm font-medium text-zinc-200 hover:text-zinc-100"
-          >
-            Published traders
-          </Link>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <Link href="/explore" className="text-zinc-200 hover:text-white">
+              Explore
+            </Link>
+            {viewerId ? (
+              <Link href="/dashboard" className="text-zinc-400 hover:text-white">
+                Dashboard
+              </Link>
+            ) : (
+              <Link href="/login" className="text-zinc-400 hover:text-white">
+                Sign in
+              </Link>
+            )}
+          </div>
         </div>
       </nav>
 
-      <header className="terminal-grid border-b border-zinc-800 bg-zinc-950">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-end justify-between gap-5 px-4 py-10">
-          <div>
-            <p className="terminal-label">
-              <Link
-                href={loggedIn ? "/dashboard" : "/"}
-                className="transition hover:text-zinc-200"
-              >
-                <SvanLogo />
-              </Link>{" "}
-              / research profile
-            </p>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <h1 className="text-4xl font-medium tracking-[-0.045em] text-white">
-                {profile.displayName}
-              </h1>
-              {profile.openToWork && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-zinc-300/40 bg-zinc-300/10 px-2 py-0.5 text-xs font-medium text-zinc-100">
-                  <span className="h-1.5 w-1.5 rounded-full bg-zinc-200" aria-hidden="true" />
-                  Open to work
-                </span>
-              )}
-            </div>
-            {profile.headline && (
-              <p className="mt-1 text-sm font-medium text-zinc-300">{profile.headline}</p>
+      {isOwner && (
+        <div
+          className={`border-b print:hidden ${
+            profile.isPublic ? "border-[#2b3a2c] bg-[#111711]" : "border-zinc-600 bg-zinc-800/70"
+          }`}
+          role="status"
+        >
+          <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2 text-xs">
+            {profile.isPublic ? (
+              <span className="text-[#cfe3bd]">This is your public profile</span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 font-medium text-white">
+                <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                Private — only you can see this. Visitors get a &ldquo;not available&rdquo; page.
+              </span>
             )}
-            <p className="mt-0.5 text-sm text-zinc-400">
-              {[profile.strategy, profile.instruments].filter(Boolean).join(" / ")}
-              {period && <span className="text-zinc-400"> / {period}</span>}
-            </p>
+            <Link href="/settings" className="inline-flex items-center gap-1 font-medium text-[#baf277] hover:underline">
+              <Pencil className="h-3 w-3" aria-hidden="true" />
+              Edit in Settings
+            </Link>
           </div>
-          <PrintButton />
+        </div>
+      )}
+
+      <header className="terminal-grid border-b border-zinc-800 bg-zinc-950">
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
+          <p className="terminal-label">Research profile</p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <h1 className="min-w-0 break-words text-3xl font-medium tracking-[-0.045em] text-white sm:text-4xl">
+              {profile.displayName}
+            </h1>
+            {profile.openToWork && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-zinc-300/40 bg-zinc-300/10 px-2 py-0.5 text-xs font-medium text-zinc-100">
+                <span className="h-1.5 w-1.5 rounded-full bg-zinc-200" aria-hidden="true" />
+                Open to work
+              </span>
+            )}
+          </div>
+          {profile.headline && (
+            <p className="mt-2 break-words text-sm font-medium text-zinc-300">{profile.headline}</p>
+          )}
+
+          {chips.length > 0 && (
+            <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Markets, strategy and background">
+              {chips.map((c, i) => (
+                <Chip key={`${i}-${c}`}>{c}</Chip>
+              ))}
+            </ul>
+          )}
+
+          <div className="mt-4">
+            <RecordBadge record={record} slug={profile.slug} />
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-center gap-2 print:hidden">
+            {profile.isPublic &&
+              (isOwner ? (
+                <span className="font-mono text-[10px] text-zinc-500">
+                  {follow.followerCount} follower{follow.followerCount === 1 ? "" : "s"}
+                </span>
+              ) : (
+                <FollowButtons
+                  profileId={profile.id}
+                  following={follow.following}
+                  watching={follow.watching}
+                  followerCount={follow.followerCount}
+                  signedIn={!!viewerId}
+                />
+              ))}
+            <span className="flex flex-wrap items-center gap-2 sm:ml-auto">
+              {latest && !view.hidden.has("performance") && (
+                <Link
+                  href={`${profileHref(profile.slug)}/diligence`}
+                  className="inline-flex min-h-9 items-center rounded-md border border-zinc-700 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-zinc-400 hover:text-white"
+                >
+                  Diligence summary
+                </Link>
+              )}
+              {profile.isPublic && <ShareLinkButton path={profileHref(profile.slug)} />}
+              <PrintButton />
+            </span>
+          </div>
+
+          {profile.isPublic && (
+            <div className="mt-5 print:hidden">
+              <RequestConversation profileId={profile.id} viewerId={viewerId} />
+            </div>
+          )}
         </div>
       </header>
 
+      <div className="mx-auto max-w-4xl px-4 pt-4">
+        <ProfileTabs slug={profile.slug} active={tab} />
+      </div>
+
       <main className="mx-auto max-w-4xl space-y-10 px-4 py-8">
-        {profile.bio && <p className="text-sm leading-relaxed text-zinc-300">{profile.bio}</p>}
+        {tab === "overview" && <OverviewTab view={view} latest={latest} />}
+        {tab === "performance" && <PerformanceTab view={view} latest={latest} />}
+        {tab === "proof" && <ProofTab view={view} latest={latest} requestedVersion={requestedVersion} />}
+        {tab === "posts" && <PostsTab view={view} />}
 
-        {(profile.openToWork || profile.contactUrl) && (
-          <section className="terminal-card p-5 print:hidden">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="min-w-0">
-                <h2 className="text-base font-semibold text-white">Work with {profile.displayName}</h2>
-                {profile.services ? (
-                  <p className="mt-1 text-sm leading-relaxed text-zinc-400">{profile.services}</p>
-                ) : (
-                  <p className="mt-1 text-sm leading-relaxed text-zinc-400">
-                    Open to client work and collaboration. Reach out to start a conversation.
-                  </p>
-                )}
-              </div>
-              {profile.contactUrl && (
-                <a
-                  href={profile.contactUrl}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="shrink-0 rounded-md bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white"
-                >
-                  Get in touch
-                </a>
-              )}
-            </div>
+        {!viewerId && profile.isPublic && (
+          <section className="terminal-card space-y-3 p-5 print:hidden" aria-labelledby="email-updates-heading">
+            <h2 id="email-updates-heading" className="text-base font-medium text-white">
+              Email updates
+            </h2>
+            <p className="text-sm text-zinc-400">
+              Get an email when {profile.displayName} republishes this record. Have an account?{" "}
+              <Link href="/login" className="text-[#baf277] hover:underline">
+                Sign in to follow
+              </Link>{" "}
+              instead.
+            </p>
+            <FollowForm slug={profile.slug} />
           </section>
         )}
-
-        <ProfileTrust
-          freshness={{ label: fresh.label, blurb: fresh.blurb, tone: fresh.tone }}
-          lastUpdatedLabel={lastUpdatedLabel}
-          cadenceLabel={cadenceLabel(toCadence(profile.updateCadence))}
-          changeSummary={latestVersion?.changeSummary ?? null}
-          riskEvents={riskEvents}
-          proofLevel={trust?.proofLevel ?? null}
-        />
-
-        {versionHistory.length > 0 && (
-          <section className="terminal-card overflow-hidden">
-            <div className="border-b border-zinc-800 px-5 py-4">
-              <h2 className="text-base font-medium text-white">Published record history</h2>
-              <p className="mt-1 text-xs leading-5 text-zinc-400">
-                Immutable snapshots show how coverage changed over time. Publication time and data
-                coverage are shown separately.
-              </p>
-            </div>
-            <ul className="divide-y divide-zinc-800">
-              {versionHistory.map((version) => (
-                <li key={version.id} className="grid gap-3 px-5 py-4 text-sm sm:grid-cols-[1.2fr_.8fr_.8fr] sm:items-center">
-                  <div>
-                    <p className="font-medium text-zinc-200">
-                      Version {version.versionNumber}
-                      <span className="ml-2 font-normal text-zinc-400">
-                        {version.periodStart && version.periodEnd
-                          ? `${dateLabel(toISODate(version.periodStart))} – ${dateLabel(toISODate(version.periodEnd))}`
-                          : "Coverage unavailable"}
-                      </span>
-                    </p>
-                    <p className="mt-1 text-xs text-zinc-400">
-                      {version.sourceBatch?.source === "BROKER_API"
-                        ? "Direct broker source"
-                        : version.sourceBatch
-                          ? "Trader-uploaded export"
-                          : "Source not recorded"}
-                      {` · Published ${dateLabel(toISODate(version.publishedAt))}`}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="terminal-label">Period result</span>
-                    <p className="mt-1 font-mono text-zinc-200">
-                      {version.returnPct != null ? formatPercent(version.returnPct, 1) : "Not available"}
-                      {!profile.hideAmounts && ` · ${formatMoney(Number(version.netPnl))}`}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="terminal-label">Max drawdown</span>
-                    <p className="mt-1 font-mono text-zinc-200">
-                      {version.maxDrawdownPct != null ? `${version.maxDrawdownPct.toFixed(1)}%` : "Not available"}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {trust ? (
-          <ClientView
-            trust={trust}
-            equitySeries={equitySeries}
-            dailySeries={dailySeries}
-            hideAmounts={profile.hideAmounts}
-          />
-        ) : (
-          <div className="terminal-card border-dashed p-10 text-center text-sm text-zinc-400">
-            No published record yet.
-          </div>
-        )}
-
-        {trust && <CalendarHeatmap data={dailySeries} hideAmounts={profile.hideAmounts} />}
-
-        {reports.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-white">Research and performance briefs</h2>
-            {reports.map((r) => (
-              <ReportSections
-                key={r.id}
-                period={r.period}
-                report={r.report}
-                hideAmounts={profile.hideAmounts}
-                redactTerms={profile.hideBrokers ? privateReportTerms : []}
-              />
-            ))}
-          </section>
-        )}
-
-        {evidence.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-white">Evidence</h2>
-            <p className="text-sm text-zinc-400">Supporting documents shared by the researcher.</p>
-            <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-800 bg-zinc-900/70">
-              {evidence.map((e) => (
-                <li
-                  key={e.id}
-                  className="flex items-center justify-between gap-2 px-4 py-3 text-sm"
-                >
-                  <span className="truncate font-medium text-zinc-200">
-                    {e.label || e.originalName}
-                  </span>
-                  <span className="shrink-0 text-xs text-zinc-400">{KIND_LABEL[e.kind]} attached · file private</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        <section className="space-y-3 print:hidden">
-          <h2 className="text-lg font-semibold text-white">Follow this researcher</h2>
-          <p className="text-sm text-zinc-400">
-            Get profile and research updates by email. Not investment advice.
-          </p>
-          <FollowForm slug={slug} />
-        </section>
       </main>
 
-      <footer className="border-t border-zinc-800 bg-zinc-950 print:hidden">
+      <footer className="border-t border-zinc-800 bg-zinc-950">
         <div className="mx-auto max-w-4xl space-y-2 px-4 py-6 text-xs leading-relaxed text-zinc-400">
-          {profile.disclaimer && <p>{profile.disclaimer}</p>}
+          {profile.disclaimer && <p className="whitespace-pre-line break-words">{profile.disclaimer}</p>}
           <p>{DEFAULT_DISCLAIMER}</p>
         </div>
       </footer>

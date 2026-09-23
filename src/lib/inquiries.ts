@@ -157,3 +157,15 @@ export function isDecision(value: unknown): value is Decision {
 export function availableDecisions(status: InquiryStatusKey): Decision[] {
   return (Object.keys(DECISIONS) as Decision[]).filter((d) => canTransition(status, DECISIONS[d]));
 }
+
+/**
+ * Notification links must stay inside the app. Accepts only a single-slash
+ * path; rejects protocol-relative ("//x"), backslash tricks ("/\x", which
+ * browsers normalize to "//x"), and control characters.
+ */
+export function safeInternalHref(href: string | null | undefined): string | null {
+  if (typeof href !== "string" || href.length === 0 || href.length > 512) return null;
+  if (!href.startsWith("/") || href[1] === "/" || href[1] === "\\") return null;
+  if (/[\\\u0000-\u001f\u007f]/.test(href)) return null;
+  return href;
+}

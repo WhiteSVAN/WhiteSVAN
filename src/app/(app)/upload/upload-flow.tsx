@@ -19,6 +19,8 @@ import {
 } from "@/lib/csv/brokers";
 import { confirmImport, createAccount } from "./actions";
 import { btnPrimary, FieldError, FormError, inputClass, labelClass } from "@/components/form";
+import type { CurrencyCode } from "@/lib/format";
+import { CurrencySelect } from "./currency-select";
 
 const FIELD_LABELS: Record<CanonicalField, string> = {
   tradeDate: "Trade date",
@@ -38,6 +40,7 @@ const REQUIRED = new Set<CanonicalField>(REQUIRED_FIELDS);
 interface Account {
   id: string;
   accountName: string;
+  currency?: string;
 }
 
 /** A broker FIFO result also satisfies the preview's needs (trades + errors). */
@@ -47,9 +50,12 @@ const isBrokerResult = (r: PreviewResult): r is BrokerParseResult => "fills" in 
 export function UploadFlow({
   accounts,
   selectedAccountId,
+  defaultCurrency = "USD",
 }: {
   accounts: Account[];
   selectedAccountId?: string;
+  /** Pre-selected currency for a new account (INR for India-region traders). */
+  defaultCurrency?: CurrencyCode;
 }) {
   const [state, action, pending] = useActionState(confirmImport, undefined);
   const [createState, createAccountAction, creating] = useActionState(createAccount, undefined);
@@ -169,6 +175,7 @@ export function UploadFlow({
                   name="accountName"
                   required
                   autoFocus
+                  aria-label="Account name"
                   className={inputClass}
                   placeholder="Account name (e.g. Fidelity Individual)"
                 />
@@ -177,15 +184,18 @@ export function UploadFlow({
               <input
                 key={format}
                 name="broker"
+                aria-label="Broker (optional)"
                 defaultValue={brokerForFormat(format)}
                 className={inputClass}
                 placeholder="Broker (optional)"
               />
+              <CurrencySelect id="newAccountCurrency" defaultValue={defaultCurrency} showLabel={false} />
               <input
                 name="startingBalance"
                 type="number"
                 step="0.01"
                 min="0"
+                aria-label="Starting balance (optional)"
                 className={inputClass}
                 placeholder="Starting balance (optional)"
               />
@@ -216,6 +226,7 @@ export function UploadFlow({
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.accountName}
+                  {a.currency ? ` (${a.currency})` : ""}
                 </option>
               ))}
             </select>

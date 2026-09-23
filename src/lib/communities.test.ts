@@ -6,6 +6,7 @@ import {
   canPost,
   canRemove,
   canView,
+  communityCopyError,
   communitySlugError,
   inviteExpiry,
   inviteIsUsable,
@@ -147,5 +148,16 @@ describe("community slugs", () => {
     expect(communitySlugError("join")).not.toBeNull();
     expect(communitySlugError("bad--slug")).not.toBeNull();
     expect(communitySlugError("Upper")).not.toBeNull();
+  });
+});
+
+describe("communityCopyError", () => {
+  it("passes research-room copy", () => {
+    expect(communityCopyError(["GEX research", "Methods and post-mortems.", null])).toBeNull();
+  });
+
+  it("rejects compliance and signal language", () => {
+    expect(communityCopyError(["Sure shot calls", "Guaranteed"])).toContain("sure shot");
+    expect(communityCopyError(["VIP group", "", undefined])).toContain("vip group");
   });
 });
