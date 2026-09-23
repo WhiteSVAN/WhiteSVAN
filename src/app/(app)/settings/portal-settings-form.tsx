@@ -57,7 +57,7 @@ export function PortalSettingsForm({
         <span>
           <span className="text-sm font-medium text-zinc-700">Hide dollar amounts</span>
           <span className="block text-xs text-zinc-500">
-            Show percentages and scores on the public card, but redact exact $ figures.
+            Show percentages on the public profile, but redact exact dollar figures.
           </span>
         </span>
       </label>
@@ -124,7 +124,7 @@ export function PortalSettingsForm({
             type="text"
             maxLength={140}
             defaultValue={headline}
-            placeholder="Systematic futures trader · 3y verified track record"
+            placeholder="Systematic futures trader · 3-year published record"
             className={inputClass}
           />
         </div>

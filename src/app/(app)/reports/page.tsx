@@ -76,7 +76,7 @@ export default async function ReportsPage() {
         <p className="terminal-label">Research / code-computed record</p>
         <h1 className="mt-2 text-3xl font-medium tracking-[-0.04em] text-zinc-900">Research briefs</h1>
         <p className="mt-1 text-sm text-zinc-500">
-          Generate a monthly research brief from verified metrics, edit it, then publish it to your profile.
+          Generate a monthly research brief from computed metrics, edit it, then publish it to your profile.
         </p>
       </div>
 

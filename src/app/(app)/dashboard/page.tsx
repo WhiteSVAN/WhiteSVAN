@@ -124,7 +124,7 @@ export default async function DashboardPage({
             href="/upload"
           className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 shadow-sm hover:bg-white"
           >
-            Connect broker
+            Import history
           </Link>
         </div>
       </div>
@@ -134,12 +134,12 @@ export default async function DashboardPage({
         proofLevel={proofLevel}
         cadence={user.profile.updateCadence}
         lastPublishedAt={user.profile.lastPublishedAt}
-        transparencyScore={trust?.scores.transparency ?? null}
         coverageStart={coverage._min.tradeDate ? toISODate(coverage._min.tradeDate) : null}
         coverageEnd={coverage._max.tradeDate ? toISODate(coverage._max.tradeDate) : null}
       />
 
       <PublishUpdate
+        accountId={account?.id ?? ""}
         lastVersionNumber={lastVersion?.versionNumber ?? null}
         lastPublishedLabel={lastVersion ? format(lastVersion.publishedAt, "MMM d, yyyy") : null}
         lastChangeSummary={lastVersion?.changeSummary ?? null}
@@ -172,14 +172,14 @@ export default async function DashboardPage({
           </h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-zinc-500">
             {account
-              ? "Try a wider date range, or connect more trading history."
-            : "Connect broker or prop-firm history to build your TrustSVAN research profile and analytics dashboard."}
+              ? "Try a wider date range, or import more trading history."
+              : "Import broker or prop-firm history to build your TrustSVAN performance record."}
           </p>
           <Link
             href="/upload"
             className="mt-4 inline-flex rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-white"
           >
-            {account ? "Connect more history" : "Connect broker"}
+            {account ? "Import more history" : "Import history"}
           </Link>
         </div>
       )}

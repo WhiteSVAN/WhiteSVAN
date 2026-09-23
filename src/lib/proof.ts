@@ -1,6 +1,6 @@
 /**
- * Proof Level derivation. Source-linked data is Level 2; an uploaded broker
- * STATEMENT raises it to Level 3, and a TAX_RETURN raises it to Level 4.
+ * Legacy source-coverage derivation. Numeric levels remain for database
+ * compatibility; the product presents factual source labels instead of scores.
  */
 import { prisma } from "@/lib/db";
 import type { ProofLevel } from "@/lib/trust";

@@ -15,13 +15,17 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n
 
 export type DrawdownSeverity = "controlled" | "elevated" | "high" | "severe";
 
-/** Proof Level 1..5 — how reliable the underlying data is. Source-linked history = 2. */
+/**
+ * Legacy numeric levels retained for stored snapshots. User-facing UI must show
+ * the factual source label, not the number: an upload is evidence provenance,
+ * not independent verification.
+ */
 export const PROOF_LEVELS = {
   1: { label: "Self-reported", blurb: "Numbers were supplied by the trader." },
-  2: { label: "Source linked", blurb: "Trading history came from broker or prop-firm source data." },
-  3: { label: "Statement checked", blurb: "A broker statement was uploaded and checked." },
-  4: { label: "Tax return checked", blurb: "A tax return or official tax record was uploaded for verification." },
-  5: { label: "Third-party verified", blurb: "Data was reviewed by an external auditor." },
+  2: { label: "Imported trading history", blurb: "Metrics were computed from a file uploaded by the trader. The file has not been independently reviewed." },
+  3: { label: "Statement attached", blurb: "A broker statement is attached. Uploading a document does not mean TrustSVAN independently verified it." },
+  4: { label: "Additional document attached", blurb: "Additional account documentation is attached but has not been independently reviewed." },
+  5: { label: "Independently reviewed", blurb: "The record was reviewed by an approved independent reviewer." },
 } as const;
 
 export type ProofLevel = keyof typeof PROOF_LEVELS;

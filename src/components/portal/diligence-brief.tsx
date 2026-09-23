@@ -1,11 +1,5 @@
 import { AlertTriangle, Eye, ShieldCheck, TrendingUp } from "lucide-react";
-import type { DiligenceBrief, DiligenceItem, DiligencePosture } from "@/lib/diligence";
-
-const POSTURE_STYLE: Record<DiligencePosture, string> = {
-  constructive: "border-zinc-300/40 bg-zinc-300/10 text-zinc-100",
-  mixed: "border-zinc-500/40 bg-zinc-500/15 text-zinc-300",
-  cautious: "border-zinc-600/40 bg-zinc-700/20 text-zinc-400",
-};
+import type { DiligenceBrief, DiligenceItem } from "@/lib/diligence";
 
 const TONE: Record<string, string> = {
   bright: "text-zinc-100",
@@ -53,14 +47,9 @@ export function DiligenceBriefView({ brief }: { brief: DiligenceBrief }) {
   return (
     <section className="space-y-5">
       <div className="flex flex-wrap items-center gap-2">
-        <span
-          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${POSTURE_STYLE[brief.posture]}`}
-        >
-          {brief.postureLabel}
-        </span>
         <span className="inline-flex items-center gap-1 rounded-full border border-zinc-500/50 bg-white/5 px-2.5 py-0.5 text-xs font-medium text-zinc-200">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-          {brief.dataQuality.label} · Proof L{brief.dataQuality.proofLevel}
+          {brief.dataQuality.label}
         </span>
       </div>
 
@@ -72,7 +61,7 @@ export function DiligenceBriefView({ brief }: { brief: DiligenceBrief }) {
           icon={TrendingUp}
           tone="bright"
           items={brief.strengths}
-          empty="No standout strengths in the verified record."
+          empty="No positive observations met the factual thresholds."
         />
         <Column
           title="Risk flags"

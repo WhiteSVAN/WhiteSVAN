@@ -5,8 +5,8 @@ const FOOTER_GROUPS = [
   {
     title: "Platform",
     links: [
-      { href: "/explore", label: "Verified traders" },
-      { href: "/signup", label: "Get verified" },
+      { href: "/explore", label: "Published traders" },
+      { href: "/signup", label: "Build your record" },
       { href: "/login", label: "Sign in" },
     ],
   },
@@ -38,7 +38,7 @@ export function SiteFooter() {
           </Link>
           <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400">
             A verification and diligence network for market operators, brokers, prop firms, and
-            research teams that need source-backed trading records.
+            research teams that need inspectable trading records and clear source coverage.
           </p>
           <p className="mt-4 text-xs leading-5 text-zinc-500">
             TrustSVAN does not manage money, execute trades, copy trades, provide investment

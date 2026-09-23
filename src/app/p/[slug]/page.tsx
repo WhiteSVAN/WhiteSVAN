@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { toISODate } from "@/lib/format";
+import { formatMoney, formatPercent, toISODate } from "@/lib/format";
 import { aiReportSchema } from "@/lib/ai/schema";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 import {
@@ -34,7 +34,7 @@ export async function generateMetadata({
   });
   return {
     title: profile?.isPublic ? `${profile.displayName} - TrustSVAN` : "TrustSVAN",
-    robots: { index: false }, // private share links shouldn't be indexed
+    robots: { index: profile?.isPublic === true, follow: profile?.isPublic === true },
   };
 }
 
@@ -92,6 +92,27 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
     orderBy: { versionNumber: "desc" },
     select: { id: true, changeSummary: true, publishedAt: true, metrics: true },
   });
+  const versionRows = await prisma.profileVersion.findMany({
+    where: { profileId: profile.id },
+    orderBy: { versionNumber: "desc" },
+    take: 24,
+    select: {
+      id: true,
+      versionNumber: true,
+      periodStart: true,
+      periodEnd: true,
+      publishedAt: true,
+      netPnl: true,
+      returnPct: true,
+      metrics: true,
+      sourceBatch: { select: { source: true } },
+    },
+  });
+  const versionHistory = versionRows.map((version) => ({
+    ...version,
+    maxDrawdownPct:
+      (version.metrics as { maxDrawdownPct?: number } | null)?.maxDrawdownPct ?? null,
+  }));
   const snapshot = latestVersion ? publishedTrustFromMetrics(latestVersion.metrics) : null;
   const trust = snapshot?.trust ?? null;
   const dailySeries = snapshot?.dailySeries ?? [];
@@ -110,8 +131,10 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
   const privateReportTerms = privateAccounts.flatMap((a) => [a.accountName, a.broker ?? ""]);
 
   // Living-profile header (MVP2): freshness + latest version's change summary + risk events.
-  const publishedAtForFreshness = profile.lastPublishedAt ?? latestVersion?.publishedAt ?? null;
-  const fresh = describeFreshness(toCadence(profile.updateCadence), publishedAtForFreshness);
+  const coverageEndForFreshness = dailySeries.at(-1)?.date
+    ? new Date(`${dailySeries.at(-1)!.date}T00:00:00Z`)
+    : null;
+  const fresh = describeFreshness(toCadence(profile.updateCadence), coverageEndForFreshness);
   const riskEvents = latestVersion
     ? await prisma.riskEvent.findMany({
         where: { versionId: latestVersion.id, isClientVisible: true },
@@ -165,7 +188,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
             href={loggedIn ? "/network" : "/explore"}
             className="text-sm font-medium text-zinc-200 hover:text-zinc-100"
           >
-            Verified traders
+            Published traders
           </Link>
         </div>
       </nav>
@@ -244,6 +267,55 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
           proofLevel={trust?.proofLevel ?? null}
         />
 
+        {versionHistory.length > 0 && (
+          <section className="terminal-card overflow-hidden">
+            <div className="border-b border-zinc-800 px-5 py-4">
+              <h2 className="text-base font-medium text-white">Published record history</h2>
+              <p className="mt-1 text-xs leading-5 text-zinc-400">
+                Immutable snapshots show how coverage changed over time. Publication time and data
+                coverage are shown separately.
+              </p>
+            </div>
+            <ul className="divide-y divide-zinc-800">
+              {versionHistory.map((version) => (
+                <li key={version.id} className="grid gap-3 px-5 py-4 text-sm sm:grid-cols-[1.2fr_.8fr_.8fr] sm:items-center">
+                  <div>
+                    <p className="font-medium text-zinc-200">
+                      Version {version.versionNumber}
+                      <span className="ml-2 font-normal text-zinc-400">
+                        {version.periodStart && version.periodEnd
+                          ? `${dateLabel(toISODate(version.periodStart))} – ${dateLabel(toISODate(version.periodEnd))}`
+                          : "Coverage unavailable"}
+                      </span>
+                    </p>
+                    <p className="mt-1 text-xs text-zinc-400">
+                      {version.sourceBatch?.source === "BROKER_API"
+                        ? "Direct broker source"
+                        : version.sourceBatch
+                          ? "Trader-uploaded export"
+                          : "Source not recorded"}
+                      {` · Published ${dateLabel(toISODate(version.publishedAt))}`}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="terminal-label">Period result</span>
+                    <p className="mt-1 font-mono text-zinc-200">
+                      {version.returnPct != null ? formatPercent(version.returnPct, 1) : "Not available"}
+                      {!profile.hideAmounts && ` · ${formatMoney(Number(version.netPnl))}`}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="terminal-label">Max drawdown</span>
+                    <p className="mt-1 font-mono text-zinc-200">
+                      {version.maxDrawdownPct != null ? `${version.maxDrawdownPct.toFixed(1)}%` : "Not available"}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {trust ? (
           <ClientView
             trust={trust}
@@ -284,15 +356,10 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
                   key={e.id}
                   className="flex items-center justify-between gap-2 px-4 py-3 text-sm"
                 >
-                  <a
-                    href={`/api/evidence/${e.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="truncate font-medium text-zinc-200 hover:text-zinc-100"
-                  >
+                  <span className="truncate font-medium text-zinc-200">
                     {e.label || e.originalName}
-                  </a>
-                  <span className="shrink-0 text-xs text-zinc-400">{KIND_LABEL[e.kind]}</span>
+                  </span>
+                  <span className="shrink-0 text-xs text-zinc-400">{KIND_LABEL[e.kind]} attached · file private</span>
                 </li>
               ))}
             </ul>

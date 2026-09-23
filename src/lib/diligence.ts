@@ -1,18 +1,15 @@
 /**
  * Allocator diligence brief — a private-equity-style read of a trader, built
  * purely from the already-computed TrustMetrics (code-of-record). It reframes the
- * verified record for someone evaluating the operator: strengths, risk flags,
+ * published record for someone evaluating the operator: strengths, risk flags,
  * what to monitor, and data quality.
  *
  * GUARDRAIL: this is a summary of *past* performance only. It must never
  * recommend allocating capital, predict returns, or give investment advice — so
  * every item is descriptive ("the record shows…", "watch whether…"), never
- * prescriptive ("you should invest"). The `posture` grades the *record*, not a
- * decision. See CLAUDE.md › Guardrails.
+ * prescriptive ("you should invest"). See CLAUDE.md › Guardrails.
  */
 import { PROOF_LEVELS, type TrustMetrics } from "@/lib/trust";
-
-export type DiligencePosture = "constructive" | "mixed" | "cautious";
 
 export interface DiligenceItem {
   label: string;
@@ -20,20 +17,12 @@ export interface DiligenceItem {
 }
 
 export interface DiligenceBrief {
-  posture: DiligencePosture;
-  postureLabel: string;
   summary: string;
   strengths: DiligenceItem[];
   risks: DiligenceItem[];
   watchItems: DiligenceItem[];
-  dataQuality: { proofLevel: number; label: string; note: string };
+  dataQuality: { label: string; note: string };
 }
-
-const POSTURE_LABEL: Record<DiligencePosture, string> = {
-  constructive: "Constructive record",
-  mixed: "Mixed record",
-  cautious: "Cautious record",
-};
 
 /** Fraction (0.12) → "12%". */
 function pct(fraction: number): string {
@@ -46,7 +35,6 @@ function plural(n: number, word: string): string {
 
 export function buildDiligenceBrief(trust: TrustMetrics): DiligenceBrief {
   const m = trust.metrics;
-  const { scores } = trust;
   const strengths: DiligenceItem[] = [];
   const risks: DiligenceItem[] = [];
   const watchItems: DiligenceItem[] = [];
@@ -54,7 +42,7 @@ export function buildDiligenceBrief(trust: TrustMetrics): DiligenceBrief {
   // ── Strengths ──────────────────────────────────────────────
   if (m.returnPct != null && m.returnPct > 0.15) {
     strengths.push({
-      label: "Strong verified return",
+      label: "Positive period return",
       detail: `+${pct(m.returnPct)} over the period, computed from the imported record.`,
     });
   }
@@ -64,10 +52,10 @@ export function buildDiligenceBrief(trust: TrustMetrics): DiligenceBrief {
       detail: `${pct(m.winRate)} of the ${m.tradingDays} trading days were green.`,
     });
   }
-  if (trust.drawdownSeverity === "controlled") {
+  if (m.maxDrawdownPct < 10) {
     strengths.push({
-      label: "Controlled drawdown",
-      detail: `Deepest decline was ${m.maxDrawdownPct.toFixed(0)}% — risk stayed contained.`,
+      label: "Drawdown below 10%",
+      detail: `The deepest peak-to-trough decline in this record was ${m.maxDrawdownPct.toFixed(0)}%.`,
     });
   }
   if (m.profitFactor != null && m.profitFactor >= 1.5) {
@@ -82,24 +70,17 @@ export function buildDiligenceBrief(trust: TrustMetrics): DiligenceBrief {
       detail: `Best single day is only ${pct(trust.bestDayShare)} of net profit — not one lucky session.`,
     });
   }
-  if (trust.proofLevel >= 3) {
-    strengths.push({
-      label: "Independently checked",
-      detail: `${PROOF_LEVELS[trust.proofLevel].label} (Proof Level ${trust.proofLevel}).`,
-    });
-  }
-
   // ── Risk flags ─────────────────────────────────────────────
   if (m.returnPct != null && m.returnPct < 0) {
     risks.push({
-      label: "Negative verified return",
+      label: "Negative period return",
       detail: `${pct(m.returnPct)} over the period.`,
     });
   }
   if (trust.drawdownSeverity === "high" || trust.drawdownSeverity === "severe") {
     risks.push({
       label: "Deep drawdown",
-      detail: `Deepest decline was ${m.maxDrawdownPct.toFixed(0)}% (${trust.drawdownSeverity}).`,
+      detail: `The deepest peak-to-trough decline was ${m.maxDrawdownPct.toFixed(0)}%.`,
     });
   }
   if (trust.bestDayShare != null && trust.bestDayShare >= 0.4) {
@@ -129,7 +110,7 @@ export function buildDiligenceBrief(trust: TrustMetrics): DiligenceBrief {
   if (trust.proofLevel <= 2) {
     risks.push({
       label: "Limited verification",
-      detail: `${PROOF_LEVELS[trust.proofLevel].label} — no statement or tax record attached yet.`,
+      detail: `${PROOF_LEVELS[trust.proofLevel].label}. Review the source and coverage before relying on the figures.`,
     });
   }
 
@@ -147,12 +128,6 @@ export function buildDiligenceBrief(trust: TrustMetrics): DiligenceBrief {
         ? `Worst drawdown recovered in ${plural(trust.bounceBackDays, "trading day")}; watch recovery speed on the next decline.`
         : `The worst drawdown was not yet recovered in-period; watch for a new equity high.`,
   });
-  if (scores.updateReliability < 70) {
-    watchItems.push({
-      label: "Freshness",
-      detail: "Updates have been irregular; watch that the profile keeps refreshing on its cadence.",
-    });
-  }
   if (m.tradingDays < 60) {
     watchItems.push({
       label: "Sample size",
@@ -160,37 +135,17 @@ export function buildDiligenceBrief(trust: TrustMetrics): DiligenceBrief {
     });
   }
 
-  // ── Posture (grades the record, not a recommendation) ──────
-  const t = scores.transparency;
-  let posture: DiligencePosture;
-  if (t < 45 || trust.drawdownSeverity === "severe" || (m.returnPct != null && m.returnPct < 0)) {
-    posture = "cautious";
-  } else if (
-    t >= 70 &&
-    (trust.drawdownSeverity === "controlled" || trust.drawdownSeverity === "elevated") &&
-    (m.returnPct == null || m.returnPct >= 0) &&
-    risks.length <= 1
-  ) {
-    posture = "constructive";
-  } else {
-    posture = "mixed";
-  }
-
   const summary =
-    `A ${POSTURE_LABEL[posture].toLowerCase()} from the verified data: ` +
-    `${plural(strengths.length, "strength")}, ${plural(risks.length, "risk flag")}, ` +
-    `and ${plural(watchItems.length, "item")} to monitor. ` +
+    `This factual review contains ${plural(strengths.length, "positive observation")}, ` +
+    `${plural(risks.length, "risk flag")}, and ${plural(watchItems.length, "item")} to monitor. ` +
     `This summarizes past performance only — it is not investment advice or an allocation recommendation.`;
 
   return {
-    posture,
-    postureLabel: POSTURE_LABEL[posture],
     summary,
     strengths,
     risks,
     watchItems,
     dataQuality: {
-      proofLevel: trust.proofLevel,
       label: PROOF_LEVELS[trust.proofLevel].label,
       note: PROOF_LEVELS[trust.proofLevel].blurb,
     },

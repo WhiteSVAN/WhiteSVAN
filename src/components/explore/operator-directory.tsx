@@ -21,8 +21,6 @@ export interface DirectoryOperator {
   proofLevel: number | null;
   returnPct: number | null;
   maxDrawdownPct: number | null;
-  transparencyScore: number | null;
-  severity: string | null;
   capitalBand?: string | null;
   trackRecord?: string | null;
   freshness?: string | null;
@@ -64,16 +62,28 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-function percent(value: number | null, sign = false) {
+function returnPercent(value: number | null) {
   if (value == null) return "—";
-  return `${sign && value > 0 ? "+" : ""}${value.toFixed(1)}%`;
+  return `${value > 0 ? "+" : ""}${(value * 100).toFixed(1)}%`;
+}
+
+function drawdownPercent(value: number | null) {
+  return value == null ? "—" : `${value.toFixed(1)}%`;
+}
+
+function sourceLabel(level: number | null) {
+  if (level == null) return "No published record";
+  if (level >= 5) return "Independently reviewed";
+  if (level >= 4) return "Additional document attached";
+  if (level >= 3) return "Statement attached";
+  if (level >= 2) return "Imported history";
+  return "Self-reported";
 }
 
 export function OperatorDirectory({ operators }: { operators: DirectoryOperator[] }) {
   const [search, setSearch] = useState("");
   const [proof, setProof] = useState("all");
   const [strategy, setStrategy] = useState("all");
-  const [sort, setSort] = useState("trust");
   const [savedOnly, setSavedOnly] = useState(false);
   const savedSnapshot = useSyncExternalStore(subscribeWatchlist, getWatchlistSnapshot, () => "[]");
   const saved = useMemo(() => parseWatchlist(savedSnapshot), [savedSnapshot]);
@@ -104,12 +114,8 @@ export function OperatorDirectory({ operators }: { operators: DirectoryOperator[
           (!savedOnly || saved.includes(operator.slug))
         );
       })
-      .sort((a, b) => {
-        if (sort === "drawdown") return (a.maxDrawdownPct ?? Infinity) - (b.maxDrawdownPct ?? Infinity);
-        if (sort === "growth") return (b.returnPct ?? -Infinity) - (a.returnPct ?? -Infinity);
-        return (b.transparencyScore ?? -1) - (a.transparencyScore ?? -1);
-      });
-  }, [operators, proof, saved, savedOnly, search, sort, strategy]);
+      .sort((a, b) => a.displayName.localeCompare(b.displayName));
+  }, [operators, proof, saved, savedOnly, search, strategy]);
 
   const compared = compare.map((slug) => operators.find((operator) => operator.slug === slug)).filter(Boolean) as DirectoryOperator[];
 
@@ -165,9 +171,13 @@ export function OperatorDirectory({ operators }: { operators: DirectoryOperator[
             />
             {search && <button type="button" onClick={() => setSearch("")} aria-label="Clear search"><X className="h-3.5 w-3.5" /></button>}
           </label>
-          <select value={proof} onChange={(event) => setProof(event.target.value)} aria-label="Proof level" className="min-h-11 rounded-md border border-zinc-700 bg-zinc-950 px-3 text-xs text-zinc-300">
-            <option value="all">All proof levels</option>
-            {[4, 3, 2, 1].map((level) => <option key={level} value={level}>Proof L{level}</option>)}
+          <select value={proof} onChange={(event) => setProof(event.target.value)} aria-label="Record source" className="min-h-11 rounded-md border border-zinc-700 bg-zinc-950 px-3 text-xs text-zinc-300">
+            <option value="all">All record sources</option>
+            <option value="5">Independently reviewed</option>
+            <option value="4">Additional document attached</option>
+            <option value="3">Statement attached</option>
+            <option value="2">Imported history</option>
+            <option value="1">Self-reported</option>
           </select>
           <select value={strategy} onChange={(event) => setStrategy(event.target.value)} aria-label="Strategy" className="min-h-11 rounded-md border border-zinc-700 bg-zinc-950 px-3 text-xs text-zinc-300">
             <option value="all">All strategies</option>
@@ -192,19 +202,19 @@ export function OperatorDirectory({ operators }: { operators: DirectoryOperator[
                 </button>
               </div>
               <div className="mt-5 flex flex-wrap items-center gap-2">
-                {operator.proofLevel ? <span className="inline-flex items-center gap-1 rounded border border-[#57733a] bg-[#1a2418] px-2 py-1 text-[9px] text-[#bdd69e]"><ShieldCheck className="h-3 w-3" /> Proof L{operator.proofLevel}</span> : <span className="text-xs text-[#7d897f]">Unpublished</span>}
+                {operator.proofLevel ? <span className="inline-flex items-center gap-1 rounded border border-[#57733a] bg-[#1a2418] px-2 py-1 text-[9px] text-[#bdd69e]"><ShieldCheck className="h-3 w-3" /> {sourceLabel(operator.proofLevel)}</span> : <span className="text-xs text-[#7d897f]">Unpublished</span>}
                 {operator.openToWork && <i className="terminal-dot" title="Open to work" />}
                 <span className="truncate text-[9px] text-[#738078]">{operator.strategy}</span>
               </div>
               <div className="mt-5 grid grid-cols-3 border-y border-[#2a352c] py-4">
-                <DirectoryMetric label="Growth" value={percent(operator.returnPct, true)} accent />
-                <DirectoryMetric label="Drawdown" value={percent(operator.maxDrawdownPct)} bordered />
-                <DirectoryMetric label="Trust" value={operator.transparencyScore?.toString() ?? "—"} bordered />
+                <DirectoryMetric label="Period return" value={returnPercent(operator.returnPct)} accent />
+                <DirectoryMetric label="Max drawdown" value={drawdownPercent(operator.maxDrawdownPct)} bordered />
+                <DirectoryMetric label="Record" value={operator.trackRecord ?? "—"} bordered />
               </div>
               <div className="mt-auto flex flex-wrap items-end justify-between gap-4 pt-5">
                 <div className="flex gap-6 text-[9px] text-[#748078]">
                   <span><b className="mb-1 block font-mono font-normal uppercase tracking-wider text-[#68746b]">Capital</b>{operator.capitalBand ?? "Not disclosed"}</span>
-                  <span><b className="mb-1 block font-mono font-normal uppercase tracking-wider text-[#68746b]">History</b>{operator.trackRecord ?? "Published window"}</span>
+                  <span><b className="mb-1 block font-mono font-normal uppercase tracking-wider text-[#68746b]">Coverage</b>{operator.freshness ?? "Not available"}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-2 text-[9px] text-[#7f8d82]"><input type="checkbox" checked={compare.includes(operator.slug)} onChange={() => toggleCompare(operator.slug)} aria-label={`Compare ${operator.displayName}`} /> Compare</label>
@@ -225,9 +235,6 @@ export function OperatorDirectory({ operators }: { operators: DirectoryOperator[
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#2d382f] px-5 py-4">
           <p className="text-[10px] text-[#7f8d82]">{results.length} record{results.length === 1 ? "" : "s"} visible · choose two to compare</p>
           <div className="flex items-center gap-3">
-            <select value={sort} onChange={(event) => setSort(event.target.value)} aria-label="Sort operators" className="rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-[10px] text-zinc-300">
-              <option value="trust">Highest trust</option><option value="growth">Highest growth</option><option value="drawdown">Lowest drawdown</option>
-            </select>
             <button type="button" disabled={compare.length !== 2} onClick={() => setComparisonOpen(true)} className="inline-flex items-center gap-2 rounded-md bg-[#baf277] px-3 py-2 text-[10px] font-medium text-[#17200e] disabled:cursor-not-allowed disabled:opacity-35">
               <GitCompareArrows className="h-3.5 w-3.5" /> Compare {compare.length}/2
             </button>
@@ -248,10 +255,9 @@ export function OperatorDirectory({ operators }: { operators: DirectoryOperator[
                 <tbody>
                   {[
                     ["Strategy", compared.map((item) => item.strategy ?? "—")],
-                    ["Proof", compared.map((item) => item.proofLevel ? `Level ${item.proofLevel}` : "—")],
-                    ["Growth", compared.map((item) => percent(item.returnPct, true))],
-                    ["Max drawdown", compared.map((item) => percent(item.maxDrawdownPct))],
-                    ["Transparency", compared.map((item) => item.transparencyScore?.toString() ?? "—")],
+                    ["Record source", compared.map((item) => sourceLabel(item.proofLevel))],
+                    ["Period return", compared.map((item) => returnPercent(item.returnPct))],
+                    ["Max drawdown", compared.map((item) => drawdownPercent(item.maxDrawdownPct))],
                     ["Capital band", compared.map((item) => item.capitalBand ?? "Not disclosed")],
                     ["Track record", compared.map((item) => item.trackRecord ?? "Published window")],
                   ].map(([label, values]) => (

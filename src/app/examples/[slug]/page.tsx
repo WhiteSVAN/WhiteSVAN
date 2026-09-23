@@ -63,7 +63,7 @@ export default async function ExampleOperatorPage({ params }: { params: Promise<
                   <p className="mt-2 text-sm text-[#9ca99d]">{operator.location} · {operator.strategy} · {operator.instruments}</p>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-2 rounded-md border border-[#5a763e] bg-[#1b2818] px-3 py-2 text-[10px] text-[#c5dfa7]"><ShieldCheck className="h-4 w-4" /> Proof L{operator.proofLevel} · {operator.proof}</span>
+              <span className="inline-flex items-center gap-2 rounded-md border border-[#5a763e] bg-[#1b2818] px-3 py-2 text-[10px] text-[#c5dfa7]"><ShieldCheck className="h-4 w-4" /> {operator.proof}</span>
             </div>
             <p className="mt-8 max-w-3xl text-lg leading-8 text-[#d8dfd3]">{operator.summary}</p>
           </div>
@@ -73,7 +73,7 @@ export default async function ExampleOperatorPage({ params }: { params: Promise<
           <div className="space-y-6">
             <section className="terminal-card overflow-hidden">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2e382a] px-5 py-4">
-                <div><p className="terminal-label">Verified performance context</p><h2 className="mt-1 text-lg font-medium">Published observation window</h2></div>
+                <div><p className="terminal-label">Illustrative performance context</p><h2 className="mt-1 text-lg font-medium">Published observation window</h2></div>
                 <span className="font-mono text-[10px] text-[#91a088]">{operator.trackRecord}</span>
               </div>
               <div className="p-5 sm:p-6">

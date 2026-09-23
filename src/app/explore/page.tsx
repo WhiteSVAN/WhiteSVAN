@@ -8,10 +8,11 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
 import { EXAMPLE_OPERATORS } from "@/lib/example-operators";
+import { differenceInCalendarMonths, format } from "date-fns";
 
 export const metadata: Metadata = {
   title: "Explore operators — TrustSVAN",
-  description: "Inspect published trading records by proof level, strategy, performance, and risk context.",
+  description: "Inspect published trading records by source, strategy, performance, and risk context.",
 };
 
 export default async function ExplorePage() {
@@ -30,7 +31,7 @@ export default async function ExplorePage() {
         versions: {
           orderBy: { versionNumber: "desc" },
           take: 1,
-          select: { metrics: true },
+          select: { metrics: true, periodStart: true, periodEnd: true, publishedAt: true },
         },
       },
       orderBy: { displayName: "asc" },
@@ -41,7 +42,11 @@ export default async function ExplorePage() {
     });
 
   const publishedOperators: DirectoryOperator[] = profiles.map((profile) => {
-    const trust = publishedTrustFromMetrics(profile.versions[0]?.metrics)?.trust ?? null;
+    const version = profile.versions[0];
+    const trust = publishedTrustFromMetrics(version?.metrics)?.trust ?? null;
+    const months = version?.periodStart && version.periodEnd
+      ? Math.max(1, differenceInCalendarMonths(version.periodEnd, version.periodStart) + 1)
+      : null;
     return {
       slug: profile.slug,
       displayName: profile.displayName,
@@ -52,8 +57,8 @@ export default async function ExplorePage() {
       proofLevel: trust?.proofLevel ?? null,
       returnPct: trust?.metrics.returnPct ?? null,
       maxDrawdownPct: trust?.metrics.maxDrawdownPct ?? null,
-      transparencyScore: trust?.scores.transparency ?? null,
-      severity: trust?.drawdownSeverity ?? null,
+      trackRecord: months ? `${months} month${months === 1 ? "" : "s"}` : null,
+      freshness: version?.periodEnd ? `Through ${format(version.periodEnd, "MMM d, yyyy")}` : null,
     };
   });
   const publishedSlugs = new Set(publishedOperators.map((operator) => operator.slug));
@@ -67,10 +72,8 @@ export default async function ExplorePage() {
       headline: `${operator.location} · ${operator.summary}`,
       openToWork: false,
       proofLevel: operator.proofLevel,
-      returnPct: operator.returnPct,
+      returnPct: operator.returnPct / 100,
       maxDrawdownPct: operator.maxDrawdownPct,
-      transparencyScore: operator.transparencyScore,
-      severity: null,
       capitalBand: operator.capitalBand,
       trackRecord: operator.trackRecord,
       freshness: operator.freshness,
@@ -84,7 +87,7 @@ export default async function ExplorePage() {
       <div className="border-b border-[#202a23] bg-[#111711] font-mono text-[9px] uppercase tracking-[0.08em] text-[#8f9d8e]">
         <div className="mx-auto flex h-8 max-w-7xl items-center justify-between px-4 sm:px-8">
           <span className="flex items-center gap-2"><i className="terminal-dot" /> Published records</span>
-          <span>Source-backed / operator controlled</span>
+          <span>Published snapshots / trader controlled</span>
         </div>
       </div>
       <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-xl">

@@ -6,8 +6,7 @@ import { uploadEvidence } from "./actions";
 import { inputClass, labelClass } from "@/components/form";
 
 const KINDS = [
-  { v: "STATEMENT", label: "Broker statement (raises Proof Level)" },
-  { v: "TAX_RETURN", label: "Tax return / official tax record (raises Proof Level 4)" },
+  { v: "STATEMENT", label: "Broker statement (attached, not independently reviewed)" },
   { v: "PAYOUT", label: "Payout proof" },
   { v: "EXPORT", label: "Source export" },
   { v: "OTHER", label: "Other" },
@@ -28,6 +27,10 @@ export function EvidenceUploader({ accounts }: { accounts: { id: string; account
   return (
     <form ref={formRef} action={action} className="grid gap-3 sm:grid-cols-2">
       <div className="sm:col-span-2">
+        <p className="mb-3 rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-xs leading-5 text-zinc-400">
+          Files are private by default. Uploading evidence records its provenance; it does not mean
+          TrustSVAN has independently verified the document or every period in your record.
+        </p>
         <label htmlFor="file" className={labelClass}>
           File <span className="text-zinc-400">(PDF, image, source export - max 10 MB)</span>
         </label>

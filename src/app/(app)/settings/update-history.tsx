@@ -18,7 +18,6 @@ interface Version {
   versionNumber: number;
   periodStart: Date | null;
   periodEnd: Date | null;
-  transparencyScore: number;
   proofLevel: number;
   netPnl: number;
   changeSummary: string | null;
@@ -75,8 +74,7 @@ export function UpdateHistory({
                 </div>
                 <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-zinc-500">
                   <span>Net {formatMoney(v.netPnl)}</span>
-                  <span>Transparency {v.transparencyScore}/100</span>
-                  <span>Proof L{v.proofLevel}</span>
+                  <span>Source: {sourceLabel(v.proofLevel)}</span>
                 </div>
                 {v.changeSummary && <p className="mt-1 text-xs text-zinc-500">{v.changeSummary}</p>}
               </li>
@@ -159,4 +157,12 @@ export function UpdateHistory({
       </div>
     </div>
   );
+}
+
+function sourceLabel(level: number): string {
+  if (level >= 5) return "Independently reviewed";
+  if (level >= 4) return "Additional document attached";
+  if (level >= 3) return "Statement attached";
+  if (level >= 2) return "Imported trading history";
+  return "Self-reported";
 }

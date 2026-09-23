@@ -4,8 +4,9 @@ import { requireUser } from "@/lib/auth/dal";
 import { AccountMenu } from "./account-menu";
 
 const NAV = [
-  { href: "/dashboard", label: "Record" },
-  { href: "/network", label: "Network" },
+  { href: "/dashboard", label: "My record" },
+  { href: "/upload", label: "Import data" },
+  { href: "/explore", label: "Traders" },
 ];
 
 /**

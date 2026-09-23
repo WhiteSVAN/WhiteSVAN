@@ -18,8 +18,6 @@ const trust = computeTrustMetrics(days, 10000, 2);
 const snapOf = (over: Partial<VersionSnapshot> = {}): VersionSnapshot => ({
   netPnl: trust.metrics.netPnl,
   returnPct: trust.metrics.returnPct,
-  transparencyScore: trust.scores.transparency,
-  proofLevel: trust.proofLevel,
   maxDrawdownPct: trust.metrics.maxDrawdownPct,
   periodEnd: "2026-05-05",
   ...over,
@@ -32,14 +30,6 @@ describe("generateRiskEvents", () => {
     expect(types).toContain("DRAWDOWN");
     expect(types).toContain("BIG_WIN_DEPENDENCY");
     expect(types).not.toContain("SCORE_CHANGE"); // no prior version to compare
-  });
-
-  it("emits a SCORE_CHANGE event when the score moved vs the prior version", () => {
-    const prev = snapOf({ transparencyScore: trust.scores.transparency - 6 });
-    const diff = diffVersions(prev, snapOf());
-    const score = generateRiskEvents(trust, diff, "fresh").find((e) => e.type === "SCORE_CHANGE");
-    expect(score).toBeDefined();
-    expect(score?.severity).toBe("INFO"); // score rose → informational
   });
 
   it("emits a STALE_PROFILE warning only when freshness is stale", () => {
@@ -66,7 +56,7 @@ describe("buildChangeSummary", () => {
   });
 
   it("summarizes deltas vs the prior version", () => {
-    const prev = snapOf({ netPnl: trust.metrics.netPnl - 500, transparencyScore: trust.scores.transparency - 3 });
+    const prev = snapOf({ netPnl: trust.metrics.netPnl - 500 });
     const summary = buildChangeSummary(trust, diffVersions(prev, snapOf()));
     expect(summary).toMatch(/Since the last update/);
     expect(summary).toMatch(/net P&L/);

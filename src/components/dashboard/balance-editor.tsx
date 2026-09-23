@@ -86,7 +86,7 @@ export function BalanceEditor({
           Cancel
         </button>
       )}
-      <span className="text-zinc-400">— used for growth rate &amp; drawdown.</span>
+      <span className="text-zinc-400">— user-supplied; used for return &amp; drawdown percentages.</span>
       {state?.error && <span className="text-zinc-300">{state.error}</span>}
     </form>
   );

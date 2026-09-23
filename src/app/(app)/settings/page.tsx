@@ -96,7 +96,6 @@ export default async function SettingsPage() {
         versionNumber: true,
         periodStart: true,
         periodEnd: true,
-        transparencyScore: true,
         proofLevel: true,
         netPnl: true,
         changeSummary: true,
@@ -143,14 +142,15 @@ export default async function SettingsPage() {
       </section>
 
       <section className="terminal-card p-6">
-        <h2 className="text-base font-medium text-zinc-800">Proof and evidence</h2>
+        <h2 className="text-base font-medium text-zinc-800">Record sources and evidence</h2>
         <div className="mt-3 rounded-lg bg-zinc-50 px-4 py-3 text-sm">
           <span className="font-medium text-zinc-800">
-            Proof Level {proofLevel}: {PROOF_LEVELS[proofLevel].label}
+            Current source: {PROOF_LEVELS[proofLevel].label}
           </span>
           <p className="mt-0.5 text-zinc-500">{PROOF_LEVELS[proofLevel].blurb}</p>
           <p className="mt-1 text-xs text-zinc-400">
-            Add a broker statement for Level 3, or a tax return / official tax record for Level 4.
+            Attach supporting files to document where the record came from. Files remain private
+            unless you explicitly expose them, and an attachment is not an independent review.
           </p>
         </div>
 
@@ -200,7 +200,7 @@ export default async function SettingsPage() {
                               : "bg-zinc-100 text-zinc-500"
                           }`}
                         >
-                          {e.isPublic ? "Public" : "Private"}
+                          {e.isPublic ? "Listed on profile" : "Hidden"}
                         </button>
                       </form>
                     )}

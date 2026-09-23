@@ -4,8 +4,6 @@ import { diffVersions, hasMeaningfulChange, type VersionSnapshot } from "./versi
 const snap = (over: Partial<VersionSnapshot> = {}): VersionSnapshot => ({
   netPnl: 1000,
   returnPct: 0.1,
-  transparencyScore: 70,
-  proofLevel: 2,
   maxDrawdownPct: 12,
   periodEnd: "2026-05-31",
   ...over,
@@ -16,15 +14,13 @@ describe("diffVersions", () => {
     const d = diffVersions(null, snap());
     expect(d.isFirst).toBe(true);
     expect(d.netPnlDelta).toBe(1000);
-    expect(d.transparencyDelta).toBe(70);
     expect(d.newDaysCovered).toBe(true);
   });
 
   it("computes signed deltas against the prior version", () => {
-    const prev = snap({ netPnl: 1000, transparencyScore: 70, maxDrawdownPct: 12, returnPct: 0.1 });
+    const prev = snap({ netPnl: 1000, maxDrawdownPct: 12, returnPct: 0.1 });
     const next = snap({
       netPnl: 1500,
-      transparencyScore: 74,
       maxDrawdownPct: 18,
       returnPct: 0.15,
       periodEnd: "2026-06-15",
@@ -32,7 +28,6 @@ describe("diffVersions", () => {
     const d = diffVersions(prev, next);
     expect(d.isFirst).toBe(false);
     expect(d.netPnlDelta).toBe(500);
-    expect(d.transparencyDelta).toBe(4);
     expect(d.drawdownPctDelta).toBe(6); // drawdown got deeper
     expect(d.returnPctDelta).toBeCloseTo(0.05);
     expect(d.newDaysCovered).toBe(true);

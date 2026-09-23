@@ -67,7 +67,7 @@ export function ReportEditor({
           <Link href="/reports" className="text-xs text-zinc-200 hover:text-zinc-100">
             Back to briefs
           </Link>
-          <p className="terminal-label mt-4">Brief editor / verified metrics</p>
+          <p className="terminal-label mt-4">Brief editor / computed metrics</p>
           <h1 className="mt-2 text-3xl font-medium tracking-[-0.04em] text-zinc-900">
             {accountName} / {periodLabel(period)}
           </h1>

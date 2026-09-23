@@ -54,17 +54,16 @@ function trust(over: Partial<TrustMetrics> = {}, m: Partial<Metrics> = {}): Trus
 }
 
 describe("buildDiligenceBrief", () => {
-  it("reads a strong verified record as constructive with strengths and no risk flags", () => {
+  it("summarizes positive observations without assigning a posture or score", () => {
     const brief = buildDiligenceBrief(trust());
-    expect(brief.posture).toBe("constructive");
     expect(brief.strengths.length).toBeGreaterThan(brief.risks.length);
-    expect(brief.strengths.some((s) => s.label === "Strong verified return")).toBe(true);
-    expect(brief.dataQuality.proofLevel).toBe(4);
+    expect(brief.strengths.some((s) => s.label === "Positive period return")).toBe(true);
+    expect(brief.dataQuality.label).toBe("Additional document attached");
     // Always carries the not-advice framing (guardrail).
     expect(brief.summary).toMatch(/not investment advice/i);
   });
 
-  it("flags a weak record as cautious with concrete risks", () => {
+  it("flags a weak record with concrete risks", () => {
     const brief = buildDiligenceBrief(
       trust(
         {
@@ -87,7 +86,6 @@ describe("buildDiligenceBrief", () => {
         { returnPct: -0.1, winRate: 0.3, maxDrawdownPct: 40, profitFactor: 0.9, tradingDays: 40 },
       ),
     );
-    expect(brief.posture).toBe("cautious");
     expect(brief.strengths.length).toBe(0);
     expect(brief.risks.some((r) => r.label === "Big-win dependency")).toBe(true);
     expect(brief.risks.some((r) => r.label === "Deep drawdown")).toBe(true);

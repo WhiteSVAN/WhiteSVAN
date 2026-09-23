@@ -5,14 +5,14 @@ import { prisma } from "@/lib/db";
 import { requireUserId } from "@/lib/auth/dal";
 import { parseTradesCsv, type ColumnMapping } from "@/lib/csv/parse";
 import { parseBrokerCsv } from "@/lib/csv/brokers";
-import { DuplicateImportError, importTrades } from "@/lib/ingest/import";
+import { DuplicateImportError, OverlappingImportError, importTrades } from "@/lib/ingest/import";
 import { sha256 } from "@/lib/hash";
 
 export type AccountFormState =
   | { errors?: { accountName?: string[] }; message?: string }
   | undefined;
 
-/** Create a brokerage/prop-firm account to attach source-backed trades to. */
+/** Create a brokerage or prop-firm account to receive imported trades. */
 export async function createAccount(
   _prev: AccountFormState,
   formData: FormData,
@@ -100,6 +100,11 @@ export async function confirmImport(
   } catch (error) {
     if (error instanceof DuplicateImportError) {
       return { message: "This source file was already loaded for this account." };
+    }
+    if (error instanceof OverlappingImportError) {
+      return {
+        message: `This file overlaps existing coverage from ${error.periodStart} to ${error.periodEnd}. Clear and replace that account's history, or import a non-overlapping export.`,
+      };
     }
     throw error;
   }

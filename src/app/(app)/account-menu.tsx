@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { logout } from "./actions";
 
 const ITEMS = [
-  { href: "/upload", label: "Connect broker" },
+  { href: "/upload", label: "Import history" },
   { href: "/reports", label: "My briefs" },
   { href: "/settings", label: "Settings" },
 ];

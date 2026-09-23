@@ -62,7 +62,6 @@ export async function generateReport(
         drawdownSeverity: trust.drawdownSeverity,
         badToGoodRatio: trust.badToGoodRatio,
         bounceBackDays: trust.bounceBackDays,
-        transparencyScore: trust.scores.transparency,
       },
     });
   } catch (err) {
@@ -84,7 +83,6 @@ export async function generateReport(
           ...trust.metrics,
           drawdownSeverity: trust.drawdownSeverity,
           bestDayShare: trust.bestDayShare,
-          transparencyScore: trust.scores.transparency,
         }),
       ),
       aiReport: ai,

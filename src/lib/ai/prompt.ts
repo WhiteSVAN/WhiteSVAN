@@ -1,6 +1,6 @@
 /**
  * Shared prompt construction. The system prompt is the
- * compliance guardrail; the user prompt feeds verified metrics
+ * compliance guardrail; the user prompt feeds computed metrics
  * as text so the model explains numbers it never has to compute.
  */
 import type { Metrics } from "@/lib/metrics";
@@ -28,7 +28,6 @@ export interface ReportSignals {
   drawdownSeverity: string;
   badToGoodRatio: number | null;
   bounceBackDays: number | null;
-  transparencyScore: number;
 }
 
 export interface ReportInput {
@@ -54,20 +53,20 @@ export function buildUserPrompt(input: ReportInput): string {
     `Average green day: ${formatMoney(m.avgGreenDay)}; average red day: ${formatMoney(m.avgRedDay)}`,
     `Profit factor: ${m.profitFactor != null ? m.profitFactor.toFixed(2) : "n/a"}`,
     `Max drawdown: ${formatMoney(m.maxDrawdown)} (${m.maxDrawdownPct.toFixed(1)}% of peak equity)`,
-    `Consistency score: ${m.consistencyScore} out of 100`,
+    `Losing days: ${m.losingDays} of ${m.tradingDays}`,
   ];
   if (input.notes?.strategy) facts.push(`Trader's strategy notes: ${input.notes.strategy}`);
   if (input.notes?.instruments) facts.push(`Instruments traded: ${input.notes.instruments}`);
   if (input.notes?.riskRules) facts.push(`Trader's stated risk rules: ${input.notes.riskRules}`);
 
   return [
-    "Write a monthly TrustSVAN research brief from these verified metrics. Use only the numbers given.",
+    "Write a monthly TrustSVAN research brief from these computed metrics. Use only the numbers given.",
     "",
     facts.join("\n"),
     "",
     "Return a JSON object with exactly these fields:",
     "- executive_summary (string): a professional overview of the month.",
-    "- performance_summary (string): what happened, using the verified metrics.",
+    "- performance_summary (string): what happened, using the computed metrics.",
     "- risk_summary (string): drawdown, worst day, volatility, concentration.",
     "- discipline_review (string): consistency, red-day frequency, single-day dependence.",
     "- notable_days (array of strings): brief callouts such as best day and worst day.",

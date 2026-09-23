@@ -9,10 +9,12 @@ import { publishUpdate } from "@/app/(app)/dashboard/actions";
  * last published version + its change summary.
  */
 export function PublishUpdate({
+  accountId,
   lastVersionNumber,
   lastPublishedLabel,
   lastChangeSummary,
 }: {
+  accountId: string;
   lastVersionNumber: number | null;
   lastPublishedLabel: string | null;
   lastChangeSummary: string | null;
@@ -31,6 +33,7 @@ export function PublishUpdate({
           </p>
         </div>
         <form action={action}>
+          <input type="hidden" name="accountId" value={accountId} />
           <button
             type="submit"
             disabled={pending}
@@ -47,11 +50,11 @@ export function PublishUpdate({
         </p>
       )}
       {state?.published && (
-        <p className="mt-3 text-sm text-zinc-100">
+        <p className="mt-3 text-sm text-zinc-100" role="status">
           Published v{state.version}. Your research profile is updated.
         </p>
       )}
-      {state?.error && <p className="mt-3 text-sm text-zinc-300">{state.error}</p>}
+      {state?.error && <p className="mt-3 text-sm text-zinc-300" role="alert">{state.error}</p>}
     </section>
   );
 }

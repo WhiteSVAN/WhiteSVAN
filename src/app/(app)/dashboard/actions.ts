@@ -25,21 +25,24 @@ export type PublishState = { published?: boolean; version?: number; error?: stri
  */
 export async function publishUpdate(
   _prev: PublishState,
-  _formData: FormData,
+  formData: FormData,
 ): Promise<PublishState> {
   void _prev;
-  void _formData;
 
   const user = await requireUser();
   if (!user.profile) return { error: "Set up your profile first." };
 
-  // Primary account = the portal's headline account (earliest created).
+  const accountId = String(formData.get("accountId") ?? "");
+  if (!accountId) return { error: "Choose an account before publishing." };
+
   const account = await prisma.tradingAccount.findFirst({
-    where: { userId: user.id },
+    where: { id: accountId, userId: user.id },
     select: { id: true, startingBalance: true },
-    orderBy: { createdAt: "asc" },
   });
   if (!account) return { error: "Add an account and connect trading history before publishing." };
+  if (Number(account.startingBalance) <= 0) {
+    return { error: "Add the account's starting capital before publishing percentage metrics." };
+  }
 
   const dayRows = await prisma.dailyPnl.findMany({
     where: { accountId: account.id },
@@ -51,10 +54,11 @@ export async function publishUpdate(
   const dailySeries = dayRows.map((d) => ({ date: toISODate(d.tradeDate), netPnl: Number(d.netPnl) }));
   const proofLevel = await accountProofLevel(account.id, true);
 
-  // Publishing now → the profile is fresh for its cadence; that drives reliability.
   const now = new Date();
   const cadence = toCadence(user.profile.updateCadence);
-  const freshness: FreshnessStatus = getFreshnessStatus(cadence, now, now);
+  const periodEndDate = dayRows[dayRows.length - 1].tradeDate;
+  // Data freshness is based on source coverage, not the time an old snapshot is republished.
+  const freshness: FreshnessStatus = getFreshnessStatus(cadence, periodEndDate, now);
   const trust = computeTrustMetrics(
     dailySeries,
     Number(account.startingBalance),
@@ -73,8 +77,6 @@ export async function publishUpdate(
       versionNumber: true,
       netPnl: true,
       returnPct: true,
-      transparencyScore: true,
-      proofLevel: true,
       periodEnd: true,
       metrics: true,
     },
@@ -84,8 +86,6 @@ export async function publishUpdate(
     ? {
         netPnl: Number(latest.netPnl),
         returnPct: latest.returnPct,
-        transparencyScore: latest.transparencyScore,
-        proofLevel: latest.proofLevel,
         maxDrawdownPct:
           (latest.metrics as { maxDrawdownPct?: number } | null)?.maxDrawdownPct ?? 0,
         periodEnd: latest.periodEnd ? toISODate(latest.periodEnd) : null,
@@ -94,8 +94,6 @@ export async function publishUpdate(
   const nextSnap: VersionSnapshot = {
     netPnl: trust.metrics.netPnl,
     returnPct: trust.metrics.returnPct,
-    transparencyScore: trust.scores.transparency,
-    proofLevel,
     maxDrawdownPct: trust.metrics.maxDrawdownPct,
     periodEnd,
   };
@@ -105,7 +103,7 @@ export async function publishUpdate(
   const versionNumber = (latest?.versionNumber ?? 0) + 1;
 
   const sourceBatch = await prisma.importBatch.findFirst({
-    where: { account: { userId: user.id } },
+    where: { accountId: account.id },
     orderBy: { createdAt: "desc" },
     select: { id: true },
   });

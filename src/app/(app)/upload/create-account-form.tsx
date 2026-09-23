@@ -11,7 +11,7 @@ export function CreateAccountForm() {
     <div className="terminal-card p-6">
       <h2 className="text-base font-medium text-zinc-900">Create a trading account</h2>
       <p className="mt-1 text-sm text-zinc-500">
-        First, name the broker or prop-firm account that will hold the source-backed history.
+        First, name the broker or prop-firm account that will hold the imported history.
         You can add more later.
       </p>
 
@@ -55,7 +55,9 @@ export function CreateAccountForm() {
             className={inputClass}
             placeholder="150000"
           />
-          <p className="mt-1 text-xs text-zinc-400">Used for return % and drawdown %.</p>
+          <p className="mt-1 text-xs text-zinc-400">
+            User-supplied. Required before publishing return and drawdown percentages.
+          </p>
         </div>
 
         <button type="submit" disabled={pending} className={btnPrimary}>

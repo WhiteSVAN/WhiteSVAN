@@ -12,8 +12,6 @@ export interface VersionSnapshot {
   netPnl: number;
   /** Simple return over starting balance, as a fraction (0.12 = 12%). `null` when unknown. */
   returnPct: number | null;
-  transparencyScore: number;
-  proofLevel: number;
   /** Largest peak-to-trough decline, percent of running peak (0..100). */
   maxDrawdownPct: number;
   /** ISO `YYYY-MM-DD` last day of coverage, or null. */
@@ -26,8 +24,6 @@ export interface VersionDiff {
   netPnlDelta: number;
   /** `null` when either side's return is unknown. */
   returnPctDelta: number | null;
-  transparencyDelta: number;
-  proofLevelDelta: number;
   /** Positive = drawdown got worse (deeper). */
   drawdownPctDelta: number;
   /** Coverage extended to newer days since the prior version. */
@@ -41,8 +37,6 @@ export function diffVersions(prev: VersionSnapshot | null, next: VersionSnapshot
       isFirst: true,
       netPnlDelta: next.netPnl,
       returnPctDelta: next.returnPct,
-      transparencyDelta: next.transparencyScore,
-      proofLevelDelta: next.proofLevel,
       drawdownPctDelta: next.maxDrawdownPct,
       newDaysCovered: next.periodEnd != null,
     };
@@ -52,8 +46,6 @@ export function diffVersions(prev: VersionSnapshot | null, next: VersionSnapshot
     netPnlDelta: next.netPnl - prev.netPnl,
     returnPctDelta:
       next.returnPct != null && prev.returnPct != null ? next.returnPct - prev.returnPct : null,
-    transparencyDelta: next.transparencyScore - prev.transparencyScore,
-    proofLevelDelta: next.proofLevel - prev.proofLevel,
     drawdownPctDelta: next.maxDrawdownPct - prev.maxDrawdownPct,
     newDaysCovered: next.periodEnd != null && (prev.periodEnd == null || next.periodEnd > prev.periodEnd),
   };
@@ -64,8 +56,6 @@ export function hasMeaningfulChange(diff: VersionDiff): boolean {
   if (diff.isFirst) return true;
   return (
     Math.abs(diff.netPnlDelta) >= 0.01 ||
-    diff.transparencyDelta !== 0 ||
-    diff.proofLevelDelta !== 0 ||
     Math.abs(diff.drawdownPctDelta) >= 0.01 ||
     diff.newDaysCovered
   );

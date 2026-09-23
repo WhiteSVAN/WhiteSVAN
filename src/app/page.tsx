@@ -25,25 +25,25 @@ const PRINCIPLES = [
 ];
 
 const OPERATORS = [
-  { name: "Sofia Alvarez", initials: "SA", strategy: "Systematic futures", proof: "Tax checked", cagr: "+38.4%", sharpe: "2.10", drawdown: "5.8%" },
-  { name: "Priya Nair", initials: "PN", strategy: "Options flow", proof: "Tax checked", cagr: "+31.7%", sharpe: "1.88", drawdown: "7.2%" },
-  { name: "Marcus Chen", initials: "MC", strategy: "Statistical arbitrage", proof: "Statement checked", cagr: "+24.9%", sharpe: "1.72", drawdown: "8.6%" },
-  { name: "Diego Santos", initials: "DS", strategy: "Global macro", proof: "Statement checked", cagr: "+19.6%", sharpe: "1.41", drawdown: "9.4%" },
+  { name: "Sofia Alvarez", initials: "SA", strategy: "Systematic futures", proof: "Illustrative record", returnPct: "+38.4%", sharpe: "2.10", drawdown: "5.8%" },
+  { name: "Priya Nair", initials: "PN", strategy: "Options flow", proof: "Illustrative record", returnPct: "+31.7%", sharpe: "1.88", drawdown: "7.2%" },
+  { name: "Marcus Chen", initials: "MC", strategy: "Statistical arbitrage", proof: "Illustrative record", returnPct: "+24.9%", sharpe: "1.72", drawdown: "8.6%" },
+  { name: "Diego Santos", initials: "DS", strategy: "Global macro", proof: "Illustrative record", returnPct: "+19.6%", sharpe: "1.41", drawdown: "9.4%" },
 ];
 
 const VERIFICATION = [
   {
     n: "01",
-    title: "Connect the source.",
-    subtitle: "Read-only access. Your trades stay yours.",
-    body: "Start with broker history or an account export. TrustSVAN reads the record; it never executes trades or moves money.",
+    title: "Import the record.",
+    subtitle: "Start with the broker export you control.",
+    body: "TrustSVAN calculates from the uploaded rows and records their coverage. An upload is clearly distinguished from a direct connection or independent review.",
     icon: LockKeyhole,
   },
   {
     n: "02",
     title: "Build the evidence.",
-    subtitle: "A proof level, not a promise.",
-    body: "Statements and tax records strengthen the record while sensitive files remain under your control.",
+    subtitle: "Show the source and its limits.",
+    body: "Attach supporting statements, keep sensitive files private, and show exactly which dates each source covers.",
     icon: ShieldCheck,
   },
   {
@@ -64,7 +64,7 @@ const RESEARCH = [
 
 const FAQ = [
   ["Does TrustSVAN execute or copy trades?", "No. Connections are read-only. TrustSVAN is research, verification, and reporting software; it never places trades or moves funds."],
-  ["What does a proof level mean?", "It describes the evidence attached to a record—from source history through statements and tax records. It is not a safety rating or a prediction."],
+  ["What does a record source mean?", "It states whether numbers are self-reported, computed from a trader-uploaded export, supported by an attached statement, or independently reviewed."],
   ["Can operators keep account details private?", "Yes. Operators can hide amounts and broker names, keep evidence private, and decide whether their profile is public."],
   ["Are the numbers computed by AI?", "No. Metrics are calculated deterministically in code. AI can only draft narrative from already-computed values, behind compliance checks."],
 ];
@@ -84,7 +84,7 @@ export default function Home() {
       <div className="border-b border-[#202a23] bg-[#111711] font-mono text-[9px] uppercase tracking-[0.08em] text-[#a2af9f]">
         <div className="mx-auto flex h-9 max-w-7xl items-center justify-between gap-3 px-4 sm:px-8">
           <span className="flex items-center gap-2"><i className="terminal-dot" /> The proof terminal</span>
-          <span className="hidden sm:block">Source-backed records <span className="mx-3 text-[#5b695c]">/</span> Risk in context</span>
+          <span className="hidden sm:block">Evidence-led records <span className="mx-3 text-[#5b695c]">/</span> Risk in context</span>
           <Link href="/login" className="flex items-center gap-2 hover:text-[#baf277]">Go to your app <ArrowUpRight className="h-3 w-3" /></Link>
         </div>
       </div>
@@ -156,7 +156,7 @@ export default function Home() {
               <span className="terminal-label flex items-center gap-2"><i className="terminal-dot" /> Illustrative records</span>
             </div>
             <div className="hidden grid-cols-[2fr_1.3fr_.7fr_.7fr_1fr_auto] gap-4 border-b border-[#2d382f] px-5 py-3 font-mono text-[8px] uppercase tracking-wider text-[#758174] md:grid">
-              <span>Operator / strategy</span><span>Proof level</span><span>CAGR</span><span>Sharpe</span><span>Max drawdown</span><span>Inspect</span>
+              <span>Trader / strategy</span><span>Record source</span><span>Period return</span><span>Sharpe</span><span>Max drawdown</span><span>Inspect</span>
             </div>
             {OPERATORS.map((operator) => (
               <article key={operator.name} className="grid gap-4 border-b border-[#263029] px-5 py-4 last:border-0 hover:bg-[#151d17] md:grid-cols-[2fr_1.3fr_.7fr_.7fr_1fr_auto] md:items-center">
@@ -165,7 +165,7 @@ export default function Home() {
                   <div><h3 className="text-sm font-medium text-[#e8eee3]">{operator.name}</h3><p className="mt-1 text-[10px] text-[#849083]">{operator.strategy}</p></div>
                 </div>
                 <span className="inline-flex w-fit items-center gap-1.5 rounded border border-[#57733a] bg-[#1a2418] px-2 py-1 text-[9px] text-[#bdd69e]"><ShieldCheck className="h-3 w-3" />{operator.proof}</span>
-                <Metric mobile="CAGR" value={operator.cagr} accent />
+                <Metric mobile="Return" value={operator.returnPct} accent />
                 <Metric mobile="Sharpe" value={operator.sharpe} />
                 <Metric mobile="Drawdown" value={operator.drawdown} />
                 <Link href="/explore" className="flex w-fit items-center gap-1 text-xs text-[#b7ce99] hover:text-[#baf277]">View <ArrowRight className="h-3 w-3" /></Link>
@@ -183,7 +183,7 @@ export default function Home() {
             <div>
               <p className="terminal-label">02 / Trust has a paper trail</p>
               <h2 className="mt-5 text-4xl font-medium tracking-[-0.05em] sm:text-5xl">Proof is a process.<br /><span className="text-[#84947d]">Not a badge you buy.</span></h2>
-              <p className="mt-5 max-w-lg text-sm leading-7 text-[#9ca99d]">Each level says what evidence supports the record—and just as importantly, what has not been checked.</p>
+              <p className="mt-5 max-w-lg text-sm leading-7 text-[#9ca99d]">Each source label says what supports the record—and just as importantly, what TrustSVAN has not independently reviewed.</p>
               <Link href="/signup" className="mt-7 inline-flex items-center gap-2 text-sm font-medium text-[#bcd69d] hover:text-[#baf277]">Start your record <ArrowRight className="h-4 w-4" /></Link>
             </div>
             <ol className="divide-y divide-[#2d382f] border-y border-[#2d382f]">
@@ -251,7 +251,7 @@ export default function Home() {
       </main>
 
       <section className="border-t border-[#202821] bg-[#0e1410] py-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-8"><p className="text-center font-mono text-[9px] uppercase tracking-[0.12em] text-[#778379]">Connect history from the broker or prop firm you already use</p><div className="mt-6 opacity-80"><BrokerLogos /></div></div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-8"><p className="text-center font-mono text-[9px] uppercase tracking-[0.12em] text-[#778379]">Import formats currently supported</p><div className="mt-6 opacity-80"><BrokerLogos /></div></div>
       </section>
       <SiteFooter />
     </div>

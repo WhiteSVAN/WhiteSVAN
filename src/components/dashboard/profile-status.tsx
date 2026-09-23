@@ -36,15 +36,13 @@ function Stat({ label, children }: { label: string; children: React.ReactNode })
 
 /**
  * Profile status card (MVP2.1) — the trader-facing "is my trust profile current?"
- * summary: visibility, proof level, freshness badge, last updated, data coverage,
- * and the headline Transparency Score.
+ * summary: visibility, source provenance, freshness, publication time, and data coverage.
  */
 export function ProfileStatusCard({
   isPublic,
   proofLevel,
   cadence,
   lastPublishedAt,
-  transparencyScore,
   coverageStart,
   coverageEnd,
 }: {
@@ -52,13 +50,13 @@ export function ProfileStatusCard({
   proofLevel: ProofLevel;
   cadence: string;
   lastPublishedAt: Date | null;
-  transparencyScore: number | null;
   /** ISO `YYYY-MM-DD` bounds of the imported data, or null when no data. */
   coverageStart: string | null;
   coverageEnd: string | null;
 }) {
   const c = toCadence(cadence);
-  const fresh = describeFreshness(c, lastPublishedAt);
+  const coverageDate = coverageEnd ? parseISO(coverageEnd) : null;
+  const fresh = describeFreshness(c, coverageDate);
 
   const coverage =
     coverageStart && coverageEnd
@@ -77,18 +75,15 @@ export function ProfileStatusCard({
         </span>
       </div>
 
-      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 lg:grid-cols-6">
+      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-3 lg:grid-cols-5">
         <Stat label="Visibility">
           <span className={isPublic ? "text-zinc-100" : "text-zinc-500"}>
             {isPublic ? "Public" : "Private"}
           </span>
         </Stat>
-        <Stat label="Proof level">
-          <span className="font-medium">L{proofLevel}</span>{" "}
-          <span className="text-zinc-500">{PROOF_LEVELS[proofLevel].label}</span>
-        </Stat>
+        <Stat label="Record source">{PROOF_LEVELS[proofLevel].label}</Stat>
         <Stat label="Cadence">{cadenceLabel(c)}</Stat>
-        <Stat label="Last updated">
+        <Stat label="Coverage updated">
           {relativeAge(fresh.ageHours)}
           {fresh.nextExpectedUpdate && (
             <span className="block text-xs text-zinc-400">
@@ -96,15 +91,8 @@ export function ProfileStatusCard({
             </span>
           )}
         </Stat>
-        <Stat label="Transparency">
-          {transparencyScore != null ? (
-            <>
-              <span className="font-medium">{transparencyScore}</span>
-              <span className="text-zinc-400">/100</span>
-            </>
-          ) : (
-            "—"
-          )}
+        <Stat label="Published">
+          {lastPublishedAt ? format(lastPublishedAt, "MMM d, yyyy") : "Not yet"}
         </Stat>
         <Stat label="Data coverage">{coverage}</Stat>
       </dl>

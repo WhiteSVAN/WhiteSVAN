@@ -105,7 +105,7 @@ function EvidencePreview() {
   const rows = [
     ["Broker connection", "Read-only trade and balance history"],
     ["Statement check", "Reconciled against account statements"],
-    ["Tax-record check", "Additional supporting documentation"],
+    ["Additional evidence", "Supporting document attached"],
   ];
   return (
     <div>
@@ -159,7 +159,7 @@ export function ProofTerminal() {
             <p className="mt-1 text-xs text-[#8e9b89]">Systematic futures · ES · SPX</p>
           </div>
           <span className="inline-flex items-center gap-1.5 rounded border border-[#6d8e3e66] bg-[#24331c] px-2.5 py-1.5 text-[10px] text-[#c4deaa]">
-            <ShieldCheck className="h-3.5 w-3.5" /> Tax checked
+            <ShieldCheck className="h-3.5 w-3.5" /> Example source coverage
           </span>
         </div>
         <div className="px-5">
@@ -182,7 +182,7 @@ export function ProofTerminal() {
               <div>
                 <div className="mb-5 flex items-end justify-between gap-4">
                   <div>
-                    <span className="terminal-label block">Verified capital base</span>
+                    <span className="terminal-label block">Reported capital band</span>
                     <strong className="mt-1 block font-mono text-3xl font-normal text-[#eef3e9]">$1.20M</strong>
                   </div>
                   <span className="font-mono text-[10px] text-[#baf277]">↗ +38.4% sample year</span>

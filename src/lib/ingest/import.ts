@@ -32,6 +32,13 @@ export class DuplicateImportError extends Error {
   }
 }
 
+export class OverlappingImportError extends Error {
+  constructor(public readonly periodStart: string, public readonly periodEnd: string) {
+    super(`This export overlaps existing imported coverage (${periodStart} to ${periodEnd}).`);
+    this.name = "OverlappingImportError";
+  }
+}
+
 /**
  * Persist `trades` for one account, then fully rebuild that account's daily
  * rollup from all of its trades. A full rebuild (vs. incremental) keeps the
@@ -52,6 +59,27 @@ export async function importTrades(
         select: { id: true },
       });
       if (existing) throw new DuplicateImportError();
+
+      if (trades.length > 0) {
+        const dates = trades.map((trade) => trade.tradeDate).sort();
+        const periodStart = dates[0];
+        const periodEnd = dates[dates.length - 1];
+        const overlap = await tx.importBatch.findFirst({
+          where: {
+            accountId,
+            periodStart: { lte: new Date(periodEnd) },
+            periodEnd: { gte: new Date(periodStart) },
+          },
+          select: { periodStart: true, periodEnd: true },
+          orderBy: { createdAt: "desc" },
+        });
+        if (overlap?.periodStart && overlap.periodEnd) {
+          throw new OverlappingImportError(
+            toISODate(overlap.periodStart),
+            toISODate(overlap.periodEnd),
+          );
+        }
+      }
     }
 
     if (trades.length > 0) {

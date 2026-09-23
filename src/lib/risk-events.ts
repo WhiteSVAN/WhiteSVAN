@@ -20,7 +20,6 @@ export type RiskEventType =
   | "BIG_WIN_DEPENDENCY"
   | "LOSS_VS_WIN"
   | "STALE_PROFILE"
-  | "SCORE_CHANGE"
   | "RECOVERY";
 
 export type RiskSeverity = "INFO" | "WARNING" | "CRITICAL";
@@ -106,21 +105,6 @@ export function generateRiskEvents(
     });
   }
 
-  // Score change since the prior version.
-  if (!diff.isFirst && diff.transparencyDelta !== 0) {
-    const up = diff.transparencyDelta > 0;
-    const big = Math.abs(diff.transparencyDelta) >= 5;
-    events.push({
-      type: "SCORE_CHANGE",
-      severity: !up && big ? "WARNING" : "INFO",
-      title: `Transparency Score ${up ? "rose" : "fell"} ${Math.abs(diff.transparencyDelta)} pts`,
-      description: `The Transparency Score moved ${up ? "up" : "down"} by ${Math.abs(diff.transparencyDelta)} points since the last update.`,
-      metricBefore: trust.scores.transparency - diff.transparencyDelta,
-      metricAfter: trust.scores.transparency,
-      isClientVisible: true,
-    });
-  }
-
   // Recovery — drawdown got shallower vs last version.
   if (!diff.isFirst && diff.drawdownPctDelta <= -2) {
     events.push({
@@ -151,7 +135,7 @@ export function generateRiskEvents(
 export function buildChangeSummary(trust: TrustMetrics, diff: VersionDiff): string {
   const m = trust.metrics;
   if (diff.isFirst) {
-    return `First published update — ${m.tradingDays} trading days, net ${formatMoney(m.netPnl)}, Transparency Score ${trust.scores.transparency}.`;
+    return `First published update — ${m.tradingDays} trading days through ${diff.newDaysCovered ? "the stated coverage date" : "the imported record"}, net ${formatMoney(m.netPnl)}.`;
   }
 
   const parts: string[] = [];
@@ -159,10 +143,6 @@ export function buildChangeSummary(trust: TrustMetrics, diff: VersionDiff): stri
   if (Math.abs(diff.netPnlDelta) >= 0.01) {
     parts.push(`net P&L ${diff.netPnlDelta >= 0 ? "+" : ""}${formatMoney(diff.netPnlDelta)}`);
   }
-  if (diff.transparencyDelta !== 0) {
-    parts.push(`Transparency Score ${diff.transparencyDelta > 0 ? "+" : ""}${diff.transparencyDelta}`);
-  }
-  if (diff.proofLevelDelta > 0) parts.push(`proof level raised to L${trust.proofLevel}`);
   if (Math.abs(diff.drawdownPctDelta) >= 0.1) {
     parts.push(`max drawdown ${diff.drawdownPctDelta > 0 ? "deeper" : "narrower"} by ${pct(Math.abs(diff.drawdownPctDelta))}`);
   }

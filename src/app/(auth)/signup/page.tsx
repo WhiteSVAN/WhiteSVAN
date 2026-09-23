@@ -12,7 +12,7 @@ export default function SignupPage() {
     <div>
       <h1 className="text-lg font-semibold text-zinc-100">Create your operator card</h1>
       <p className="mt-1 text-sm text-zinc-500">
-        Join the verified quant &amp; trader network — get proof-backed, get discovered.
+        Build a durable trading record, publish the context, and get discovered.
       </p>
 
       <form action={action} className="mt-6 space-y-4">

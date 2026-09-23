@@ -1,36 +1,18 @@
 /**
- * Broker integration wall for the landing page — the "works with your broker"
- * trust signal (à la verified-trading networks).
+ * File-export formats currently supported by the importer.
  *
  * These are styled name wordmarks, not the brokers' trademarked logo art: it
  * conveys breadth of coverage without shipping anyone's brand assets. To swap in
  * real SVG logos later, replace the chip body with an <Image>/<svg> per entry —
  * the list below is the single source of truth, so "add a broker" = add a line.
  *
- * Product coverage is framed around read-only broker and prop-firm connections.
- * While direct connectors are added, source files and statements can feed the
- * same proof model without changing public profile semantics.
+ * These labels describe import-format support, not direct broker connections.
  */
-const BROKERS = [
-  "Interactive Brokers",
-  "Fidelity",
-  "Charles Schwab",
-  "E*TRADE",
-  "Robinhood",
-  "Webull",
-  "TD Ameritrade",
-  "tastytrade",
-  "thinkorswim",
-  "TradeStation",
-  "NinjaTrader",
-  "Tradovate",
-  "Lightspeed",
-  "Topstep",
-];
+const BROKERS = ["Interactive Brokers", "Fidelity", "E*TRADE", "Webull"];
 
 export function BrokerLogos() {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {BROKERS.map((name) => (
         <div
           key={name}

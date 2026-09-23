@@ -9,10 +9,8 @@ const TONE: Record<FreshnessTone, string> = {
   neutral: "bg-zinc-800 text-zinc-300 ring-1 ring-inset ring-zinc-700",
 };
 
-// Proof Level badge styling. Tax-return (4) and third-party (5) are the strongest
-// proof, so they read as fully verified; statement (3) is checked; source-linked
-// and self-reported levels (1-2) are muted. Drives the headline "verification"
-// badge on the public operator card.
+// Legacy levels map to factual source states. The number is intentionally never
+// shown because an uploaded file is not the same as independent verification.
 const PROOF_BADGE: Record<ProofLevel, string> = {
   1: "bg-zinc-800 text-zinc-300 ring-1 ring-inset ring-zinc-700",
   2: "bg-zinc-800 text-zinc-300 ring-1 ring-inset ring-zinc-700",
@@ -63,7 +61,7 @@ export function ProfileTrust({
             title={PROOF_LEVELS[proofLevel].blurb}
           >
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            Proof L{proofLevel} · {PROOF_LEVELS[proofLevel].label}
+            {PROOF_LEVELS[proofLevel].label}
           </span>
         )}
         <span

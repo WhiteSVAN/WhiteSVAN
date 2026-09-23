@@ -1,38 +1,10 @@
 import {
   PROOF_LEVELS,
-  type DrawdownSeverity,
   type TrustMetrics,
 } from "@/lib/trust";
 import { formatMoney, formatPercent } from "@/lib/format";
 import { EquityCurveChart, type EquityPoint } from "@/components/charts/equity-curve";
 import { DailyPnlChart, type DailyPoint } from "@/components/charts/daily-pnl";
-
-const SEVERITY: Record<DrawdownSeverity, { label: string; text: string; bg: string; border: string }> = {
-  controlled: {
-    label: "Controlled",
-    text: "text-emerald-300",
-    bg: "bg-emerald-400/10",
-    border: "border-emerald-400/30",
-  },
-  elevated: {
-    label: "Elevated",
-    text: "text-amber-300",
-    bg: "bg-amber-400/10",
-    border: "border-amber-400/30",
-  },
-  high: {
-    label: "High risk",
-    text: "text-orange-300",
-    bg: "bg-orange-400/10",
-    border: "border-orange-400/30",
-  },
-  severe: {
-    label: "Severe",
-    text: "text-red-300",
-    bg: "bg-red-400/10",
-    border: "border-red-400/30",
-  },
-};
 
 export function ClientView({
   trust,
@@ -46,8 +18,8 @@ export function ClientView({
   hideAmounts?: boolean;
 }) {
   const m = trust.metrics;
-  const sev = SEVERITY[trust.drawdownSeverity];
   const proof = PROOF_LEVELS[trust.proofLevel];
+  const capitalKnown = m.startingBalance > 0;
   const concentrated = (trust.bestDayShare ?? 0) > 0.5;
   const lopsided = (trust.badToGoodRatio ?? 0) > 1.3;
   const money = (v: number) => (hideAmounts ? "Private" : formatMoney(v));
@@ -55,7 +27,7 @@ export function ClientView({
   return (
     <div className="space-y-8">
       {/* Snapshot */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Snapshot
           label="Net result"
           hint={hideAmounts ? "Amounts hidden" : "Realized result"}
@@ -63,31 +35,17 @@ export function ClientView({
           tone={hideAmounts ? undefined : m.netPnl >= 0 ? "pos" : "neg"}
         />
         <Snapshot
-          label="Growth Rate"
+          label="Period return"
           hint="Profit relative to account size"
           value={m.returnPct != null ? formatPercent(m.returnPct, 1) : "-"}
           tone={(m.returnPct ?? 0) >= 0 ? "pos" : "neg"}
         />
         <Snapshot
-          label="Biggest Drop"
-          hint="Largest fall from a previous high"
-          value={`${m.maxDrawdownPct.toFixed(1)}%`}
-          badge={sev.label}
-          badgeClass={`border ${sev.border} ${sev.bg} ${sev.text}`}
+          label="Max drawdown"
+          hint="Largest peak-to-trough decline"
+          value={capitalKnown ? `${m.maxDrawdownPct.toFixed(1)}%` : "—"}
         />
-        <Snapshot
-          label="Research Score"
-          hint="Process transparency, not advice"
-          value={`${trust.scores.transparency}`}
-          suffix="/100"
-        />
-        <Snapshot label="Proof Level" hint={`Level ${trust.proofLevel} of 5`} value={proof.label} small />
-      </div>
-
-      {/* Verdict */}
-      <div className={`rounded-xl border p-5 ${sev.border} ${sev.bg}`}>
-        <h2 className={`text-lg font-semibold ${sev.text}`}>{trust.verdict.headline}</h2>
-        <p className="mt-1 text-sm text-zinc-300">{trust.verdict.body}</p>
+        <Snapshot label="Record length" hint="Trading days in this view" value={`${m.tradingDays} days`} small />
       </div>
 
       {/* Charts */}
@@ -105,10 +63,10 @@ export function ClientView({
         <h2 className="text-sm font-medium text-white">Risk and structure</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Plain
-            label="Biggest Drop"
+            label="Max drawdown"
             value={
               hideAmounts
-                ? `${m.maxDrawdownPct.toFixed(1)}%`
+                ? capitalKnown ? `${m.maxDrawdownPct.toFixed(1)}%` : "Not available"
                 : `${formatMoney(m.maxDrawdown)} (${m.maxDrawdownPct.toFixed(1)}%)`
             }
             note="The worst fall from a previous high."
@@ -152,33 +110,6 @@ export function ClientView({
         </div>
       </div>
 
-      {/* Trust scores */}
-      <div className="terminal-card p-5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-medium text-white">Research profile score</h2>
-          <span className="text-2xl font-semibold text-white">
-            {trust.scores.transparency}
-            <span className="text-base font-normal text-zinc-400">/100</span>
-          </span>
-        </div>
-        <p className="mt-0.5 text-xs text-zinc-400">
-          A weighted blend of six factors: proof, risk control, and reporting discipline carry the
-          most weight.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <ScoreBar label="Proof" weight="25%" value={trust.scores.proof} />
-          <ScoreBar label="Risk Control" weight="25%" value={trust.scores.riskControl} />
-          <ScoreBar label="Update Reliability" weight="20%" value={trust.scores.updateReliability} />
-          <ScoreBar label="Consistency" weight="15%" value={trust.scores.consistency} />
-          <ScoreBar label="Profit" weight="10%" value={trust.scores.profit} />
-          <ScoreBar label="Discipline" weight="5%" value={trust.scores.discipline} />
-        </div>
-        <p className="mt-4 text-xs text-zinc-400">
-          Not an investment recommendation. It measures data quality, risk visibility, and publishing
-          discipline.
-        </p>
-      </div>
-
       {/* Proof & privacy */}
       <div className="terminal-card p-5">
         <h2 className="text-sm font-medium text-white">Proof and privacy</h2>
@@ -188,10 +119,8 @@ export function ClientView({
             <p className="mt-1 text-zinc-300">Broker-reported history</p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase text-zinc-400">Proof level</p>
-            <p className="mt-1 text-zinc-300">
-              Level {trust.proofLevel}: {proof.label}
-            </p>
+            <p className="text-xs font-medium uppercase text-zinc-400">Record source</p>
+            <p className="mt-1 text-zinc-300">{proof.label}</p>
             <p className="mt-0.5 text-xs text-zinc-400">{proof.blurb}</p>
           </div>
           <div>
@@ -270,25 +199,6 @@ function Plain({
       </div>
       <p className="mt-1 font-semibold tabular-nums text-white">{value}</p>
       <p className="mt-0.5 text-xs text-zinc-400">{note}</p>
-    </div>
-  );
-}
-
-function ScoreBar({ label, value, weight }: { label: string; value: number; weight?: string }) {
-  const pct = Math.round(value);
-  const color = pct >= 67 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-red-500";
-  return (
-    <div>
-      <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-zinc-300">
-          {label}
-          {weight && <span className="font-normal text-zinc-400"> / {weight}</span>}
-        </span>
-        <span className="tabular-nums text-zinc-400">{pct}</span>
-      </div>
-      <div className="mt-1 h-2 overflow-hidden rounded-full bg-zinc-800">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
-      </div>
     </div>
   );
 }

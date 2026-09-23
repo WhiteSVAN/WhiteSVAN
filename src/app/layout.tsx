@@ -19,7 +19,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "TrustSVAN — The Proof Terminal",
   description:
-    "Inspect source-backed trading records, risk, evidence, and research in one proof-first terminal.",
+    "Inspect published trading records, risk, source coverage, and research in one proof-first terminal.",
 };
 
 export default function RootLayout({

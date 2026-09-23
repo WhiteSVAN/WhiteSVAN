@@ -49,12 +49,12 @@ export function TraderView({
           label="Max drawdown"
           value={formatMoney(metrics.maxDrawdown)}
           tone="neg"
-          sub={`${metrics.maxDrawdownPct.toFixed(1)}%`}
+          sub={metrics.startingBalance > 0 ? `${metrics.maxDrawdownPct.toFixed(1)}%` : "Add starting capital for %"}
         />
         <Card
           label="Profit factor"
           value={metrics.profitFactor != null ? metrics.profitFactor.toFixed(2) : "—"}
-          sub={`consistency ${metrics.consistencyScore}`}
+          sub={`${metrics.losingDays} losing day${metrics.losingDays === 1 ? "" : "s"}`}
         />
       </div>
 
