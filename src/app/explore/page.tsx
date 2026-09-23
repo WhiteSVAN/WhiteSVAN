@@ -7,6 +7,7 @@ import { OperatorDirectory, type DirectoryOperator } from "@/components/explore/
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { publishedTrustFromMetrics } from "@/lib/published-profile";
+import { EXAMPLE_OPERATORS } from "@/lib/example-operators";
 
 export const metadata: Metadata = {
   title: "Explore operators — TrustSVAN",
@@ -39,7 +40,7 @@ export default async function ExplorePage() {
       return [];
     });
 
-  const operators: DirectoryOperator[] = profiles.map((profile) => {
+  const publishedOperators: DirectoryOperator[] = profiles.map((profile) => {
     const trust = publishedTrustFromMetrics(profile.versions[0]?.metrics)?.trust ?? null;
     return {
       slug: profile.slug,
@@ -55,6 +56,28 @@ export default async function ExplorePage() {
       severity: trust?.drawdownSeverity ?? null,
     };
   });
+  const publishedSlugs = new Set(publishedOperators.map((operator) => operator.slug));
+  const exampleOperators: DirectoryOperator[] = EXAMPLE_OPERATORS
+    .filter((operator) => !publishedSlugs.has(operator.slug))
+    .map((operator) => ({
+      slug: operator.slug,
+      displayName: operator.displayName,
+      strategy: operator.strategy,
+      instruments: operator.instruments,
+      headline: `${operator.location} · ${operator.summary}`,
+      openToWork: false,
+      proofLevel: operator.proofLevel,
+      returnPct: operator.returnPct,
+      maxDrawdownPct: operator.maxDrawdownPct,
+      transparencyScore: operator.transparencyScore,
+      severity: null,
+      capitalBand: operator.capitalBand,
+      trackRecord: operator.trackRecord,
+      freshness: operator.freshness,
+      isIllustrative: true,
+      href: `/examples/${operator.slug}`,
+    }));
+  const operators = [...publishedOperators, ...exampleOperators];
 
   return (
     <div className="min-h-full bg-zinc-950 text-zinc-100">
@@ -82,22 +105,17 @@ export default async function ExplorePage() {
             <p className="terminal-label flex items-center gap-3"><ShieldCheck className="h-4 w-4 text-[#baf277]" /> Discovery, with context</p>
             <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_.55fr] lg:items-end">
               <h1 className="max-w-4xl text-4xl font-medium leading-[1.05] tracking-[-0.055em] sm:text-6xl">Inspect the record.<br /><span className="text-[#8b998b]">Not the follower count.</span></h1>
-              <p className="max-w-lg text-sm leading-7 text-[#9aa79c] lg:justify-self-end">Search, filter, save, and compare published profiles using their proof, performance, and risk context. Public data comes from immutable snapshots.</p>
+              <p className="max-w-lg text-sm leading-7 text-[#9aa79c] lg:justify-self-end">Search, filter, save, and compare records using proof, performance, risk, capital band, and observation length. Fictional examples are clearly labeled; published profiles come from immutable snapshots.</p>
             </div>
           </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-8 sm:py-14">
-          {operators.length ? (
-            <OperatorDirectory operators={operators} />
-          ) : (
-            <div className="terminal-card px-6 py-16 text-center">
-              <ShieldCheck className="mx-auto h-7 w-7 text-[#7f8d7e]" />
-              <h2 className="mt-5 text-lg font-medium">No public records yet.</h2>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-zinc-400">Published operator profiles will appear here after their owners choose to make a record public.</p>
-              <Link href="/signup" className="mt-6 inline-flex min-h-11 items-center rounded-md bg-zinc-100 px-5 text-sm font-medium text-zinc-950 hover:bg-white">Build the first record</Link>
-            </div>
-          )}
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 text-[10px] text-[#7f8c82]">
+            <span>{publishedOperators.length} published · {exampleOperators.length} illustrative</span>
+            <span>Returns are historical context, never a ranking or recommendation.</span>
+          </div>
+          <OperatorDirectory operators={operators} />
         </section>
       </main>
       <SiteFooter />

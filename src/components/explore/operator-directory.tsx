@@ -23,6 +23,11 @@ export interface DirectoryOperator {
   maxDrawdownPct: number | null;
   transparencyScore: number | null;
   severity: string | null;
+  capitalBand?: string | null;
+  trackRecord?: string | null;
+  freshness?: string | null;
+  isIllustrative?: boolean;
+  href?: string;
 }
 
 const WATCHLIST_KEY = "trustsvan:watchlist:v2";
@@ -135,7 +140,7 @@ export function OperatorDirectory({ operators }: { operators: DirectoryOperator[
 
   return (
     <>
-      <div className="overflow-hidden rounded-lg border border-[#2d382f] bg-[#101511]">
+      <div className="overflow-hidden rounded-xl border border-[#2d382f] bg-[#101511] shadow-[0_28px_80px_rgba(0,0,0,.18)]">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2d382f] px-5 py-4">
           <div className="flex items-center gap-5 text-xs">
             <button type="button" onClick={() => setSavedOnly(false)} className={`pb-4 ${!savedOnly ? "-mb-[17px] border-b-2 border-[#baf277] text-[#e1e9dc]" : "text-[#849083] hover:text-[#c5d0c1]"}`}>
@@ -170,33 +175,41 @@ export function OperatorDirectory({ operators }: { operators: DirectoryOperator[
           </select>
         </div>
 
-        <div className="hidden grid-cols-[minmax(230px,2fr)_minmax(110px,1fr)_80px_90px_74px_70px] gap-3 border-b border-[#2d382f] px-5 py-3 font-mono text-[8px] uppercase tracking-wider text-[#748078] md:grid">
-          <span>Operator / strategy</span><span>Proof</span><span>Growth</span><span>Drawdown</span><span>Trust</span><span>Inspect</span>
-        </div>
-
-        <div aria-live="polite">
+        <div className="grid gap-px bg-[#263029] md:grid-cols-2" aria-live="polite">
           {results.length ? results.map((operator) => (
-            <article key={operator.slug} className="grid gap-4 border-b border-[#263029] px-5 py-4 last:border-0 hover:bg-[#151d17] md:grid-cols-[minmax(230px,2fr)_minmax(110px,1fr)_80px_90px_74px_70px] md:items-center">
-              <div className="flex min-w-0 items-center gap-3">
-                <input type="checkbox" checked={compare.includes(operator.slug)} onChange={() => toggleCompare(operator.slug)} aria-label={`Compare ${operator.displayName}`} />
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#4d603c] bg-[#23321c] font-mono text-[10px] text-[#cce1b6]">{initials(operator.displayName)}</span>
-                <div className="min-w-0">
-                  <Link href={`/p/${operator.slug}`} className="block truncate text-sm font-medium text-[#e8eee3] hover:text-[#baf277]">{operator.displayName}</Link>
-                  <p className="mt-1 truncate text-[10px] text-[#849083]">{operator.headline || [operator.strategy, operator.instruments].filter(Boolean).join(" · ") || "Published operator"}</p>
+            <article key={operator.slug} className="group flex min-h-[270px] flex-col bg-[#101511] p-5 transition hover:bg-[#141c16] sm:p-6">
+              <div className="flex items-start gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#4d603c] bg-[#23321c] font-mono text-[10px] text-[#cce1b6]">{initials(operator.displayName)}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link href={operator.href ?? `/p/${operator.slug}`} className="truncate text-base font-medium text-[#e8eee3] hover:text-[#baf277]">{operator.displayName}</Link>
+                    {operator.isIllustrative && <span className="rounded border border-[#485342] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider text-[#96a28e]">Example</span>}
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-[#849083]">{operator.headline || [operator.strategy, operator.instruments].filter(Boolean).join(" · ") || "Published operator"}</p>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {operator.proofLevel ? <span className="inline-flex items-center gap-1 rounded border border-[#57733a] bg-[#1a2418] px-2 py-1 text-[9px] text-[#bdd69e]"><ShieldCheck className="h-3 w-3" /> Proof L{operator.proofLevel}</span> : <span className="text-xs text-[#7d897f]">Unpublished</span>}
-                {operator.openToWork && <i className="terminal-dot" title="Open to work" />}
-              </div>
-              <DirectoryMetric label="Growth" value={percent(operator.returnPct, true)} accent />
-              <DirectoryMetric label="Drawdown" value={percent(operator.maxDrawdownPct)} />
-              <DirectoryMetric label="Trust" value={operator.transparencyScore?.toString() ?? "—"} />
-              <div className="flex items-center justify-between gap-2">
-                <button type="button" onClick={() => toggleSaved(operator.slug)} aria-label={saved.includes(operator.slug) ? `Remove ${operator.displayName} from watchlist` : `Save ${operator.displayName} to watchlist`} className={`text-[#7f8d7e] hover:text-[#baf277] ${saved.includes(operator.slug) ? "text-[#baf277]" : ""}`}>
+                <button type="button" onClick={() => toggleSaved(operator.slug)} aria-label={saved.includes(operator.slug) ? `Remove ${operator.displayName} from watchlist` : `Save ${operator.displayName} to watchlist`} className={`rounded-md p-2 text-[#7f8d7e] hover:bg-[#1c271d] hover:text-[#baf277] ${saved.includes(operator.slug) ? "text-[#baf277]" : ""}`}>
                   <Bookmark className="h-4 w-4" fill={saved.includes(operator.slug) ? "currentColor" : "none"} />
                 </button>
-                <Link href={`/p/${operator.slug}`} aria-label={`View ${operator.displayName}`} className="text-[#b8cf9a] hover:text-[#baf277]"><ArrowRight className="h-4 w-4" /></Link>
+              </div>
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                {operator.proofLevel ? <span className="inline-flex items-center gap-1 rounded border border-[#57733a] bg-[#1a2418] px-2 py-1 text-[9px] text-[#bdd69e]"><ShieldCheck className="h-3 w-3" /> Proof L{operator.proofLevel}</span> : <span className="text-xs text-[#7d897f]">Unpublished</span>}
+                {operator.openToWork && <i className="terminal-dot" title="Open to work" />}
+                <span className="truncate text-[9px] text-[#738078]">{operator.strategy}</span>
+              </div>
+              <div className="mt-5 grid grid-cols-3 border-y border-[#2a352c] py-4">
+                <DirectoryMetric label="Growth" value={percent(operator.returnPct, true)} accent />
+                <DirectoryMetric label="Drawdown" value={percent(operator.maxDrawdownPct)} bordered />
+                <DirectoryMetric label="Trust" value={operator.transparencyScore?.toString() ?? "—"} bordered />
+              </div>
+              <div className="mt-auto flex flex-wrap items-end justify-between gap-4 pt-5">
+                <div className="flex gap-6 text-[9px] text-[#748078]">
+                  <span><b className="mb-1 block font-mono font-normal uppercase tracking-wider text-[#68746b]">Capital</b>{operator.capitalBand ?? "Not disclosed"}</span>
+                  <span><b className="mb-1 block font-mono font-normal uppercase tracking-wider text-[#68746b]">History</b>{operator.trackRecord ?? "Published window"}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 text-[9px] text-[#7f8d82]"><input type="checkbox" checked={compare.includes(operator.slug)} onChange={() => toggleCompare(operator.slug)} aria-label={`Compare ${operator.displayName}`} /> Compare</label>
+                  <Link href={operator.href ?? `/p/${operator.slug}`} aria-label={`View ${operator.displayName}`} className="inline-flex items-center gap-1.5 text-[10px] font-medium text-[#b8cf9a] hover:text-[#baf277]">Inspect <ArrowRight className="h-3.5 w-3.5" /></Link>
+                </div>
               </div>
             </article>
           )) : (
@@ -239,6 +252,8 @@ export function OperatorDirectory({ operators }: { operators: DirectoryOperator[
                     ["Growth", compared.map((item) => percent(item.returnPct, true))],
                     ["Max drawdown", compared.map((item) => percent(item.maxDrawdownPct))],
                     ["Transparency", compared.map((item) => item.transparencyScore?.toString() ?? "—")],
+                    ["Capital band", compared.map((item) => item.capitalBand ?? "Not disclosed")],
+                    ["Track record", compared.map((item) => item.trackRecord ?? "Published window")],
                   ].map(([label, values]) => (
                     <tr key={String(label)}><th className="border-b border-[#2a342c] py-3 font-normal text-[#849184]">{String(label)}</th>{(values as string[]).map((value, index) => <td key={`${label}-${compared[index].slug}`} className="border-b border-[#2a342c] px-4 py-3 font-mono text-[#c5d1bf]">{value}</td>)}</tr>
                   ))}
@@ -252,6 +267,6 @@ export function OperatorDirectory({ operators }: { operators: DirectoryOperator[
   );
 }
 
-function DirectoryMetric({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
-  return <div><span className="mr-2 font-mono text-[8px] uppercase text-[#6f7c70] md:hidden">{label}</span><strong className={`font-mono text-xs font-normal ${accent ? "text-[#baf277]" : "text-[#d4ddd0]"}`}>{value}</strong></div>;
+function DirectoryMetric({ label, value, accent = false, bordered = false }: { label: string; value: string; accent?: boolean; bordered?: boolean }) {
+  return <div className={`px-3 first:pl-0 ${bordered ? "border-l border-[#2f3b31]" : ""}`}><span className="block font-mono text-[8px] uppercase tracking-wider text-[#6f7c70]">{label}</span><strong className={`mt-1.5 block font-mono text-sm font-normal ${accent ? "text-[#baf277]" : "text-[#d4ddd0]"}`}>{value}</strong></div>;
 }
