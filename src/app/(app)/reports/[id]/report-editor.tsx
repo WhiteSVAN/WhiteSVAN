@@ -64,10 +64,11 @@ export function ReportEditor({
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <Link href="/reports" className="text-sm text-zinc-200 hover:text-zinc-100">
+          <Link href="/reports" className="text-xs text-zinc-200 hover:text-zinc-100">
             Back to briefs
           </Link>
-          <h1 className="mt-1 text-2xl font-semibold text-zinc-900">
+          <p className="terminal-label mt-4">Brief editor / verified metrics</p>
+          <h1 className="mt-2 text-3xl font-medium tracking-[-0.04em] text-zinc-900">
             {accountName} / {periodLabel(period)}
           </h1>
         </div>
@@ -127,7 +128,7 @@ export function ReportEditor({
                   name="intent"
                   value="save"
                   disabled={pending}
-                  className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
+                  className="rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-2 text-sm font-medium text-zinc-300 hover:border-zinc-400 hover:bg-zinc-800 disabled:opacity-60"
                 >
                   {pending ? "Saving..." : "Save draft"}
                 </button>
@@ -136,7 +137,7 @@ export function ReportEditor({
                   name="intent"
                   value="approve"
                   disabled={pending || liveIssues.length > 0}
-                  className="rounded-lg border border-zinc-600 bg-zinc-900/70 px-4 py-2 text-sm font-medium text-zinc-200 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg border border-zinc-500 px-4 py-2 text-sm font-medium text-zinc-200 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
                   title={liveIssues.length > 0 ? "Resolve compliance issues first" : undefined}
                 >
                   Approve
@@ -149,7 +150,7 @@ export function ReportEditor({
                 name="intent"
                 value="publish"
                 disabled={pending || liveIssues.length > 0}
-                className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 shadow-sm hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                 title={liveIssues.length > 0 ? "Resolve compliance issues first" : undefined}
               >
                 Publish
@@ -161,7 +162,7 @@ export function ReportEditor({
 
       <form action={deleteReport} className="border-t border-zinc-100 pt-4" onSubmit={confirmDelete}>
         <input type="hidden" name="id" value={id} />
-        <button type="submit" className="text-sm text-zinc-300 hover:text-zinc-300">
+        <button type="submit" className="text-sm text-red-400 hover:text-red-300">
           Delete brief
         </button>
       </form>

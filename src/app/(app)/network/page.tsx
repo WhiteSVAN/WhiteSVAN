@@ -140,14 +140,14 @@ export default async function NetworkPage({
 
   return (
     <div className="space-y-8">
-      <section className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/80">
+      <section className="terminal-card overflow-hidden">
         <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
           <div className="p-6 sm:p-8">
-            <p className="flex items-center gap-2 text-sm font-medium text-zinc-200">
+            <p className="terminal-label flex items-center gap-2">
               <Users className="h-4 w-4" aria-hidden="true" />
               Verified trader board
             </p>
-            <h1 className="mt-3 max-w-3xl text-3xl font-semibold text-white sm:text-4xl">
+            <h1 className="mt-4 max-w-3xl text-3xl font-medium tracking-[-0.04em] text-white sm:text-5xl">
               Public profiles with proof, freshness, and computed risk.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-zinc-400 sm:text-base">
@@ -213,7 +213,7 @@ export default async function NetworkPage({
           {STEPS.map((step) => {
             const Icon = step.icon;
             return (
-              <article key={step.title} className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-5 shadow-sm">
+              <article key={step.title} className="terminal-card p-5">
                 <Icon className="h-6 w-6 text-zinc-200" aria-hidden="true" />
                 <h2 className="mt-4 font-semibold text-white">{step.title}</h2>
                 <p className="mt-2 text-sm leading-6 text-zinc-400">{step.body}</p>
@@ -223,7 +223,7 @@ export default async function NetworkPage({
         </div>
       </section>
 
-      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-5 shadow-sm">
+      <section className="terminal-card p-5">
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
           <div>
             <p className="flex items-center gap-2 text-sm font-medium text-zinc-200">
@@ -283,7 +283,7 @@ export default async function NetworkPage({
         </div>
       </section>
 
-      <section className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-5 shadow-sm">
+      <section className="terminal-card p-5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold text-white">Verified profiles</h2>

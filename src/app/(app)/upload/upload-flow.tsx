@@ -116,7 +116,7 @@ export function UploadFlow({
   return (
     <div className="space-y-5">
       {/* Broker source */}
-      <div className="rounded-xl border border-zinc-200 bg-white p-4">
+      <div className="terminal-card p-4">
         <label htmlFor="format" className={labelClass}>
           Broker source
         </label>
@@ -141,7 +141,7 @@ export function UploadFlow({
       </div>
 
       {/* Account + file */}
-      <div className="grid gap-4 rounded-xl border border-zinc-200 bg-white p-4 sm:grid-cols-2">
+      <div className="terminal-card grid gap-4 p-4 sm:grid-cols-2">
         <div>
           <div className="flex items-center justify-between">
             <label htmlFor="account" className={labelClass}>
@@ -193,14 +193,14 @@ export function UploadFlow({
                 <button
                   type="submit"
                   disabled={creating}
-                  className="rounded-lg bg-zinc-100 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-white disabled:opacity-60"
+                  className="rounded-lg bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-950 shadow-sm transition hover:bg-white disabled:opacity-60"
                 >
                   {creating ? "Creating…" : "Create account"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setAddingAccount(false)}
-                  className="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100"
+                  className="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm font-medium text-zinc-400 hover:bg-zinc-800"
                 >
                   Cancel
                 </button>
@@ -238,7 +238,7 @@ export function UploadFlow({
 
       {/* Column mapping — auto-detect path only, collapsed once recognized */}
       {isAuto && headers.length > 0 && (
-        <div className="rounded-xl border border-zinc-200 bg-white p-4">
+        <div className="terminal-card p-4">
           <details open={missingRequired.length > 0}>
             <summary className="flex cursor-pointer list-none items-center gap-2 text-sm">
               {missingRequired.length === 0 ? (
@@ -296,7 +296,7 @@ export function UploadFlow({
 
       {/* FIFO summary — broker transaction-export path */}
       {!isAuto && result && isBrokerResult(result) && (
-        <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm">
+        <div className="terminal-card p-4 text-sm">
           <div className="flex items-center gap-2">
             <span className="text-zinc-100">✓</span>
             <span className="font-medium text-zinc-800">Matched buys &amp; sells (FIFO)</span>
@@ -319,7 +319,7 @@ export function UploadFlow({
 
       {/* Preview */}
       {result && (
-        <div className="rounded-xl border border-zinc-200 bg-white p-4">
+        <div className="terminal-card p-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-zinc-800">Broker history preview</h3>
             <span className="text-xs text-zinc-500">

@@ -37,7 +37,7 @@ export function EvidenceUploader({ accounts }: { accounts: { id: string; account
           name="file"
           accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.txt"
           required
-          className="mt-1 block w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-200 hover:file:bg-zinc-800"
+          className="mt-2 block w-full text-sm text-zinc-600 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-950 hover:file:bg-white"
         />
       </div>
       <div>
@@ -82,7 +82,7 @@ export function EvidenceUploader({ accounts }: { accounts: { id: string; account
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 disabled:opacity-60"
         >
           {pending ? "Uploading…" : "Upload"}
         </button>

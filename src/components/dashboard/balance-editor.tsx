@@ -49,7 +49,7 @@ export function BalanceEditor({
     <form
       action={action}
       onSubmit={() => setManualEditing(false)}
-      className="flex flex-wrap items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm"
+      className="terminal-card flex flex-wrap items-center gap-2 px-3 py-2 text-sm"
     >
       <input type="hidden" name="accountId" value={accountId} />
       <label htmlFor="startingBalance" className="font-medium text-zinc-600">
@@ -73,7 +73,7 @@ export function BalanceEditor({
       <button
         type="submit"
         disabled={pending || !value}
-        className="rounded bg-zinc-900 px-3 py-1 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded bg-zinc-100 px-3 py-1 font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? "Saving…" : "Set"}
       </button>

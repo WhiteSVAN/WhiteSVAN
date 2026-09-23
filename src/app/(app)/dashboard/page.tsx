@@ -111,7 +111,8 @@ export default async function DashboardPage({
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900">
+          <p className="terminal-label">Operator record / live workspace</p>
+          <h1 className="mt-2 text-3xl font-medium tracking-[-0.04em] text-zinc-900">
             {user.profile.displayName}
           </h1>
           <PortalShare slug={user.profile.slug} isPublic={user.profile.isPublic} />
@@ -121,7 +122,7 @@ export default async function DashboardPage({
           {account && <DashboardControls accounts={accounts.map((a) => ({ id: a.id, accountName: a.accountName }))} accountId={account.id} range={range} />}
           <Link
             href="/upload"
-            className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-white"
+          className="rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 shadow-sm hover:bg-white"
           >
             Connect broker
           </Link>
@@ -165,7 +166,7 @@ export default async function DashboardPage({
           <ClientView trust={trust} equitySeries={equitySeries} dailySeries={dailySeries} />
         )
       ) : (
-        <div className="rounded-xl border border-dashed border-zinc-300 bg-white p-10 text-center">
+        <div className="terminal-card border-dashed p-10 text-center">
           <h2 className="text-base font-medium text-zinc-800">
             {account ? "No trades in this range" : "No trading data yet"}
           </h2>

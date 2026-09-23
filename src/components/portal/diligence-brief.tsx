@@ -27,7 +27,7 @@ function Column({
   empty: string;
 }) {
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-4">
+    <div className="terminal-card p-4">
       <h3 className={`flex items-center gap-1.5 text-sm font-medium ${TONE[tone]}`}>
         <Icon className="h-4 w-4" aria-hidden="true" />
         {title}

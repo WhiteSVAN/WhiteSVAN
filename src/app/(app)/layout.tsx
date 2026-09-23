@@ -4,8 +4,8 @@ import { requireUser } from "@/lib/auth/dal";
 import { AccountMenu } from "./account-menu";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/network", label: "Verified traders" },
+  { href: "/dashboard", label: "Record" },
+  { href: "/network", label: "Network" },
 ];
 
 /**
@@ -18,20 +18,26 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-full bg-zinc-950 text-zinc-100">
-      <header className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="border-b border-[#202a23] bg-[#111711] font-mono text-[9px] uppercase tracking-[0.08em] text-[#8f9d8e]">
+        <div className="mx-auto flex h-8 max-w-7xl items-center justify-between px-4 sm:px-8">
+          <span className="flex items-center gap-2"><i className="terminal-dot" /> Operator workspace</span>
+          <span className="hidden sm:block">Authenticated / private by default</span>
+        </div>
+      </div>
+      <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <Link
             href="/dashboard"
-            className="self-start text-base font-semibold text-zinc-100"
+            className="self-start text-xl font-semibold text-zinc-100"
           >
             <SvanLogo />
           </Link>
-          <nav className="flex w-full items-center gap-x-4 gap-y-2 overflow-x-auto pb-1 text-sm sm:w-auto sm:justify-end sm:overflow-visible sm:pb-0">
+          <nav className="flex w-full items-center gap-x-6 gap-y-2 overflow-x-auto pb-1 text-xs sm:w-auto sm:justify-end sm:overflow-visible sm:pb-0">
             {NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="shrink-0 text-zinc-400 hover:text-white"
+                className="shrink-0 font-medium text-zinc-400 hover:text-white"
               >
                 {item.label}
               </Link>
@@ -40,7 +46,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-8 sm:py-10">{children}</main>
     </div>
   );
 }

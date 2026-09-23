@@ -41,7 +41,7 @@ export function DashboardControls({
         <select
           value={accountId}
           onChange={(e) => update("account", e.target.value)}
-          className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 shadow-sm focus:border-zinc-400 focus:outline-none"
+          className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs text-zinc-300 shadow-sm focus:border-zinc-400 focus:outline-none"
         >
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>
@@ -50,14 +50,14 @@ export function DashboardControls({
           ))}
         </select>
       )}
-      <div className="inline-flex rounded-lg border border-zinc-200 bg-white p-0.5 text-sm">
+      <div className="inline-flex rounded-lg border border-zinc-800 bg-zinc-900 p-0.5 text-xs">
         {RANGES.map((r) => (
           <button
             key={r.k}
             type="button"
             onClick={() => update("range", r.k)}
             className={`rounded-md px-3 py-1 transition ${
-              range === r.k ? "bg-zinc-100 text-white" : "text-zinc-600 hover:bg-zinc-50"
+              range === r.k ? "bg-zinc-100 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800"
             }`}
           >
             {r.label}

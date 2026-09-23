@@ -50,7 +50,7 @@ export function AccountData({ accounts }: { accounts: AccountRow[] }) {
                   <button
                     type="submit"
                     disabled={a.tradeCount === 0}
-                    className="text-xs font-medium text-zinc-300 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="text-xs font-medium text-zinc-400 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Clear trades
                   </button>
@@ -65,7 +65,7 @@ export function AccountData({ accounts }: { accounts: AccountRow[] }) {
                   <input type="hidden" name="accountId" value={a.id} />
                   <button
                     type="submit"
-                    className="text-xs font-medium text-zinc-300 hover:text-zinc-300"
+                    className="text-xs font-medium text-red-400 hover:text-red-300"
                   >
                     Delete account
                   </button>
@@ -86,7 +86,7 @@ export function AccountData({ accounts }: { accounts: AccountRow[] }) {
         <button
           type="submit"
           disabled={totalTrades === 0}
-          className="rounded-lg border border-zinc-700 bg-zinc-950/80 px-3 py-1.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-lg border border-red-400/30 bg-zinc-950/80 px-3 py-1.5 text-sm font-medium text-red-400 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Clear all trade data
         </button>
