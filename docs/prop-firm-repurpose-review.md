@@ -73,14 +73,32 @@ Done:
 - `/artifacts/` (deck build output) added to `.gitignore`.
 - Checks: `tsc` clean, `eslint src` clean, `vitest` 244 passed / 3 skipped.
 
-Next:
-1. Same industry wording on `/evaluations`, `/evaluations/[plan]` (sidebar CTA "Start evaluation" to
-   `/signup`), `/rules` (e.g. "Proposed contractor cycle cap" to "Payout cap"), help-center answers
-   ("contractor agreement" to "funded trader agreement"), signup subtitle and in-app payouts page.
-2. Production build (Next CLI after `prisma generate`; not `npm run build`, which migrates), route smoke
-   test and desktop/mobile screenshots.
-3. Update CLAUDE.md and README: the product is now a prop firm with the journal as secondary tools.
-4. Commit, push and Vercel deploy only with the founder's go-ahead.
+Deployed: commit `c08fede`, PR #35, merged into `main` as `7e06cd2` and live on white-svan.vercel.app.
+The PR was opened and merged within seconds of the push by an integration outside this repo (no
+workflow file), so any push to this repository can reach production.
 
-Local tooling: Node is not on PATH; use the portable Node 22 at
+## Completion pass, 16 Oct 2026 (Claude)
+
+Done:
+- Industry wording everywhere public: `/evaluations` (new Evaluation vs Funded comparison table, which
+  lists only rules the rulebook defines), `/evaluations/[plan]` (checkout-style card; "Start evaluation"
+  goes to `/signup?plan=<id>`), `/rules` (contents read each section's `label`), help-center answers,
+  `RULE_SECTIONS`, footer, help page, Academy (hero, tabs "Lessons / Rule practice / Getting funded",
+  lesson 4 rewritten as "How the evaluation and funded account work").
+- Landing: "Built for India" section (rupee pricing, bank payouts, NSE/BSE contracts, Indian costs,
+  IST hours, DigiLocker KYC), the Tradeify "why us" slot without claims about other firms; rupee icons;
+  ₹5L card badge is "Recommended" (not "Most popular": there are no sales to back that).
+- Sign-up: trader role by default (picker only with `?as=client`), plan banner for `?plan=`, Google
+  button passes the trader role; onboarding copy and India placeholders.
+- Signed-in: workspace top bar, My accounts, Payouts copy in the same voice.
+- Optional Discord link (`NEXT_PUBLIC_DISCORD_URL`, documented in `.env.example`).
+- CLAUDE.md and README rewritten for the prop firm, with the journal as secondary tools.
+- Visual check of every public page at 1440 px and 390 px with headless Chrome; fixed the pricing-card
+  alignment, mobile stats dividers and the mobile announcement bar.
+
+Still to build (Notion TRD and sprint stories): checkout, evaluation provisioning, simulator and
+licensed data, rule engine, KYC, payouts with TDS, optional copy desk.
+
+Local tooling: Node is not on PATH on the founder's machine; use the portable Node 22 at
 `%LOCALAPPDATA%\Temp\whitesvan-tooling\node-v22.23.3-win-x64` (prepend it to PATH in PowerShell).
+For local build checks use `npx prisma generate && npx next build` (not `npm run build`).

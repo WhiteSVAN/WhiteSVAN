@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
+import { PROGRAMME_RULES } from "@/lib/prop-firm";
+
+/** Public Discord invite; the link is hidden until this is set. */
+const DISCORD_URL = process.env.NEXT_PUBLIC_DISCORD_URL;
 
 /** Public pages only — app routes (journal, feed, inbox) need an account. */
 const FOOTER_GROUPS = [
@@ -16,6 +20,7 @@ const FOOTER_GROUPS = [
     title: "Support",
     links: [
       { href: "/help", label: "Help center" },
+      ...(DISCORD_URL ? [{ href: DISCORD_URL, label: "Discord community" }] : []),
       { href: "/signup", label: "Create an account" },
       { href: "/login", label: "Sign in" },
     ],
@@ -30,8 +35,8 @@ const FOOTER_GROUPS = [
 ];
 
 const DISCLAIMERS = [
-  "WhiteSVAN is in launch preview. Evaluations, contractor payouts and checkout are not open, and the prices and rules shown are drafts until final terms are published.",
-  "All evaluation and contractor accounts are simulated. An account size is a virtual balance that sets risk limits; it is not a deposit, a loan or capital given to the trader. Course and evaluation fees are service fees.",
+  "WhiteSVAN is launching soon. Evaluations are not yet available to buy, and rules and prices may change before launch.",
+  "All evaluation and funded accounts are simulated. Account sizes are virtual balances that set risk limits; they are not deposits, loans or capital given to the trader. Evaluation fees are service fees.",
   "Nothing on this site is investment advice, a recommendation or a trading signal. WhiteSVAN does not manage client money and does not promise any income, payout or return.",
   "Trading futures and options carries a substantial risk of loss. Simulated results have limitations and do not represent actual trading.",
 ];
@@ -45,9 +50,8 @@ export function SiteFooter() {
             <SvanLogo />
           </Link>
           <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400">
-            An India-first prop trading programme for NIFTY, BANK NIFTY and SENSEX futures and
-            options: learn with SVAN Academy, prove your process in a simulated evaluation, and
-            work towards the simulated contractor desk.
+            The prop firm for NIFTY, BANK NIFTY and SENSEX traders. Pass one evaluation, get funded
+            and keep {PROGRAMME_RULES.contractorSharePercent}% of your profits.
           </p>
         </div>
 

@@ -1,3 +1,5 @@
+import { PROGRAMME_RULES as R } from "./prop-firm";
+
 export interface AcademyLesson {
   id: string;
   title: string;
@@ -14,7 +16,7 @@ export interface AcademyLesson {
   };
 }
 
-/** Sample education content, independent of account data or live market specifications. */
+/** Free Academy lessons, independent of account data or live market specifications. */
 export const ACADEMY_LESSONS: AcademyLesson[] = [
   {
     id: "contract-identity",
@@ -102,30 +104,30 @@ export const ACADEMY_LESSONS: AcademyLesson[] = [
   },
   {
     id: "assessment-and-pathway",
-    title: "Separate practice from a professional offer",
-    summary: "Understand what a simulated rule assessment can show and how recruitment differs.",
+    title: "How the evaluation and funded account work",
+    summary: "What you need to pass, what passing gets you and how payouts work.",
     reading: [
-      "A simulated assessment measures activity against a defined rulebook. The rules must explain the observation window, calculation basis, limits, costs, data gaps and review process before results are interpreted. An end-of-day assessment and an intraday simulation answer different questions; a historical replay is not a live trading environment.",
-      "The education programme and simulated evaluations are planned paid offerings. These sample lessons are a browsable preview, with no enrolment, pricing or paid assessment available here. A practice result does not award a credential, independent verification, funding, a client mandate or a job. Any later recruitment or contractor opportunity requires a separate application, selection process and agreement.",
+      `The evaluation is a simulated account with fixed rules: a ${R.targetPercent}% profit target over at least ${R.minimumDays} trading days, a ${R.dailyLossPercent}% daily loss limit and a ${R.maximumLossPercent}% max drawdown that trails your highest end-of-day balance until it reaches your starting balance. When you pass, your best day can be no more than ${R.consistencyPercent}% of your total profit. Every fill includes Indian trading costs, so plan your size after costs, not before.`,
+      `Passing leads to KYC and your funded trader agreement. The funded account is also simulated and keeps the same loss limits. You keep ${R.contractorSharePercent}% of the profit and can request a payout twice a month, up to the cap for your account size. Each request is checked against the rules, so a breach or a request above the cap is not paid.`,
     ],
     checklist: [
-      "Read the assessment rules and understand what data they require.",
-      "Distinguish lesson completion, assessment outcomes and professional selection.",
-      "Use documented work and review notes to prepare a portfolio without promising performance.",
+      "Write down the profit target, daily loss limit and max drawdown for your account size.",
+      "Size every trade so one bad day stays inside the daily loss limit.",
+      "Read the payout rules before you start: split, cap, buffer and schedule.",
     ],
     reviewPrompt:
-      "Write three separate statements: what you learned, what a defined assessment could establish, and what an employer or client would still need to evaluate. Include the limits of your evidence.",
-    journalLink: { href: "/journal", label: "Review your existing record" },
+      "Write your evaluation plan: your account size, your daily stop, the most you will risk on one trade, and what you will do after a losing day.",
+    journalLink: { href: "/journal", label: "Open your trading journal" },
     selfCheck: {
-      question: "What does a successful simulated rule assessment mean on its own?",
+      question: "What do you get when you pass the evaluation?",
       choices: [
-        "A guaranteed funded account and contractor placement.",
-        "A result against its stated rules and data; professional selection remains a separate process.",
-        "An independently verified live trading record.",
+        "The account balance, paid to you as cash.",
+        `A simulated funded account with an ${R.contractorSharePercent}% profit split, paid out within the rules and caps.`,
+        "A funded account with no loss limits.",
       ],
       correctChoice: 1,
       rationale:
-        "An assessment outcome describes that assessment. It does not establish live performance or create a funding, credential or employment entitlement.",
+        "Funded accounts are simulated and keep the loss limits. Payouts follow the profit split, payout caps and rules in your funded trader agreement.",
     },
   },
 ];

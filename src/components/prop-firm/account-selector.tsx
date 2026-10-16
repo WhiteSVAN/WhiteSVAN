@@ -33,7 +33,7 @@ export function AccountSelector() {
             return <article key={plan.id} className={`relative flex flex-col overflow-hidden rounded-2xl border bg-[var(--card)] ${index === 2 ? "border-[var(--primary)] shadow-[0_0_50px_-25px_rgba(186,242,119,.35)]" : "border-[var(--border)]"}`}>
               <div className={`h-1 ${index === 2 ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`} />
               <div className="px-6 pb-6 pt-6">
-                <div className="flex items-center justify-between gap-2"><p className="font-mono text-[10px] uppercase tracking-[.12em] text-[var(--muted)]">{isEvaluation ? "Evaluation" : "Funded account"}</p>{index === 2 && <span className="rounded border border-[var(--primary)] px-2 py-1 font-mono text-[9px] uppercase text-[var(--primary)]">Most popular</span>}</div>
+                <div className="flex h-6 items-center justify-between gap-2"><p className="font-mono text-[10px] uppercase tracking-[.12em] text-[var(--muted)]">{isEvaluation ? "Evaluation" : "Funded account"}</p>{index === 2 && <span className="rounded border border-[var(--primary)] px-2 py-0.5 font-mono text-[9px] uppercase text-[var(--primary)]">Recommended</span>}</div>
                 <h3 className="mt-4 text-[2.8rem] font-medium leading-none tracking-[-.065em]">{plan.label}</h3>
                 <p className="mt-2 text-xs text-[var(--muted)]">Account size</p>
                 <div className="mt-7 flex items-baseline gap-1.5"><span className="text-3xl font-medium tracking-[-.04em]">{isEvaluation ? formatInr(plan.fee) : `${PROGRAMME_RULES.contractorSharePercent}%`}</span><span className="text-xs text-[var(--muted)]">{isEvaluation ? "one-time" : "profit split"}</span></div>

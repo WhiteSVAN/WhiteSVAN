@@ -77,7 +77,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
           name="strategy"
           rows={2}
           className={inputClass}
-          placeholder="Market structure, statistical arbitrage, factor research, or equity deep dives."
+          placeholder="Intraday index options, expiry-day spreads, momentum."
         />
         <FieldError messages={state?.errors?.strategy} />
       </div>
@@ -90,7 +90,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
           id="instruments"
           name="instruments"
           className={inputClass}
-          placeholder="SPX, SPY, QQQ, single-stock options"
+          placeholder="NIFTY, BANK NIFTY and SENSEX options"
         />
         <FieldError messages={state?.errors?.instruments} />
       </div>
@@ -104,7 +104,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
           name="riskRules"
           rows={2}
           className={inputClass}
-          placeholder="Max 2 contracts; daily stop at -$1,000."
+          placeholder="Max 2 lots; daily stop at -₹2,000."
         />
         <FieldError messages={state?.errors?.riskRules} />
       </div>
@@ -118,7 +118,7 @@ export function OnboardingForm({ defaultName }: { defaultName: string }) {
           name="bio"
           rows={3}
           className={inputClass}
-          placeholder="A short intro shown on your public research profile."
+          placeholder="A short intro for your profile."
         />
         <FieldError messages={state?.errors?.bio} />
       </div>

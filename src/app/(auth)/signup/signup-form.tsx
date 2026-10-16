@@ -5,7 +5,16 @@ import { signup } from "../actions";
 import { btnPrimary, FieldError, FormError, inputClass, labelClass } from "@/components/form";
 import { RolePicker } from "@/components/auth/role-picker";
 
-export function SignupForm({ initialRole, referral }: { initialRole: "TRADER" | "CLIENT"; referral?: string }) {
+export function SignupForm({
+  initialRole,
+  chooseRole = true,
+  referral,
+}: {
+  initialRole: "TRADER" | "CLIENT";
+  /** Show the trader/client picker; otherwise `initialRole` is submitted as-is. */
+  chooseRole?: boolean;
+  referral?: string;
+}) {
   const [state, action, pending] = useActionState(signup, undefined);
 
   return (
@@ -13,8 +22,14 @@ export function SignupForm({ initialRole, referral }: { initialRole: "TRADER" | 
       <FormError message={state?.message} />
       {referral && <input type="hidden" name="ref" value={referral} />}
 
-      <RolePicker defaultRole={initialRole} />
-      <FieldError messages={state?.errors?.role} />
+      {chooseRole ? (
+        <>
+          <RolePicker defaultRole={initialRole} />
+          <FieldError messages={state?.errors?.role} />
+        </>
+      ) : (
+        <input type="hidden" name="role" value={initialRole} />
+      )}
 
       <div>
         <label htmlFor="name" className={labelClass}>

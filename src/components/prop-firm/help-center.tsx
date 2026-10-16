@@ -50,7 +50,7 @@ export function HelpCenter() {
         )}
         {topics.map((topic) => (
           <section key={topic.id} id={topic.id} aria-labelledby={`${topic.id}-title`} className="scroll-mt-28">
-            <p className="terminal-label text-[var(--primary)]">{topic.summary}</p>
+            <p className="terminal-label text-[var(--primary)]">{topic.articles.length} {topic.articles.length === 1 ? "article" : "articles"}</p>
             <h2 id={`${topic.id}-title`} className="mt-2 text-2xl font-medium tracking-[-.035em]">{topic.title}</h2>
             <div className="mt-5 divide-y divide-[var(--border)] border-y border-[var(--border)]">
               {topic.articles.map((article) => (
