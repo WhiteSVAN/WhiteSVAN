@@ -292,6 +292,41 @@ button[type="submit"][class*="bg-zinc-900"] {
 .hover\:text-zinc-100:hover,
 .hover\:text-zinc-200:hover { color: var(--primary) !important; }
 
+/* Prop-firm storefront; keeps the existing forest/lime colour system. */
+.prop-button,
+.prop-button-outline {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 7px;
+  padding: 0 22px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.prop-button { background: var(--primary); color: var(--primary-foreground); border: 1px solid var(--primary); }
+.prop-button:hover { background: var(--primary-hover); border-color: var(--primary-hover); box-shadow: 0 0 24px #baf27718; }
+.prop-button-outline { border: 1px solid #415338; background: #111a11; color: #e1ead9; }
+.prop-button-outline:hover { background: #1d2a17; border-color: #93ba70; }
+.prop-heading { font-size: clamp(2rem, 3.6vw, 3.3rem); font-weight: 500; line-height: 1.13; letter-spacing: -.055em; }
+.prop-hero { background: radial-gradient(ellipse at 80% 42%, #40632424, transparent 56%), #0b0f0d; }
+.prop-hero::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(#6a8d4910 1px, transparent 1px), linear-gradient(90deg, #6a8d4910 1px, transparent 1px);
+  background-size: 64px 64px; mask-image: linear-gradient(90deg, transparent 24%, black);
+}
+.prop-orbit { position: absolute; inset: -3% -9%; border-radius: 50%; border: 1px solid #baf27712; transform: rotate(-25deg); box-shadow: 0 0 0 45px #baf27704, 0 0 0 90px #baf27703; }
+.prop-terminal { transform: perspective(1200px) rotateY(-7deg) rotateX(2deg); }
+.prop-accounts { background-image: radial-gradient(ellipse at 50% 0%, #baf27709, transparent 70%); }
+.prop-step:hover { border-color: #526e40; transform: translateY(-3px); transition: transform 200ms ease, border-color 200ms ease; }
+.prop-final { background-image: radial-gradient(ellipse at 50% 120%, #baf27720, transparent 70%); }
+@media (max-width: 639px) {
+  .prop-header-cta { display: none; }
+  .prop-terminal { transform: none; }
+  .prop-hero-art { max-width: 480px; padding-top: 0; }
+}
+
 /* Every app control gets the same intentional motion and focus treatment. */
 button,
 a[class*="rounded"],

@@ -13,7 +13,7 @@ import { POST_TYPES } from "@/lib/posts";
 import { communityDetail, communityRoster } from "../queries";
 import { cancelJoinRequest, joinCommunity, leaveCommunity } from "../actions";
 
-export const metadata: Metadata = { title: "Community - TrustSVAN" };
+export const metadata: Metadata = { title: "Community - WhiteSVAN" };
 
 function one(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;

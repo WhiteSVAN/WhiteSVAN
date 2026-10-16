@@ -29,7 +29,7 @@ export function EvidenceUploader({ accounts }: { accounts: { id: string; account
       <div className="sm:col-span-2">
         <p className="mb-3 rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-xs leading-5 text-zinc-400">
           Files are private by default. Uploading evidence records its provenance; it does not mean
-          TrustSVAN has independently verified the document or every period in your record.
+          WhiteSVAN has independently verified the document or every period in your record.
         </p>
         <label htmlFor="file" className={labelClass}>
           File <span className="text-zinc-400">(PDF, image, source export - max 10 MB)</span>

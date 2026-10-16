@@ -5,7 +5,7 @@ import { CommunityCard } from "@/components/communities/community-card";
 import { discoverCommunities, myCommunities } from "./queries";
 import { CreateCommunityForm } from "./create-community-form";
 
-export const metadata: Metadata = { title: "Communities - TrustSVAN" };
+export const metadata: Metadata = { title: "Communities - WhiteSVAN" };
 
 export default async function CommunitiesPage() {
   const user = await requireOnboardedUser();

@@ -21,7 +21,7 @@ import { logger } from "@/lib/logger";
 import { optionLabel, optionLabels } from "@/lib/profile-options";
 import { coverageLabel } from "@/lib/record-context";
 
-const TITLE = "Explore trader records — TrustSVAN";
+const TITLE = "Explore trader records — WhiteSVAN";
 const DESCRIPTION =
   "Browse public, source-linked trading records by market, strategy, region, capital band, record source, and record length. Sorted by recency — never by return or score.";
 
@@ -134,7 +134,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Sear
       </div>
       <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-xl">
         <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between gap-3 px-4 sm:h-[76px] sm:px-8">
-          <Link href={signedIn ? "/dashboard" : "/"} className="shrink-0 text-xl font-semibold text-zinc-100" aria-label="TrustSVAN home">
+          <Link href={signedIn ? "/dashboard" : "/"} className="shrink-0 text-xl font-semibold text-zinc-100" aria-label="WhiteSVAN home">
             <SvanLogo />
           </Link>
           {signedIn ? (

@@ -8,7 +8,7 @@ import { safeInternalHref } from "@/lib/inquiries";
 import { ActivityList, type ActivityItem } from "./activity-list";
 import { markAllNotificationsRead } from "./actions";
 
-export const metadata: Metadata = { title: "Inbox — TrustSVAN" };
+export const metadata: Metadata = { title: "Inbox — WhiteSVAN" };
 
 type Tab = "activity" | "conversations";
 

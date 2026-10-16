@@ -232,6 +232,7 @@ export async function respondToInquiry(_prev: RespondState, formData: FormData):
   revalidatePath("/inbox");
   revalidatePath(href);
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
   revalidatePath(`/p/${inquiry.profile.slug}`);
   return { done: decision };
 }

@@ -31,7 +31,7 @@ import {
 } from "./actions";
 import { CommunitySettingsForm } from "./settings-form";
 
-export const metadata: Metadata = { title: "Manage community - TrustSVAN" };
+export const metadata: Metadata = { title: "Manage community - WhiteSVAN" };
 
 function ago(iso: string): string {
   return formatDistanceToNowStrict(new Date(iso), { addSuffix: true });

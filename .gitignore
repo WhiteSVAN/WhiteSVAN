@@ -45,3 +45,6 @@ next-env.d.ts
 
 # uploaded evidence files (local storage)
 /storage
+
+# local deck/forecast build output (kept with the plan files, not the app)
+/artifacts/

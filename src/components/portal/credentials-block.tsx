@@ -4,7 +4,7 @@ import { yearsTradingLabel } from "@/lib/profile-page";
 
 /**
  * Credentials, experience and regulatory registration exactly as the trader
- * typed them. Always labelled self-declared: TrustSVAN does not check these
+ * typed them. Always labelled self-declared: WhiteSVAN does not check these
  * against regulator records.
  */
 export function CredentialsBlock({

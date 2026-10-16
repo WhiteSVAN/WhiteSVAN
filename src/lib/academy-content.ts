@@ -1,0 +1,131 @@
+export interface AcademyLesson {
+  id: string;
+  title: string;
+  summary: string;
+  reading: string[];
+  checklist: string[];
+  reviewPrompt: string;
+  journalLink: { href: string; label: string };
+  selfCheck: {
+    question: string;
+    choices: string[];
+    correctChoice: number;
+    rationale: string;
+  };
+}
+
+/** Sample education content, independent of account data or live market specifications. */
+export const ACADEMY_LESSONS: AcademyLesson[] = [
+  {
+    id: "contract-identity",
+    title: "Know the contract before the trade",
+    summary: "Identify an index derivative from its full contract and the applicable specification.",
+    reading: [
+      "NIFTY, BANK NIFTY and SENSEX name underlying indices. The underlying name alone does not identify a futures or options contract. Record the exchange, instrument type, expiry and contract identifier; an option also needs its strike and call or put type.",
+      "Check the exchange contract specification and your broker's instrument file for the relevant trading date. Keep the source, publication or effective date, and a copy or reference with your notes. Lot sizes, expiry conventions and available contracts can change, so a remembered value is not a reliable calculation input.",
+    ],
+    checklist: [
+      "Separate the underlying, the derivative contract and each execution.",
+      "Confirm whether quantity is reported as lots or individual units.",
+      "Record the applicable lot size, price convention and settlement terms from a dated source.",
+    ],
+    reviewPrompt:
+      "Take one past trade. Write its complete contract identity and identify the dated source you would use to validate quantity and contract terms. Mark any missing fields as unknown.",
+    journalLink: { href: "/upload", label: "Open your import workspace" },
+    selfCheck: {
+      question: "Which input is suitable for checking the quantity of a historical options trade?",
+      choices: [
+        "The lot size remembered from the last time you traded the index.",
+        "The contract specification effective for that contract and trading date, together with the broker's quantity convention.",
+        "The same multiplier used for every options market.",
+      ],
+      correctChoice: 1,
+      rationale:
+        "A dated, contract-specific source lets you establish the applicable lot size and what the broker's quantity means. A current specification or a different market's multiplier may not describe the historical trade.",
+    },
+  },
+  {
+    id: "costs-and-notes",
+    title: "Reconcile the result after costs",
+    summary: "Read a contract note and distinguish a trading result from a cash movement.",
+    reading: [
+      "A price move is only part of the result. Start with the broker's contract note and ledger, then identify gross trading profit or loss, brokerage, exchange or clearing charges, applicable taxes and other charges. Use the amounts and rules relevant to that transaction and date; these sample lessons do not supply current rates.",
+      "Check how the export defines realised P&L. It may already include some costs. Subtracting the same charge again makes the journal wrong. Deposits, withdrawals and margin transfers also change cash but are not trading profit or loss. Where futures settlements or other adjustments appear, reconcile them using the broker's documented statement conventions.",
+    ],
+    checklist: [
+      "Match executions, account and statement period before comparing totals.",
+      "Document which charges are included in each imported P&L field.",
+      "Explain differences with the ledger instead of forcing the numbers to agree.",
+    ],
+    reviewPrompt:
+      "Choose one statement period. Make a bridge from the broker's gross result to its reported net result, label every cost, and list cash movements separately. Record any unreconciled difference.",
+    journalLink: { href: "/upload", label: "Review an import with its source" },
+    selfCheck: {
+      question: "The broker export already deducts a particular charge from P&L. What should your reconciliation do?",
+      choices: [
+        "Deduct every charge again to make the journal conservative.",
+        "Add deposits to trading profit to match the cash balance.",
+        "Record that charge as included and avoid deducting it a second time.",
+      ],
+      correctChoice: 2,
+      rationale:
+        "A reconciliation needs consistent definitions. Identify included costs so each charge affects the result once, and keep funding movements separate from trading performance.",
+    },
+  },
+  {
+    id: "journal-coverage",
+    title: "Review the record and its blind spots",
+    summary: "Ask what the journal can establish before interpreting a performance number.",
+    reading: [
+      "Begin a review with the account, currency, date coverage and source. A file uploaded today can contain an old record. A gap can mean no trading, missing history or an incomplete export; it needs explanation. An attached statement supports a record but does not, by itself, mean an independent reviewer has verified it.",
+      "Read metric definitions carefully. A daily P&L journal may report winning days rather than winning trades, and a drawdown derived from daily closed P&L is not the worst intraday equity decline. Open positions, cash movements and omitted charges can also change the interpretation. Record these limitations alongside your observations.",
+    ],
+    checklist: [
+      "State the observation window and compare like accounts and currencies.",
+      "Distinguish coverage date, upload date and publication date.",
+      "Write one process improvement that the source data actually supports.",
+    ],
+    reviewPrompt:
+      "Review a past week in your journal. Note one repeated behaviour, one missing piece of evidence and one measurable process change. Avoid a conclusion about future returns.",
+    journalLink: { href: "/journal", label: "Open your trading record" },
+    selfCheck: {
+      question: "A daily closed-P&L record stays within a loss threshold. What does that establish?",
+      choices: [
+        "The recorded daily results stayed within that threshold; intraday equity may still have crossed it.",
+        "Every open position and intraday loss was within the threshold.",
+        "The trader will stay within the threshold in the future.",
+      ],
+      correctChoice: 0,
+      rationale:
+        "A result is limited by its observation frequency and data coverage. Daily closed P&L cannot establish intraday equity or future behaviour.",
+    },
+  },
+  {
+    id: "assessment-and-pathway",
+    title: "Separate practice from a professional offer",
+    summary: "Understand what a simulated rule assessment can show and how recruitment differs.",
+    reading: [
+      "A simulated assessment measures activity against a defined rulebook. The rules must explain the observation window, calculation basis, limits, costs, data gaps and review process before results are interpreted. An end-of-day assessment and an intraday simulation answer different questions; a historical replay is not a live trading environment.",
+      "The education programme and simulated evaluations are planned paid offerings. These sample lessons are a browsable preview, with no enrolment, pricing or paid assessment available here. A practice result does not award a credential, independent verification, funding, a client mandate or a job. Any later recruitment or contractor opportunity requires a separate application, selection process and agreement.",
+    ],
+    checklist: [
+      "Read the assessment rules and understand what data they require.",
+      "Distinguish lesson completion, assessment outcomes and professional selection.",
+      "Use documented work and review notes to prepare a portfolio without promising performance.",
+    ],
+    reviewPrompt:
+      "Write three separate statements: what you learned, what a defined assessment could establish, and what an employer or client would still need to evaluate. Include the limits of your evidence.",
+    journalLink: { href: "/journal", label: "Review your existing record" },
+    selfCheck: {
+      question: "What does a successful simulated rule assessment mean on its own?",
+      choices: [
+        "A guaranteed funded account and contractor placement.",
+        "A result against its stated rules and data; professional selection remains a separate process.",
+        "An independently verified live trading record.",
+      ],
+      correctChoice: 1,
+      rationale:
+        "An assessment outcome describes that assessment. It does not establish live performance or create a funding, credential or employment entitlement.",
+    },
+  },
+];

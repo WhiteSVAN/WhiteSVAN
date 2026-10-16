@@ -81,7 +81,7 @@ export default async function ReportsPage() {
       <div className="terminal-card p-6">
         <h2 className="text-base font-medium text-zinc-800">Generate a brief</h2>
         <p className="mt-1 text-sm text-zinc-500">
-          TrustSVAN computes the numbers; AI only drafts the research-facing narrative.
+          WhiteSVAN computes the numbers; AI only drafts the research-facing narrative.
         </p>
         <div className="mt-4">
           {accountOptions.length === 0 ? (

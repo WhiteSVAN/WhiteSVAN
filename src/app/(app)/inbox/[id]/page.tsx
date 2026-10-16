@@ -10,7 +10,7 @@ import { RespondButtons } from "@/components/inquiries/respond-buttons";
 import { MessageForm } from "./message-form";
 import { MarkThreadSeen } from "./mark-seen";
 
-export const metadata: Metadata = { title: "Conversation — TrustSVAN" };
+export const metadata: Metadata = { title: "Conversation — WhiteSVAN" };
 
 const MESSAGE_LIMIT = 300;
 
@@ -157,7 +157,7 @@ export default async function InquiryThreadPage({ params }: { params: Promise<{ 
       </section>
 
       <p className="text-xs leading-5 text-zinc-500">
-        TrustSVAN conversations are for research and diligence. Nothing here is investment advice, a signal, or an
+        WhiteSVAN conversations are for research and diligence. Nothing here is investment advice, a signal, or an
         offer to manage money. Past performance does not guarantee future results.
       </p>
     </div>

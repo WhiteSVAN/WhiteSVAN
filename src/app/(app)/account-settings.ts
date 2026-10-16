@@ -32,6 +32,7 @@ export async function setStartingBalance(
     data: { startingBalance: value },
   });
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
   return { saved: true };
 }
 
@@ -49,6 +50,7 @@ export async function setPortalVisibility(
     data: { isPublic: makePublic },
   });
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
   revalidatePath("/settings");
   revalidatePath("/explore");
   revalidatePath(`/p/${profile.slug}`);

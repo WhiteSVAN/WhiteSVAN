@@ -114,6 +114,6 @@ export async function confirmImport(
   }
 
   // Freshness is driven by *publishing*, not importing — the trader reviews the
-  // new numbers, then clicks Publish on the dashboard to create a profile version.
-  redirect(`/dashboard?imported=${result.tradeCount}`);
+  // new numbers, then clicks Publish in the journal to create a profile version.
+  redirect(`/journal?imported=${result.tradeCount}`);
 }

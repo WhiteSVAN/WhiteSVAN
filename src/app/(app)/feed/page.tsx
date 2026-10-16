@@ -6,7 +6,7 @@ import { followedAuthorIds } from "@/lib/post-queries";
 import { PostComposer } from "@/components/posts/post-composer";
 import { PostList } from "@/components/posts/post-list";
 
-export const metadata: Metadata = { title: "Feed - TrustSVAN" };
+export const metadata: Metadata = { title: "Feed - WhiteSVAN" };
 
 type Tab = "following" | "all";
 

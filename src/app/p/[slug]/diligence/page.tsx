@@ -12,13 +12,13 @@ import { ProvenanceLine } from "@/components/portal/provenance-line";
 import { getLatestVersion, getVersionSnapshot, getViewableProfile } from "../data";
 
 const DISCLAIMER =
-  "Diligence summarizes this operator's published past performance for evaluation. TrustSVAN does not manage money, execute trades, or provide investment advice, and nothing here is an allocation recommendation. Past performance does not guarantee future results.";
+  "Diligence summarizes this operator's published past performance for evaluation. WhiteSVAN does not manage client money, execute trades for clients, or provide investment advice, and nothing here is an allocation recommendation. Past performance does not guarantee future results.";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const view = await getViewableProfile(slug);
   return {
-    title: view?.profile.isPublic ? `Diligence · ${view.profile.displayName} — TrustSVAN` : "TrustSVAN",
+    title: view?.profile.isPublic ? `Diligence · ${view.profile.displayName} — WhiteSVAN` : "WhiteSVAN",
     robots: { index: false, follow: false },
   };
 }
@@ -55,7 +55,7 @@ export default async function DiligencePage({ params }: { params: Promise<{ slug
       </div>
       <nav className="border-b border-zinc-800 bg-zinc-950/90" aria-label="Site">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-4">
-          <Link href="/" className="text-xl font-semibold text-zinc-100" aria-label="TrustSVAN home">
+          <Link href="/" className="text-xl font-semibold text-zinc-100" aria-label="WhiteSVAN home">
             <SvanLogo />
           </Link>
           <Link href={profileHref(profile.slug)} className="text-sm font-medium text-zinc-200 hover:text-zinc-100">

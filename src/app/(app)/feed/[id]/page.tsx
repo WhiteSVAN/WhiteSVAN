@@ -8,7 +8,7 @@ import { PostCard } from "@/components/posts/post-card";
 import { CommentForm } from "@/components/posts/comment-form";
 import { DeleteCommentButton } from "@/components/posts/post-interactions";
 
-export const metadata: Metadata = { title: "Post - TrustSVAN" };
+export const metadata: Metadata = { title: "Post - WhiteSVAN" };
 
 export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

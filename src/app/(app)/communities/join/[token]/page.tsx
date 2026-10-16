@@ -7,7 +7,7 @@ import { COMMUNITY_GUARDRAIL, inviteIsUsable } from "@/lib/communities";
 import { ActionButton } from "@/components/communities/action-button";
 import { acceptInvite } from "../../actions";
 
-export const metadata: Metadata = { title: "Community invite - TrustSVAN", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Community invite - WhiteSVAN", robots: { index: false, follow: false } };
 
 /**
  * Invite landing. Joining is a POST (the button), never a side effect of

@@ -10,7 +10,7 @@ export function SvanLogo({ className }: { className?: string }) {
         <i />
       </span>
       <span className="tracking-[-0.04em] text-[#f0f3ec]">
-        <span className="font-semibold">Trust</span>
+        <span className="font-semibold">White</span>
         <span className="font-normal text-[#baf277]">SVAN</span>
       </span>
     </span>

@@ -5,7 +5,7 @@ import { renderShareCard } from "./share-card";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export const alt = "TrustSVAN research profile: published record source, coverage and risk";
+export const alt = "WhiteSVAN research profile: published record source, coverage and risk";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

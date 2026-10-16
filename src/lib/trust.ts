@@ -1,5 +1,5 @@
 /**
- * TrustSVAN client-trust metrics.
+ * WhiteSVAN client-trust metrics.
  *
  * Wraps the raw metrics engine and derives the plain-English signals a
  * non-finance client needs: how big the worst drop was (with a severity
@@ -23,7 +23,7 @@ export type DrawdownSeverity = "controlled" | "elevated" | "high" | "severe";
 export const PROOF_LEVELS = {
   1: { label: "Self-reported", blurb: "Numbers were supplied by the trader." },
   2: { label: "Imported trading history", blurb: "Metrics were computed from a file uploaded by the trader. The file has not been independently reviewed." },
-  3: { label: "Statement attached", blurb: "A broker statement is attached. Uploading a document does not mean TrustSVAN independently verified it." },
+  3: { label: "Statement attached", blurb: "A broker statement is attached. Uploading a document does not mean WhiteSVAN independently verified it." },
   4: { label: "Additional document attached", blurb: "Additional account documentation is attached but has not been independently reviewed." },
   5: { label: "Independently reviewed", blurb: "The record was reviewed by an approved independent reviewer." },
 } as const;
@@ -38,7 +38,7 @@ export interface TrustScores {
   proof: number;
   /** Reporting discipline — how reliably the profile is refreshed (0..100). */
   updateReliability: number;
-  /** Weighted composite (TrustSVAN Score v2), 0..100. */
+  /** Weighted composite (WhiteSVAN Score v2), 0..100. */
   transparency: number;
 }
 
@@ -195,7 +195,7 @@ export function computeTrustMetrics(
   const discipline = clamp(100 - (bestDayShare ?? 0) * 60 - redRatio * 30, 0, 100);
   const proof = proofLevel * 20;
 
-  // TrustSVAN Score v2 — rewards proof quality, risk control, and reporting
+  // WhiteSVAN Score v2 — rewards proof quality, risk control, and reporting
   // discipline over raw profit (profit capped at 10%).
   const reliability = clamp(updateReliability, 0, 100);
   const transparency = Math.round(

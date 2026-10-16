@@ -243,7 +243,7 @@ export function profileDescription(input: {
     input.source && input.coverage
       ? `Published record: ${input.source}, ${input.coverage}.`
       : "No published record yet.";
-  return truncate(`${lead.replace(/[.\s]+$/, "")}. ${record} Research profile on TrustSVAN.`, 200);
+  return truncate(`${lead.replace(/[.\s]+$/, "")}. ${record} Research profile on WhiteSVAN.`, 200);
 }
 
 /**
