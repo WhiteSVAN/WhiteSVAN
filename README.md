@@ -6,7 +6,9 @@ profit target, 4% end-of-day drawdown, 2% daily loss limit), and those who pass 
 funded account with an 80% profit split, paid twice a month in rupees.
 
 The site is launching soon: pricing, rules, the help center and free Academy lessons are live;
-checkout, evaluation accounts and payouts are not built yet. All evaluation and funded accounts are
+checkout, evaluation accounts and payouts are not built yet. The trading core that will run them
+(simulated orders and fills, Indian F&O charges, the rule engine, risk meters and payout quotes) is
+in `src/lib/trading` as tested, deterministic TypeScript. All evaluation and funded accounts are
 simulated. Nothing on the site is investment advice, and public pages keep the past-performance
 disclaimer.
 
@@ -70,6 +72,7 @@ creates additional public profiles for the trader directory.
 - `docs/prop-firm-repurpose-review.md` - prop-firm repurpose handoff and checks
 - `src/lib/prop-firm.ts` - programme numbers and rule text
 - `src/lib/help-center.ts` - help-center content and search
+- `src/lib/trading/` - simulator and rule-engine core (paise money, charges, matching, rules, payouts)
 - `src/components/prop-firm/` - storefront components
 - `prisma/schema.prisma` - data model
 - `src/lib/metrics.ts` - code-of-record metrics engine (journal)

@@ -50,10 +50,37 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
 - Signed-in workspace ([src/app/(app)/layout.tsx](src/app/(app)/layout.tsx)): My accounts
   (`/dashboard`), Evaluations, Payouts (`/payouts`), Academy and Help, with the journal tools under
   **Tools** ([src/components/workspace-nav.tsx](src/components/workspace-nav.tsx)).
-- **Not built yet:** checkout and payments, evaluation provisioning, the trading simulator and market
-  data, the rule engine, KYC, payout processing and the copy engine. The spec is the Notion page
-  "Platform Technical Requirements (TRD v1)". Until those exist, never imply that a purchase,
-  account activation or payout has happened.
+- **Not built yet:** checkout and payments, evaluation provisioning, the engine service with market
+  data, KYC, payout processing and the copy engine. The spec is the Notion page "Platform Technical
+  Requirements (TRD v1)". Until those exist, never imply that a purchase, account activation or
+  payout has happened.
+
+## Trading core (src/lib/trading)
+
+Pure, deterministic TypeScript for the simulator and rule engine (TRD SIM, RULE, PAY-2). No clock,
+randomness or I/O: callers pass every timestamp, quote and order in, so a replay reproduces every
+result. The future engine service (Node on AWS with the market-data feed) hosts it.
+
+- `money.ts`: all amounts are integer **paise**; rates are integers over 1e8 (0.05% = 50_000).
+- `rules.ts`: `ruleSetFor(plan)` builds the rulebook in paise from `prop-firm.ts`; an account keeps
+  the copy it was opened with. Touching a limit counts as hitting it (daily loss on balance plus open
+  P&L vs the day's opening balance; max drawdown floor trails the highest end-of-day balance and
+  locks at the starting balance). Pass = target + 5 days + best day ≤ 50% of profit, checked at the
+  day's close.
+- `engine.ts`: `openAccount`, `step(state, event, context)`, `replay`, `riskMeters`. Market, limit,
+  SL and SL-M orders fill against five-level depth with slippage; validation covers hours
+  (09:15–15:20 IST), lots, freeze quantity, tick size, stale quotes, the expiry-day cutoff and naked
+  short options (a short option must be covered by a long one of the same underlying, expiry and
+  type). Square-off at 15:20, day close at 15:30, breach → flatten, lock and breach report.
+- `charges.ts` + `charges-schedules.ts`: brokerage, STT, exchange charges, SEBI fee, stamp duty and
+  GST from **dated schedules**. Add a new row when a rate changes; never edit one fills have used.
+  The shipped row is `verified: false` until a real contract note matches it to the paisa.
+- `payouts.ts`: payout quote: 80% of profit above the buffer (= max drawdown), capped per request,
+  one request per half-month, KYC / agreement / bank / hold checks. TDS is not computed here.
+- Lot, tick and freeze sizes and expiries come from the contract master (`Instrument` rows). Tests
+  use fixture values, not exchange values.
+- The Academy rule practice ([src/lib/academy-practice.ts](src/lib/academy-practice.ts)) runs these
+  same rule functions over daily closes.
 
 ## Plan vs. reality
 
@@ -185,9 +212,14 @@ metadata gates access without exposing private evidence files.
   an Evaluation / Funded toggle, plan pages, rules, searchable help center, Academy (free lessons and
   rule practice), launch list, plan-aware trader sign-up, prop-first workspace with the journal under
   Tools. Handoff notes: [docs/prop-firm-repurpose-review.md](docs/prop-firm-repurpose-review.md).
-- **Next (see the Notion TRD and sprint stories):** checkout (UPI/cards via an Indian gateway),
-  evaluation provisioning, the NSE/BSE simulator on licensed data, the rule engine, KYC, payouts with
-  TDS, then the optional copy desk.
+- ✅ **Trading core (Oct 2026)**: `src/lib/trading` (paise money, charges from dated schedules,
+  order matching, positions, rule engine, risk meters, payout quote, deterministic replay), with the
+  Academy rule practice running on it. Covers the pure-logic parts of stories S3-01, S3-02, S4-06,
+  S5-02 and PAY-2; still open there: a contract-note match for the charges, the contract-master
+  service and data feed, and hosting the engine live.
+- **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine
+  service with Redis and a replay provider, checkout (UPI/cards via an Indian gateway), evaluation
+  provisioning with live risk meters, KYC, payouts with TDS, then the optional copy desk.
 - ✅ **Journal (formerly TrustSVAN), M1–M6 and trust features**: NextAuth app shell; `/upload` source
   history bridge with `DailyPnl` rebuild; metrics dashboard (now `/journal`) with Research ⇄ Trader
   views; AI reports with live compliance; public `/p/[slug]` profiles with evidence locker and Proof
