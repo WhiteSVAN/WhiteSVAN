@@ -99,6 +99,26 @@ Done:
 Still to build (Notion TRD and sprint stories): checkout, evaluation provisioning, simulator and
 licensed data, rule engine, KYC, payouts with TDS, optional copy desk.
 
+## Trading core, 16 Oct 2026 (Claude)
+
+Built against the Notion TRD (SIM, RULE, PAY-2) as pure TypeScript in `src/lib/trading`, with no
+vendor choice needed:
+- Paise money and integer rates; dated charge schedules (Zerodha F&O rate card read 16 Oct 2026,
+  STT 0.05% futures / 0.15% options premium on the sell side). Marked `verified: false` until a real
+  contract note matches (story S3-01).
+- Order matching (market, limit, SL, SL-M against five-level depth, slippage, partial fills), FIFO
+  positions, square-off at 15:20, day close at 15:30, expiry-day cutoff, lot limits, naked-short ban.
+- Rule engine: daily loss on open plus closed P&L, trailing end-of-day drawdown that locks at the
+  starting balance, pass on target + 5 days + consistency, breach report with the trade or price.
+  Touching a limit counts; the rulebook copy now says "Hitting either limit ends the account".
+- Risk meters for the dashboard, a payout quote (80% above the buffer, capped, one request per
+  half-month) and deterministic replay from the start or a JSON snapshot.
+- The Academy's rule practice now runs the real rules for each account size instead of classroom
+  limits.
+
+Still open from those stories: contract-master ingestion, the engine service (Node, Redis, replay
+and vendor feeds, realtime gateway), checkout, provisioning, KYC and e-sign, payout processing.
+
 Local tooling: Node is not on PATH on the founder's machine; use the portable Node 22 at
 `%LOCALAPPDATA%\Temp\whitesvan-tooling\node-v22.23.3-win-x64` (prepend it to PATH in PowerShell).
 For local build checks use `npx prisma generate && npx next build` (not `npm run build`).

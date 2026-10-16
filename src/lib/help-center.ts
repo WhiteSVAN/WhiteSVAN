@@ -53,7 +53,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "how-to-pass",
         question: "How do I pass?",
-        answer: `Hit the ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days without breaking the daily loss limit or the max drawdown. When you pass, your best day can be no more than ${R.consistencyPercent}% of your total profit; if it is, keep trading until it isn't.`,
+        answer: `Hit the ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days without hitting the daily loss limit or the max drawdown. When you pass, your best day can be no more than ${R.consistencyPercent}% of your total profit; if it is, keep trading until it isn't.`,
       },
       {
         id: "real-money",
@@ -63,7 +63,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "rule-breach",
         question: "What happens if I break a rule?",
-        answer: "Breaking the daily loss limit or the max drawdown ends the account. You get a breach report showing the trade and the rule, and you can appeal within 7 days. You can start a new evaluation any time.",
+        answer: "Hitting the daily loss limit or the max drawdown ends the account. You get a breach report showing the trade and the rule, and you can appeal within 7 days. You can start a new evaluation any time.",
       },
       {
         id: "how-many-accounts",

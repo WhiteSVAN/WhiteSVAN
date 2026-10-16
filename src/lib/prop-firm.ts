@@ -15,6 +15,12 @@ export const PROGRAMME_RULES = {
   consistencyPercent: 50,
   contractorSharePercent: 80,
   maximumAccounts: 3,
+  /** IST session times: market open, automatic square-off, market close. */
+  marketOpen: "09:15",
+  squareOff: "15:20",
+  marketClose: "15:30",
+  /** No new positions in a contract during the last hour of its expiry day. */
+  expiryCutoffMinutes: 60,
   version: "India v1",
 } as const;
 
@@ -41,13 +47,13 @@ export const RULE_SECTIONS = [
     id: "evaluation",
     label: "Profit target",
     title: "Hit the profit target.",
-    description: "Make 6% on your starting balance in at least five trading days. When you pass, your best day can be no more than 50% of your total profit. Missing the consistency rule doesn't fail you: keep trading until your best day is under 50%.",
+    description: "Make 6% on your starting balance in at least five trading days. When you pass, your best day can be no more than 50% of your total profit. Missing the consistency rule doesn't fail you: keep trading until your best day is 50% or less of your total profit.",
   },
   {
     id: "drawdown",
     label: "Drawdown & daily loss",
     title: "Stay inside your drawdown.",
-    description: "Your maximum drawdown is 4% of the starting balance. It trails your highest end-of-day balance and stops trailing once it reaches your starting balance. Your daily loss limit is 2% of the starting balance, measured on open and closed P&L. Breaking either limit ends the account, and you get a breach report showing the trade and the rule.",
+    description: "Your maximum drawdown is 4% of the starting balance. It trails your highest end-of-day balance and stops trailing once it reaches your starting balance. Your daily loss limit is 2% of the starting balance, measured on open and closed P&L. Hitting either limit ends the account, and you get a breach report showing the trade and the rule.",
   },
   {
     id: "markets",

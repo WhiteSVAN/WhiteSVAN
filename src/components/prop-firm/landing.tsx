@@ -11,7 +11,7 @@ const FEATURED_LIMITS = planLimits(FEATURED);
 
 const STEPS = [
   { icon: Layers3, n: "01", title: "Choose your evaluation.", text: `Pick an account from ${EVALUATION_PLANS[0].label} to ${EVALUATION_PLANS[EVALUATION_PLANS.length - 1].label}. One-time fee, no subscription, no activation fee.` },
-  { icon: Target, n: "02", title: "Pass the evaluation.", text: `Hit the ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days without breaking the drawdown or the daily loss limit.` },
+  { icon: Target, n: "02", title: "Pass the evaluation.", text: `Hit the ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days without hitting the drawdown or the daily loss limit.` },
   { icon: Flag, n: "03", title: "Get funded. Get paid.", text: `Complete KYC, sign your funded trader agreement and request payouts twice a month at an ${R.contractorSharePercent}% profit split.` },
 ];
 
