@@ -44,13 +44,13 @@ export function LearnPanel() {
     <section aria-labelledby="sample-lessons-title" className="space-y-7">
       <div className="flex flex-wrap items-start justify-between gap-5">
         <div className="max-w-2xl">
-          <p className="terminal-label">Sample lessons / education preview</p>
+          <p className="terminal-label">Free lessons</p>
           <h2 id="sample-lessons-title" className="mt-3 text-2xl font-medium tracking-[-0.035em] text-[var(--foreground)] sm:text-3xl">
-            Build the process behind the record.
+            Learn what the evaluation tests.
           </h2>
           <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
-            Four practical lessons for Indian index futures and options traders. Preview the planned
-            paid education programme through reading, a journal prompt and a short self-check.
+            Four free lessons for NIFTY, BANK NIFTY and SENSEX traders: contracts, costs, reviewing
+            your record and how the evaluation works. Each ends with a journal prompt and a quick self-check.
           </p>
         </div>
         <div className="rounded-md border border-[var(--border)] bg-[var(--card-deep)] px-4 py-3">
@@ -120,7 +120,7 @@ export function LearnPanel() {
             <div className="rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] p-4 sm:p-5">
               <h4 className="terminal-label">Take it to your journal</h4>
               <p className="mt-3 text-sm leading-7 text-[var(--foreground)]">{lesson.reviewPrompt}</p>
-              <p className="mt-2 text-[11px] leading-5 text-[var(--muted)]">Keep your notes in your own journal; this preview does not read or update your trading data.</p>
+              <p className="mt-2 text-[11px] leading-5 text-[var(--muted)]">Write your answer in your trading journal.</p>
               <Link href={lesson.journalLink.href} prefetch={false} className="mt-4 inline-flex min-h-10 items-center gap-2 text-xs font-medium text-[var(--primary)] underline-offset-4 hover:underline">
                 {lesson.journalLink.label}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>

@@ -1,4 +1,4 @@
-/** Public help-centre content. Rule figures come from the draft rulebook in prop-firm.ts. */
+/** Public help-centre content. Rule figures come from the rulebook in prop-firm.ts. */
 import { EVALUATION_PLANS, PROGRAMME_RULES, formatInr, planLimits } from "./prop-firm";
 
 export type HelpArticle = { id: string; question: string; answer: string };
@@ -16,27 +16,27 @@ export const HELP_TOPICS: HelpTopic[] = [
   {
     id: "getting-started",
     title: "Getting started",
-    summary: "What WhiteSVAN is and what you can do today.",
+    summary: "What WhiteSVAN is and how to start.",
     articles: [
       {
         id: "what-is-whitesvan",
         question: "What is WhiteSVAN?",
-        answer: "WhiteSVAN is building an India-first prop trading programme for NIFTY, BANK NIFTY and SENSEX futures and options. You learn with SVAN Academy, take a simulated evaluation and, after passing and review, can join the simulated contractor desk.",
+        answer: `WhiteSVAN is a prop trading firm for Indian index futures and options. Pass our evaluation, get a funded account and earn an ${R.contractorSharePercent}% profit split trading NIFTY, BANK NIFTY and SENSEX.`,
       },
       {
         id: "buy-today",
-        question: "Can I buy an evaluation today?",
-        answer: "Not yet. WhiteSVAN is in launch preview: account sizes, prices and rules are drafts, and checkout is not open. Join the launch list to hear when evaluations open.",
+        question: "When can I start?",
+        answer: "We're launching soon. Create your account now to get early access, and we'll email you when evaluations open.",
       },
       {
         id: "who-can-join",
-        question: "Who can take part?",
-        answer: "The programme is planned for Indian residents. After you pass, you complete KYC (PAN, Aadhaar through DigiLocker and bank-account verification) before a contractor agreement is signed.",
+        question: "Who can join?",
+        answer: "Traders resident in India. After you pass, you complete KYC with your PAN, Aadhaar (through DigiLocker) and bank account before your funded account starts.",
       },
       {
         id: "experience",
         question: "Do I need trading experience?",
-        answer: "The draft rules set no minimum experience. The evaluation tests a disciplined process against clear limits, and the Academy explains each rule with worked examples before you start.",
+        answer: "No minimum. The evaluation checks one thing: can you hit the target while staying inside the loss limits. SVAN Academy walks through every rule with worked examples.",
       },
     ],
   },
@@ -47,131 +47,131 @@ export const HELP_TOPICS: HelpTopic[] = [
     articles: [
       {
         id: "account-sizes",
-        question: "Which account sizes are available?",
-        answer: `Four simulated balances: ${sizeList}. The proposed one-time fees run from ${formatInr(first.fee)} to ${formatInr(last.fee)}, GST included, with no activation fee and no monthly subscription.`,
+        question: "Which account sizes can I choose?",
+        answer: `${sizeList}. Fees run from ${formatInr(first.fee)} to ${formatInr(last.fee)}, one-time, GST included. No subscription and no activation fee.`,
       },
       {
         id: "how-to-pass",
         question: "How do I pass?",
-        answer: `Reach a ${R.targetPercent}% net profit target over at least ${R.minimumDays} trading days without breaching a loss limit. When you pass, your best day must be no more than ${R.consistencyPercent}% of total profit; falling short of that delays the pass rather than ending the attempt.`,
+        answer: `Hit the ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days without breaking the daily loss limit or the max drawdown. When you pass, your best day can be no more than ${R.consistencyPercent}% of your total profit; if it is, keep trading until it isn't.`,
       },
       {
         id: "real-money",
         question: "Is the account balance real money?",
-        answer: "No. Every evaluation and contractor account is simulated. The balance is a risk budget that sets your limits; it is not a deposit, a loan or capital paid to you.",
+        answer: "No. Evaluation and funded accounts are simulated. The account size sets your limits and your payout cap; your payouts are real.",
       },
       {
         id: "rule-breach",
         question: "What happens if I break a rule?",
-        answer: "A daily-loss or maximum-loss breach ends the attempt, and you receive a breach report naming the trade and the rule. You can appeal within 7 days; a second reviewer decides from the evidence.",
+        answer: "Breaking the daily loss limit or the max drawdown ends the account. You get a breach report showing the trade and the rule, and you can appeal within 7 days. You can start a new evaluation any time.",
       },
       {
         id: "how-many-accounts",
-        question: "How many accounts can I hold?",
-        answer: `Up to ${R.maximumAccounts} active evaluation or Level 1 accounts per person. Hedging across accounts, copying another trader and sharing logins are not allowed.`,
+        question: "How many accounts can I have?",
+        answer: `Up to ${R.maximumAccounts} evaluation or funded accounts at once. Hedging across accounts, copying another trader and sharing logins are not allowed.`,
       },
     ],
   },
   {
     id: "rules",
     title: "Rules and risk",
-    summary: "Loss limits, markets, sessions and costs.",
+    summary: "Drawdown, daily loss, products, hours and costs.",
     articles: [
       {
         id: "maximum-loss",
-        question: "How does the maximum loss work?",
-        answer: `The maximum loss is ${R.maximumLossPercent}% of the starting balance. Its threshold trails your highest end-of-day balance and locks at the starting balance: on a ${first.label} account it starts at ${formatInr(first.balance - firstLimits.maximumLoss)} and stops rising at ${formatInr(first.balance)}.`,
+        question: "How does the max drawdown work?",
+        answer: `It's ${R.maximumLossPercent}% of your starting balance. It trails your highest end-of-day balance until it reaches your starting balance, then locks. On a ${first.label} account your floor starts at ${formatInr(first.balance - firstLimits.maximumLoss)} and locks at ${formatInr(first.balance)}.`,
       },
       {
         id: "daily-loss",
-        question: "What is the daily loss limit?",
-        answer: `${R.dailyLossPercent}% of the starting balance (${formatInr(firstLimits.dailyLoss)} on a ${first.label} account), measured on realised and unrealised P&L against the day's opening balance.`,
+        question: "What's the daily loss limit?",
+        answer: `${R.dailyLossPercent}% of your starting balance (${formatInr(firstLimits.dailyLoss)} on a ${first.label} account), counting open and closed P&L for the day.`,
       },
       {
         id: "markets-and-hours",
-        question: "Which markets and hours can I trade?",
-        answer: "NIFTY and BANK NIFTY futures and options on NSE, and SENSEX futures and options on BSE, on listed expiries. Trading runs 09:15–15:30 IST and is intraday only: positions close at 15:20, and no new positions in expiring contracts are allowed in the final 60 minutes. Short options are allowed only inside defined-risk spreads.",
+        question: "What can I trade, and when?",
+        answer: "NIFTY and BANK NIFTY futures and options on NSE, and SENSEX futures and options on BSE. Intraday only: the market opens at 09:15 IST, you close by 15:20, and you can't open new positions in expiring contracts in the last hour of expiry day. Sell options only inside defined-risk spreads.",
       },
       {
         id: "trading-costs",
         question: "Are trading costs included?",
-        answer: "Yes. Every simulated fill includes brokerage, STT, exchange charges, the SEBI fee, stamp duty and GST, and fills at the bid or ask with slippage, so simulated results track what a real account would show.",
+        answer: "Yes. Every fill includes brokerage, STT, exchange charges, the SEBI fee, stamp duty and GST, with realistic fills at the bid or ask.",
       },
       {
         id: "lots",
-        question: "Why are position limits set in lots?",
-        answer: "Index contracts trade in exchange-set lots, and the exchanges revise lot sizes from time to time. Limits are set in lots and checked against the current contract master, never a fixed number of units.",
+        question: "Why are positions limited in lots?",
+        answer: "Index contracts trade in exchange lots, and the exchanges change lot sizes from time to time. Your limit is a number of lots, checked against the current lot sizes.",
       },
     ],
   },
   {
     id: "payouts",
-    title: "Sim desk and payouts",
+    title: "Funded accounts and payouts",
     summary: "What happens after you pass.",
     articles: [
       {
         id: "after-passing",
         question: "What happens after I pass?",
-        answer: "You complete KYC and sign a separate contractor agreement. Under the draft terms, an offer follows within 5 working days of completed KYC. Your contractor account stays simulated.",
+        answer: "Complete KYC and sign your funded trader agreement. You'll get your funded account within 5 working days of completing KYC.",
       },
       {
         id: "contractor-pay",
-        question: "How are contractors paid?",
-        answer: `Under the draft terms you receive ${R.contractorSharePercent}% of eligible simulated net profit, reviewed twice a month. Each payout is capped by account size (${caps} for ${first.label} to ${last.label}), and profit up to the maximum-loss amount stays in the account as a buffer. Tax is deducted at source where it applies.`,
+        question: "How do payouts work?",
+        answer: `You keep ${R.contractorSharePercent}% of the profit on your funded account. Request a payout twice a month, up to ${caps} per payout for ${first.label} to ${last.label} accounts. Profit equal to your max drawdown stays in the account as a buffer, and tax is deducted at source where it applies.`,
       },
       {
         id: "live-capital",
-        question: "Will I trade live capital?",
-        answer: "No. Contractor accounts stay simulated permanently. WhiteSVAN may separately copy selected contractors' trades with its own money; that does not change your account or your pay, and no trader logs in to the firm's broker account.",
+        question: "Is my funded account live money?",
+        answer: "No. Funded accounts are simulated, like the evaluation; your payouts are real. WhiteSVAN may copy some funded traders with its own capital, which doesn't change your account or your payouts.",
       },
       {
         id: "deposits",
-        question: "Do I need to deposit money?",
-        answer: "No. Course and evaluation fees are service fees. Traders never pay deposits or contribute trading capital.",
+        question: "Do I have to deposit money?",
+        answer: "No. You pay the one-time evaluation fee and nothing else. You never deposit trading capital.",
       },
       {
         id: "payout-certainty",
-        question: "Is a payout certain once I pass?",
-        answer: "No. Payouts depend on eligible simulated profit, the buffer, per-cycle caps, rule compliance and review. Nothing on WhiteSVAN promises income or returns.",
+        question: "Can a payout request be refused?",
+        answer: "Yes, if the rules weren't followed: for example a breach, hedging across accounts or a request above your cap. Every request is checked against the rules before it's paid.",
       },
     ],
   },
   {
     id: "academy",
     title: "SVAN Academy",
-    summary: "Lessons and practice before you trade.",
+    summary: "Free lessons and rule practice.",
     articles: [
       {
         id: "what-is-academy",
         question: "What is SVAN Academy?",
-        answer: "Practical lessons on contracts, costs, risk and the evaluation rules. The preview has free sample lessons and a synthetic rule exercise you can try now.",
+        answer: "Free lessons on contracts, costs, position sizing and the evaluation rules, plus a drawdown exercise you can try before you trade.",
       },
       {
         id: "tips",
         question: "Does the Academy give trading tips or calls?",
-        answer: "No. The Academy is education only: no tips, calls or recommendations. Case studies use market data at least 30 days old.",
+        answer: "No. The Academy teaches the rules and risk management. No tips, calls or recommendations, and case studies use market data at least 30 days old.",
       },
     ],
   },
   {
     id: "account",
     title: "Your account and tools",
-    summary: "Sign-in, workspace and the trading journal.",
+    summary: "Log in, dashboard and the trading journal.",
     articles: [
       {
         id: "need-account",
-        question: "Do I need an account to explore?",
-        answer: "No. Accounts, rules and the Academy preview are public. A free account opens the trader workspace and journal; it does not buy or start an evaluation.",
+        question: "Do I need an account to look around?",
+        answer: "No. Pricing, rules, the Academy and this help center are public. Create a free account to get early access and use the trader dashboard.",
       },
       {
         id: "journal",
         question: "Where is my trading journal?",
-        answer: "In your workspace under Tools: the journal, data imports, performance briefs and your published profile are all still there. Journal records are your own imported history and are separate from evaluation accounts.",
+        answer: "Log in and open Tools. Your journal, imports, performance reports and profile are all there, separate from your evaluation accounts.",
       },
       {
         id: "support",
         question: "How do I contact support?",
-        answer: "Support opens with paid evaluations. Until then, join the launch list and we'll email you when evaluations open.",
+        answer: "Support opens with evaluations. Until then, join the early-access list and we'll email you when evaluations open.",
       },
     ],
   },

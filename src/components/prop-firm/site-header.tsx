@@ -13,12 +13,15 @@ const LINKS = [
   ["/help", "Help center"],
 ] as const;
 
+/** Public Discord invite; the link is hidden until this is set. */
+const DISCORD_URL = process.env.NEXT_PUBLIC_DISCORD_URL;
+
 export function PropHeader() {
   const [open, setOpen] = useState(false);
   return <>
     <div className="border-b border-[var(--border)] bg-[#172216] px-4 py-2.5 text-center text-[11px] text-[#c7d7bd]">
       <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--primary)]" /> Launching soon
-      <span className="mx-3 text-[#52644b]">/</span> NIFTY, BANK NIFTY &amp; SENSEX futures and options
+      <span className="hidden sm:inline"><span className="mx-3 text-[#52644b]">/</span> NIFTY, BANK NIFTY &amp; SENSEX futures and options</span>
       <Link href="/signup" className="ml-3 font-medium text-[var(--primary)] underline-offset-4 hover:underline">Get early access</Link>
     </div>
     <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[#0b0f0d]/95 backdrop-blur-xl">
@@ -26,6 +29,7 @@ export function PropHeader() {
         <Link href="/" aria-label="WhiteSVAN home" className="text-[23px]"><SvanLogo /></Link>
         <nav className="ml-auto hidden items-center gap-7 text-xs text-[var(--muted)] lg:flex" aria-label="Main navigation">
           {LINKS.map(([href, label]) => <Link key={href} href={href} className="hover:text-[var(--primary)]">{label}</Link>)}
+          {DISCORD_URL && <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--primary)]">Discord</a>}
         </nav>
         <div className="ml-auto flex items-center gap-5 lg:ml-3">
           <Link href="/login" className="hidden text-xs text-[#d4ddcf] sm:block">Log in</Link>
@@ -35,6 +39,7 @@ export function PropHeader() {
       </div>
       {open && <nav id="prop-mobile-nav" aria-label="Mobile navigation" className="grid gap-1 border-t border-[var(--border)] bg-[var(--background)] px-5 py-4 lg:hidden">
         {LINKS.map(([href, label]) => <Link key={href} href={href} onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-sm hover:bg-[var(--card)]">{label}</Link>)}
+        {DISCORD_URL && <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="rounded-md px-3 py-3 text-sm hover:bg-[var(--card)]">Discord</a>}
         <Link href="/login" onClick={() => setOpen(false)} className="px-3 py-3 text-sm text-[var(--primary)]">Log in</Link>
       </nav>}
     </header>

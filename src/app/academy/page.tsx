@@ -1,27 +1,36 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, FileText, GraduationCap, LockKeyhole } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, FileText, GraduationCap, NotebookPen } from "lucide-react";
 import { PropHeader } from "@/components/prop-firm/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { LearnPanel } from "@/components/academy/learn-panel";
 import { RuleExercise } from "@/components/academy/rule-exercise";
+import { EVALUATION_PLANS, formatInr, PROGRAMME_RULES as R } from "@/lib/prop-firm";
 
 export const metadata: Metadata = {
-  title: "Academy preview | WhiteSVAN",
-  description: "Explore sample lessons, synthetic rule reviews and the proposed contractor pathway for an India-focused trading education programme.",
+  title: "SVAN Academy | WhiteSVAN",
+  description: "Free lessons on NIFTY, BANK NIFTY and SENSEX futures and options, position sizing and every evaluation rule, plus a drawdown exercise to practise before you trade.",
 };
 
+// The "consultants" key is kept so existing ?tab= links keep working.
 const SECTIONS = [
-  { key: "learn", label: "Learn", icon: BookOpen },
-  { key: "evaluations", label: "Evaluation preview", icon: ClipboardCheck },
-  { key: "consultants", label: "Contractor pathway", icon: FileText },
+  { key: "learn", label: "Lessons", icon: BookOpen },
+  { key: "evaluations", label: "Rule practice", icon: ClipboardCheck },
+  { key: "consultants", label: "Getting funded", icon: FileText },
 ] as const;
 
 const JOURNEY = [
-  { number: "01", title: "Build understanding", detail: "Study contracts, costs and risk. Keep your review in the journal." },
-  { number: "02", title: "Demonstrate a process", detail: "A planned simulated assessment, with explicit rules and review." },
-  { number: "03", title: "Enter selection review", detail: "Potential contractor engagement through a separate agreement." },
+  { number: "01", title: "Learn", detail: "Contracts, costs, position sizing and every evaluation rule, with worked examples." },
+  { number: "02", title: "Practise", detail: "Run the drawdown and daily loss exercise before you trade an evaluation." },
+  { number: "03", title: "Get funded", detail: `Pass the evaluation, complete KYC and start requesting payouts at an ${R.contractorSharePercent}% profit split.` },
+];
+
+const FUNDED_STEPS: [string, string][] = [
+  ["Pass the evaluation", `Hit the ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days, inside the drawdown and daily loss limits.`],
+  ["Complete KYC", "PAN, Aadhaar through DigiLocker and bank-account verification."],
+  ["Sign your funded trader agreement", "It sets your profit split, payout caps, risk limits, confidentiality and non-solicit terms."],
+  ["Trade and get paid", `Keep ${R.contractorSharePercent}% of the profit, with a payout twice a month up to the cap for your account size. Your funded account stays simulated; your payouts are real.`],
 ];
 
 export default async function AcademyPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[] }> }) {
@@ -37,16 +46,16 @@ export default async function AcademyPage({ searchParams }: { searchParams: Prom
         <section className="terminal-grid border-b border-[var(--border)]">
           <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-8 sm:py-16 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
             <div>
-              <p className="terminal-label flex items-center gap-2"><GraduationCap className="h-4 w-4" aria-hidden="true" /> India / education and trading discipline</p>
-              <h1 className="mt-5 max-w-3xl text-4xl font-medium leading-[1.05] tracking-[-0.05em] sm:text-6xl">Learn the process.<br /><span className="text-[var(--primary)]">Review the evidence.</span></h1>
-              <p className="mt-6 max-w-xl text-sm leading-7 text-[var(--muted)]">A new learning layer around your trading journal. Explore the foundations for NIFTY, BANK NIFTY and SENSEX futures and options, then see how a transparent assessment could work.</p>
+              <p className="terminal-label flex items-center gap-2"><GraduationCap className="h-4 w-4" aria-hidden="true" /> SVAN Academy</p>
+              <h1 className="mt-5 max-w-3xl text-4xl font-medium leading-[1.05] tracking-[-0.05em] sm:text-6xl">Learn the rules.<br /><span className="text-[var(--primary)]">Pass the evaluation.</span></h1>
+              <p className="mt-6 max-w-xl text-sm leading-7 text-[var(--muted)]">Free lessons on NIFTY, BANK NIFTY and SENSEX futures and options, position sizing and every evaluation rule, built to get you funded.</p>
               <div className="mt-7 flex flex-wrap gap-3">
-                <Link href="/academy?tab=learn#academy-content" className="inline-flex min-h-11 items-center gap-3 rounded-md bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Explore sample lessons <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
-                <Link href="/journal" className="inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--border-strong)] px-4 text-sm hover:bg-[var(--card-raised)]">Open your journal <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
+                <Link href="/academy?tab=learn#academy-content" className="inline-flex min-h-11 items-center gap-3 rounded-md bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start learning <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+                <Link href="/evaluations" className="inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--border-strong)] px-4 text-sm hover:bg-[var(--card-raised)]">See evaluations <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
               </div>
-              <p className="mt-4 text-xs leading-6 text-[var(--muted)]">Sample lessons and fictional exercises are available here. The paid programme is in development; prices and final terms have not been announced.</p>
+              <p className="mt-4 text-xs leading-6 text-[var(--muted)]">Free lessons and the rule exercise are open now. The full Academy launches with evaluations.</p>
             </div>
-            <ol className="terminal-card divide-y divide-[var(--border)] px-5 sm:px-7" aria-label="Proposed programme journey">
+            <ol className="terminal-card divide-y divide-[var(--border)] px-5 sm:px-7" aria-label="Your path to a funded account">
               {JOURNEY.map((step) => <li key={step.number} className="flex gap-5 py-6">
                 <span className="mt-1 font-mono text-xs text-[var(--primary)]">{step.number}</span>
                 <div><h2 className="text-base font-medium">{step.title}</h2><p className="mt-2 text-xs leading-6 text-[var(--muted)]">{step.detail}</p></div>
@@ -64,41 +73,33 @@ export default async function AcademyPage({ searchParams }: { searchParams: Prom
 
           <section id="academy-content" className="scroll-mt-28 pt-8" aria-labelledby={active === "learn" ? "sample-lessons-title" : "academy-section-title"}>
             {active === "learn" ? <LearnPanel /> : active === "evaluations" ? <>
-              <SectionHeading eyebrow="02 / Simulated assessment preview" title="Rules you can read. Results you can explain." body="The planned paid evaluation will be separate from education. This preview explains the experience; it does not enrol you, grade your trading or create a funded account." />
+              <SectionHeading eyebrow="Rule practice" title="Practise the rules before you pay." body="Try the evaluation rules on a sample account: see how the drawdown and the daily loss limit move as your balance changes." />
               <div className="my-7 grid gap-4 md:grid-cols-3">
-                <InfoCard number="A" title="Before an attempt">See the exact price, what it buys, the rule version, simulation conditions and applicable refund terms before accepting.</InfoCard>
-                <InfoCard number="B" title="After a result">Inspect the calculation and supporting record. Assessment appeals and billing questions have separate review routes.</InfoCard>
-                <InfoCard number="C" title="Before engagement">Passing an evaluation and receiving a contractor agreement are distinct stages. Final selection terms are still being developed.</InfoCard>
+                <InfoCard number="A" title="Know the price">See the fee, the account size and every rule before you start. One-time fee, GST included.</InfoCard>
+                <InfoCard number="B" title="Know the result">Every breach comes with a report showing the trade and the rule. Appeal within 7 days.</InfoCard>
+                <InfoCard number="C" title="Know what's next">Pass, complete KYC and sign your funded trader agreement to start earning payouts.</InfoCard>
               </div>
               <RuleExercise />
             </> : <>
-              <SectionHeading eyebrow="03 / Proposed contractor pathway" title="An assessment is one part of the record." body="The intended pathway is to engage selected traders as consultants. A simulated result, a selection decision and permission to trade company capital each mean something different." />
+              <SectionHeading eyebrow="Getting funded" title="From evaluation to funded account." body="Here's exactly what happens after you pass." />
               <div className="mt-7 grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
                 <ol className="divide-y divide-[var(--border)] rounded-lg border border-[var(--border)] px-5 sm:px-7">
-                  {[
-                    ["Evidence review", "Review the assessment, its coverage and any unresolved appeal. Course completion and assessment performance remain separate."],
-                    ["Selection decision", "Confirm eligibility and the actual services needed. The final offer policy and engagement capacity will be published before paid evaluations open."],
-                    ["Contractor agreement", "A separate agreement defines services, responsibilities, compensation, confidentiality and termination."],
-                    ["Authorised firm access", "Any real-capital activity requires the firm’s account approval, named-person access, risk limits and supervision. A virtual balance is not deployable capital."],
-                  ].map(([title, body], index) => <li key={title} className="flex gap-4 py-6"><span className="pt-1 font-mono text-xs text-[var(--primary)]">0{index + 1}</span><div><h3 className="font-medium">{title}</h3><p className="mt-2 text-sm leading-7 text-[var(--muted)]">{body}</p></div></li>)}
+                  {FUNDED_STEPS.map(([title, body], index) => <li key={title} className="flex gap-4 py-6"><span className="pt-1 font-mono text-xs text-[var(--primary)]">0{index + 1}</span><div><h3 className="font-medium">{title}</h3><p className="mt-2 text-sm leading-7 text-[var(--muted)]">{body}</p></div></li>)}
                 </ol>
                 <aside className="self-start rounded-lg border border-[var(--border-strong)] bg-[var(--card)] p-6">
-                  <LockKeyhole className="h-6 w-6 text-[var(--primary)]" aria-hidden="true" />
-                  <h3 className="mt-5 text-xl font-medium">Keep building your record.</h3>
-                  <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Continue journaling, inspect your source coverage and document how you review risk. Your existing journal works independently of this planned programme.</p>
-                  <Link href="/journal" className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm text-[var(--primary)]">Go to your journal <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
-                  <p className="mt-4 border-t border-[var(--border)] pt-4 text-xs leading-6 text-[var(--muted)]">Contractor applications are not open. This preview does not offer a contract, income or capital allocation.</p>
+                  <NotebookPen className="h-6 w-6 text-[var(--primary)]" aria-hidden="true" />
+                  <h3 className="mt-5 text-xl font-medium">Keep a trading journal.</h3>
+                  <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Log your trades and review your risk in the WhiteSVAN journal while you prepare for your evaluation.</p>
+                  <Link href="/journal" className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm text-[var(--primary)]">Open your journal <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+                  <p className="mt-4 border-t border-[var(--border)] pt-4 text-xs leading-6 text-[var(--muted)]">Funded accounts are simulated. Payouts follow the rules and caps in your agreement.</p>
                 </aside>
               </div>
             </>}
           </section>
 
-          <section aria-labelledby="commercial-title" className="mt-12 grid gap-6 border-t border-[var(--border)] pt-9 lg:grid-cols-[.7fr_1.3fr]">
-            <div><p className="terminal-label">Proposed commercial model</p><h2 id="commercial-title" className="mt-3 text-2xl font-medium tracking-tight">Two paid products.<br />Clear, separate terms.</h2><p className="mt-3 text-xs leading-6 text-[var(--muted)]">No payments are accepted in this preview. Whether a course is required before an evaluation remains undecided.</p></div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <InfoCard number="01" title="Paid education">Learning content, support and access duration will be described with the course price. Completion is a learning outcome.</InfoCard>
-              <InfoCard number="02" title="Paid simulated evaluation">Assessment access and its rules will have their own price and terms. Any retake, renewal or additional charge must be disclosed before payment.</InfoCard>
-            </div>
+          <section aria-labelledby="start-title" className="mt-12 flex flex-col items-start justify-between gap-6 rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] p-7 sm:flex-row sm:items-center sm:p-9">
+            <div><p className="terminal-label">Ready when you are</p><h2 id="start-title" className="mt-3 text-2xl font-medium tracking-tight">Evaluations from {formatInr(EVALUATION_PLANS[0].fee)}.</h2><p className="mt-2 text-sm text-[var(--muted)]">One-time fee, GST included. No subscription, no activation fee.</p></div>
+            <Link href="/evaluations#accounts" className="inline-flex min-h-12 shrink-0 items-center gap-3 rounded-full bg-[var(--primary)] px-6 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Choose your account <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </section>
         </div>
       </main>

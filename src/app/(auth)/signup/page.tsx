@@ -1,33 +1,52 @@
 import Link from "next/link";
 import { googleEnabled } from "@/auth";
 import { AuthDivider, GoogleButton } from "@/components/auth/google-button";
+import { findEvaluationPlan, formatInr } from "@/lib/prop-firm";
 import { SignupForm } from "./signup-form";
 
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ as?: string; ref?: string }>;
+  searchParams: Promise<{ as?: string; ref?: string; plan?: string }>;
 }) {
   const sp = await searchParams;
-  const initialRole = sp.as === "client" ? "CLIENT" : "TRADER";
+  // Prop-firm sign-ups are traders; firms and allocators opt in to the client role.
+  const asClient = sp.as === "client";
+  const initialRole = asClient ? "CLIENT" : "TRADER";
   const referral = sp.ref?.slice(0, 16);
+  const plan = !asClient && sp.plan ? findEvaluationPlan(sp.plan) : undefined;
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-zinc-100">Create your account</h1>
+      <h1 className="text-lg font-semibold text-zinc-100">{asClient ? "Create a client account" : "Create your account"}</h1>
       <p className="mt-1 text-sm text-zinc-500">
-        Your WhiteSVAN trader workspace, Academy and journal. Evaluation purchases are not open yet.
+        {asClient
+          ? "Discover traders and review their published records."
+          : "Get early access to WhiteSVAN evaluations, free Academy lessons and your trading journal."}
       </p>
 
-      <SignupForm initialRole={initialRole} referral={referral} />
+      {plan && (
+        <div className="mt-5 rounded-lg border border-[#3a493d] bg-[#141c16] px-4 py-3">
+          <p className="text-sm font-medium text-zinc-100">
+            {plan.label} evaluation · {formatInr(plan.fee)} one-time
+          </p>
+          <p className="mt-1 text-xs leading-5 text-zinc-400">
+            Evaluations are launching soon. Create your account and we&apos;ll email you when you can start.
+          </p>
+        </div>
+      )}
+
+      <SignupForm initialRole={initialRole} chooseRole={asClient} referral={referral} />
 
       {googleEnabled && (
         <>
           <AuthDivider />
-          <GoogleButton referral={referral} />
-          <p className="mt-2 text-center text-xs text-zinc-500">
-            With Google you&apos;ll choose trader or client on the next screen.
-          </p>
+          <GoogleButton role={asClient ? undefined : "TRADER"} referral={referral} />
+          {asClient && (
+            <p className="mt-2 text-center text-xs text-zinc-500">
+              With Google you&apos;ll choose trader or client on the next screen.
+            </p>
+          )}
         </>
       )}
 
@@ -37,6 +56,14 @@ export default async function SignupPage({
           Sign in
         </Link>
       </p>
+      {!asClient && (
+        <p className="mt-2 text-center text-xs text-zinc-500">
+          Firm or allocator?{" "}
+          <Link href="/signup?as=client" className="text-zinc-300 hover:text-zinc-100">
+            Create a client account
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

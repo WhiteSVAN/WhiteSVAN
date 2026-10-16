@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, BookOpen, Check, CheckCheck, ChevronDown, CircleDollarSign, Flag, Gauge, Headphones, Layers3, Play, ShieldCheck, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BadgeCheck, BadgeIndianRupee, BookOpen, ChartCandlestick, Check, CheckCheck, ChevronDown, Clock3, Flag, Gauge, Headphones, IndianRupee, Landmark, Layers3, Play, ReceiptIndianRupee, ShieldCheck, Target, TrendingUp } from "lucide-react";
 import { PropHeader } from "./site-header";
 import { AccountSelector } from "./account-selector";
 import { SiteFooter } from "@/components/site-footer";
@@ -13,6 +13,15 @@ const STEPS = [
   { icon: Layers3, n: "01", title: "Choose your evaluation.", text: `Pick an account from ${EVALUATION_PLANS[0].label} to ${EVALUATION_PLANS[EVALUATION_PLANS.length - 1].label}. One-time fee, no subscription, no activation fee.` },
   { icon: Target, n: "02", title: "Pass the evaluation.", text: `Hit the ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days without breaking the drawdown or the daily loss limit.` },
   { icon: Flag, n: "03", title: "Get funded. Get paid.", text: `Complete KYC, sign your funded trader agreement and request payouts twice a month at an ${R.contractorSharePercent}% profit split.` },
+];
+
+const INDIA_FEATURES = [
+  { icon: IndianRupee, title: "Priced in rupees", text: `One-time fees from ${formatInr(EVALUATION_PLANS[0].fee)}, GST included. No dollar conversions.` },
+  { icon: Landmark, title: "Paid to your bank", text: "Payouts in rupees, straight to your Indian bank account." },
+  { icon: ChartCandlestick, title: "NSE and BSE contracts", text: "NIFTY, BANK NIFTY and SENSEX futures and options, sized in exchange lots." },
+  { icon: ReceiptIndianRupee, title: "Real Indian costs", text: "Brokerage, STT, exchange charges, the SEBI fee, stamp duty and GST in every fill." },
+  { icon: Clock3, title: "Indian market hours", text: "09:15–15:30 IST, intraday only, with expiry-day rules built in." },
+  { icon: BadgeCheck, title: "KYC with DigiLocker", text: "Verify with PAN and Aadhaar through DigiLocker after you pass." },
 ];
 
 const FAQ = [
@@ -81,8 +90,8 @@ export function PropLanding() {
         </div>
       </section>
       <section aria-label="At a glance" className="border-b border-[var(--border)] bg-[#10170f]">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-[#2c3827] px-5 py-7 sm:px-8 lg:grid-cols-4">
-          {[[`${EVALUATION_PLANS[0].label}–${EVALUATION_PLANS[EVALUATION_PLANS.length - 1].label}`, "ACCOUNT SIZES"], [`${R.contractorSharePercent}%`, "PROFIT SPLIT"], [`${R.targetPercent}%`, "PROFIT TARGET"], ["2x a month", "PAYOUTS"]].map(([value, label]) => <div key={label} className="px-4 py-3 text-center first:border-0"><p className="text-[25px] font-medium tracking-[-.045em] sm:text-[29px]">{value}</p><p className="mt-2 font-mono text-[8px] tracking-[.12em] text-[#90a183]">{label}</p></div>)}
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-y-4 px-5 py-7 sm:px-8 lg:grid-cols-4 lg:divide-x lg:divide-[#2c3827]">
+          {[[`${EVALUATION_PLANS[0].label}–${EVALUATION_PLANS[EVALUATION_PLANS.length - 1].label}`, "ACCOUNT SIZES"], [`${R.contractorSharePercent}%`, "PROFIT SPLIT"], [`${R.targetPercent}%`, "PROFIT TARGET"], ["2x a month", "PAYOUTS"]].map(([value, label]) => <div key={label} className="px-4 py-3 text-center"><p className="text-[25px] font-medium tracking-[-.045em] sm:text-[29px]">{value}</p><p className="mt-2 font-mono text-[8px] tracking-[.12em] text-[#90a183]">{label}</p></div>)}
         </div>
       </section>
       <section id="how-it-works" className="mx-auto max-w-7xl scroll-mt-28 px-5 py-20 sm:px-8 sm:py-24">
@@ -97,13 +106,19 @@ export function PropLanding() {
         </div>
         <div><p className="terminal-label">Simple rules</p><h2 className="prop-heading mt-5">No hidden rules.<br /><span className="text-[var(--primary)]">No surprises.</span></h2><p className="mt-6 max-w-lg text-sm leading-7 text-[var(--muted)]">Every limit is on your dashboard from your first trade. Know your target, your drawdown and your position size before you start.</p><ul className="mt-7 space-y-4 text-sm text-[#c1cdb9]">{["End-of-day trailing drawdown", `${R.dailyLossPercent}% daily loss limit`, `${R.minimumDays} minimum trading days`, "Intraday only: flat by 15:20 IST"].map(t=><li key={t} className="flex items-center gap-3"><Check size={15} className="text-[var(--primary)]" />{t}</li>)}</ul><Link href="/rules" className="prop-button-outline mt-8">See all rules <ArrowUpRight size={16} /></Link></div>
       </section>
+      <section aria-labelledby="india-title" className="border-t border-[var(--border)] bg-[#0d130d]">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
+          <div className="max-w-2xl"><p className="terminal-label">Built for India</p><h2 id="india-title" className="prop-heading mt-4">Made for Indian index traders.</h2><p className="mt-4 text-sm leading-7 text-[var(--muted)]">Not a US prop firm with rupee prices. Every rule, cost and contract is built around NSE and BSE.</p></div>
+          <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--border)] sm:grid-cols-2 lg:grid-cols-3">{INDIA_FEATURES.map(({ icon: Icon, title, text }) => <article key={title} className="bg-[#101710] p-7"><Icon size={24} strokeWidth={1.5} className="text-[var(--primary)]" aria-hidden="true" /><h3 className="mt-6 text-lg font-medium tracking-tight">{title}</h3><p className="mt-2 text-sm leading-7 text-[var(--muted)]">{text}</p></article>)}</div>
+        </div>
+      </section>
       <section className="border-y border-[var(--border)] bg-[#11180f]">
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24"><div className="flex flex-wrap items-end justify-between gap-5"><div><p className="terminal-label">Free resources</p><h2 className="prop-heading mt-4">Everything you need to pass.</h2></div><Link href="/academy" className="inline-flex items-center gap-2 text-xs text-[var(--primary)]">Explore SVAN Academy <ArrowUpRight size={15} /></Link></div>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">{[{icon:BookOpen,title:"SVAN Academy",text:"Lessons on drawdown, position sizing and every evaluation rule. Free sample lessons available now.",label:"Start learning",href:"/academy"},{icon:Gauge,title:"Risk practice",text:"See how position size and the daily loss limit interact before you trade a live evaluation.",label:"Try the exercise",href:"/academy#practice"},{icon:Headphones,title:"Help center",text:"Answers on evaluations, funded accounts, payouts and KYC.",label:"Visit the help center",href:"/help"}].map(({icon:Icon,...item})=><article key={item.title} className="rounded-xl border border-[#2d3a27] bg-[#0d140d] p-7"><Icon size={27} strokeWidth={1.4} className="text-[#baf277]" /><h3 className="mt-8 text-xl font-medium tracking-tight">{item.title}</h3><p className="mt-3 text-sm leading-7 text-[var(--muted)]">{item.text}</p><Link href={item.href} className="mt-7 inline-flex items-center gap-2 text-xs text-[#c7e5af]">{item.label}<ArrowRight size={14} /></Link></article>)}</div>
+          <div className="mt-10 grid gap-5 md:grid-cols-3">{[{icon:BookOpen,title:"SVAN Academy",text:"Lessons on drawdown, position sizing and every evaluation rule. Free sample lessons available now.",label:"Start learning",href:"/academy"},{icon:Gauge,title:"Risk practice",text:"See how position size and the daily loss limit interact before you start an evaluation.",label:"Try the exercise",href:"/academy#practice"},{icon:Headphones,title:"Help center",text:"Answers on evaluations, funded accounts, payouts and KYC.",label:"Visit the help center",href:"/help"}].map(({icon:Icon,...item})=><article key={item.title} className="rounded-xl border border-[#2d3a27] bg-[#0d140d] p-7"><Icon size={27} strokeWidth={1.4} className="text-[#baf277]" /><h3 className="mt-8 text-xl font-medium tracking-tight">{item.title}</h3><p className="mt-3 text-sm leading-7 text-[var(--muted)]">{item.text}</p><Link href={item.href} className="mt-7 inline-flex items-center gap-2 text-xs text-[#c7e5af]">{item.label}<ArrowRight size={14} /></Link></article>)}</div>
         </div>
       </section>
       <section id="faq" className="mx-auto max-w-4xl px-5 py-20 sm:px-8 sm:py-24"><div className="mb-10 text-center"><p className="terminal-label">FAQ</p><h2 className="prop-heading mt-4">Frequently asked questions</h2></div><div className="divide-y divide-[var(--border)] border-y border-[var(--border)]">{FAQ.map(([q,a])=><details key={q} className="group py-1"><summary className="flex list-none items-center justify-between gap-5 py-6 text-sm font-medium sm:text-base">{q}<ChevronDown size={17} className="shrink-0 text-[#9db687] transition-transform group-open:rotate-180" /></summary><p className="max-w-3xl pb-6 pr-6 text-sm leading-7 text-[var(--muted)]">{a}</p></details>)}</div><p className="mt-6 text-center text-xs text-[var(--muted)]">More answers in the <Link href="/help" className="text-[var(--primary)]">help center</Link>.</p></section>
-      <section className="px-5 pb-20 sm:px-8"><div className="prop-final relative mx-auto max-w-7xl overflow-hidden rounded-2xl border border-[#486337] bg-[#192613] px-6 py-16 text-center sm:py-20"><CircleDollarSign size={31} strokeWidth={1.4} className="mx-auto mb-6 text-[#baf277]" /><h2 className="prop-heading relative">Ready to get funded?</h2><p className="relative mx-auto mt-5 max-w-lg text-sm leading-7 text-[#aabd9a]">Pick your account, learn the rules and start your evaluation.</p><Link href="#accounts" className="prop-button relative mt-8">Start your evaluation <ArrowUpRight size={17} /></Link><div className="relative mx-auto mt-10 flex max-w-md flex-col items-center gap-3 border-t border-[#36492b] pt-8"><p className="text-xs text-[#aabd9a]">Launching soon. Get early access when evaluations open.</p><WaitlistForm cta="Get early access" /></div></div></section>
+      <section className="px-5 pb-20 sm:px-8"><div className="prop-final relative mx-auto max-w-7xl overflow-hidden rounded-2xl border border-[#486337] bg-[#192613] px-6 py-16 text-center sm:py-20"><BadgeIndianRupee size={31} strokeWidth={1.4} className="mx-auto mb-6 text-[#baf277]" aria-hidden="true" /><h2 className="prop-heading relative">Ready to get funded?</h2><p className="relative mx-auto mt-5 max-w-lg text-sm leading-7 text-[#aabd9a]">Pick your account, learn the rules and start your evaluation.</p><Link href="#accounts" className="prop-button relative mt-8">Start your evaluation <ArrowUpRight size={17} /></Link><div className="relative mx-auto mt-10 flex max-w-md flex-col items-center gap-3 border-t border-[#36492b] pt-8"><p className="text-xs text-[#aabd9a]">Launching soon. Get early access when evaluations open.</p><WaitlistForm cta="Get early access" /></div></div></section>
     </main>
     <SiteFooter />
   </div>;

@@ -26,7 +26,7 @@ export default async function OnboardingPage() {
   if (user.role === "TRADER") {
     if (user.profile) redirect("/dashboard");
     return (
-      <Shell step="02" title="Set up your trader profile" blurb="Your public identity for your record, posts, and the trader directory. Structured fields power discovery filters.">
+      <Shell step="02" title="Set up your trader profile" blurb="Pick your display name and handle. Your profile stays private until you publish it, and everything else is optional.">
         <OnboardingForm defaultName={user.name ?? ""} />
       </Shell>
     );

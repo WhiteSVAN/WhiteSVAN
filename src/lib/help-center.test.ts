@@ -10,15 +10,15 @@ describe("HELP_TOPICS", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("takes rule figures from the draft rulebook", () => {
-    expect(allAnswers).toContain(`${PROGRAMME_RULES.targetPercent}% net profit target`);
-    expect(allAnswers).toContain(`${PROGRAMME_RULES.contractorSharePercent}% of eligible simulated net profit`);
+  it("takes rule figures from the rulebook", () => {
+    expect(allAnswers).toContain(`${PROGRAMME_RULES.targetPercent}% profit target`);
+    expect(allAnswers).toContain(`You keep ${PROGRAMME_RULES.contractorSharePercent}% of the profit`);
     for (const plan of EVALUATION_PLANS) expect(allAnswers).toContain(formatInr(plan.payoutCap));
   });
 
-  it("works through the trailing maximum loss on the smallest account", () => {
-    // ₹1L account, 4%: threshold starts at ₹96,000 and locks at ₹1,00,000.
-    expect(allAnswers).toContain(`starts at ${formatInr(96_000)} and stops rising at ${formatInr(100_000)}`);
+  it("works through the trailing max drawdown on the smallest account", () => {
+    // ₹1L account, 4%: the floor starts at ₹96,000 and locks at ₹1,00,000.
+    expect(allAnswers).toContain(`floor starts at ${formatInr(96_000)} and locks at ${formatInr(100_000)}`);
   });
 
   it("never promises returns", () => {

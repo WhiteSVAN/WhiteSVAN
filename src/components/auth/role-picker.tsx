@@ -1,6 +1,6 @@
 /** Trader / Client radio cards. Server-safe (no hooks); the value posts as `role`. */
 const ROLES = [
-  { value: "TRADER", title: "Trader", body: "Import history, publish a record, share research." },
+  { value: "TRADER", title: "Trader", body: "Take evaluations, get funded and keep your trading journal." },
   { value: "CLIENT", title: "Client", body: "Discover traders, review records, request conversations." },
 ] as const;
 
