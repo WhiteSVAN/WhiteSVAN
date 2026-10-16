@@ -31,7 +31,7 @@ function Brand() {
         <div style={{ width: 8, height: 30, background: ACCENT }} />
         <div style={{ width: 8, height: 22, background: ACCENT, opacity: 0.75 }} />
       </div>
-      <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: 1, color: TEXT }}>TrustSVAN</div>
+      <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: 1, color: TEXT }}>WhiteSVAN</div>
     </div>
   );
 }

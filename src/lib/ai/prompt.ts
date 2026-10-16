@@ -22,7 +22,7 @@ export interface ReportNotes {
   riskRules?: string | null;
 }
 
-/** TrustSVAN signals, so the brief mirrors the dashboard. */
+/** WhiteSVAN signals, so the brief mirrors the dashboard. */
 export interface ReportSignals {
   bestDayShare: number | null;
   drawdownSeverity: string;
@@ -60,7 +60,7 @@ export function buildUserPrompt(input: ReportInput): string {
   if (input.notes?.riskRules) facts.push(`Trader's stated risk rules: ${input.notes.riskRules}`);
 
   return [
-    "Write a monthly TrustSVAN research brief from these computed metrics. Use only the numbers given.",
+    "Write a monthly WhiteSVAN research brief from these computed metrics. Use only the numbers given.",
     "",
     facts.join("\n"),
     "",

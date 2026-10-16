@@ -24,7 +24,7 @@ const KIND_LABEL: Record<string, string> = {
   OTHER: "Other",
 };
 
-export const metadata: Metadata = { title: "Settings · TrustSVAN" };
+export const metadata: Metadata = { title: "Settings · WhiteSVAN" };
 
 export default async function SettingsPage({
   searchParams,
@@ -228,7 +228,7 @@ export default async function SettingsPage({
       <section id="privacy" className="terminal-card scroll-mt-28 p-6">
         <h2 className="text-base font-medium text-zinc-800">Research profile and privacy</h2>
         <p className="mt-1 text-sm text-zinc-500">
-          Control who can see your TrustSVAN profile and what it reveals.
+          Control who can see your WhiteSVAN profile and what it reveals.
         </p>
         <div className="mt-4">
           <PortalSettingsForm

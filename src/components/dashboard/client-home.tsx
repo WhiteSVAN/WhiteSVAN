@@ -1,5 +1,5 @@
 /**
- * Client home (/dashboard for CLIENT users): private watchlist, followed
+ * Research workspace (/journal for CLIENT users): private watchlist, followed
  * traders and their posts, sent conversation requests, and public traders that
  * match the client's stated preferences. Everything here is scoped to `userId`,
  * which the page resolved from the session — never from input.

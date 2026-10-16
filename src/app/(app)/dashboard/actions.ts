@@ -190,6 +190,7 @@ export async function publishUpdate(
   });
 
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
   revalidatePath("/settings");
   revalidatePath(`/p/${user.profile.slug}`);
   return { published: true, version: versionNumber };
@@ -203,4 +204,5 @@ export async function clearHiddenWatchlist() {
   const userId = await requireUserId();
   await prisma.watchlistItem.deleteMany({ where: { userId, profile: { isPublic: false } } });
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
 }

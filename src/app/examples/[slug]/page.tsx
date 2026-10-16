@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const operator = findExampleOperator(slug);
   return {
-    title: operator ? `${operator.displayName} — Example record` : "Example record — TrustSVAN",
+    title: operator ? `${operator.displayName} — Example record` : "Example record — WhiteSVAN",
     description: operator?.summary,
     robots: { index: false },
   };
@@ -44,7 +44,7 @@ export default async function ExampleOperatorPage({ params }: { params: Promise<
       </div>
       <header className="sticky top-0 z-30 border-b border-[#202821] bg-[#0b0f0d]/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[72px] max-w-5xl items-center justify-between px-4 sm:px-8">
-          <Link href="/" aria-label="TrustSVAN home" className="text-xl"><SvanLogo /></Link>
+          <Link href="/" aria-label="WhiteSVAN home" className="text-xl"><SvanLogo /></Link>
           <Link href="/explore" className="inline-flex items-center gap-2 text-xs text-[#aab6aa] hover:text-[#baf277]"><ArrowLeft className="h-3.5 w-3.5" /> All records</Link>
         </div>
       </header>

@@ -67,7 +67,10 @@ export async function toggleWatchlist(profileId: string): Promise<ToggleResult> 
   if (!profile) {
     // A profile that went private can still be removed from the caller's own watchlist.
     const removed = await prisma.watchlistItem.deleteMany({ where: { userId, profileId } });
-    if (removed.count > 0) revalidatePath("/dashboard");
+    if (removed.count > 0) {
+      revalidatePath("/dashboard");
+      revalidatePath("/journal");
+    }
     return removed.count > 0 ? { ok: true, on: false } : { ok: false, error: "unavailable" };
   }
 
@@ -78,6 +81,7 @@ export async function toggleWatchlist(profileId: string): Promise<ToggleResult> 
   }
   revalidatePath("/explore");
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
   revalidatePath(`/p/${profile.slug}`);
   return { ok: true, on };
 }

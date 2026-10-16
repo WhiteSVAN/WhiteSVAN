@@ -6,7 +6,7 @@ import { referralLink } from "@/lib/referral";
 import { ensureReferralCode, requestOrigin } from "./referral-code";
 import { CopyLink } from "./copy-link";
 
-export const metadata: Metadata = { title: "Invite traders · TrustSVAN" };
+export const metadata: Metadata = { title: "Invite traders · WhiteSVAN" };
 
 export default async function InvitePage() {
   const user = await requireTrader();
@@ -38,7 +38,7 @@ export default async function InvitePage() {
         <CopyLink id="client-invite" label="Client invite link (opens signup as a client)" value={clientLink} />
         <p className="text-xs text-zinc-500">
           Your code is <span className="font-mono text-zinc-300">{code}</span>. Referrals are for
-          attribution only — TrustSVAN pays no referral fees and never shares performance economics.
+          attribution only — WhiteSVAN pays no fees for these invites and never shares performance economics.
         </p>
       </section>
 

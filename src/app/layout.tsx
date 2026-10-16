@@ -17,9 +17,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TrustSVAN — The Proof Terminal",
+  title: "WhiteSVAN — Prop Trading, Built for India",
   description:
-    "Inspect published trading records, risk, source coverage, and research in one proof-first terminal.",
+    "Explore India's index futures and options with WhiteSVAN. Simulated evaluation accounts, transparent trading rules and practical education, with journal tools in your workspace.",
 };
 
 export default function RootLayout({

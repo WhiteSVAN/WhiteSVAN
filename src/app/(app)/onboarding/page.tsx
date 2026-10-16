@@ -12,7 +12,7 @@ export default async function OnboardingPage() {
   if (!user.role) {
     const pending = (await cookies()).get("signup_role")?.value;
     return (
-      <Shell step="01" title="How will you use TrustSVAN?" blurb="You can't switch roles later from the app, so pick the one that fits.">
+      <Shell step="01" title="How will you use WhiteSVAN?" blurb="You can't switch roles later from the app, so pick the one that fits.">
         <form action={chooseRole} className="space-y-5">
           <RolePicker defaultRole={pending === "CLIENT" ? "CLIENT" : pending === "TRADER" ? "TRADER" : undefined} />
           <button type="submit" className="flex min-h-11 w-full items-center justify-center rounded-md bg-zinc-100 px-4 text-sm font-medium text-zinc-950 hover:bg-white">

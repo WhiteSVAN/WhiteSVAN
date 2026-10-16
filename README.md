@@ -28,6 +28,15 @@ It does not manage money, execute trades, copy trades, provide investment advice
 - `/reports` acts as a diligence/research brief archive; AI drafts prose only from code-computed metrics.
 - All profile, GEX, market-structure, private-equity, and chat discussion must remain non-advisory and evidence-led.
 
+## India Academy preview
+
+The India education/evaluation direction now has a public `/academy` preview
+with sample lessons, a synthetic rule exercise and the proposed consultant
+pathway. The planned model is paid education plus paid simulated evaluations;
+enrolment, pricing and payments are not enabled. The existing journal remains
+independent. See [the UX review and implementation checklist](docs/india-academy-ux-review.md)
+for scope, validation and remaining work.
+
 ## Core Rules
 
 - Code calculates numbers. AI only explains already-computed metrics.

@@ -50,6 +50,7 @@ function profileCopyError(values: Array<string | null | undefined>): string | nu
 function revalidateTraderSurfaces(slug: string) {
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
   revalidatePath("/explore");
   revalidatePath(`/p/${slug}`);
 }
@@ -230,6 +231,7 @@ export async function saveAccountBasics(
   await prisma.user.update({ where: { id: userId }, data: { name: parsed.data } });
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
   return { saved: true };
 }
 
@@ -286,6 +288,7 @@ export async function uploadEvidence(
 
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
   return { saved: true };
 }
 
@@ -301,6 +304,7 @@ export async function toggleEvidencePublic(formData: FormData) {
     await prisma.evidence.update({ where: { id }, data: { isPublic: !evidence.isPublic } });
     revalidatePath("/settings");
     revalidatePath("/dashboard");
+    revalidatePath("/journal");
     revalidatePath(`/p/${profile.slug}`);
   }
 }
@@ -314,6 +318,7 @@ export async function deleteEvidence(formData: FormData) {
     await deleteEvidenceFile(id);
     revalidatePath("/settings");
     revalidatePath("/dashboard");
+    revalidatePath("/journal");
     revalidatePath(`/p/${profile.slug}`);
   }
 }
@@ -337,6 +342,7 @@ export async function clearAccountTrades(formData: FormData) {
     prisma.dailyPnl.deleteMany({ where: { accountId } }),
   ]);
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
   revalidatePath("/settings");
 }
 
@@ -355,6 +361,7 @@ export async function deleteAccount(formData: FormData) {
 
   await prisma.tradingAccount.delete({ where: { id: accountId } });
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
   revalidatePath("/settings");
 }
 
@@ -378,5 +385,6 @@ export async function clearAllData() {
     prisma.dailyPnl.deleteMany({ where: { accountId: { in: ids } } }),
   ]);
   revalidatePath("/dashboard");
+  revalidatePath("/journal");
   revalidatePath("/settings");
 }

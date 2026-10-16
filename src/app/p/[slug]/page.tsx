@@ -29,7 +29,7 @@ import { ShareLinkButton } from "./share-link-button";
 import { FollowForm } from "./follow-form";
 
 const DEFAULT_DISCLAIMER =
-  "TrustSVAN is research, analytics, and professional networking software. It does not manage money, execute trades, or provide investment advice. Past performance does not guarantee future results.";
+  "This research profile is published with WhiteSVAN's journal tools. WhiteSVAN does not manage client money, execute trades for clients, or provide investment advice. Past performance does not guarantee future results.";
 
 type Params = Promise<{ slug: string }>;
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!view) {
     return {
       ...base,
-      title: "Research profile unavailable — TrustSVAN",
+      title: "Research profile unavailable — WhiteSVAN",
       robots: { index: false, follow: false },
     };
   }
@@ -60,12 +60,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { profile } = view;
   if (!profile.isPublic) {
     // Owner preview of a private profile: never indexable, no share metadata.
-    return { ...base, title: `${profile.displayName} (private preview) — TrustSVAN`, robots: { index: false, follow: false } };
+    return { ...base, title: `${profile.displayName} (private preview) — WhiteSVAN`, robots: { index: false, follow: false } };
   }
 
   const latest = await getLatestVersion(profile.id);
   const record = latest ? toRecordContext(latest) : null;
-  const title = `${profile.displayName} — TrustSVAN research profile`;
+  const title = `${profile.displayName} — WhiteSVAN research profile`;
   const description = profileDescription({
     displayName: profile.displayName,
     headline: profile.headline,
@@ -81,7 +81,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     description,
     alternates: { canonical: url },
     // Images come from the colocated opengraph-image / twitter-image routes.
-    openGraph: { type: "profile", title, description, url, siteName: "TrustSVAN" },
+    openGraph: { type: "profile", title, description, url, siteName: "WhiteSVAN" },
     twitter: { card: "summary_large_image", title, description },
     robots: { index: true, follow: true },
   };
@@ -149,7 +149,7 @@ export default async function PortalPage({ params, searchParams }: { params: Par
 
       <nav className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-xl print:hidden" aria-label="Site">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-4">
-          <Link href={viewerId ? "/dashboard" : "/"} className="text-xl font-semibold text-zinc-100" aria-label="TrustSVAN home">
+          <Link href={viewerId ? "/dashboard" : "/"} className="text-xl font-semibold text-zinc-100" aria-label="WhiteSVAN home">
             <SvanLogo />
           </Link>
           <div className="flex items-center gap-4 text-sm font-medium">

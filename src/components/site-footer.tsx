@@ -1,43 +1,53 @@
 import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
 
-/** Public pages only — app routes (feed, inbox, communities) need an account. */
+/** Public pages only — app routes (journal, feed, inbox) need an account. */
 const FOOTER_GROUPS = [
   {
-    title: "Traders",
+    title: "Programme",
     links: [
-      { href: "/signup", label: "Build your trader record" },
+      { href: "/evaluations", label: "Evaluation accounts" },
+      { href: "/rules", label: "Trading rules" },
+      { href: "/#how-it-works", label: "How it works" },
+      { href: "/academy", label: "SVAN Academy" },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { href: "/help", label: "Help center" },
+      { href: "/signup", label: "Create an account" },
       { href: "/login", label: "Sign in" },
     ],
   },
   {
-    title: "Clients",
+    title: "Trader tools",
     links: [
-      { href: "/explore", label: "Discover traders" },
-      { href: "/signup?as=client", label: "Join as a client" },
+      { href: "/login", label: "Trading journal" },
+      { href: "/explore", label: "Published traders" },
     ],
   },
-  {
-    title: "Directory",
-    links: [{ href: "/explore", label: "Published traders" }],
-  },
+];
+
+const DISCLAIMERS = [
+  "WhiteSVAN is in launch preview. Evaluations, contractor payouts and checkout are not open, and the prices and rules shown are drafts until final terms are published.",
+  "All evaluation and contractor accounts are simulated. An account size is a virtual balance that sets risk limits; it is not a deposit, a loan or capital given to the trader. Course and evaluation fees are service fees.",
+  "Nothing on this site is investment advice, a recommendation or a trading signal. WhiteSVAN does not manage client money and does not promise any income, payout or return.",
+  "Trading futures and options carries a substantial risk of loss. Simulated results have limitations and do not represent actual trading.",
 ];
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-zinc-800 bg-[#090d0b]">
+    <footer className="border-t border-[var(--border)] bg-[#090d0b]">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-8 sm:py-16 lg:grid-cols-[1.1fr_1.4fr]">
         <div>
           <Link href="/" className="text-xl font-semibold text-zinc-100">
             <SvanLogo />
           </Link>
           <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400">
-            Source-linked trading records for traders, and a place for clients, firms, and
-            allocators to discover and review them — with the source, coverage, and risk in view.
-          </p>
-          <p className="mt-4 text-xs leading-5 text-zinc-500">
-            TrustSVAN does not manage money, execute trades, copy trades, provide investment
-            advice, or guarantee performance.
+            An India-first prop trading programme for NIFTY, BANK NIFTY and SENSEX futures and
+            options: learn with SVAN Academy, prove your process in a simulated evaluation, and
+            work towards the simulated contractor desk.
           </p>
         </div>
 
@@ -64,9 +74,17 @@ export function SiteFooter() {
         </div>
       </div>
 
+      <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-8">
+        <div className="space-y-2 border-t border-[var(--border)] pt-6 text-[11px] leading-5 text-zinc-500">
+          {DISCLAIMERS.map((text) => (
+            <p key={text}>{text}</p>
+          ))}
+        </div>
+      </div>
+
       <div className="border-t border-zinc-800">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 font-mono text-[9px] uppercase tracking-wider text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <span>Copyright 2026 TrustSVAN. All rights reserved.</span>
+          <span>Copyright 2026 WhiteSVAN. All rights reserved.</span>
           <span>Past performance does not guarantee future results.</span>
         </div>
       </div>

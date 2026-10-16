@@ -31,7 +31,7 @@ export default async function UploadPage({
           Import broker history
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
-          Upload an export from your broker or prop firm. TrustSVAN calculates performance and risk
+          Upload an export from your broker or prop firm. WhiteSVAN calculates performance and risk
           from the imported rows, records the file fingerprint and coverage period, and never gains
           permission to trade or move funds.
         </p>

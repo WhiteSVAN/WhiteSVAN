@@ -136,7 +136,7 @@ export function TraderDetailFields({ details }: { details?: Partial<TraderDetail
       </div>
       <p className="text-xs leading-5 text-zinc-500">
         Credentials and registration are shown as <b className="font-medium text-zinc-400">self-declared</b>.
-        TrustSVAN does not check them against regulator databases yet.
+        WhiteSVAN does not check them against regulator databases yet.
       </p>
     </div>
   );

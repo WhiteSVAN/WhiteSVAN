@@ -1,0 +1,42 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
+import { SvanLogo } from "@/components/svan-logo";
+
+const LINKS = [
+  ["/#accounts", "Pricing"],
+  ["/#how-it-works", "How it works"],
+  ["/rules", "Rules"],
+  ["/academy", "Academy"],
+  ["/help", "Help center"],
+] as const;
+
+export function PropHeader() {
+  const [open, setOpen] = useState(false);
+  return <>
+    <div className="border-b border-[var(--border)] bg-[#172216] px-4 py-2.5 text-center text-[11px] text-[#c7d7bd]">
+      <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--primary)]" /> Launching soon
+      <span className="mx-3 text-[#52644b]">/</span> NIFTY, BANK NIFTY &amp; SENSEX futures and options
+      <Link href="/signup" className="ml-3 font-medium text-[var(--primary)] underline-offset-4 hover:underline">Get early access</Link>
+    </div>
+    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[#0b0f0d]/95 backdrop-blur-xl">
+      <div className="mx-auto flex h-20 max-w-7xl items-center gap-8 px-5 sm:px-8">
+        <Link href="/" aria-label="WhiteSVAN home" className="text-[23px]"><SvanLogo /></Link>
+        <nav className="ml-auto hidden items-center gap-7 text-xs text-[var(--muted)] lg:flex" aria-label="Main navigation">
+          {LINKS.map(([href, label]) => <Link key={href} href={href} className="hover:text-[var(--primary)]">{label}</Link>)}
+        </nav>
+        <div className="ml-auto flex items-center gap-5 lg:ml-3">
+          <Link href="/login" className="hidden text-xs text-[#d4ddcf] sm:block">Log in</Link>
+          <Link href="/#accounts" className="prop-button prop-header-cta min-h-10 px-4 text-xs">Get funded <ArrowUpRight size={15} /></Link>
+          <button type="button" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} aria-controls="prop-mobile-nav" onClick={() => setOpen(!open)} className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] lg:hidden">{open ? <X size={19} /> : <Menu size={19} />}</button>
+        </div>
+      </div>
+      {open && <nav id="prop-mobile-nav" aria-label="Mobile navigation" className="grid gap-1 border-t border-[var(--border)] bg-[var(--background)] px-5 py-4 lg:hidden">
+        {LINKS.map(([href, label]) => <Link key={href} href={href} onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-sm hover:bg-[var(--card)]">{label}</Link>)}
+        <Link href="/login" onClick={() => setOpen(false)} className="px-3 py-3 text-sm text-[var(--primary)]">Log in</Link>
+      </nav>}
+    </header>
+  </>;
+}

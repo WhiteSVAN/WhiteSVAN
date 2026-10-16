@@ -177,11 +177,11 @@ describe("metadata helpers", () => {
         coverage: "Jan 2025 – Aug 2026",
       }),
     ).toBe(
-      "Systematic futures trader. Published record: Imported trading history, Jan 2025 – Aug 2026. Research profile on TrustSVAN.",
+      "Systematic futures trader. Published record: Imported trading history, Jan 2025 – Aug 2026. Research profile on WhiteSVAN.",
     );
     expect(
       profileDescription({ displayName: "Demo", headline: null, strategy: "  ", source: null, coverage: null }),
-    ).toBe("Demo's trading record. No published record yet. Research profile on TrustSVAN.");
+    ).toBe("Demo's trading record. No published record yet. Research profile on WhiteSVAN.");
     expect(
       profileDescription({ displayName: "D", headline: "x".repeat(400), strategy: null, source: null, coverage: null })
         .length,

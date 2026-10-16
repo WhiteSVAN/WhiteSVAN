@@ -16,7 +16,7 @@ export default async function SignupPage({
     <div>
       <h1 className="text-lg font-semibold text-zinc-100">Create your account</h1>
       <p className="mt-1 text-sm text-zinc-500">
-        Traders build a source-linked record. Clients discover and review traders.
+        Your WhiteSVAN trader workspace, Academy and journal. Evaluation purchases are not open yet.
       </p>
 
       <SignupForm initialRole={initialRole} referral={referral} />

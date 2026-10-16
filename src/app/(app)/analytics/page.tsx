@@ -5,7 +5,7 @@ import { ANALYTICS_WINDOWS, formatRate, toAnalyticsWindow } from "@/lib/analytic
 import { ProfileViewsChart } from "@/components/charts/profile-views";
 import { loadProfileAnalytics } from "./load";
 
-export const metadata: Metadata = { title: "Profile analytics · TrustSVAN" };
+export const metadata: Metadata = { title: "Profile analytics · WhiteSVAN" };
 
 // Analytics days are UTC calendar days (ProfileView.day is a @db.Date).
 const UTC_DAY = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
