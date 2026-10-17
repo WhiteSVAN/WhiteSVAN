@@ -41,9 +41,12 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
 - [src/components/prop-firm/](src/components/prop-firm/): `PropHeader` (announcement bar, nav, and an
   optional Discord link when `NEXT_PUBLIC_DISCORD_URL` is set), `PropLanding`, `AccountSelector`
   (Evaluation / Funded toggle) and `HelpCenter` (client-side search).
-- Routes: `/`, `/evaluations`, `/evaluations/[plan]` (plan ids `1l`, `2-5l`, `5l`, `10l`), `/rules`,
-  `/help` (content and search in [src/lib/help-center.ts](src/lib/help-center.ts)), `/academy`
-  (lessons in [src/lib/academy-content.ts](src/lib/academy-content.ts)).
+- Routes: `/`, `/evaluations`, `/evaluations/[plan]` (plan ids `1l`, `2-5l`, `5l`, `10l`),
+  `/how-it-works`, `/funded` (funded accounts, payout rules and the payout calculator; the signed-in
+  `/payouts` is a different page), `/rules`, `/help` (content and search in
+  [src/lib/help-center.ts](src/lib/help-center.ts)), `/academy` (lessons in
+  [src/lib/academy-content.ts](src/lib/academy-content.ts)). `sitemap.ts`, `robots.ts` and the
+  storefront `opengraph-image.tsx` read the public origin from [src/lib/site.ts](src/lib/site.ts).
 - Purchase calls to action go to `/signup?plan=<id>`, which shows the chosen plan. Sign-up defaults to
   the trader role; `?as=client` is the firm/allocator path. The launch list
   ([src/app/waitlist-form.tsx](src/app/waitlist-form.tsx)) writes `WaitlistEntry`.
@@ -81,6 +84,35 @@ result. The future engine service (Node on AWS with the market-data feed) hosts 
   use fixture values, not exchange values.
 - The Academy rule practice ([src/lib/academy-practice.ts](src/lib/academy-practice.ts)) runs these
   same rule functions over daily closes.
+
+## Zerodha charts (firm's own account) and market data
+
+`/markets` (signed-in, **Tools → Zerodha charts**) charts NIFTY, BANK NIFTY and SENSEX (index,
+futures and options) from the firm's Zerodha account through Kite Connect: candles from 1 minute to
+1 day, volume and open-interest panes, live quotes and five-level depth.
+
+- **Own use only (load-bearing).** Zerodha's API FAQ: "Displaying or redistributing Kite Connect API
+  data on external platforms violates exchange data vending policies." NSE's data policy and SEBI's
+  circulars say the same for virtual trading. Kite data may never feed a page that traders or
+  visitors see, or the evaluation engine. Those need a licensed exchange feed (Notion: "Market Data
+  & Trading Platform Plan"). `/markets` is a 404, and the API routes answer 404, for anyone not in
+  `KITE_OWNER_EMAILS`; Kite itself only lets the app's own Zerodha client ID log in.
+- [src/lib/market-data/candles.ts](src/lib/market-data/candles.ts): source-agnostic candles in paise,
+  bucketed from the 09:15 IST open like the exchanges' bars, and `foldTick` for live updates.
+  [src/components/markets/price-chart.tsx](src/components/markets/price-chart.tsx) draws any candle
+  source with TradingView Lightweight Charts (Apache-2.0; keep its attribution logo), so trader
+  screens can reuse it on a licensed feed.
+- [src/lib/zerodha/](src/lib/zerodha/): `kite.ts` (request building and parsing to paise, and
+  `toEngineQuote` into the trading core's `Quote`), `client.ts` (calls; 3 historical and 1 quote
+  request a second), `session.ts` (login checksum; the day's access token sealed with AES-256-GCM in
+  an HTTP-only cookie that expires at Kite's 06:00 IST logout, never stored in the database),
+  `config.ts` and `access.ts` (owner checks, JSON errors, relative redirects).
+- Routes: `/api/zerodha/login` → Kite → `/api/zerodha/callback` (register
+  `<site>/api/zerodha/callback` as the Kite app's redirect URL), `/api/zerodha/logout` (POST),
+  `/api/zerodha/instruments`, `/api/zerodha/candles`, `/api/zerodha/quotes`.
+- Env: `KITE_API_KEY`, `KITE_API_SECRET` (a ₹500/month Kite Connect app), `KITE_OWNER_EMAILS`.
+  Outside production only, `KITE_API_ROOT` and `KITE_LOGIN_URL` point at a stand-in Kite server for
+  local tests.
 
 ## Plan vs. reality
 
@@ -159,7 +191,9 @@ npm run lint
 
 **Env:** `cp .env.example .env` and fill in. Vars: `DATABASE_URL` (Docker default in the example),
 `AUTH_SECRET` (`npx auth secret`), optional Google sign-in, AI provider config (`AI_PROVIDER`,
-`OPENAI_*`, `ANTHROPIC_*`), and optional `NEXT_PUBLIC_DISCORD_URL` (read at build time).
+`OPENAI_*`, `ANTHROPIC_*`), optional `NEXT_PUBLIC_DISCORD_URL` and `NEXT_PUBLIC_SITE_URL` (read
+at build time; the site URL defaults to https://white-svan.vercel.app), and optional Zerodha charts
+(`KITE_API_KEY`, `KITE_API_SECRET`, `KITE_OWNER_EMAILS`; see above).
 `prisma.config.ts` loads `.env` via `dotenv`.
 
 **Deploys:** Vercel builds production from `main` (white-svan.vercel.app); branch pushes get preview
@@ -217,6 +251,9 @@ metadata gates access without exposing private evidence files.
   Academy rule practice running on it. Covers the pure-logic parts of stories S3-01, S3-02, S4-06,
   S5-02 and PAY-2; still open there: a contract-note match for the charges, the contract-master
   service and data feed, and hosting the engine live.
+- ✅ **Zerodha charts (Oct 2026)**: `/markets` on the firm's own Kite Connect account (index, futures
+  and options; candles, volume, OI, live quotes, depth) with a source-agnostic chart component.
+  Traders' charts wait for a licensed exchange feed.
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine
   service with Redis and a replay provider, checkout (UPI/cards via an Indian gateway), evaluation
   provisioning with live risk meters, KYC, payouts with TDS, then the optional copy desk.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyRate, divCeil, divFloor, divRound, formatPaise, percentOfFloor, toPaise, toRupees } from "./money";
+import { applyRate, divCeil, divFloor, divRound, formatPaise, parseRupees, percentOfFloor, toPaise, toRupees } from "./money";
 
 describe("paise maths", () => {
   it("converts rupees with up to two decimals and rejects sub-paisa precision", () => {
@@ -35,6 +35,15 @@ describe("paise maths", () => {
     expect(percentOfFloor(1_00_00_000, 6)).toBe(6_00_000);
     expect(percentOfFloor(999, 80)).toBe(799);
     expect(percentOfFloor(-500, 80)).toBe(0);
+  });
+
+  it("parses typed rupee amounts exactly", () => {
+    expect(parseRupees("1,02,500")).toBe(1_02_50_000);
+    expect(parseRupees("-600.5")).toBe(-60_050);
+    expect(parseRupees("-0")).toBe(0);
+    expect(parseRupees("123456789")).toBeNull();
+    expect(parseRupees("123456789", 9)).toBe(12_345_678_900);
+    for (const bad of ["", "-", "1e3", "12.345", "₹500", "abc"]) expect(parseRupees(bad)).toBeNull();
   });
 
   it("formats Indian rupees", () => {

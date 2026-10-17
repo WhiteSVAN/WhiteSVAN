@@ -122,3 +122,63 @@ and vendor feeds, realtime gateway), checkout, provisioning, KYC and e-sign, pay
 Local tooling: Node is not on PATH on the founder's machine; use the portable Node 22 at
 `%LOCALAPPDATA%\Temp\whitesvan-tooling\node-v22.23.3-win-x64` (prepend it to PATH in PowerShell).
 For local build checks use `npx prisma generate && npx next build` (not `npm run build`).
+
+## Codex verification and stopping point, 16 October 2026
+
+The user requested the highest-impact work within the remaining usage, documentation and a stop.
+During verification the shared checkout advanced to `feat/trading-core`, commit `926dcdf`.
+The newer committed Claude implementation was preserved; overlapping temporary help/footer edits
+were discarded. No PR was merged, branch pushed, deployment triggered or database migrated by this pass.
+
+Current repository evidence:
+- PR #35: prop-firm storefront and journal moved to Tools.
+- PR #36: industry wording, plan-aware signup, Academy, help and documentation refinements.
+- PR #37: deterministic trading core, rule engine, simulated fills, charges and payout quotes.
+- GitHub search found no debt-investor pitch-deck PR in `WhiteSVAN/WhiteSVAN`; its repository or PR
+  URL is needed to identify that separate work. Do not assume app PR #37 is a pitch-deck change.
+
+Validation rerun against the current code:
+- TypeScript passed; production build also completed its TypeScript check.
+- Full `eslint src` passed; `git diff --check` passed.
+- Vitest: 300 passed, 3 skipped. The skipped cases are not evidence of working database integrations.
+- Direct `next build`: passed, 36 routes. The first sandboxed attempt could not fetch Google Fonts;
+  the network-enabled build passed without database migrations.
+- No fresh visual browser check was completed in this pass; the connected browser inventory was empty.
+  Prior Claude visual checks above are retained as prior evidence, not claimed as new verification.
+
+Remaining delivery work stays as listed in the trading-core checkpoint: service/feed integration,
+contract-master ingestion, checkout, account provisioning, KYC/e-sign and payout processing.
+The storefront and pure trading library do not by themselves activate those services.
+
+## Site pass, 16 Oct 2026 (Claude)
+
+- New public pages for story S6-04: `/how-it-works` (four steps and the IST trading day, with times
+  from `PROGRAMME_RULES`) and `/funded` (funded accounts, payout rules, caps and buffers by account
+  size, and a payout calculator on `payoutAmounts` from the trading core).
+- Header gains "Payouts" (to `/funded`); "How it works" now goes to the page; footer, pricing-card
+  funded CTA and the landing steps link to the new pages. `FUNDED_STEPS` moved to `prop-firm.ts`.
+- SEO: `sitemap.ts`, `robots.ts` (workspace routes disallowed), a storefront share image,
+  `metadataBase` and industry-voiced home metadata. Optional `NEXT_PUBLIC_SITE_URL`.
+- Academy rule practice shows one card per day on phones instead of a sideways-scrolling table.
+- Checked at 1440 px and 390 px. Still missing for story S3-04: terms, refund, privacy and contact
+  pages. They need counsel's text and a support contact, so they are not drafted here.
+
+## Zerodha charts, 17 Oct 2026 (Claude)
+
+- `/markets` (Tools → Zerodha charts) charts NIFTY, BANK NIFTY and SENSEX (index, futures and
+  options) from the firm's own Kite Connect account: candles from 1 minute to 1 day, volume and
+  open-interest panes, live quotes every 2 seconds in market hours and five-level depth.
+- Own use only. Zerodha's API FAQ: "Displaying or redistributing Kite Connect API data on external
+  platforms violates exchange data vending policies." The page and its API routes are a 404 for
+  everyone outside `KITE_OWNER_EMAILS`, and Kite only lets the app's own client ID log in. Trader
+  charts and the evaluation engine still need the licensed feed in the Notion data plan.
+- The chart component and candle code are source-agnostic, so trader screens can reuse them on a
+  licensed feed. `toEngineQuote` maps Kite depth into the trading core's `Quote`.
+- The day's access token is sealed (AES-256-GCM) in an HTTP-only cookie that expires at Kite's
+  06:00 IST logout; it is never stored in the database or shown to page scripts.
+- Checked end to end against a stand-in Kite server on a temporary Postgres: sign-in, the Kite login
+  round trip, index, futures and options charts, intervals, live updates, depth, phone layout,
+  disconnect, and a non-owner getting 404s with no menu link.
+- To switch it on: create a Kite Connect app (₹500 a month) on the firm's client ID, set its
+  redirect URL to `https://white-svan.vercel.app/api/zerodha/callback`, and add `KITE_API_KEY`,
+  `KITE_API_SECRET` and `KITE_OWNER_EMAILS` in Vercel.

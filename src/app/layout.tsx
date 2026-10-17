@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import { EVALUATION_PLANS, PROGRAMME_RULES } from "@/lib/prop-firm";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -16,10 +18,15 @@ const ibmPlexMono = IBM_Plex_Mono({
   display: "swap",
 });
 
+const FIRST = EVALUATION_PLANS[0];
+const LAST = EVALUATION_PLANS[EVALUATION_PLANS.length - 1];
+
 export const metadata: Metadata = {
-  title: "WhiteSVAN — Prop Trading, Built for India",
-  description:
-    "Explore India's index futures and options with WhiteSVAN. Simulated evaluation accounts, transparent trading rules and practical education, with journal tools in your workspace.",
+  metadataBase: new URL(SITE_URL),
+  title: "WhiteSVAN | Get funded trading NIFTY, BANK NIFTY and SENSEX",
+  description: `The prop firm for Indian index futures and options. Pass one evaluation on a ${FIRST.label}–${LAST.label} account, get funded and keep ${PROGRAMME_RULES.contractorSharePercent}% of your profits.`,
+  openGraph: { siteName: "WhiteSVAN", type: "website", locale: "en_IN" },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
 import { requireUser } from "@/lib/auth/dal";
 import { unreadCount } from "@/lib/notify";
+import { isKiteOwner, kiteConfig } from "@/lib/zerodha/config";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { AccountMenu } from "./account-menu";
 
@@ -37,7 +38,9 @@ const CLIENT_TOOLS = [
  */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
-  const tools = user.role === "CLIENT" ? CLIENT_TOOLS : TRADER_TOOLS;
+  const roleTools = user.role === "CLIENT" ? CLIENT_TOOLS : TRADER_TOOLS;
+  // The firm's own Zerodha charts, for the accounts in KITE_OWNER_EMAILS only.
+  const tools = isKiteOwner(kiteConfig(), user.email) ? [...roleTools, { href: "/markets", label: "Zerodha charts" }] : roleTools;
   const unread = await unreadCount(user.id);
 
   return (

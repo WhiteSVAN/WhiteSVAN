@@ -3,8 +3,41 @@
  * paise. Approval, payment through the payouts API and TDS records are separate steps; tax rates
  * are not hard-coded here.
  */
-import { divCeil, percentOfFloor, type Paise } from "./money";
+import { assertPaise, divCeil, percentOfFloor, type Paise } from "./money";
 import type { AccountState } from "./engine";
+import type { RuleSet } from "./rules";
+
+type PayoutRules = Pick<RuleSet, "maxLoss" | "profitSplitPercent" | "payoutCap">;
+
+export interface PayoutAmounts {
+  /** Profit equal to the max drawdown stays in the account. */
+  buffer: Paise;
+  withdrawableProfit: Paise;
+  /** The trader's split of the withdrawable profit, before the cap. */
+  traderShare: Paise;
+  /** Paid to the trader (before any tax deducted at source). */
+  payout: Paise;
+  /** Profit taken off the account balance for this payout: the trader's share and the firm's. */
+  debit: Paise;
+}
+
+/** The payout arithmetic: the split of the profit above the buffer, up to the cap and any request. */
+export function payoutAmounts(rules: PayoutRules, profit: Paise, requested?: Paise): PayoutAmounts {
+  assertPaise(profit, "Profit");
+  if (requested !== undefined && (!Number.isSafeInteger(requested) || requested <= 0)) {
+    throw new RangeError("A payout request must be a positive number of paise.");
+  }
+  const withdrawableProfit = Math.max(0, profit - rules.maxLoss);
+  const traderShare = percentOfFloor(withdrawableProfit, rules.profitSplitPercent);
+  const payout = Math.min(traderShare, rules.payoutCap, requested ?? Number.MAX_SAFE_INTEGER);
+  const debit = payout > 0 ? divCeil(payout * 100, rules.profitSplitPercent) : 0;
+  return { buffer: rules.maxLoss, withdrawableProfit, traderShare, payout, debit };
+}
+
+/** Funded-account profit at which a single payout reaches the cap. */
+export function profitForFullPayout(rules: PayoutRules): Paise {
+  return rules.maxLoss + divCeil(rules.payoutCap * 100, rules.profitSplitPercent);
+}
 
 export interface PayoutChecks {
   kycVerified: boolean;
@@ -27,20 +60,11 @@ export type PayoutBlock =
   | "CYCLE_USED"
   | "NO_PROFIT_ABOVE_BUFFER";
 
-export interface PayoutQuote {
+export interface PayoutQuote extends PayoutAmounts {
   eligible: boolean;
   blocks: PayoutBlock[];
   /** Balance above the starting balance. */
   profit: Paise;
-  /** Profit equal to the max drawdown stays in the account. */
-  buffer: Paise;
-  withdrawableProfit: Paise;
-  /** The trader's split of the withdrawable profit, before the cap. */
-  traderShare: Paise;
-  /** Paid to the trader (before any tax deducted at source). */
-  payout: Paise;
-  /** Profit taken off the account balance for this payout. */
-  debit: Paise;
   cycle: string;
 }
 
@@ -51,15 +75,8 @@ export function payoutCycle(date: string): string {
 }
 
 export function quotePayout(state: AccountState, checks: PayoutChecks, today: string, requested?: Paise): PayoutQuote {
-  const { rules } = state;
-  if (requested !== undefined && (!Number.isSafeInteger(requested) || requested <= 0)) {
-    throw new RangeError("A payout request must be a positive number of paise.");
-  }
-  const profit = state.balance - rules.startingBalance;
-  const withdrawableProfit = Math.max(0, profit - rules.maxLoss);
-  const traderShare = percentOfFloor(withdrawableProfit, rules.profitSplitPercent);
-  const payout = Math.min(traderShare, rules.payoutCap, requested ?? Number.MAX_SAFE_INTEGER);
-  const debit = payout > 0 ? divCeil(payout * 100, rules.profitSplitPercent) : 0;
+  const profit = state.balance - state.rules.startingBalance;
+  const amounts = payoutAmounts(state.rules, profit, requested);
   const cycle = payoutCycle(today);
 
   const blocks: PayoutBlock[] = [];
@@ -71,7 +88,7 @@ export function quotePayout(state: AccountState, checks: PayoutChecks, today: st
   if (!checks.bankVerified) blocks.push("BANK");
   if (checks.onHold) blocks.push("ON_HOLD");
   if (checks.lastRequestDate && payoutCycle(checks.lastRequestDate) === cycle) blocks.push("CYCLE_USED");
-  if (payout <= 0) blocks.push("NO_PROFIT_ABOVE_BUFFER");
+  if (amounts.payout <= 0) blocks.push("NO_PROFIT_ABOVE_BUFFER");
 
-  return { eligible: blocks.length === 0, blocks, profit, buffer: rules.maxLoss, withdrawableProfit, traderShare, payout, debit, cycle };
+  return { eligible: blocks.length === 0, blocks, profit, ...amounts, cycle };
 }

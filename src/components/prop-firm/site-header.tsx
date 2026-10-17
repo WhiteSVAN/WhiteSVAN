@@ -7,8 +7,9 @@ import { SvanLogo } from "@/components/svan-logo";
 
 const LINKS = [
   ["/#accounts", "Pricing"],
-  ["/#how-it-works", "How it works"],
+  ["/how-it-works", "How it works"],
   ["/rules", "Rules"],
+  ["/funded", "Payouts"],
   ["/academy", "Academy"],
   ["/help", "Help center"],
 ] as const;
