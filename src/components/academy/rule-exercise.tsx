@@ -87,7 +87,8 @@ export function RuleExercise() {
         </dl>}
         <p className="mt-4 text-sm text-[var(--foreground)]">{scenario ? scenario.description : "Your own results: edit any day, or add and remove days."}</p>
 
-        <div className="mt-4 overflow-x-auto rounded-lg border border-[var(--border)]">
+        {/* Wide screens: a table. Phones: one card per day. Both edit the same entries. */}
+        <div className="mt-4 hidden overflow-x-auto rounded-lg border border-[var(--border)] sm:block">
           <table className="w-full min-w-[640px] text-left text-xs tabular-nums">
             <caption className="sr-only">Daily results and rule checks for the sample account</caption>
             <thead className="border-b border-[var(--border)] bg-[var(--card-deep)] text-[var(--muted)]">
@@ -101,17 +102,33 @@ export function RuleExercise() {
                   <th scope="row" className="px-4 py-3 font-mono font-normal">{String(index + 1).padStart(2, "0")}</th>
                   <td className="px-4 py-2">
                     <label className="sr-only" htmlFor={`practice-day-${index}`}>Day {index + 1} P&amp;L in rupees</label>
-                    <input id={`practice-day-${index}`} inputMode="decimal" value={entry} onChange={(event) => edit(index, event.target.value)} aria-invalid={invalid} className={`w-28 rounded-md border bg-[var(--card-deep)] px-2 py-2 font-mono text-xs ${invalid ? "border-[var(--danger)]" : "border-[var(--border-strong)]"} ${!invalid && (amounts[index] ?? 0) < 0 ? "text-[var(--danger)]" : "text-[var(--foreground)]"}`} />
+                    <input id={`practice-day-${index}`} inputMode="decimal" value={entry} onChange={(event) => edit(index, event.target.value)} aria-invalid={invalid} className={`w-28 ${dayInputClass(invalid, amounts[index])}`} />
                   </td>
                   <td className="px-4 py-3 font-mono">{row ? money(row.balance) : "—"}</td>
                   <td className="px-4 py-3 font-mono">{row ? money(row.floor) : "—"}</td>
                   <td className="px-4 py-3 font-mono">{row ? money(row.dailyLossUsed) : "—"}</td>
-                  <td className={`px-4 py-3 ${row?.breaches.length ? "text-[var(--danger)]" : row?.passed ? "text-[var(--primary)]" : "text-[var(--muted)]"}`}>{rowResult(row, invalid, review)}</td>
+                  <td className={`px-4 py-3 ${resultClass(row)}`}>{rowResult(row, invalid, review)}</td>
                 </tr>;
               })}
             </tbody>
           </table>
         </div>
+        <ol className="mt-4 space-y-3 sm:hidden" aria-label="Daily results and rule checks for the sample account">
+          {entries.map((entry, index) => {
+            const row: PracticeRow | undefined = review?.rows[index];
+            const invalid = amounts[index] === null;
+            return <li key={index} className={`rounded-lg border border-[var(--border)] p-4 ${review && !row ? "opacity-50" : ""}`}>
+              <div className="flex items-center justify-between gap-3">
+                <label htmlFor={`practice-day-card-${index}`} className="font-mono text-xs text-[var(--muted)]">Day {String(index + 1).padStart(2, "0")} P&amp;L (₹)</label>
+                <span className={`text-xs ${resultClass(row)}`}>{rowResult(row, invalid, review)}</span>
+              </div>
+              <input id={`practice-day-card-${index}`} inputMode="decimal" value={entry} onChange={(event) => edit(index, event.target.value)} aria-invalid={invalid} className={`mt-2 w-full ${dayInputClass(invalid, amounts[index])}`} />
+              <dl className="mt-3 grid grid-cols-3 gap-2 text-[11px] tabular-nums">
+                {([["Balance", row?.balance], ["Floor", row?.floor], ["Loss used", row?.dailyLossUsed]] as const).map(([label, value]) => <div key={label}><dt className="text-[var(--muted)]">{label}</dt><dd className="mt-1 font-mono">{value === undefined ? "—" : money(value)}</dd></div>)}
+              </dl>
+            </li>;
+          })}
+        </ol>
 
         <div className="mt-3 flex flex-wrap gap-2">
           <button type="button" onClick={() => resize(1)} disabled={entries.length >= MAX_PRACTICE_DAYS} className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[var(--border-strong)] px-3 text-xs hover:bg-[var(--card-raised)] disabled:opacity-40"><Plus className="h-3.5 w-3.5" aria-hidden="true" /> Add a day</button>
@@ -129,6 +146,16 @@ export function RuleExercise() {
       </div>
     </section>
   );
+}
+
+function dayInputClass(invalid: boolean, amount: number | null): string {
+  const border = invalid ? "border-[var(--danger)]" : "border-[var(--border-strong)]";
+  const tone = !invalid && (amount ?? 0) < 0 ? "text-[var(--danger)]" : "text-[var(--foreground)]";
+  return `rounded-md border bg-[var(--card-deep)] px-2 py-2 font-mono text-xs ${border} ${tone}`;
+}
+
+function resultClass(row: PracticeRow | undefined): string {
+  return row?.breaches.length ? "text-[var(--danger)]" : row?.passed ? "text-[var(--primary)]" : "text-[var(--muted)]";
 }
 
 function rowResult(row: PracticeRow | undefined, invalid: boolean, review: PracticeReview | null): string {

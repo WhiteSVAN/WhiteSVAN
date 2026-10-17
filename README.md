@@ -31,12 +31,15 @@ the signed-in **Tools** menu: imports, metrics, research profiles, AI briefs and
   India, free resources, FAQ, early-access signup).
 - `/evaluations` and `/evaluations/[plan]` (`1l`, `2-5l`, `5l`, `10l`): plans, evaluation vs funded
   comparison and plan detail.
+- `/how-it-works`: every step from choosing an account to a payout, and the IST trading day.
+- `/funded`: funded accounts, payout rules, caps by account size and a payout calculator.
 - `/rules`: full rule table and sections. `/help`: searchable help center. `/academy`: free lessons,
   rule practice and "getting funded".
 - `/signup?plan=<id>`: plan-aware trader sign-up. Firms and allocators use `/signup?as=client`.
 - Signed-in workspace: My accounts, Evaluations, Payouts, Academy and Help, with the journal under Tools.
 - Programme numbers and rule text live in `src/lib/prop-firm.ts`; change them there only.
-- Optional: set `NEXT_PUBLIC_DISCORD_URL` to show a Discord link in the header and footer.
+- Optional: set `NEXT_PUBLIC_DISCORD_URL` to show a Discord link in the header and footer, and
+  `NEXT_PUBLIC_SITE_URL` when a custom domain goes live (sitemap, robots and share images).
 
 ## Core Rules
 

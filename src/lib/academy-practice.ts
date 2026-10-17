@@ -3,7 +3,7 @@
  * It uses the trading engine's own rule functions, so practice and a real evaluation agree.
  */
 import type { EvaluationPlan } from "./prop-firm";
-import { divCeil, toPaise, type Paise } from "./trading/money";
+import { divCeil, parseRupees, toPaise, type Paise } from "./trading/money";
 import { limitBreaches, maxLossFloor, reviewPass, ruleSetFor, type BreachRule, type DayResult, type RuleSet } from "./trading/rules";
 
 export const MAX_PRACTICE_DAYS = 10;
@@ -25,10 +25,7 @@ export function scenarioAmounts(scenario: PracticeScenario, plan: EvaluationPlan
 
 /** A typed day result in rupees (up to two decimals, minus sign for a loss) to paise, or null. */
 export function parsePracticeAmount(value: string): Paise | null {
-  const trimmed = value.trim().replace(/,/g, "");
-  if (!/^-?(?:\d{1,8}(?:\.\d{0,2})?|\.\d{1,2})$/.test(trimmed)) return null;
-  const paise = toPaise(Number(trimmed));
-  return Object.is(paise, -0) ? 0 : paise;
+  return parseRupees(value);
 }
 
 export type PracticeStatus = "ACTIVE" | "PASSED" | "FAILED";

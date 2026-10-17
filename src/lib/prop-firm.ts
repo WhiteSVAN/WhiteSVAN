@@ -42,6 +42,14 @@ export function formatInr(value: number): string {
   }).format(value);
 }
 
+/** What happens after a pass, in order. */
+export const FUNDED_STEPS: readonly (readonly [title: string, body: string])[] = [
+  ["Pass the evaluation", `Hit the ${PROGRAMME_RULES.targetPercent}% profit target in at least ${PROGRAMME_RULES.minimumDays} trading days, inside the drawdown and daily loss limits.`],
+  ["Complete KYC", "PAN, Aadhaar through DigiLocker and bank-account verification."],
+  ["Sign your funded trader agreement", "It sets your profit split, payout caps, risk limits, confidentiality and non-solicit terms."],
+  ["Trade and get paid", `Keep ${PROGRAMME_RULES.contractorSharePercent}% of the profit, with a payout twice a month up to the cap for your account size. Your funded account stays simulated; your payouts are real.`],
+];
+
 export const RULE_SECTIONS = [
   {
     id: "evaluation",

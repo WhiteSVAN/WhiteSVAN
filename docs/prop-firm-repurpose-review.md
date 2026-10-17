@@ -122,3 +122,43 @@ and vendor feeds, realtime gateway), checkout, provisioning, KYC and e-sign, pay
 Local tooling: Node is not on PATH on the founder's machine; use the portable Node 22 at
 `%LOCALAPPDATA%\Temp\whitesvan-tooling\node-v22.23.3-win-x64` (prepend it to PATH in PowerShell).
 For local build checks use `npx prisma generate && npx next build` (not `npm run build`).
+
+## Codex verification and stopping point, 16 October 2026
+
+The user requested the highest-impact work within the remaining usage, documentation and a stop.
+During verification the shared checkout advanced to `feat/trading-core`, commit `926dcdf`.
+The newer committed Claude implementation was preserved; overlapping temporary help/footer edits
+were discarded. No PR was merged, branch pushed, deployment triggered or database migrated by this pass.
+
+Current repository evidence:
+- PR #35: prop-firm storefront and journal moved to Tools.
+- PR #36: industry wording, plan-aware signup, Academy, help and documentation refinements.
+- PR #37: deterministic trading core, rule engine, simulated fills, charges and payout quotes.
+- GitHub search found no debt-investor pitch-deck PR in `WhiteSVAN/WhiteSVAN`; its repository or PR
+  URL is needed to identify that separate work. Do not assume app PR #37 is a pitch-deck change.
+
+Validation rerun against the current code:
+- TypeScript passed; production build also completed its TypeScript check.
+- Full `eslint src` passed; `git diff --check` passed.
+- Vitest: 300 passed, 3 skipped. The skipped cases are not evidence of working database integrations.
+- Direct `next build`: passed, 36 routes. The first sandboxed attempt could not fetch Google Fonts;
+  the network-enabled build passed without database migrations.
+- No fresh visual browser check was completed in this pass; the connected browser inventory was empty.
+  Prior Claude visual checks above are retained as prior evidence, not claimed as new verification.
+
+Remaining delivery work stays as listed in the trading-core checkpoint: service/feed integration,
+contract-master ingestion, checkout, account provisioning, KYC/e-sign and payout processing.
+The storefront and pure trading library do not by themselves activate those services.
+
+## Site pass, 16 Oct 2026 (Claude)
+
+- New public pages for story S6-04: `/how-it-works` (four steps and the IST trading day, with times
+  from `PROGRAMME_RULES`) and `/funded` (funded accounts, payout rules, caps and buffers by account
+  size, and a payout calculator on `payoutAmounts` from the trading core).
+- Header gains "Payouts" (to `/funded`); "How it works" now goes to the page; footer, pricing-card
+  funded CTA and the landing steps link to the new pages. `FUNDED_STEPS` moved to `prop-firm.ts`.
+- SEO: `sitemap.ts`, `robots.ts` (workspace routes disallowed), a storefront share image,
+  `metadataBase` and industry-voiced home metadata. Optional `NEXT_PUBLIC_SITE_URL`.
+- Academy rule practice shows one card per day on phones instead of a sideways-scrolling table.
+- Checked at 1440 px and 390 px. Still missing for story S3-04: terms, refund, privacy and contact
+  pages. They need counsel's text and a support contact, so they are not drafted here.

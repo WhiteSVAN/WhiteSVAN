@@ -6,7 +6,7 @@ import { PropHeader } from "@/components/prop-firm/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { LearnPanel } from "@/components/academy/learn-panel";
 import { RuleExercise } from "@/components/academy/rule-exercise";
-import { EVALUATION_PLANS, formatInr, PROGRAMME_RULES as R } from "@/lib/prop-firm";
+import { EVALUATION_PLANS, formatInr, FUNDED_STEPS, PROGRAMME_RULES as R } from "@/lib/prop-firm";
 
 export const metadata: Metadata = {
   title: "SVAN Academy | WhiteSVAN",
@@ -24,13 +24,6 @@ const JOURNEY = [
   { number: "01", title: "Learn", detail: "Contracts, costs, position sizing and every evaluation rule, with worked examples." },
   { number: "02", title: "Practise", detail: "Run the drawdown and daily loss exercise before you trade an evaluation." },
   { number: "03", title: "Get funded", detail: `Pass the evaluation, complete KYC and start requesting payouts at an ${R.contractorSharePercent}% profit split.` },
-];
-
-const FUNDED_STEPS: [string, string][] = [
-  ["Pass the evaluation", `Hit the ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days, inside the drawdown and daily loss limits.`],
-  ["Complete KYC", "PAN, Aadhaar through DigiLocker and bank-account verification."],
-  ["Sign your funded trader agreement", "It sets your profit split, payout caps, risk limits, confidentiality and non-solicit terms."],
-  ["Trade and get paid", `Keep ${R.contractorSharePercent}% of the profit, with a payout twice a month up to the cap for your account size. Your funded account stays simulated; your payouts are real.`],
 ];
 
 export default async function AcademyPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[] }> }) {

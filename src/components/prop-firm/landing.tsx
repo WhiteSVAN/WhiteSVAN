@@ -95,7 +95,7 @@ export function PropLanding() {
         </div>
       </section>
       <section id="how-it-works" className="mx-auto max-w-7xl scroll-mt-28 px-5 py-20 sm:px-8 sm:py-24">
-        <div className="text-center"><p className="terminal-label">How it works</p><h2 className="prop-heading mt-4">Three steps to a funded account.</h2><p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[var(--muted)]">One evaluation. Clear rules. Real payouts.</p></div>
+        <div className="text-center"><p className="terminal-label">How it works</p><h2 className="prop-heading mt-4">Three steps to a funded account.</h2><p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[var(--muted)]">One evaluation. Clear rules. Real payouts.</p><Link href="/how-it-works" className="mt-5 inline-flex items-center gap-2 text-sm text-[var(--primary)]">See every step <ArrowRight size={15} aria-hidden="true" /></Link></div>
         <div className="mt-12 grid gap-5 md:grid-cols-3">{STEPS.map(({icon: Icon, ...s}) => <article key={s.n} className="prop-step relative rounded-xl border border-[var(--border)] bg-[#111811] p-7"><div className="flex items-center justify-between"><span className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#486338] bg-[#203317] text-[var(--primary)]"><Icon size={23} strokeWidth={1.5} /></span><span className="font-mono text-[40px] font-medium tracking-tight text-[#2e3b28]">{s.n}</span></div><h3 className="mt-9 text-xl font-medium tracking-[-.035em]">{s.title}</h3><p className="mt-3 text-sm leading-7 text-[var(--muted)]">{s.text}</p></article>)}</div>
       </section>
       <div className="prop-accounts relative border-y border-[var(--border)] bg-[#10160f]"><AccountSelector /></div>

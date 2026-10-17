@@ -28,6 +28,18 @@ export function toPaise(rupees: number): Paise {
   return paise;
 }
 
+/**
+ * A typed rupee amount to paise, or null: commas allowed, at most two decimals, a leading minus
+ * for a loss, and at most `maxDigits` whole-rupee digits. Never rounds a typed value.
+ */
+export function parseRupees(value: string, maxDigits = 8): Paise | null {
+  const trimmed = value.trim().replace(/,/g, "");
+  const pattern = new RegExp(`^-?(?:\\d{1,${maxDigits}}(?:\\.\\d{0,2})?|\\.\\d{1,2})$`);
+  if (!pattern.test(trimmed)) return null;
+  const paise = toPaise(Number(trimmed));
+  return Object.is(paise, -0) ? 0 : paise;
+}
+
 export function toRupees(paise: Paise): number {
   assertPaise(paise);
   return paise / 100;

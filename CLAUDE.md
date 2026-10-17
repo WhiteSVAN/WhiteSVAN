@@ -41,9 +41,12 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
 - [src/components/prop-firm/](src/components/prop-firm/): `PropHeader` (announcement bar, nav, and an
   optional Discord link when `NEXT_PUBLIC_DISCORD_URL` is set), `PropLanding`, `AccountSelector`
   (Evaluation / Funded toggle) and `HelpCenter` (client-side search).
-- Routes: `/`, `/evaluations`, `/evaluations/[plan]` (plan ids `1l`, `2-5l`, `5l`, `10l`), `/rules`,
-  `/help` (content and search in [src/lib/help-center.ts](src/lib/help-center.ts)), `/academy`
-  (lessons in [src/lib/academy-content.ts](src/lib/academy-content.ts)).
+- Routes: `/`, `/evaluations`, `/evaluations/[plan]` (plan ids `1l`, `2-5l`, `5l`, `10l`),
+  `/how-it-works`, `/funded` (funded accounts, payout rules and the payout calculator; the signed-in
+  `/payouts` is a different page), `/rules`, `/help` (content and search in
+  [src/lib/help-center.ts](src/lib/help-center.ts)), `/academy` (lessons in
+  [src/lib/academy-content.ts](src/lib/academy-content.ts)). `sitemap.ts`, `robots.ts` and the
+  storefront `opengraph-image.tsx` read the public origin from [src/lib/site.ts](src/lib/site.ts).
 - Purchase calls to action go to `/signup?plan=<id>`, which shows the chosen plan. Sign-up defaults to
   the trader role; `?as=client` is the firm/allocator path. The launch list
   ([src/app/waitlist-form.tsx](src/app/waitlist-form.tsx)) writes `WaitlistEntry`.
@@ -159,7 +162,8 @@ npm run lint
 
 **Env:** `cp .env.example .env` and fill in. Vars: `DATABASE_URL` (Docker default in the example),
 `AUTH_SECRET` (`npx auth secret`), optional Google sign-in, AI provider config (`AI_PROVIDER`,
-`OPENAI_*`, `ANTHROPIC_*`), and optional `NEXT_PUBLIC_DISCORD_URL` (read at build time).
+`OPENAI_*`, `ANTHROPIC_*`), and optional `NEXT_PUBLIC_DISCORD_URL` and `NEXT_PUBLIC_SITE_URL` (read
+at build time; the site URL defaults to https://white-svan.vercel.app).
 `prisma.config.ts` loads `.env` via `dotenv`.
 
 **Deploys:** Vercel builds production from `main` (white-svan.vercel.app); branch pushes get preview

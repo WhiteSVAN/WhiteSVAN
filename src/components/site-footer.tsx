@@ -11,8 +11,9 @@ const FOOTER_GROUPS = [
     title: "Programme",
     links: [
       { href: "/evaluations", label: "Evaluation accounts" },
+      { href: "/how-it-works", label: "How it works" },
       { href: "/rules", label: "Trading rules" },
-      { href: "/#how-it-works", label: "How it works" },
+      { href: "/funded", label: "Funded accounts & payouts" },
       { href: "/academy", label: "SVAN Academy" },
     ],
   },
