@@ -21,7 +21,7 @@ the signed-in **Tools** menu: imports, metrics, research profiles, AI briefs and
 - Prisma 7 with generated client in `src/generated/prisma`
 - Postgres 16 (Docker Compose locally)
 - NextAuth v5 (credentials and Google)
-- Tailwind v4, Recharts
+- Tailwind v4, Recharts, TradingView Lightweight Charts (price charts)
 - OpenAI by default, Anthropic via `AI_PROVIDER=anthropic` (journal briefs)
 - Vercel: production from `main` at https://white-svan.vercel.app
 
@@ -37,6 +37,11 @@ the signed-in **Tools** menu: imports, metrics, research profiles, AI briefs and
   rule practice and "getting funded".
 - `/signup?plan=<id>`: plan-aware trader sign-up. Firms and allocators use `/signup?as=client`.
 - Signed-in workspace: My accounts, Evaluations, Payouts, Academy and Help, with the journal under Tools.
+- `/markets` (Tools → Zerodha charts): charts, live quotes and depth from the firm's own Zerodha
+  account through Kite Connect, for the sign-ins in `KITE_OWNER_EMAILS` only. Kite data is for the
+  account holder's own use, so traders' charts will use a licensed exchange feed. Set `KITE_API_KEY`,
+  `KITE_API_SECRET` and `KITE_OWNER_EMAILS`, and register `<site>/api/zerodha/callback` as the Kite
+  app's redirect URL.
 - Programme numbers and rule text live in `src/lib/prop-firm.ts`; change them there only.
 - Optional: set `NEXT_PUBLIC_DISCORD_URL` to show a Discord link in the header and footer, and
   `NEXT_PUBLIC_SITE_URL` when a custom domain goes live (sitemap, robots and share images).
@@ -76,6 +81,7 @@ creates additional public profiles for the trader directory.
 - `src/lib/prop-firm.ts` - programme numbers and rule text
 - `src/lib/help-center.ts` - help-center content and search
 - `src/lib/trading/` - simulator and rule-engine core (paise money, charges, matching, rules, payouts)
+- `src/lib/zerodha/`, `src/lib/market-data/`, `src/components/markets/` - Zerodha charts and candles
 - `src/components/prop-firm/` - storefront components
 - `prisma/schema.prisma` - data model
 - `src/lib/metrics.ts` - code-of-record metrics engine (journal)

@@ -162,3 +162,23 @@ The storefront and pure trading library do not by themselves activate those serv
 - Academy rule practice shows one card per day on phones instead of a sideways-scrolling table.
 - Checked at 1440 px and 390 px. Still missing for story S3-04: terms, refund, privacy and contact
   pages. They need counsel's text and a support contact, so they are not drafted here.
+
+## Zerodha charts, 17 Oct 2026 (Claude)
+
+- `/markets` (Tools → Zerodha charts) charts NIFTY, BANK NIFTY and SENSEX (index, futures and
+  options) from the firm's own Kite Connect account: candles from 1 minute to 1 day, volume and
+  open-interest panes, live quotes every 2 seconds in market hours and five-level depth.
+- Own use only. Zerodha's API FAQ: "Displaying or redistributing Kite Connect API data on external
+  platforms violates exchange data vending policies." The page and its API routes are a 404 for
+  everyone outside `KITE_OWNER_EMAILS`, and Kite only lets the app's own client ID log in. Trader
+  charts and the evaluation engine still need the licensed feed in the Notion data plan.
+- The chart component and candle code are source-agnostic, so trader screens can reuse them on a
+  licensed feed. `toEngineQuote` maps Kite depth into the trading core's `Quote`.
+- The day's access token is sealed (AES-256-GCM) in an HTTP-only cookie that expires at Kite's
+  06:00 IST logout; it is never stored in the database or shown to page scripts.
+- Checked end to end against a stand-in Kite server on a temporary Postgres: sign-in, the Kite login
+  round trip, index, futures and options charts, intervals, live updates, depth, phone layout,
+  disconnect, and a non-owner getting 404s with no menu link.
+- To switch it on: create a Kite Connect app (₹500 a month) on the firm's client ID, set its
+  redirect URL to `https://white-svan.vercel.app/api/zerodha/callback`, and add `KITE_API_KEY`,
+  `KITE_API_SECRET` and `KITE_OWNER_EMAILS` in Vercel.
