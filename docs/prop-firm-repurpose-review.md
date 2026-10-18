@@ -182,3 +182,29 @@ The storefront and pure trading library do not by themselves activate those serv
 - To switch it on: create a Kite Connect app (₹500 a month) on the firm's client ID, set its
   redirect URL to `https://white-svan.vercel.app/api/zerodha/callback`, and add `KITE_API_KEY`,
   `KITE_API_SECRET` and `KITE_OWNER_EMAILS` in Vercel.
+
+## Checkout, accounts and the trading platform, 18 Oct 2026 (Claude)
+
+- The buying journey follows Tradeify: pricing card "Start evaluation" → `/checkout/<plan>`
+  (details, agreements, payment, order summary) → `/checkout/complete/<order>` → "Start trading" →
+  `/trade/<account>`. Signed-out buyers sign up with the plan and land back on checkout; sign-in
+  honours `?next=`; traders no longer need a journal profile to buy or reach My accounts.
+- No payment gateway is signed (TRD: Razorpay or Cashfree; go-live register IN25), so checkout is
+  closed to the public with the launch list. `STAFF_EMAILS` can make test purchases that open a real
+  account without a charge. Orders are stored with amount, billing and GST place of supply.
+- New tables `EvaluationAccount` (engine snapshot, optimistic locking) and `CheckoutOrder`
+  (migration `20261018022652_evaluation_accounts_checkout`, additive).
+- `/trade/<account>`: chart, ticket, positions, orders, fills, activity and rule meters, with the
+  engine on the server (`/api/accounts/<id>/tick` and `/orders`). Prices come from the firm's Kite
+  session, so only `KITE_OWNER_EMAILS` trade today; other traders see their account waiting for live
+  prices. The earlier in-browser test desk is replaced by these stored accounts.
+- Loose ends tied: migrations use `DATABASE_URL_UNPOOLED` (the P1002 lock failure on 17 Oct); email
+  goes through Resend when `RESEND_API_KEY` and `EMAIL_FROM` are set, with order confirmations; the
+  storefront header shows "My accounts" when signed in; `/checkout` and `/trade` are kept out of search.
+- Checked end to end against the Kite stand-in on a UTF-8 Postgres: 19 checks from the signed-out
+  plan card through test purchase, Zerodha login, a filled order, close, reload and My accounts, plus
+  public checkout closed, sign-up straight to checkout, the no-data platform and another trader's 404.
+- Still to do: a gateway (UPI/cards) with GST invoices and refunds, the always-on engine service with
+  a licensed feed, KYC, payouts, and counsel's terms, privacy, refund and contact pages (S3-04).
+- Product note: on the ₹1L plan one NIFTY futures round trip costs about ₹1,100 in charges, over half
+  the ₹2,000 daily loss limit, so small accounts effectively trade options.

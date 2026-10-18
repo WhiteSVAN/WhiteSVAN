@@ -35,11 +35,18 @@ the signed-in **Tools** menu: imports, metrics, research profiles, AI briefs and
 - `/funded`: funded accounts, payout rules, caps by account size and a payout calculator.
 - `/rules`: full rule table and sections. `/help`: searchable help center. `/academy`: free lessons,
   rule practice and "getting funded".
-- `/signup?plan=<id>`: plan-aware trader sign-up. Firms and allocators use `/signup?as=client`.
-- Signed-in workspace: My accounts, Evaluations, Payouts, Academy and Help, with the journal under Tools.
+- Buying, Tradeify-style: "Start evaluation" → `/checkout/<plan>` → `/checkout/complete/<order>` →
+  "Start trading" → `/trade/<account>`. Signed-out buyers go through `/signup?plan=<id>` and come back
+  to checkout. No payment gateway is live, so checkout is closed to the public; sign-ins in
+  `STAFF_EMAILS` make test purchases that open a real evaluation account without a charge.
+- `/trade/<account>`: the trading platform for one evaluation account (chart, order ticket, positions,
+  orders, fills, rule meters), with the engine running on the server. Prices come from the firm's own
+  Zerodha account, so only `KITE_OWNER_EMAILS` can trade until a licensed exchange feed connects.
+- Signed-in workspace: My accounts (account cards), Evaluations, Payouts, Academy and Help, with the
+  journal under Tools.
 - `/markets` (Tools → Zerodha charts): charts, live quotes and depth from the firm's own Zerodha
-  account through Kite Connect, for the sign-ins in `KITE_OWNER_EMAILS` only. Kite data is for the
-  account holder's own use, so traders' charts will use a licensed exchange feed. Set `KITE_API_KEY`,
+  account through Kite Connect, for `KITE_OWNER_EMAILS` only. Kite data is for the account holder's
+  own use, so traders' charts will use a licensed exchange feed. Set `KITE_API_KEY`,
   `KITE_API_SECRET` and `KITE_OWNER_EMAILS`, and register `<site>/api/zerodha/callback` as the Kite
   app's redirect URL.
 - Programme numbers and rule text live in `src/lib/prop-firm.ts`; change them there only.

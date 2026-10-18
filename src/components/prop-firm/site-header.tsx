@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import { SvanLogo } from "@/components/svan-logo";
 
@@ -19,6 +19,22 @@ const DISCORD_URL = process.env.NEXT_PUBLIC_DISCORD_URL;
 
 export function PropHeader() {
   const [open, setOpen] = useState(false);
+  // Storefront pages stay static; the header asks for the session in the browser and swaps
+  // "Log in" for "My accounts" when someone is signed in.
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    let live = true;
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((session: unknown) => {
+        if (live) setSignedIn(typeof session === "object" && session !== null && "user" in session);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
+  const account = signedIn ? { href: "/dashboard", label: "My accounts" } : { href: "/login", label: "Log in" };
   return <>
     <div className="border-b border-[var(--border)] bg-[#172216] px-4 py-2.5 text-center text-[11px] text-[#c7d7bd]">
       <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--primary)]" /> Launching soon
@@ -33,7 +49,7 @@ export function PropHeader() {
           {DISCORD_URL && <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--primary)]">Discord</a>}
         </nav>
         <div className="ml-auto flex items-center gap-5 lg:ml-3">
-          <Link href="/login" className="hidden text-xs text-[#d4ddcf] sm:block">Log in</Link>
+          <Link href={account.href} className="hidden text-xs text-[#d4ddcf] sm:block">{account.label}</Link>
           <Link href="/#accounts" className="prop-button prop-header-cta min-h-10 px-4 text-xs">Get funded <ArrowUpRight size={15} /></Link>
           <button type="button" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} aria-controls="prop-mobile-nav" onClick={() => setOpen(!open)} className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] lg:hidden">{open ? <X size={19} /> : <Menu size={19} />}</button>
         </div>
@@ -41,7 +57,7 @@ export function PropHeader() {
       {open && <nav id="prop-mobile-nav" aria-label="Mobile navigation" className="grid gap-1 border-t border-[var(--border)] bg-[var(--background)] px-5 py-4 lg:hidden">
         {LINKS.map(([href, label]) => <Link key={href} href={href} onClick={() => setOpen(false)} className="rounded-md px-3 py-3 text-sm hover:bg-[var(--card)]">{label}</Link>)}
         {DISCORD_URL && <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="rounded-md px-3 py-3 text-sm hover:bg-[var(--card)]">Discord</a>}
-        <Link href="/login" onClick={() => setOpen(false)} className="px-3 py-3 text-sm text-[var(--primary)]">Log in</Link>
+        <Link href={account.href} onClick={() => setOpen(false)} className="px-3 py-3 text-sm text-[var(--primary)]">{account.label}</Link>
       </nav>}
     </header>
   </>;

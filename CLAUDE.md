@@ -47,16 +47,30 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
   [src/lib/help-center.ts](src/lib/help-center.ts)), `/academy` (lessons in
   [src/lib/academy-content.ts](src/lib/academy-content.ts)). `sitemap.ts`, `robots.ts` and the
   storefront `opengraph-image.tsx` read the public origin from [src/lib/site.ts](src/lib/site.ts).
-- Purchase calls to action go to `/signup?plan=<id>`, which shows the chosen plan. Sign-up defaults to
-  the trader role; `?as=client` is the firm/allocator path. The launch list
-  ([src/app/waitlist-form.tsx](src/app/waitlist-form.tsx)) writes `WaitlistEntry`.
+- **Buying an evaluation** (Tradeify's flow): "Start evaluation" → `/checkout/<plan>` (signed out:
+  `/signup?plan=<id>`, which returns to that checkout; sign-in honours `?next=`) → details, the
+  agreements and payment → `/checkout/complete/<order>` → "Start trading" → `/trade/<account>`.
+  Traders don't need a journal profile for any of this (`requireMember` in
+  [src/lib/auth/dal.ts](src/lib/auth/dal.ts)). No payment gateway is signed (Razorpay or Cashfree),
+  so checkout is closed to the public ("opens at launch", with the launch list); the sign-ins in
+  `STAFF_EMAILS` make **test purchases** that open a real account without a charge
+  ([src/lib/checkout/](src/lib/checkout/)). A gateway adds a third mode in `config.ts`.
+- Accounts: `EvaluationAccount` stores the engine host snapshot (`desk` JSON, written with
+  optimistic locking on `version`) and `CheckoutOrder` the purchase
+  ([src/lib/accounts/store.ts](src/lib/accounts/store.ts)). At most `maximumAccounts` active.
+- The trading platform `/trade/<account>` runs the engine on the server: each poll
+  (`/api/accounts/<id>/tick`) makes one Kite quote call and feeds it to the account; orders and
+  cancels go to `/api/accounts/<id>/orders`. Prices come from the firm's Kite session, so today only
+  `KITE_OWNER_EMAILS` can trade; other traders see their account and "trading opens when live prices
+  connect" until a licensed feed exists. Orders, stops and the 15:20 square-off run while a platform
+  page is open (the always-on engine service is still to build).
 - Signed-in workspace ([src/app/(app)/layout.tsx](src/app/(app)/layout.tsx)): My accounts
-  (`/dashboard`), Evaluations, Payouts (`/payouts`), Academy and Help, with the journal tools under
-  **Tools** ([src/components/workspace-nav.tsx](src/components/workspace-nav.tsx)).
-- **Not built yet:** checkout and payments, evaluation provisioning, the engine service with market
-  data, KYC, payout processing and the copy engine. The spec is the Notion page "Platform Technical
-  Requirements (TRD v1)". Until those exist, never imply that a purchase, account activation or
-  payout has happened.
+  (`/dashboard`, account cards with meters), Evaluations, Payouts (`/payouts`), Academy and Help, with
+  the journal tools under **Tools** ([src/components/workspace-nav.tsx](src/components/workspace-nav.tsx)).
+  The launch list ([src/app/waitlist-form.tsx](src/app/waitlist-form.tsx)) writes `WaitlistEntry`.
+- **Not built yet:** a payment gateway, GST invoices and refunds, the always-on engine service with a
+  licensed market-data feed, KYC, payout processing and the copy engine. The spec is the Notion page
+  "Platform Technical Requirements (TRD v1)". Never imply a real payment or a payout has happened.
 
 ## Trading core (src/lib/trading)
 
@@ -107,12 +121,19 @@ futures and options) from the firm's Zerodha account through Kite Connect: candl
   request a second), `session.ts` (login checksum; the day's access token sealed with AES-256-GCM in
   an HTTP-only cookie that expires at Kite's 06:00 IST logout, never stored in the database),
   `config.ts` and `access.ts` (owner checks, JSON errors, relative redirects).
-- Routes: `/api/zerodha/login` → Kite → `/api/zerodha/callback` (register
+- Evaluation accounts trade on the same screen (`ZerodhaCharts` with an `account`):
+  [src/lib/trading/desk.ts](src/lib/trading/desk.ts) hosts the engine (contracts, quotes, time
+  order, fill and activity log) and [src/lib/accounts/ticks.ts](src/lib/accounts/ticks.ts) feeds it
+  Kite quotes as books stamped with Kite's quote time, so a stalled feed reads as stale. Fills walk
+  Kite's five-level depth with 1 tick of slippage and dated charges. The freeze check stays open
+  (Kite's list has no freeze quantity; the plans' 1–8 lot limits bind first) until the contract
+  master loads the exchange file.
+- Routes: `/api/zerodha/login?next=` → Kite → `/api/zerodha/callback` (register
   `<site>/api/zerodha/callback` as the Kite app's redirect URL), `/api/zerodha/logout` (POST),
-  `/api/zerodha/instruments`, `/api/zerodha/candles`, `/api/zerodha/quotes`.
+  `/api/zerodha/instruments`, `/api/zerodha/candles`, `/api/zerodha/quotes`, `/api/accounts/<id>/…`.
 - Env: `KITE_API_KEY`, `KITE_API_SECRET` (a ₹500/month Kite Connect app), `KITE_OWNER_EMAILS`.
-  Outside production only, `KITE_API_ROOT` and `KITE_LOGIN_URL` point at a stand-in Kite server for
-  local tests.
+  Outside production only, `KITE_API_ROOT` and `KITE_LOGIN_URL` point at a stand-in Kite server and
+  `TRADING_CLOCK_OFFSET_MS` shifts the engine's clock, for local tests at any hour.
 
 ## Plan vs. reality
 
@@ -170,7 +191,9 @@ Prisma schema: [prisma/schema.prisma](prisma/schema.prisma). Two groups:
   `TradingAccount`, `Trade` (raw source rows kept in `raw` Json), `DailyPnl`
   (per-account/day rollup, rebuilt from loaded trades, `@@unique([accountId, tradeDate])`),
   `Report` (`metrics` + `aiReport` JSON, `DRAFT`/`PUBLISHED`), `WaitlistEntry` (launch list).
-  There are no evaluation, funded-account or payout tables yet (see the TRD's data model).
+  `EvaluationAccount` (the engine snapshot in `desk`, `version` for optimistic locking) and
+  `CheckoutOrder` (amount in paise, provider, billing, GST place of supply). There are no payout
+  tables yet (see the TRD's data model).
 
 Money is `Decimal(18,2)`; prices `Decimal(18,6)`; quantity `Decimal(18,4)`. Dates that are
 calendar-only use `@db.Date`. All domain rows cascade-delete from their owner.
@@ -192,8 +215,11 @@ npm run lint
 **Env:** `cp .env.example .env` and fill in. Vars: `DATABASE_URL` (Docker default in the example),
 `AUTH_SECRET` (`npx auth secret`), optional Google sign-in, AI provider config (`AI_PROVIDER`,
 `OPENAI_*`, `ANTHROPIC_*`), optional `NEXT_PUBLIC_DISCORD_URL` and `NEXT_PUBLIC_SITE_URL` (read
-at build time; the site URL defaults to https://white-svan.vercel.app), and optional Zerodha charts
-(`KITE_API_KEY`, `KITE_API_SECRET`, `KITE_OWNER_EMAILS`; see above).
+at build time; the site URL defaults to https://white-svan.vercel.app), optional Zerodha charts
+(`KITE_API_KEY`, `KITE_API_SECRET`, `KITE_OWNER_EMAILS`; see above), `STAFF_EMAILS` (test purchases
+at checkout), and `RESEND_API_KEY` + `EMAIL_FROM` (real emails; otherwise they're logged).
+Migrations use `DATABASE_URL_UNPOOLED` when set (Neon's direct URL), so a pooler can't hold the
+migration lock across deploys.
 `prisma.config.ts` loads `.env` via `dotenv`.
 
 **Deploys:** Vercel builds production from `main` (white-svan.vercel.app); branch pushes get preview
@@ -253,7 +279,9 @@ metadata gates access without exposing private evidence files.
   service and data feed, and hosting the engine live.
 - ✅ **Zerodha charts (Oct 2026)**: `/markets` on the firm's own Kite Connect account (index, futures
   and options; candles, volume, OI, live quotes, depth) with a source-agnostic chart component.
-  Traders' charts wait for a licensed exchange feed.
+- ✅ **Checkout, accounts and the trading platform (Oct 2026)**: Tradeify-style buying from the plan
+  card to `/trade/<account>`, staff test purchases until a gateway is signed, stored evaluation
+  accounts on the server-side engine, My accounts cards. Traders trade once a licensed feed connects.
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine
   service with Redis and a replay provider, checkout (UPI/cards via an Indian gateway), evaluation
   provisioning with live risk meters, KYC, payouts with TDS, then the optional copy desk.

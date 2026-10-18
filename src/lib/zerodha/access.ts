@@ -57,13 +57,26 @@ export function sameOriginPost(request: NextRequest): boolean {
   }
 }
 
-const NO_STORE = { "Cache-Control": "private, no-store" };
+export const NO_STORE = { "Cache-Control": "private, no-store" };
 
-/**
- * A JSON route over the owner's Kite session: 404 for anyone else, 401 when Zerodha needs a fresh
- * login (the cookie is cleared), 400 for a request Kite rejects, 429 when Kite rate-limits and 502
- * for other Kite failures.
- */
+/** A JSON error for a failed Kite call: 401 when Zerodha needs a fresh login (the cookie is cleared), 400 for a request Kite rejects, 429 when Kite rate-limits, 502 otherwise. */
+export async function kiteFailure(name: string, error: unknown): Promise<Response> {
+  if (error instanceof KiteError && error.sessionEnded) {
+    (await cookies()).delete(KITE_SESSION_COOKIE);
+    return Response.json({ error: "session", message: "Your Zerodha session has ended (Kite logs everyone out at 6 AM). Connect again." }, { status: 401, headers: NO_STORE });
+  }
+  if (error instanceof KiteError && error.errorType === "InputException") {
+    return Response.json({ error: "input", message: error.message }, { status: 400, headers: NO_STORE });
+  }
+  if (error instanceof KiteError && error.status === 429) {
+    return Response.json({ error: "rate_limited", message: "Zerodha is limiting requests. Retrying shortly." }, { status: 429, headers: NO_STORE });
+  }
+  logger.error(`zerodha.${name}.failed`, error instanceof KiteError ? { status: error.status, errorType: error.errorType, error: error.message } : errorFields(error));
+  const message = error instanceof KiteError ? error.message : "Something went wrong loading Zerodha data.";
+  return Response.json({ error: "upstream", message }, { status: 502, headers: NO_STORE });
+}
+
+/** A JSON route over the owner's Kite session: 404 for anyone else, 401 without a session, then {@link kiteFailure}. */
 export async function kiteJson(name: string, run: (context: { config: KiteConfig; accessToken: string }) => Promise<unknown>): Promise<Response> {
   const owner = await currentKiteOwner();
   if (!owner) return Response.json({ error: "not_found" }, { status: 404, headers: NO_STORE });
@@ -72,18 +85,6 @@ export async function kiteJson(name: string, run: (context: { config: KiteConfig
   try {
     return Response.json(await run({ config: owner.config, accessToken: session.accessToken }), { headers: NO_STORE });
   } catch (error) {
-    if (error instanceof KiteError && error.sessionEnded) {
-      (await cookies()).delete(KITE_SESSION_COOKIE);
-      return Response.json({ error: "session", message: "Your Zerodha session has ended (Kite logs everyone out at 6 AM). Connect again." }, { status: 401, headers: NO_STORE });
-    }
-    if (error instanceof KiteError && error.errorType === "InputException") {
-      return Response.json({ error: "input", message: error.message }, { status: 400, headers: NO_STORE });
-    }
-    if (error instanceof KiteError && error.status === 429) {
-      return Response.json({ error: "rate_limited", message: "Zerodha is limiting requests. Retrying shortly." }, { status: 429, headers: NO_STORE });
-    }
-    logger.error(`zerodha.${name}.failed`, error instanceof KiteError ? { status: error.status, errorType: error.errorType, error: error.message } : errorFields(error));
-    const message = error instanceof KiteError ? error.message : "Something went wrong loading Zerodha data.";
-    return Response.json({ error: "upstream", message }, { status: 502, headers: NO_STORE });
+    return kiteFailure(name, error);
   }
 }

@@ -31,12 +31,12 @@ export default async function SignupPage({
             {plan.label} evaluation · {formatInr(plan.fee)} one-time
           </p>
           <p className="mt-1 text-xs leading-5 text-zinc-400">
-            Evaluations are launching soon. Create your account and we&apos;ll email you when you can start.
+            Create your account, then check out. Your evaluation account opens as soon as the order is complete.
           </p>
         </div>
       )}
 
-      <SignupForm initialRole={initialRole} chooseRole={asClient} referral={referral} />
+      <SignupForm initialRole={initialRole} chooseRole={asClient} referral={referral} plan={plan?.id} />
 
       {googleEnabled && (
         <>
@@ -52,7 +52,7 @@ export default async function SignupPage({
 
       <p className="mt-6 text-center text-sm text-zinc-500">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-zinc-200 hover:text-zinc-100">
+        <Link href={plan ? `/login?${new URLSearchParams({ next: `/checkout/${plan.id}` })}` : "/login"} className="font-medium text-zinc-200 hover:text-zinc-100">
           Sign in
         </Link>
       </p>

@@ -9,11 +9,14 @@ export function SignupForm({
   initialRole,
   chooseRole = true,
   referral,
+  plan,
 }: {
   initialRole: "TRADER" | "CLIENT";
   /** Show the trader/client picker; otherwise `initialRole` is submitted as-is. */
   chooseRole?: boolean;
   referral?: string;
+  /** The evaluation plan picked on the storefront; sign-up continues to its checkout. */
+  plan?: string;
 }) {
   const [state, action, pending] = useActionState(signup, undefined);
 
@@ -21,6 +24,7 @@ export function SignupForm({
     <form action={action} className="mt-6 space-y-4">
       <FormError message={state?.message} />
       {referral && <input type="hidden" name="ref" value={referral} />}
+      {plan && <input type="hidden" name="plan" value={plan} />}
 
       {chooseRole ? (
         <>

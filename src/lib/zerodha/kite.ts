@@ -7,7 +7,7 @@
  * Pure: no environment, network or clock; client.ts makes the calls and session.ts handles login.
  */
 import type { Candle, Interval } from "@/lib/market-data/candles";
-import type { InstrumentKind, Underlying } from "@/lib/trading/instruments";
+import type { Instrument, InstrumentKind, Underlying } from "@/lib/trading/instruments";
 import type { DepthLevel, Quote } from "@/lib/trading/matching";
 import type { Paise } from "@/lib/trading/money";
 import { toIst } from "@/lib/trading/time";
@@ -258,6 +258,14 @@ export interface KiteContract {
 }
 
 export const quoteKey = (contract: Pick<KiteContract, "exchange" | "tradingSymbol">) => `${contract.exchange}:${contract.tradingSymbol}`;
+
+/**
+ * A Kite contract as the trading engine's instrument. Kite's instrument list has no freeze
+ * quantity; every plan's lot limit (8 lots at most) sits far below the exchanges' index freeze
+ * limits, so the freeze check stays open until the contract master (S1-10) loads the exchange
+ * file. The plan's lot limit still applies.
+ */
+export const contractInstrument = (contract: KiteContract): Instrument => ({ ...contract, freezeQuantity: Number.MAX_SAFE_INTEGER });
 
 /** One CSV line; handles double-quoted fields in case a name ever contains a comma. */
 function csvFields(line: string): string[] {
