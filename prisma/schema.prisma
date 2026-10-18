@@ -37,21 +37,23 @@ model User {
   reports         Report[]
   evidence        Evidence[]
 
-  referredBy        User?             @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
-  referrals         User[]            @relation("Referrals")
-  follows           Follow[]
-  watchlist         WatchlistItem[]
-  posts             Post[]
-  postComments      PostComment[]
-  postLikes         PostLike[]
-  postFlags         PostFlag[]
-  inquiriesSent     Inquiry[]
-  inquiryMessages   InquiryMessage[]
-  notifications     AppNotification[]
-  communitiesOwned  Community[]
-  memberships       CommunityMember[]
-  communityInvites  CommunityInvite[]
-  profileViews      ProfileView[]
+  referredBy         User?               @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals          User[]              @relation("Referrals")
+  follows            Follow[]
+  watchlist          WatchlistItem[]
+  posts              Post[]
+  postComments       PostComment[]
+  postLikes          PostLike[]
+  postFlags          PostFlag[]
+  inquiriesSent      Inquiry[]
+  inquiryMessages    InquiryMessage[]
+  notifications      AppNotification[]
+  communitiesOwned   Community[]
+  memberships        CommunityMember[]
+  communityInvites   CommunityInvite[]
+  profileViews       ProfileView[]
+  evaluationAccounts EvaluationAccount[]
+  checkoutOrders     CheckoutOrder[]
 }
 
 // Trader = publishes a record; Client = allocator / firm / reviewer who discovers traders.
@@ -100,17 +102,17 @@ model VerificationToken {
 // ─────────────────────────────────────────────────────────────
 
 model TraderProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
+  id          String  @id @default(cuid())
+  userId      String  @unique
   displayName String
-  slug        String   @unique // public portal handle: /p/[slug]
+  slug        String  @unique // public portal handle: /p/[slug]
   bio         String?
   strategy    String?
   instruments String? // free text e.g. "ES, NQ, options"
   riskRules   String?
-  isPublic    Boolean  @default(false)
-  hideAmounts Boolean  @default(false) // redact dollar figures on the public portal
-  hideBrokers Boolean  @default(false) // redact broker + account names on the public portal
+  isPublic    Boolean @default(false)
+  hideAmounts Boolean @default(false) // redact dollar figures on the public portal
+  hideBrokers Boolean @default(false) // redact broker + account names on the public portal
   disclaimer  String?
 
   // Client attraction — opt-in "open to work" signal + how prospects reach out.
@@ -142,8 +144,8 @@ model TraderProfile {
   acceptInquiries    Boolean  @default(false) // clients may request a conversation
   hiddenSections     String[] @default([]) // public-profile sections the trader has hidden
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   versions      ProfileVersion[]
@@ -403,13 +405,13 @@ model CommunityMember {
 }
 
 model CommunityInvite {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   communityId String
-  token       String    @unique
+  token       String   @unique
   invitedById String
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
   expiresAt   DateTime
-  uses        Int       @default(0)
+  uses        Int      @default(0)
 
   community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
   invitedBy User      @relation(fields: [invitedById], references: [id], onDelete: Cascade)
@@ -450,8 +452,8 @@ model ImportBatch {
   account  TradingAccount   @relation(fields: [accountId], references: [id], onDelete: Cascade)
   versions ProfileVersion[]
 
-  @@index([accountId])
   @@unique([accountId, fileHash])
+  @@index([accountId])
 }
 
 // MVP2 — an immutable snapshot of the profile's performance at a publish moment.
@@ -698,4 +700,75 @@ model NotificationEvent {
   follower ProfileFollower? @relation(fields: [followerId], references: [id], onDelete: SetNull)
 
   @@index([profileId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Prop firm: evaluation accounts and their checkout orders.
+// ─────────────────────────────────────────────────────────────
+
+// One simulated evaluation (later funded) account. The trading engine's host snapshot
+// (src/lib/trading/desk.ts) lives in `desk`: the rulebook bound at purchase, balances,
+// positions, working orders and recent fills. `status` and `phase` mirror it for queries.
+model EvaluationAccount {
+  id        String           @id @default(cuid())
+  userId    String
+  planId    String
+  phase     EvaluationPhase  @default(EVALUATION)
+  status    EvaluationStatus @default(ACTIVE)
+  desk      Json
+  // Bumped on every engine write; writes are conditional on it (optimistic locking).
+  version   Int              @default(0)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order CheckoutOrder?
+
+  @@index([userId])
+}
+
+enum EvaluationPhase {
+  EVALUATION
+  FUNDED
+}
+
+enum EvaluationStatus {
+  ACTIVE
+  PASSED
+  FAILED
+}
+
+// A purchase of one evaluation. `amount` is in paise, GST included. `provider` is the payment
+// gateway, or "test" for staff test purchases (no charge) before a gateway is live.
+model CheckoutOrder {
+  id                String      @id @default(cuid())
+  userId            String
+  planId            String
+  amount            Int
+  currency          String      @default("INR")
+  status            OrderStatus @default(PENDING)
+  provider          String
+  providerOrderId   String?     @unique
+  providerPaymentId String?     @unique
+  accountId         String?     @unique
+  billingName       String
+  billingEmail      String
+  billingPhone      String?
+  // Place of supply for GST.
+  billingState      String
+  acceptedTermsAt   DateTime
+  paidAt            DateTime?
+  createdAt         DateTime    @default(now())
+
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account EvaluationAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
 }

@@ -3,7 +3,7 @@ import { errorFields, logger } from "@/lib/logger";
 import { currentKiteOwner, kiteCookie, redirectTo } from "@/lib/zerodha/access";
 import { createSession } from "@/lib/zerodha/client";
 import { KiteError } from "@/lib/zerodha/kite";
-import { KITE_SESSION_COOKIE, KITE_STATE_COOKIE, kiteTokenExpiry, sameState, sealKiteSession } from "@/lib/zerodha/session";
+import { KITE_NEXT_COOKIE, KITE_SESSION_COOKIE, KITE_STATE_COOKIE, kiteTokenExpiry, safeNextPath, sameState, sealKiteSession } from "@/lib/zerodha/session";
 
 /**
  * Kite's redirect after login (register this URL in the Kite developer console). Checks the login
@@ -12,9 +12,11 @@ import { KITE_SESSION_COOKIE, KITE_STATE_COOKIE, kiteTokenExpiry, sameState, sea
 export async function GET(request: NextRequest) {
   const owner = await currentKiteOwner();
   if (!owner) return new Response("Not found", { status: 404 });
+  const next = safeNextPath(request.cookies.get(KITE_NEXT_COOKIE)?.value) ?? "/markets";
   const back = (result: string) => {
-    const response = redirectTo(`/markets?zerodha=${result}`);
+    const response = redirectTo(`${next}${next.includes("?") ? "&" : "?"}zerodha=${result}`);
     response.cookies.set(KITE_STATE_COOKIE, "", { path: "/api/zerodha", maxAge: 0 });
+    response.cookies.set(KITE_NEXT_COOKIE, "", { path: "/api/zerodha", maxAge: 0 });
     return response;
   };
 

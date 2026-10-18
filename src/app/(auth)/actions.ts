@@ -2,6 +2,8 @@
 
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
+import { findEvaluationPlan } from "@/lib/prop-firm";
+import { safeNextPath } from "@/lib/safe-path";
 import { cookies, headers } from "next/headers";
 import bcrypt from "bcryptjs";
 import { signIn } from "@/auth";
@@ -24,7 +26,7 @@ export type AuthFormState =
     }
   | undefined;
 
-/** Verify credentials and start a session, then redirect to the dashboard. */
+/** Verify credentials and start a session, then return to `next` (a path on this site) or the dashboard. */
 export async function authenticate(
   _prev: AuthFormState,
   formData: FormData,
@@ -38,7 +40,7 @@ export async function authenticate(
   }
 
   try {
-    await signIn("credentials", { ...parsed.data, redirectTo: "/dashboard" });
+    await signIn("credentials", { ...parsed.data, redirectTo: safeNextPath(String(formData.get("next") ?? "")) ?? "/dashboard" });
     return undefined;
   } catch (error) {
     // `signIn` throws a redirect on success — let it propagate.
@@ -82,7 +84,9 @@ export async function signup(
   logger.info("auth.signup.created", { userId: created.id, email, role });
 
   try {
-    await signIn("credentials", { email, password, redirectTo: "/onboarding" });
+    // Traders go straight to checkout for the plan they picked (or My accounts); clients onboard first.
+    const plan = role === "TRADER" ? findEvaluationPlan(String(formData.get("plan") ?? "")) : undefined;
+    await signIn("credentials", { email, password, redirectTo: role === "CLIENT" ? "/onboarding" : plan ? `/checkout/${plan.id}` : "/dashboard" });
     return undefined;
   } catch (error) {
     if (error instanceof AuthError) return { message: "Account created — please sign in." };

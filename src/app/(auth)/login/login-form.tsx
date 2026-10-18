@@ -14,15 +14,19 @@ import { btnPrimary, FieldError, FormError, inputClass, labelClass } from "@/com
 export function LoginForm({
   initialMessage,
   notice,
+  next,
 }: {
   initialMessage?: string;
   notice?: string;
+  /** Where to go after signing in (a path on this site). */
+  next?: string;
 }) {
   const [state, action, pending] = useActionState(authenticate, undefined);
   const message = state?.message ?? initialMessage;
 
   return (
     <form action={action} className="mt-6 space-y-4">
+      {next && <input type="hidden" name="next" value={next} />}
       {notice && (
         <div
           className="rounded-lg border border-zinc-700 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-200"

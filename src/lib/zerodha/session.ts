@@ -5,10 +5,13 @@
  */
 import { createCipheriv, createDecipheriv, createHash, hkdfSync, randomBytes, timingSafeEqual } from "node:crypto";
 import { clockSeconds, istInstant, toIst } from "@/lib/trading/time";
+export { safeNextPath } from "@/lib/safe-path";
 
 export const KITE_SESSION_COOKIE = "wsv_kite";
 /** Short-lived login state, checked when Kite redirects back. */
 export const KITE_STATE_COOKIE = "wsv_kite_state";
+/** Where to return after the Kite login (a path on this site). */
+export const KITE_NEXT_COOKIE = "wsv_kite_next";
 
 /** POST /session/token checksum: SHA-256 of api_key + request_token + api_secret, in hex. */
 export const sessionChecksum = (apiKey: string, requestToken: string, apiSecret: string) =>

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, CircleHelp, Wallet } from "lucide-react";
-import { requireOnboardedUser } from "@/lib/auth/dal";
+import { requireMember } from "@/lib/auth/dal";
 import { PROGRAMME_RULES as R } from "@/lib/prop-firm";
 
 export const metadata: Metadata = { title: "Payouts · WhiteSVAN" };
 
 export default async function PayoutsPage() {
-  await requireOnboardedUser();
+  await requireMember();
 
   return (
     <div className="space-y-8">

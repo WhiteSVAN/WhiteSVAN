@@ -4,7 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import { PriceChart } from "@/components/markets/price-chart";
+import { AccountBlotter, AccountTicket, type OrderInput } from "@/components/markets/account-panel";
 import { foldTick, type Candle, type Interval, type LiveTick } from "@/lib/market-data/candles";
+import type { Desk } from "@/lib/trading/desk";
+import type { EngineOutput } from "@/lib/trading/engine";
 import type { Underlying } from "@/lib/trading/instruments";
 import { clockSeconds, toIst } from "@/lib/trading/time";
 import { quoteKey, UNDERLYINGS, type InstrumentList, type KiteContract, type MarketQuote, type OptionStrike } from "@/lib/zerodha/kite";
@@ -62,8 +65,13 @@ class ApiError extends Error {
   }
 }
 
-async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(url, { signal, cache: "no-store" });
+async function getJson<T>(url: string, signal?: AbortSignal, init?: { method: "POST" | "DELETE"; body?: unknown }): Promise<T> {
+  const response = await fetch(url, {
+    signal,
+    cache: "no-store",
+    method: init?.method ?? "GET",
+    ...(init?.body !== undefined ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(init.body) } : {}),
+  });
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     const message = typeof body === "object" && body !== null && "message" in body && typeof body.message === "string" ? body.message : `Request failed (${response.status}).`;
@@ -107,19 +115,23 @@ function Choice<T extends string | number>({ label, value, options, onChange }: 
 
 const selectClass = "mt-1 min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-3 font-mono text-xs text-[var(--foreground)] sm:w-auto";
 
-function SessionEnded({ message }: { message: string }) {
+function SessionEnded({ message, loginHref }: { message: string; loginHref: string }) {
   return (
     <div className="terminal-card px-6 py-12 text-center">
       <h2 className="text-xl font-medium tracking-tight">Connect Zerodha again</h2>
       <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">{message}</p>
       {/* A route handler redirect, so a plain link rather than a prefetching <Link>. */}
-      <a href="/api/zerodha/login" className="mt-6 inline-flex min-h-11 items-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Log in with Zerodha</a>
+      <a href={loginHref} className="mt-6 inline-flex min-h-11 items-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Log in with Zerodha</a>
     </div>
   );
 }
 
-/** Charts, quotes and depth for NIFTY, BANK NIFTY and SENSEX from the owner's Kite session. */
-export function ZerodhaCharts() {
+/**
+ * Charts, quotes and depth for NIFTY, BANK NIFTY and SENSEX from the owner's Kite session. With an
+ * `account`, it is that evaluation account's trading platform: the order ticket and blotter, with
+ * each poll feeding the account on the server.
+ */
+export function ZerodhaCharts({ account }: { account?: { id: string; desk: Desk; planLabel: string } }) {
   const [underlying, setUnderlying] = useState<Underlying>("NIFTY");
   const [mode, setMode] = useState<Mode>("index");
   const [barInterval, setBarInterval] = useState<Interval>("5minute");
@@ -140,14 +152,17 @@ export function ZerodhaCharts() {
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [ended, setEnded] = useState<string | null>(null);
   const router = useRouter();
+  const home = account ? `/trade/${account.id}` : "/markets";
   // Kite's 06:00 logout or a revoked token: re-render the page from the server, which now offers a
   // fresh login (the API route has already dropped the cookie).
   const sessionEnded = useCallback((message: string) => {
     setEnded(message);
-    router.replace("/markets?zerodha=ended");
-  }, [router]);
+    router.replace(`${home}?zerodha=ended`);
+  }, [router, home]);
   const latestQuotes = useRef<Record<string, MarketQuote>>({});
   const lastPoll = useRef(0);
+  const [desk, setDesk] = useState<Desk | null>(account?.desk ?? null);
+  const accountId = account?.id ?? null;
 
   const data = list?.underlying === underlying ? list : null;
 
@@ -210,14 +225,19 @@ export function ZerodhaCharts() {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let previous: LiveTick | null = null;
     let current: Candle | null = candles?.[candles.length - 1] ?? null;
+    // One Kite call per poll: the charted contract, then the index cards. On an account the server
+    // puts the account's own contracts first.
     const keys = [...new Set([...(selectedKey ? [selectedKey] : []), ...INDEX_KEYS])];
     const poll = async () => {
       let delay = marketHours(Date.now()) ? 2_000 : 20_000;
       if (!document.hidden) {
         lastPoll.current = Date.now();
         try {
-          const body = await getJson<{ quotes: MarketQuote[] }>(`/api/zerodha/quotes?${new URLSearchParams(keys.map((key) => ["i", key]))}`);
+          const body: { quotes: MarketQuote[]; desk?: Desk } = accountId
+            ? await getJson(`/api/accounts/${accountId}/tick`, undefined, { method: "POST", body: { keys } })
+            : await getJson(`/api/zerodha/quotes?${new URLSearchParams(keys.map((key) => ["i", key]))}`);
           if (stopped) return;
+          if (body.desk) setDesk(body.desk);
           latestQuotes.current = { ...latestQuotes.current, ...Object.fromEntries(body.quotes.map((quote) => [quote.key, quote])) };
           setQuotes(latestQuotes.current);
           setPolledAt(Date.now());
@@ -247,7 +267,24 @@ export function ZerodhaCharts() {
       stopped = true;
       clearTimeout(timer);
     };
-  }, [selectedKey, chartKey, candles, barInterval, sessionEnded]);
+  }, [selectedKey, accountId, chartKey, candles, barInterval, sessionEnded]);
+
+  const sendOrder = useCallback(async (order: OrderInput): Promise<EngineOutput[]> => {
+    if (!accountId) return [];
+    try {
+      const body = await getJson<{ outputs: EngineOutput[]; desk: Desk }>(`/api/accounts/${accountId}/orders`, undefined, { method: "POST", body: order });
+      setDesk(body.desk);
+      return body.outputs;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) sessionEnded(error.message);
+      throw error;
+    }
+  }, [accountId, sessionEnded]);
+  const cancelOrder = useCallback(async (orderId: string) => {
+    if (!accountId) return;
+    const body = await getJson<{ desk: Desk }>(`/api/accounts/${accountId}/orders/${encodeURIComponent(orderId)}`, undefined, { method: "DELETE" });
+    setDesk(body.desk);
+  }, [accountId]);
 
   const chooseUnderlying = (next: Underlying) => {
     if (next === underlying) return;
@@ -262,7 +299,7 @@ export function ZerodhaCharts() {
     if (next === "option" && data && !strikePicked) setStrike(nearestStrike(data.chain, quotes[data.index.key]?.lastPrice));
   };
 
-  if (ended) return <SessionEnded message={ended} />;
+  if (ended) return <SessionEnded message={ended} loginHref={`/api/zerodha/login?${new URLSearchParams({ next: home })}`} />;
 
   const quote = selectedKey ? quotes[selectedKey] : undefined;
   const liveCandle = live && live.key === chartKey ? live.candle : null;
@@ -317,78 +354,84 @@ export function ZerodhaCharts() {
         </div>
       </div>
 
-      {listError && !data && (
-        <p role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--danger)]/40 p-4 text-sm text-[var(--danger)]">
-          {listError}
-          <button type="button" onClick={() => setReloads((count) => count + 1)} className="inline-flex items-center gap-1.5 text-xs underline"><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Try again</button>
-        </p>
-      )}
-      {!data && !listError && <div className="terminal-card flex h-[420px] items-center justify-center text-sm text-[var(--muted)]">Loading {UNDERLYINGS[underlying].label} contracts…</div>}
-      {data && !instrument && <p className="rounded-lg border border-[var(--border)] p-4 text-sm text-[var(--muted)]">Zerodha&apos;s contract list has no {mode === "future" ? "futures" : "options"} for {UNDERLYINGS[underlying].label} today.</p>}
-
-      {instrument && (
-        <section className="terminal-card overflow-hidden" aria-label={instrument.label}>
-          <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-[var(--border)] px-4 py-4 sm:px-6">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">{instrument.key}</p>
-              <h2 className="mt-1 text-lg font-medium tracking-tight sm:text-xl">{instrument.label}</h2>
-            </div>
-            <div className="flex flex-wrap items-baseline gap-x-3" aria-live="off">
-              <span className="font-mono text-3xl tracking-tight">{quote ? price(quote.lastPrice) : "—"}</span>
-              {quote && <Change quote={quote} className="text-sm" />}
-            </div>
-            <dl className="grid w-full grid-cols-3 gap-x-6 gap-y-3 text-xs sm:grid-cols-6">
-              {[
-                ["Open", quote ? price(quote.open) : "—"],
-                ["High", quote ? price(quote.high) : "—"],
-                ["Low", quote ? price(quote.low) : "—"],
-                ["Prev close", quote ? price(quote.previousClose) : "—"],
-                ...(instrument.contract
-                  ? [["Volume", quote ? countText.format(quote.volume) : "—"], ["Open interest", quote && quote.oi !== null ? countText.format(quote.oi) : "—"]]
-                  : []),
-              ].map(([term, value]) => (
-                <div key={term}><dt className="text-[var(--muted)]">{term}</dt><dd className="mt-1 font-mono text-sm">{value}</dd></div>
-              ))}
-            </dl>
-            <p className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
-              <span className="inline-flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${fresh ? "bg-[var(--primary)]" : "bg-[var(--faint)]"}`} aria-hidden="true" />{fresh ? "Live" : polledAt !== null && !marketHours(polledAt) ? "Market closed" : "Waiting for prices"}</span>
-              {quote && <span>Last update {clockText.format(quote.lastTradeAt ?? quote.at)} IST</span>}
-              {instrument.contract && <span>Lot {instrument.contract.lotSize} · tick ₹{(instrument.contract.tickSize / 100).toFixed(2)}</span>}
-              {quoteError && <span className="text-[var(--warning)]">{quoteError}</span>}
+      <div className={`grid items-start gap-4 ${desk ? "xl:grid-cols-[minmax(0,1fr)_340px]" : ""}`}>
+        <div className="min-w-0 space-y-4">
+          {listError && !data && (
+            <p role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--danger)]/40 p-4 text-sm text-[var(--danger)]">
+              {listError}
+              <button type="button" onClick={() => setReloads((count) => count + 1)} className="inline-flex items-center gap-1.5 text-xs underline"><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Try again</button>
             </p>
-          </div>
-
-          <div className="relative px-1 pt-2 sm:px-2">
-            <PriceChart key={derivative ? "fno" : "index"} candles={candles ?? NO_CANDLES} live={liveCandle} interval={barInterval} minMove={instrument.tick / 100} derivative={derivative} label={`${instrument.label}, ${intervalName} candles`} />
-            {!candles && (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#0b0f0d]/60 text-sm text-[var(--muted)]">
-                {failed ? (
-                  <span role="alert" className="flex flex-col items-center gap-3 px-6 text-center text-[var(--danger)]">
-                    {failed}
-                    <button type="button" onClick={() => setReloads((count) => count + 1)} className="inline-flex items-center gap-1.5 text-xs text-[var(--foreground)] underline"><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Try again</button>
-                  </span>
-                ) : "Loading candles…"}
-              </div>
-            )}
-          </div>
-
-          {instrument.contract && quote && (quote.bids.length > 0 || quote.asks.length > 0) && (
-            <div className="grid gap-px border-t border-[var(--border)] bg-[var(--border)] sm:grid-cols-2">
-              {([["Bids", quote.bids, "text-[var(--primary)]"], ["Offers", quote.asks, "text-[var(--danger)]"]] as const).map(([title, levels, tone]) => (
-                <table key={title} className="w-full bg-[var(--card-deep)] text-left font-mono text-xs">
-                  <caption className="px-4 pb-1 pt-3 text-left font-sans text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">{title}</caption>
-                  <thead className="text-[var(--muted)]"><tr><th scope="col" className="px-4 py-1.5 font-normal">Price</th><th scope="col" className="px-4 py-1.5 text-right font-normal">Qty</th><th scope="col" className="px-4 py-1.5 text-right font-normal">Orders</th></tr></thead>
-                  <tbody>
-                    {levels.map((level) => (
-                      <tr key={level.price}><td className={`px-4 py-1.5 ${tone}`}>{price(level.price)}</td><td className="px-4 py-1.5 text-right">{level.quantity.toLocaleString("en-IN")}</td><td className="px-4 py-1.5 text-right text-[var(--muted)]">{level.orders}</td></tr>
-                    ))}
-                  </tbody>
-                </table>
-              ))}
-            </div>
           )}
-        </section>
-      )}
+          {!data && !listError && <div className="terminal-card flex h-[420px] items-center justify-center text-sm text-[var(--muted)]">Loading {UNDERLYINGS[underlying].label} contracts…</div>}
+          {data && !instrument && <p className="rounded-lg border border-[var(--border)] p-4 text-sm text-[var(--muted)]">Zerodha&apos;s contract list has no {mode === "future" ? "futures" : "options"} for {UNDERLYINGS[underlying].label} today.</p>}
+
+          {instrument && (
+            <section className="terminal-card overflow-hidden" aria-label={instrument.label}>
+              <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-[var(--border)] px-4 py-4 sm:px-6">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">{instrument.key}</p>
+                  <h2 className="mt-1 text-lg font-medium tracking-tight sm:text-xl">{instrument.label}</h2>
+                </div>
+                <div className="flex flex-wrap items-baseline gap-x-3" aria-live="off">
+                  <span className="font-mono text-3xl tracking-tight">{quote ? price(quote.lastPrice) : "—"}</span>
+                  {quote && <Change quote={quote} className="text-sm" />}
+                </div>
+                <dl className="grid w-full grid-cols-3 gap-x-6 gap-y-3 text-xs sm:grid-cols-6">
+                  {[
+                    ["Open", quote ? price(quote.open) : "—"],
+                    ["High", quote ? price(quote.high) : "—"],
+                    ["Low", quote ? price(quote.low) : "—"],
+                    ["Prev close", quote ? price(quote.previousClose) : "—"],
+                    ...(instrument.contract
+                      ? [["Volume", quote ? countText.format(quote.volume) : "—"], ["Open interest", quote && quote.oi !== null ? countText.format(quote.oi) : "—"]]
+                      : []),
+                  ].map(([term, value]) => (
+                    <div key={term}><dt className="text-[var(--muted)]">{term}</dt><dd className="mt-1 font-mono text-sm">{value}</dd></div>
+                  ))}
+                </dl>
+                <p className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
+                  <span className="inline-flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${fresh ? "bg-[var(--primary)]" : "bg-[var(--faint)]"}`} aria-hidden="true" />{fresh ? "Live" : polledAt !== null && !marketHours(polledAt) ? "Market closed" : "Waiting for prices"}</span>
+                  {quote && <span>Last update {clockText.format(quote.lastTradeAt ?? quote.at)} IST</span>}
+                  {instrument.contract && <span>Lot {instrument.contract.lotSize} · tick ₹{(instrument.contract.tickSize / 100).toFixed(2)}</span>}
+                  {quoteError && <span className="text-[var(--warning)]">{quoteError}</span>}
+                </p>
+              </div>
+
+              <div className="relative px-1 pt-2 sm:px-2">
+                <PriceChart key={derivative ? "fno" : "index"} candles={candles ?? NO_CANDLES} live={liveCandle} interval={barInterval} minMove={instrument.tick / 100} derivative={derivative} label={`${instrument.label}, ${intervalName} candles`} />
+                {!candles && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-[#0b0f0d]/60 text-sm text-[var(--muted)]">
+                    {failed ? (
+                      <span role="alert" className="flex flex-col items-center gap-3 px-6 text-center text-[var(--danger)]">
+                        {failed}
+                        <button type="button" onClick={() => setReloads((count) => count + 1)} className="inline-flex items-center gap-1.5 text-xs text-[var(--foreground)] underline"><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Try again</button>
+                      </span>
+                    ) : "Loading candles…"}
+                  </div>
+                )}
+              </div>
+
+              {instrument.contract && quote && (quote.bids.length > 0 || quote.asks.length > 0) && (
+                <div className="grid gap-px border-t border-[var(--border)] bg-[var(--border)] sm:grid-cols-2">
+                  {([["Bids", quote.bids, "text-[var(--primary)]"], ["Offers", quote.asks, "text-[var(--danger)]"]] as const).map(([title, levels, tone]) => (
+                    <table key={title} className="w-full bg-[var(--card-deep)] text-left font-mono text-xs">
+                      <caption className="px-4 pb-1 pt-3 text-left font-sans text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">{title}</caption>
+                      <thead className="text-[var(--muted)]"><tr><th scope="col" className="px-4 py-1.5 font-normal">Price</th><th scope="col" className="px-4 py-1.5 text-right font-normal">Qty</th><th scope="col" className="px-4 py-1.5 text-right font-normal">Orders</th></tr></thead>
+                      <tbody>
+                        {levels.map((level) => (
+                          <tr key={level.price}><td className={`px-4 py-1.5 ${tone}`}>{price(level.price)}</td><td className="px-4 py-1.5 text-right">{level.quantity.toLocaleString("en-IN")}</td><td className="px-4 py-1.5 text-right text-[var(--muted)]">{level.orders}</td></tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+        </div>
+        {desk && account && <AccountTicket desk={desk} planLabel={account.planLabel} contract={instrument?.contract ?? null} quote={quote} onPlace={sendOrder} />}
+      </div>
+      {desk && <AccountBlotter desk={desk} onCancel={cancelOrder} onPlace={sendOrder} />}
     </div>
   );
 }

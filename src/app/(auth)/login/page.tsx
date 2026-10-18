@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { googleEnabled } from "@/auth";
 import { AuthDivider, GoogleButton } from "@/components/auth/google-button";
+import { safeNextPath } from "@/lib/safe-path";
 import { LoginForm } from "./login-form";
 
 // NextAuth may redirect a failed credentials sign-in back here with `?error=`
@@ -14,20 +15,22 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; reset?: string }>;
+  searchParams: Promise<{ error?: string; reset?: string; next?: string }>;
 }) {
   const sp = await searchParams;
   const initialMessage = sp.error
     ? (ERROR_MESSAGES[sp.error] ?? "We couldn't sign you in. Check your details and try again.")
     : undefined;
   const notice = sp.reset ? "Password updated — sign in with your new password." : undefined;
+  const next = safeNextPath(sp.next) ?? undefined;
+  const plan = next?.match(/^\/checkout\/([a-z0-9-]+)$/)?.[1];
 
   return (
     <div>
       <h1 className="text-lg font-semibold text-zinc-100">Sign in</h1>
       <p className="mt-1 text-sm text-zinc-500">Return to your WhiteSVAN trader workspace.</p>
 
-      <LoginForm initialMessage={initialMessage} notice={notice} />
+      <LoginForm initialMessage={initialMessage} notice={notice} next={next} />
 
       {googleEnabled && (
         <>
@@ -38,7 +41,7 @@ export default async function LoginPage({
 
       <p className="mt-6 text-center text-sm text-zinc-500">
         New here?{" "}
-        <Link href="/signup" className="font-medium text-zinc-200 hover:text-zinc-100">
+        <Link href={plan ? `/signup?plan=${plan}` : "/signup"} className="font-medium text-zinc-200 hover:text-zinc-100">
           Create an account
         </Link>
       </p>
