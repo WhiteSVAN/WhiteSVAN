@@ -12,6 +12,11 @@
  * in [parse.ts](./parse.ts); this module is only for the FIFO-matched formats.
  */
 import Papa from "papaparse";
+import { chargesForFill, scheduleFor, type ChargesSchedule } from "@/lib/trading/charges";
+import { CHARGES_SCHEDULES } from "@/lib/trading/charges-schedules";
+import type { Exchange, InstrumentKind, Side } from "@/lib/trading/instruments";
+import type { Paise } from "@/lib/trading/money";
+import { toIst } from "@/lib/trading/time";
 import { normalizeDate, parseNumber, type ParsedTrade, type ParseError } from "./parse";
 import { isOptionSymbol, matchFifo, norm, type RawTxn } from "./fifo";
 
@@ -21,6 +26,7 @@ export interface BrokerParseResult {
   fills: number; // tradeable fills read from the file
   matched: number; // = trades.length (closed round-trips)
   openPositions: number; // contracts/symbols still open (no realized P&L yet)
+  notes?: string[]; // non-fatal notes on the numbers (estimated charges, expiries)
 }
 
 export interface BrokerFormat {
@@ -35,6 +41,7 @@ export interface BrokerFormat {
 /** Drives the upload-page dropdown. `auto` is handled by parse.ts, not here. */
 export const BROKER_FORMATS: BrokerFormat[] = [
   { id: "auto", label: "Auto-detect broker statement/export", status: "ready" },
+  { id: "zerodha", label: "Zerodha — Console tradebook", status: "ready", broker: "Zerodha" },
   { id: "fidelity", label: "Fidelity — Activity History", status: "ready", broker: "Fidelity" },
   { id: "webull", label: "Webull — Orders", status: "ready", broker: "Webull" },
   { id: "robinhood", label: "Robinhood", status: "soon", broker: "Robinhood" },
@@ -242,9 +249,186 @@ export function parseWebullOrders(text: string): BrokerParseResult {
   return { trades, errors, fills: txns.length, matched: trades.length, openPositions };
 }
 
+// ── Zerodha: Console tradebook ─────────────────────────────────────────────
+//
+// symbol,isin,trade_date,exchange,segment,series,trade_type,auction,quantity,
+// price,trade_id,order_id,order_execution_time,expiry_date
+//
+// One row per fill (an order can fill in several rows), quantity in units, not
+// lots. F&O rows carry segment FO and an expiry date, and their exchange is NSE
+// or BSE. The file has no charges, so F&O charges are estimated per order from
+// the dated Zerodha rate card the simulator charges with
+// (src/lib/trading/charges-schedules.ts); equity charges stay at zero. Options
+// held to expiry settle outside the tradebook: they stay open and are reported,
+// never priced.
+
+const FO_EXCHANGE: Record<string, Exchange> = { NSE: "NFO", NFO: "NFO", BSE: "BFO", BFO: "BFO" };
+
+const noteDate = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
+
+/** CE / PE / FUT from a Zerodha F&O symbol such as NIFTY2560524750PE or NIFTY25JUNFUT. */
+function contractKind(symbol: string): InstrumentKind | null {
+  const match = /(CE|PE|FUT)$/.exec(symbol);
+  return match ? (match[1] as InstrumentKind) : null;
+}
+
+/** The charges schedule in force on a date, or null before the first one. */
+function scheduleOn(date: string): ChargesSchedule | null {
+  try {
+    return scheduleFor(date, CHARGES_SCHEDULES);
+  } catch {
+    return null;
+  }
+}
+
+interface ZerodhaFill {
+  idx: number;
+  date: string;
+  time: string;
+  symbol: string;
+  side: Side;
+  units: number;
+  pricePaise: Paise;
+  orderId: string;
+  derivative: boolean;
+  kind: InstrumentKind | null;
+  exchange: Exchange | null;
+  raw: Record<string, string>;
+}
+
+export interface ZerodhaOptions {
+  /** IST date that decides whether an open F&O position has expired (default: today). */
+  today?: string;
+  /** Keep only fills on these symbols; the rest are counted in a note. */
+  include?: (symbol: string) => boolean;
+}
+
+export function parseZerodhaTradebook(text: string, options: ZerodhaOptions = {}): BrokerParseResult {
+  const today = options.today ?? toIst(Date.now()).date;
+  const { rows, headers } = parseRows(text);
+  const col = pickColumns(headers, {
+    symbol: ["symbol", "tradingsymbol"],
+    date: ["tradedate"],
+    exchange: ["exchange"],
+    segment: ["segment"],
+    side: ["tradetype"],
+    quantity: ["quantity"],
+    price: ["price"],
+    orderId: ["orderid"],
+    time: ["orderexecutiontime"],
+    expiry: ["expirydate"],
+  });
+
+  if (!col.symbol || !col.date || !col.side || !col.quantity || !col.price) {
+    return empty("This doesn't look like a Zerodha Console tradebook (need symbol, trade_date, trade_type, quantity, price).");
+  }
+
+  const fills: ZerodhaFill[] = [];
+  const errors: ParseError[] = [];
+  let excluded = 0;
+
+  rows.forEach((row, i) => {
+    const sideRaw = val(row, col.side).trim().toLowerCase();
+    const side: Side | null = sideRaw === "buy" ? "BUY" : sideRaw === "sell" ? "SELL" : null;
+    const symbol = val(row, col.symbol).trim().toUpperCase();
+    const units = parseNumber(val(row, col.quantity));
+    const price = parseNumber(val(row, col.price));
+    const date = normalizeDate(val(row, col.date));
+    if (!side || !symbol || units == null || units <= 0 || price == null || price < 0 || !date) {
+      errors.push({ row: i + 1, message: "skipped: missing/invalid symbol, trade type, quantity, price, or date" });
+      return;
+    }
+    if (options.include && !options.include(symbol)) {
+      excluded += 1;
+      return;
+    }
+
+    const segment = val(row, col.segment).trim().toUpperCase();
+    const derivative = segment ? /^(FO|F&O|NFO|BFO)$/.test(segment) : contractKind(symbol) !== null && val(row, col.expiry).trim() !== "";
+    fills.push({
+      idx: i,
+      date,
+      time: val(row, col.time).trim(),
+      symbol,
+      side,
+      units,
+      pricePaise: Math.round(price * 100),
+      orderId: val(row, col.orderId).trim(),
+      derivative,
+      kind: derivative ? contractKind(symbol) : null,
+      exchange: derivative ? (FO_EXCHANGE[val(row, col.exchange).trim().toUpperCase()] ?? null) : null,
+      raw: row,
+    });
+  });
+
+  // Brokerage is charged once per order, so walk the fills in execution order and
+  // carry each order's turnover and brokerage so far.
+  fills.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0) || (a.time < b.time ? -1 : a.time > b.time ? 1 : 0) || a.idx - b.idx);
+  const orders = new Map<string, { turnover: Paise; brokerage: Paise }>();
+  let estimated = 0;
+  let early = 0;
+  let unrecognised = 0;
+  let equity = 0;
+
+  const txns: RawTxn[] = fills.map((fill) => {
+    let fee: Paise = 0;
+    const schedule = fill.kind && fill.exchange ? scheduleOn(fill.date) : null;
+    if (fill.kind && fill.exchange && schedule) {
+      const key = fill.orderId || `row-${fill.idx}`;
+      const before = orders.get(key) ?? { turnover: 0, brokerage: 0 };
+      const turnover = Math.round(fill.pricePaise * fill.units);
+      const charges = chargesForFill(
+        { kind: fill.kind, exchange: fill.exchange, side: fill.side, turnover, orderTurnoverBefore: before.turnover, brokerageChargedBefore: before.brokerage },
+        schedule,
+      );
+      orders.set(key, { turnover: before.turnover + turnover, brokerage: before.brokerage + charges.brokerage });
+      fee = charges.total;
+      estimated += 1;
+    } else if (fill.derivative) {
+      if (fill.kind && fill.exchange) early += 1;
+      else unrecognised += 1;
+    } else {
+      equity += 1;
+    }
+    return {
+      idx: fill.idx,
+      date: fill.date,
+      time: fill.time || undefined,
+      symbol: fill.symbol,
+      assetType: !fill.derivative ? "stock" : fill.kind === "FUT" ? "future" : "option",
+      signedQty: fill.side === "BUY" ? fill.units : -fill.units,
+      grossPerUnit: fill.pricePaise / 100,
+      feePerUnit: fee / 100 / fill.units,
+      raw: fill.raw,
+    };
+  });
+
+  const { trades, openLots } = matchFifo(txns);
+  const expired = openLots.filter((lot) => {
+    const expiry = normalizeDate(val(lot.raw, col.expiry));
+    return expiry !== null && expiry < today;
+  }).length;
+  const stillOpen = openLots.length - expired;
+  const firstSchedule = CHARGES_SCHEDULES.reduce((first, schedule) => (schedule.effectiveFrom < first ? schedule.effectiveFrom : first), CHARGES_SCHEDULES[0].effectiveFrom);
+
+  const notes: string[] = [];
+  if (estimated > 0) notes.push("F&O charges are estimated from Zerodha's published rates; your contract notes have the exact amounts.");
+  if (early > 0) notes.push(`${plural(early, "F&O fill")} before ${noteDate.format(new Date(firstSchedule))} count before charges: no rate card is on file for those dates.`);
+  if (unrecognised > 0) notes.push(`${plural(unrecognised, "F&O fill")} on contracts we couldn't read count before charges.`);
+  if (equity > 0) notes.push(`${plural(equity, "equity fill")} count before charges: equity charges aren't estimated.`);
+  if (excluded > 0) notes.push(`${plural(excluded, "fill")} outside the contracts counted here were left out.`);
+  if (expired > 0) notes.push(`${plural(expired, "position")} reached expiry without a closing trade. Zerodha settles those outside the tradebook, so their result isn't counted.`);
+  if (stillOpen > 0) notes.push(`${plural(stillOpen, "position")} still open: ${stillOpen === 1 ? "it counts" : "they count"} once closed.`);
+
+  return { trades, errors, fills: txns.length, matched: trades.length, openPositions: openLots.length, notes };
+}
+
 /** Dispatch a FIFO-matched broker format by id. `auto` is not handled here. */
 export function parseBrokerCsv(format: string, text: string): BrokerParseResult {
   switch (format) {
+    case "zerodha":
+      return parseZerodhaTradebook(text);
     case "fidelity":
       return parseFidelityActivity(text);
     case "webull":
@@ -263,6 +447,9 @@ export function detectBrokerFormat(text: string): string | null {
   const { headers } = parseRows(text);
   const set = new Set(headers.map(norm));
   const has = (n: string) => set.has(n);
+
+  // Zerodha Console tradebook: trade_type + order_execution_time.
+  if (has("tradetype") && has("orderexecutiontime")) return "zerodha";
 
   // Fidelity Activity: distinctive Run Date + Action + Amount (no realized P&L).
   if (has("rundate") && has("action") && has("amount")) return "fidelity";

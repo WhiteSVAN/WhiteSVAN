@@ -67,6 +67,23 @@ describe("matchFifo", () => {
     expect(trades[0].fees).toBeCloseTo(12, 5); // 10 × (0.5 + 0.7)
   });
 
+  it("orders a day's fills by execution time when the broker gives one", () => {
+    // A short opened at 09:20 and covered at 09:30; by row order alone the buy would open a long.
+    const { trades, openLots } = matchFifo([
+      txn({ idx: 0, signedQty: 10, grossPerUnit: 3, time: "2026-06-10T09:30:00" }),
+      txn({ idx: 1, signedQty: -10, grossPerUnit: 5, time: "2026-06-10T09:20:00" }),
+    ]);
+    expect(openLots).toEqual([]);
+    expect(trades).toHaveLength(1);
+    expect(trades[0]).toMatchObject({ side: "BUY", quantity: 10, realizedPnl: 20 });
+  });
+
+  it("lists each lot left open with the fill that opened it", () => {
+    const { openPositions, openLots } = matchFifo([txn({ idx: 0, signedQty: -5, grossPerUnit: 8, raw: { id: "a" } })]);
+    expect(openPositions).toBe(1);
+    expect(openLots).toEqual([{ symbol: "X", signedQty: -5, raw: { id: "a" } }]);
+  });
+
   it("keeps different symbols in separate FIFO queues", () => {
     const { trades } = matchFifo([
       txn({ idx: 0, symbol: "A", signedQty: 1, grossPerUnit: 10 }),

@@ -23,6 +23,8 @@ export interface ImportSourceInfo {
   originalFilename?: string | null;
   /** sha-256 of the raw file text (see src/lib/hash.ts). */
   fileHash: string;
+  /** Positions the file left without a closing trade (FIFO-matched formats). */
+  openPositions?: number;
 }
 
 export class DuplicateImportError extends Error {
@@ -142,6 +144,7 @@ export async function importTrades(
           periodStart: new Date(dates[0]),
           periodEnd: new Date(dates[dates.length - 1]),
           netPnl,
+          openPositions: sourceInfo.openPositions ?? 0,
         },
       });
     }

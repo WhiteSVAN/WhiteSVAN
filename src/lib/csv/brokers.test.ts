@@ -2,8 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   parseFidelityActivity,
   parseWebullOrders,
+  parseZerodhaTradebook,
   detectBrokerFormat,
 } from "./brokers";
+import { isProgrammeContract } from "@/lib/track-record";
 
 // Fidelity Accounts History: BOM + blank line, a stock round-trip (3 buys → 1
 // sell), an option round-trip, a 401k "Exchanges" row, and a disclaimer footer.
@@ -88,10 +90,76 @@ describe("parseWebullOrders", () => {
   });
 });
 
+// Zerodha Console tradebook, in the real export's columns: a NIFTY put sold in one order
+// (3 fills) and bought back in another (2 fills), an equity round trip, a SENSEX call still
+// open and a NIFTY call that expired without a closing trade.
+const ZERODHA_HEADER = "symbol,isin,trade_date,exchange,segment,series,trade_type,auction,quantity,price,trade_id,order_id,order_execution_time,expiry_date";
+const ZERODHA_CSV = [
+  ZERODHA_HEADER,
+  "NIFTY2660524750PE,,2026-06-02,NSE,FO,,sell,false,150.000000,326.800000,238243,1500000005277076,2026-06-02T09:21:55,2026-06-05",
+  "NIFTY2660524750PE,,2026-06-02,NSE,FO,,sell,false,75.000000,326.900000,238241,1500000005277076,2026-06-02T09:21:55,2026-06-05",
+  "NIFTY2660524750PE,,2026-06-02,NSE,FO,,sell,false,75.000000,326.850000,238242,1500000005277076,2026-06-02T09:21:55,2026-06-05",
+  "NIFTY2660524750PE,,2026-06-02,NSE,FO,,buy,false,150.000000,341.000000,279744,1500000005629196,2026-06-02T09:23:50,2026-06-05",
+  "NIFTY2660524750PE,,2026-06-02,NSE,FO,,buy,false,150.000000,341.050000,279745,1500000005629196,2026-06-02T09:23:50,2026-06-05",
+  "ESCORTS,INE042A01014,2026-06-02,NSE,EQ,EQ,buy,False,1.0,3360.0,206325031,1100000058853326,2026-06-02T14:04:51",
+  "ESCORTS,INE042A01014,2026-06-02,NSE,EQ,EQ,sell,False,1.0,3370.0,206325032,1100000058853327,2026-06-02T15:04:51",
+  "SENSEX2660982000CE,,2026-06-03,BSE,FO,,buy,false,20.000000,150.000000,1,2000000000000001,2026-06-03T10:00:00,2026-06-09",
+  "NIFTY2660424000CE,,2026-06-01,NSE,FO,,buy,false,75.000000,10.000000,5,1500000000000009,2026-06-01T10:00:00,2026-06-04",
+].join("\n");
+
+describe("parseZerodhaTradebook", () => {
+  const result = parseZerodhaTradebook(ZERODHA_CSV, { today: "2026-06-06" });
+  const nifty = result.trades.filter((t) => t.symbol === "NIFTY2660524750PE");
+
+  it("FIFO-matches the short put by execution time", () => {
+    expect(nifty).toHaveLength(2); // one trade per closing fill
+    expect(nifty.every((t) => t.side === "BUY" && t.assetType === "option")).toBe(true);
+    // Sold for ₹98,051.25 and bought back for ₹1,02,307.50.
+    expect(nifty.reduce((sum, t) => sum + t.realizedPnl, 0)).toBeCloseTo(-4256.25, 2);
+  });
+
+  it("estimates F&O charges per order from the dated Zerodha rate card", () => {
+    // Sell order ₹211.89 (₹20 brokerage once, STT, NSE charges, SEBI fee, GST on all three
+    // fills) + buy order ₹69.67 (₹20 brokerage once, stamp duty, NSE charges, SEBI fee, GST).
+    expect(nifty.reduce((sum, t) => sum + t.fees, 0)).toBeCloseTo(281.56, 2);
+  });
+
+  it("matches equity at zero charges and says so", () => {
+    expect(result.trades.find((t) => t.symbol === "ESCORTS")).toMatchObject({ assetType: "stock", realizedPnl: 10, fees: 0 });
+    expect(result.notes).toContain("2 equity fills count before charges: equity charges aren't estimated.");
+  });
+
+  it("reports an expired position and an open one without pricing either", () => {
+    expect(result.openPositions).toBe(2);
+    expect(result.notes).toContain("1 position reached expiry without a closing trade. Zerodha settles those outside the tradebook, so their result isn't counted.");
+    expect(result.notes).toContain("1 position still open: it counts once closed.");
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it("keeps only the contracts asked for", () => {
+    const only = parseZerodhaTradebook(ZERODHA_CSV, { today: "2026-06-06", include: isProgrammeContract });
+    expect(only.trades.map((t) => t.symbol)).not.toContain("ESCORTS");
+    expect(only.notes).toContain("2 fills outside the contracts counted here were left out.");
+  });
+
+  it("leaves trades before the first rate card uncharged, with a note", () => {
+    const early = parseZerodhaTradebook(
+      [ZERODHA_HEADER,
+        "NIFTY25JUNFUT,,2025-06-02,NSE,FO,,buy,false,75,24000,1,1,2025-06-02T09:30:00,2025-06-26",
+        "NIFTY25JUNFUT,,2025-06-02,NSE,FO,,sell,false,75,24010,2,2,2025-06-02T10:30:00,2025-06-26"].join("\n"),
+      { today: "2026-06-06" },
+    );
+    expect(early.trades).toHaveLength(1);
+    expect(early.trades[0]).toMatchObject({ assetType: "future", realizedPnl: 750, fees: 0 });
+    expect(early.notes).toContain("2 F&O fills before 1 Apr 2026 count before charges: no rate card is on file for those dates.");
+  });
+});
+
 describe("detectBrokerFormat", () => {
-  it("recognizes Fidelity activity and Webull orders, and abstains otherwise", () => {
+  it("recognizes Fidelity activity, Webull orders and Zerodha tradebooks, and abstains otherwise", () => {
     expect(detectBrokerFormat(FIDELITY_CSV)).toBe("fidelity");
     expect(detectBrokerFormat(WEBULL_CSV)).toBe("webull");
+    expect(detectBrokerFormat(ZERODHA_CSV)).toBe("zerodha");
     // An IBKR Flex realized-P&L CSV is auto-detect's job, not a broker adapter's.
     const ibkr = "ClientAccountID,Symbol,Quantity,TradePrice,FifoPnlRealized,Buy/Sell\nU1,AMZN,-36,209.4,2051.9,SELL";
     expect(detectBrokerFormat(ibkr)).toBeNull();

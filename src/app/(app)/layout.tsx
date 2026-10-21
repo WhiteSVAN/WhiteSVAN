@@ -8,6 +8,7 @@ import { AccountMenu } from "./account-menu";
 
 const PRIMARY_NAV = [
   { href: "/dashboard", label: "My accounts" },
+  { href: "/track", label: "Track record" },
   { href: "/evaluations", label: "Evaluations" },
   { href: "/payouts", label: "Payouts" },
   { href: "/academy", label: "Academy" },
