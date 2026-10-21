@@ -47,12 +47,22 @@ export interface RawTxn {
   grossPerUnit: number; // dollars per unit, fees excluded, multiplier applied
   feePerUnit: number; // commission + fees per unit
   openClose?: "open" | "close"; // explicit hint when the broker states it
+  /** Execution time, sortable as text (e.g. `2025-06-02T09:21:55`); orders fills within a day. */
+  time?: string;
   raw: Record<string, string>;
+}
+
+/** A lot with no closing fill in the export: still open, or settled outside it (e.g. at expiry). */
+export interface OpenLot {
+  symbol: string;
+  signedQty: number; // + long, − short
+  raw: Record<string, string>; // the fill that opened it
 }
 
 export interface FifoResult {
   trades: ParsedTrade[]; // one per closing fill that realized P&L
   openPositions: number; // lots still open at the end (no realized P&L yet)
+  openLots: OpenLot[]; // those lots, for adapters that can say why they're open
 }
 
 interface Lot {
@@ -60,13 +70,15 @@ interface Lot {
   grossPerUnit: number;
   feePerUnit: number;
   dir: 1 | -1;
+  raw: Record<string, string>;
 }
 
 /**
- * Process order within a symbol: chronological, and within the same day open
- * before close (so an intraday round-trip pairs correctly regardless of how the
- * broker happened to order same-day rows). Falls back to buys-before-sells when
- * the broker gives no open/close hint, then original row order.
+ * Process order within a symbol: chronological, by execution time when the broker
+ * gives one, and otherwise within the same day open before close (so an intraday
+ * round-trip pairs correctly regardless of how the broker happened to order
+ * same-day rows). Falls back to buys-before-sells when the broker gives no
+ * open/close hint, then original row order.
  */
 function processRank(t: RawTxn): number {
   if (t.openClose === "open") return 0;
@@ -79,6 +91,7 @@ export function matchFifo(txns: RawTxn[]): FifoResult {
   const sorted = [...txns].sort(
     (a, b) =>
       (a.date < b.date ? -1 : a.date > b.date ? 1 : 0) ||
+      (a.time && b.time ? (a.time < b.time ? -1 : a.time > b.time ? 1 : 0) : 0) ||
       processRank(a) - processRank(b) ||
       a.idx - b.idx,
   );
@@ -91,7 +104,7 @@ export function matchFifo(txns: RawTxn[]): FifoResult {
   }
 
   const trades: ParsedTrade[] = [];
-  let openPositions = 0;
+  const openLots: OpenLot[] = [];
 
   for (const [symbol, list] of bySymbol) {
     const open: Lot[] = [];
@@ -138,13 +151,14 @@ export function matchFifo(txns: RawTxn[]): FifoResult {
           grossPerUnit: t.grossPerUnit,
           feePerUnit: t.feePerUnit,
           dir,
+          raw: t.raw,
         });
       }
     }
 
-    openPositions += open.length;
+    for (const lot of open) openLots.push({ symbol, signedQty: round(lot.dir * lot.qty, 4), raw: lot.raw });
   }
 
   trades.sort((a, b) => (a.tradeDate < b.tradeDate ? -1 : a.tradeDate > b.tradeDate ? 1 : 0));
-  return { trades, openPositions };
+  return { trades, openPositions: openLots.length, openLots };
 }

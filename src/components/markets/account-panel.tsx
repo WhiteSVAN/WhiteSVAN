@@ -26,7 +26,8 @@ const signed = (paise: number) => `${paise > 0 ? "+" : paise < 0 ? "âˆ’" : ""}â‚
 const tone = (paise: number) => (paise > 0 ? "text-[var(--primary)]" : paise < 0 ? "text-[var(--danger)]" : "text-[var(--muted)]");
 const ORDER_TYPES: [OrderType, string][] = [["MARKET", "Market"], ["LIMIT", "Limit"], ["SL", "SL"], ["SL-M", "SL-M"]];
 
-function Meter({ label, value, detail, used, danger = false }: { label: string; value: string; detail: string; used: number; danger?: boolean }) {
+/** One rule meter: a label, its value, a bar of how much is used and a line of detail. */
+export function Meter({ label, value, detail, used, danger = false }: { label: string; value: string; detail: string; used: number; danger?: boolean }) {
   const width = `${Math.min(100, Math.max(0, used * 100)).toFixed(1)}%`;
   return (
     <div>

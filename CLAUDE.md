@@ -55,6 +55,17 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
   so checkout is closed to the public ("opens at launch", with the launch list); the sign-ins in
   `STAFF_EMAILS` make **test purchases** that open a real account without a charge
   ([src/lib/checkout/](src/lib/checkout/)). A gateway adds a third mode in `config.ts`.
+- **Track record** (`/track`, [src/lib/track-record.ts](src/lib/track-record.ts)): the second route
+  in. Traders trade NIFTY, BANK NIFTY and SENSEX F&O in their own Zerodha account, upload Console
+  tradebooks, and the programme rules judge each day's closed result (no intraday prices, so limits
+  are checked at day end and lot limits aren't checked). `parseZerodhaTradebook` in
+  [src/lib/csv/brokers.ts](src/lib/csv/brokers.ts) FIFO-matches fills by execution time, estimates
+  F&O charges per order from the dated rate card, and reports open or expired positions without
+  pricing them; a pass waits while any remain (`ImportBatch.openPositions`). One track record per
+  trader (`TradingAccount.trackPlanId` / `trackStart`); "Start over" moves the start date. WhiteSVAN
+  only reads uploads: Kite has no API to set a trader's limits, and acting in their account would
+  need exchange empanelment as an algo provider. Not built: live sync (Kite Connect multi-user
+  access needs Zerodha's approval), a staff shortlist and the copy engine.
 - Accounts: `EvaluationAccount` stores the engine host snapshot (`desk` JSON, written with
   optimistic locking on `version`) and `CheckoutOrder` the purchase
   ([src/lib/accounts/store.ts](src/lib/accounts/store.ts)). At most `maximumAccounts` active.

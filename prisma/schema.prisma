@@ -447,6 +447,7 @@ model ImportBatch {
   periodStart      DateTime?    @db.Date
   periodEnd        DateTime?    @db.Date
   netPnl           Decimal      @default(0) @db.Decimal(18, 2)
+  openPositions    Int          @default(0) // positions left without a closing trade in this file
   createdAt        DateTime     @default(now())
 
   account  TradingAccount   @relation(fields: [accountId], references: [id], onDelete: Cascade)
@@ -487,13 +488,17 @@ model ProfileVersion {
 }
 
 model TradingAccount {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   userId          String
   broker          String? // e.g. "Interactive Brokers", "Topstep"
   accountName     String
-  currency        String   @default("USD") // ISO 4217; INR for Indian brokers
-  startingBalance Decimal  @default(0) @db.Decimal(18, 2)
-  createdAt       DateTime @default(now())
+  currency        String    @default("USD") // ISO 4217; INR for Indian brokers
+  startingBalance Decimal   @default(0) @db.Decimal(18, 2)
+  // Track record (src/lib/track-record.ts): the evaluation plan id this account is judged
+  // against and the first IST date counted. Null on journal accounts that aren't tracked.
+  trackPlanId     String?
+  trackStart      DateTime? @db.Date
+  createdAt       DateTime  @default(now())
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   trades        Trade[]
