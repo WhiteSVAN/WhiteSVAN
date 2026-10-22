@@ -5,7 +5,10 @@ import { prisma } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { requestIpKey } from "@/lib/request";
 
-const schema = z.object({ email: z.email({ error: "Enter a valid email." }).trim() });
+const schema = z.object({
+  email: z.string().trim().max(320, "Enter a valid email.").toLowerCase()
+    .pipe(z.email({ error: "Enter a valid email." })),
+});
 
 export type WaitlistState = { ok?: boolean; error?: string } | undefined;
 
