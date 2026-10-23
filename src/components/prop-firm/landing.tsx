@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, BadgeCheck, BadgeIndianRupee, BookOpen, ChartCandlestick, Check, CheckCheck, ChevronDown, Clock3, Flag, Gauge, Headphones, IndianRupee, Landmark, Layers3, Play, ReceiptIndianRupee, ShieldCheck, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BadgeCheck, BadgeIndianRupee, BookOpen, ChartCandlestick, Check, ChevronDown, Clock3, Flag, Gauge, Headphones, IndianRupee, Landmark, Layers3, Play, ReceiptIndianRupee, ShieldCheck, Target } from "lucide-react";
 import { PropHeader } from "./site-header";
 import { AccountSelector } from "./account-selector";
+import { AccountPreview } from "./account-preview";
 import { SiteFooter } from "@/components/site-footer";
 import { WaitlistForm } from "@/app/waitlist-form";
 import { EVALUATION_PLANS, formatInr, planLimits, PROGRAMME_RULES as R } from "@/lib/prop-firm";
@@ -34,42 +35,6 @@ const FAQ = [
   ["When can I buy an evaluation?", "We're launching soon. Create your account now to get early access when evaluations open."],
   ["Where is my trading journal?", "Log in and open Tools. Your journal, imports and performance reports are all still there."],
 ];
-
-function AccountPreview() {
-  return <div className="prop-hero-art relative mx-auto w-full max-w-[590px] py-10 lg:py-16">
-    <div aria-hidden="true" className="prop-orbit" />
-    <div className="prop-terminal relative overflow-hidden rounded-2xl border border-[#4d663d] bg-[#101811] shadow-2xl">
-      <div className="flex items-center justify-between border-b border-[#2d3c2a] px-5 py-4">
-        <span className="flex items-center gap-2 text-xs font-medium"><span className="terminal-dot" /> WhiteSVAN Trader</span>
-        <span className="rounded-full border border-[#405434] bg-[#1d2b17] px-2.5 py-1 font-mono text-[8px] uppercase tracking-widest text-[#c3e6a5]">Sample account</span>
-      </div>
-      <div className="p-5 sm:p-7">
-        <div className="flex items-start justify-between gap-4">
-          <div><p className="font-mono text-[9px] uppercase tracking-widest text-[#8f9e88]">Evaluation / {FEATURED.label}</p><p className="mt-3 text-[38px] font-medium leading-none tracking-[-.06em] sm:text-[44px]">₹2,58,450<span className="text-[#63775a]">.00</span></p></div>
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#526a3e] bg-[#21331a] text-[#baf277]"><TrendingUp size={20} /></span>
-        </div>
-        <p className="mt-3 text-[11px] text-[#a8c989]">+₹8,450 <span className="ml-2 text-[#7e8c77]">Total P&amp;L</span></p>
-        <div className="relative mt-7 h-40 border-y border-[#273723]">
-          <svg viewBox="0 0 460 150" className="h-full w-full" role="img" aria-label="Sample account equity chart">
-            <defs><linearGradient id="prop-equity-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#baf277" stopOpacity=".19" /><stop offset="100%" stopColor="#baf277" stopOpacity="0" /></linearGradient></defs>
-            {[30, 70, 110].map(y => <path key={y} d={`M0 ${y}H460`} stroke="#273723" strokeDasharray="3 5" />)}
-            <path d="M0 133 L22 124 L40 128 L59 112 L80 118 L97 94 L120 102 L139 85 L158 93 L179 76 L202 82 L222 58 L242 67 L266 42 L286 53 L309 40 L329 49 L351 27 L373 34 L396 18 L419 27 L442 9 L460 15 L460 150H0Z" fill="url(#prop-equity-fill)" />
-            <path d="M0 133 L22 124 L40 128 L59 112 L80 118 L97 94 L120 102 L139 85 L158 93 L179 76 L202 82 L222 58 L242 67 L266 42 L286 53 L309 40 L329 49 L351 27 L373 34 L396 18 L419 27 L442 9 L460 15" stroke="#baf277" strokeWidth="2.5" fill="none" />
-          </svg>
-        </div>
-        <div className="mt-2 flex justify-between font-mono text-[8px] text-[#76866e]"><span>DAY 01</span><span>DAY 05</span><span>DAY 10</span></div>
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <div className="rounded-lg border border-[#2d3d27] bg-[#142010] p-3.5"><p className="text-[9px] text-[#99aa8d]">Profit target</p><p className="mt-2 text-lg font-medium tracking-tight">{formatInr(FEATURED_LIMITS.profitTarget)} <span className="text-[10px] text-[#91b772]">{R.targetPercent}%</span></p><div className="mt-3 h-1 rounded-full bg-[#2c3c23]"><div className="h-full w-[56%] rounded-full bg-[#baf277]" /></div></div>
-          <div className="rounded-lg border border-[#2d3d27] bg-[#142010] p-3.5"><p className="text-[9px] text-[#99aa8d]">Max drawdown</p><p className="mt-2 text-lg font-medium tracking-tight">{formatInr(FEATURED_LIMITS.maximumLoss)} <span className="text-[10px] text-[#91b772]">EOD</span></p><div className="mt-3 flex items-center gap-1.5 text-[9px] text-[#b1cf95]"><ShieldCheck size={11} /> Inside the rules</div></div>
-        </div>
-      </div>
-    </div>
-    <div className="absolute -bottom-1 right-0 flex items-center gap-3 rounded-xl border border-[#4b613b] bg-[#1a2916] p-4 shadow-xl sm:-right-4 sm:bottom-3">
-      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#baf277] text-[#17200e]"><CheckCheck size={21} /></span>
-      <div><p className="text-[11px] font-medium">{R.contractorSharePercent}% profit split</p><p className="mt-1 font-mono text-[8px] uppercase tracking-wider text-[#9fb38f]">Payouts twice a month</p></div>
-    </div>
-  </div>;
-}
 
 export function PropLanding() {
   return <div className="min-h-screen overflow-clip bg-[#0b0f0d] text-[#f0f3ec]">
