@@ -1,14 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import { PriceChart } from "@/components/markets/price-chart";
 import { AccountBlotter, AccountTicket, type OrderInput } from "@/components/markets/account-panel";
 import { foldTick, type Candle, type Interval, type LiveTick } from "@/lib/market-data/candles";
 import type { Desk } from "@/lib/trading/desk";
-import type { EngineOutput } from "@/lib/trading/engine";
-import type { Underlying } from "@/lib/trading/instruments";
+import type { EngineOutput, OrderChanges } from "@/lib/trading/engine";
+import type { Side, Underlying } from "@/lib/trading/instruments";
 import { clockSeconds, toIst } from "@/lib/trading/time";
 import { quoteKey, UNDERLYINGS, type InstrumentList, type KiteContract, type MarketQuote, type OptionStrike } from "@/lib/zerodha/kite";
 
@@ -65,7 +66,7 @@ class ApiError extends Error {
   }
 }
 
-async function getJson<T>(url: string, signal?: AbortSignal, init?: { method: "POST" | "DELETE"; body?: unknown }): Promise<T> {
+async function getJson<T>(url: string, signal?: AbortSignal, init?: { method: "POST" | "PATCH" | "DELETE"; body?: unknown }): Promise<T> {
   const response = await fetch(url, {
     signal,
     cache: "no-store",
@@ -127,13 +128,28 @@ function SessionEnded({ message, loginHref }: { message: string; loginHref: stri
   );
 }
 
+/** Where the chart's Buy and Sell buttons send someone without an evaluation account. */
+function OpenEvaluation() {
+  return (
+    <aside id="order-ticket" className="terminal-card flex scroll-mt-24 flex-col gap-4 p-5" aria-label="Trade">
+      <p className="terminal-label">Trade these charts</p>
+      <h2 className="text-lg font-medium tracking-tight">Open an evaluation to place orders</h2>
+      <p className="text-sm leading-6 text-[var(--muted)]">Buy and sell NIFTY, BANK NIFTY and SENSEX futures and options on a simulated account, with an order ticket, positions and a full order book.</p>
+      <Link id="open-evaluation" href="/evaluations" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">See evaluations</Link>
+    </aside>
+  );
+}
+
+const withParam = (path: string, name: string, value: string) => `${path}${path.includes("?") ? "&" : "?"}${name}=${encodeURIComponent(value)}`;
+
 /**
  * Charts, quotes and depth for NIFTY, BANK NIFTY and SENSEX from the firm's shared Kite login, for
  * any signed-in user; `canConnect` marks an owner, who can log in again when Kite ends it. With an
- * `account`, it is that evaluation account's trading platform: the order ticket and blotter, with
- * each poll feeding the account on the server.
+ * `account`, it is that evaluation account's trading platform: Buy and Sell, the order ticket and
+ * the order book, with each poll feeding the account on the server. `home` is the page to come back
+ * to; `accounts` lets someone with several evaluation accounts switch between them.
  */
-export function ZerodhaCharts({ account, canConnect }: { account?: { id: string; desk: Desk; planLabel: string }; canConnect: boolean }) {
+export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }: { account?: { id: string; desk: Desk; planLabel: string }; canConnect: boolean; home?: string; accounts?: { id: string; label: string; href: string }[] }) {
   const [underlying, setUnderlying] = useState<Underlying>("NIFTY");
   const [mode, setMode] = useState<Mode>("index");
   const [barInterval, setBarInterval] = useState<Interval>("5minute");
@@ -154,17 +170,18 @@ export function ZerodhaCharts({ account, canConnect }: { account?: { id: string;
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [ended, setEnded] = useState<string | null>(null);
   const router = useRouter();
-  const home = account ? `/trade/${account.id}` : "/markets";
+  const home = homePath ?? (account ? `/trade/${account.id}` : "/markets");
   // Kite's 06:00 logout or a revoked token: re-render the page from the server, which now offers
   // owners a fresh login and shows everyone else the offline card (the API route has already
   // forgotten the shared login).
   const sessionEnded = useCallback((message: string) => {
     setEnded(message);
-    router.replace(`${home}?zerodha=${canConnect ? "ended" : "offline"}`);
+    router.replace(withParam(home, "zerodha", canConnect ? "ended" : "offline"));
   }, [router, home, canConnect]);
   const latestQuotes = useRef<Record<string, MarketQuote>>({});
   const lastPoll = useRef(0);
   const [desk, setDesk] = useState<Desk | null>(account?.desk ?? null);
+  const [side, setSide] = useState<Side>("BUY");
   const accountId = account?.id ?? null;
 
   const data = list?.underlying === underlying ? list : null;
@@ -288,6 +305,24 @@ export function ZerodhaCharts({ account, canConnect }: { account?: { id: string;
     const body = await getJson<{ desk: Desk }>(`/api/accounts/${accountId}/orders/${encodeURIComponent(orderId)}`, undefined, { method: "DELETE" });
     setDesk(body.desk);
   }, [accountId]);
+  const modifyOrder = useCallback(async (orderId: string, changes: OrderChanges): Promise<EngineOutput[]> => {
+    if (!accountId) return [];
+    try {
+      const body = await getJson<{ outputs: EngineOutput[]; desk: Desk }>(`/api/accounts/${accountId}/orders/${encodeURIComponent(orderId)}`, undefined, { method: "PATCH", body: changes });
+      setDesk(body.desk);
+      return body.outputs;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) sessionEnded(error.message);
+      throw error;
+    }
+  }, [accountId, sessionEnded]);
+
+  /** The chart's Buy and Sell: set the ticket's side and bring it into view, or point to evaluations. */
+  const trade = (next: Side) => {
+    setSide(next);
+    document.getElementById("order-ticket")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    document.getElementById(desk ? "ticket-lots" : "open-evaluation")?.focus({ preventScroll: true });
+  };
 
   const chooseUnderlying = (next: Underlying) => {
     if (next === underlying) return;
@@ -357,7 +392,7 @@ export function ZerodhaCharts({ account, canConnect }: { account?: { id: string;
         </div>
       </div>
 
-      <div className={`grid items-start gap-4 ${desk ? "xl:grid-cols-[minmax(0,1fr)_340px]" : ""}`}>
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-4">
           {listError && !data && (
             <p role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--danger)]/40 p-4 text-sm text-[var(--danger)]">
@@ -375,9 +410,18 @@ export function ZerodhaCharts({ account, canConnect }: { account?: { id: string;
                   <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">{instrument.key}</p>
                   <h2 className="mt-1 text-lg font-medium tracking-tight sm:text-xl">{instrument.label}</h2>
                 </div>
-                <div className="flex flex-wrap items-baseline gap-x-3" aria-live="off">
-                  <span className="font-mono text-3xl tracking-tight">{quote ? price(quote.lastPrice) : "—"}</span>
-                  {quote && <Change quote={quote} className="text-sm" />}
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                  <div className="flex flex-wrap items-baseline gap-x-3" aria-live="off">
+                    <span className="font-mono text-3xl tracking-tight">{quote ? price(quote.lastPrice) : "—"}</span>
+                    {quote && <Change quote={quote} className="text-sm" />}
+                  </div>
+                  <div className="flex gap-2" role="group" aria-label="Trade this contract">
+                    {(["BUY", "SELL"] as const).map((value) => (
+                      <button key={value} type="button" disabled={!instrument.contract} onClick={() => trade(value)} title={instrument.contract ? undefined : "Indices can't be traded. Pick Futures or Options."} className={`min-h-10 min-w-20 rounded-lg px-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 ${value === "BUY" ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]" : "bg-[var(--danger)] text-[#2a0f0a] hover:opacity-90"}`}>
+                        {value === "BUY" ? "Buy" : "Sell"}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <dl className="grid w-full grid-cols-3 gap-x-6 gap-y-3 text-xs sm:grid-cols-6">
                   {[
@@ -432,9 +476,22 @@ export function ZerodhaCharts({ account, canConnect }: { account?: { id: string;
             </section>
           )}
         </div>
-        {desk && account && <AccountTicket desk={desk} planLabel={account.planLabel} contract={instrument?.contract ?? null} quote={quote} onPlace={sendOrder} />}
+        {desk && account ? (
+          <div className="space-y-3">
+            {accounts && accounts.length > 1 && (
+              <label className="block text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Account
+                <select value={account.id} onChange={(event) => { const next = accounts.find((item) => item.id === event.target.value); if (next) router.push(next.href); }} className="mt-1 block min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-3 font-mono text-xs normal-case tracking-normal text-[var(--foreground)]">
+                  {accounts.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+                </select>
+              </label>
+            )}
+            <AccountTicket desk={desk} planLabel={account.planLabel} contract={instrument?.contract ?? null} quote={quote} side={side} onSide={setSide} onPlace={sendOrder} />
+          </div>
+        ) : (
+          <OpenEvaluation />
+        )}
       </div>
-      {desk && <AccountBlotter desk={desk} onCancel={cancelOrder} onPlace={sendOrder} />}
+      {desk && <AccountBlotter desk={desk} onCancel={cancelOrder} onPlace={sendOrder} onModify={modifyOrder} />}
     </div>
   );
 }

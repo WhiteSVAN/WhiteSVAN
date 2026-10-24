@@ -63,6 +63,37 @@ describe("test desk host", () => {
     expect(late.desk.instruments).toEqual([]);
   });
 
+  it("keeps an order book from placement to fill, change, cancel and rejection", () => {
+    const quotes = new Map<number, Quote>();
+    let desk = openDesk(plan, "desk-1", ist("2026-11-02 09:00"));
+    desk = drive(desk, quotes, { kind: "quote", at: ist("2026-11-02 09:20"), quote: quoteAt("2026-11-02 09:20", 25_000) }).desk;
+    desk = drive(desk, quotes, { kind: "place", at: ist("2026-11-02 09:20"), order: { id: "M1", token: FUT.token, side: "BUY", lots: 1, type: "MARKET" } }, FUT).desk;
+    desk = drive(desk, quotes, { kind: "place", at: ist("2026-11-02 09:20"), order: { id: "L1", token: FUT.token, side: "SELL", lots: 1, type: "LIMIT", limitPrice: r(25_100) } }, FUT).desk;
+    desk = drive(desk, quotes, { kind: "modify", at: ist("2026-11-02 09:20"), orderId: "L1", changes: { limitPrice: r(25_150) } }).desk;
+    expect(desk.notes[0].text).toBe("Order modified.");
+    const refused = drive(desk, quotes, { kind: "modify", at: ist("2026-11-02 09:20"), orderId: "L1", changes: { limitPrice: r(25_150.03) } }).desk;
+    expect(refused.notes[0].text).toMatch(/^Change refused: Use positive prices/);
+    expect(refused.orderBook?.find((record) => record.id === "L1")?.status).toBe("OPEN");
+    desk = drive(refused, quotes, { kind: "cancel", at: ist("2026-11-02 09:21"), orderId: "L1" }).desk;
+    desk = drive(desk, quotes, { kind: "place", at: ist("2026-11-02 15:25"), order: { id: "X1", token: FUT.token, side: "BUY", lots: 1, type: "MARKET" } }, FUT).desk;
+
+    expect(desk.orderBook?.map((record) => [record.id, record.status])).toEqual([["X1", "REJECTED"], ["L1", "CANCELLED"], ["M1", "COMPLETE"]]);
+    const [late, limit, market] = desk.orderBook!;
+    expect(late.reason).toMatch(/^Orders are accepted from 09:15 to 15:20 IST/);
+    expect(limit).toMatchObject({ side: "SELL", type: "LIMIT", limitPrice: r(25_150), quantity: 50, filled: 0, averagePrice: null, reason: "Cancelled by you" });
+    expect(market).toMatchObject({ side: "BUY", type: "MARKET", quantity: 50, filled: 50, averagePrice: r(25_000) + 20, tradingSymbol: "NIFTY-FUT-TEST" });
+    expect(desk.orderBook!.every((record) => record.limitPrice === undefined || record.type === "LIMIT")).toBe(true);
+  });
+
+  it("starts an order book for a desk stored before it existed", () => {
+    const quotes = new Map<number, Quote>();
+    const old = openDesk(plan, "desk-1", ist("2026-11-02 09:00"));
+    delete old.orderBook;
+    let desk: Desk = drive(old, quotes, { kind: "quote", at: ist("2026-11-02 09:20"), quote: quoteAt("2026-11-02 09:20", 25_000) }).desk;
+    desk = drive(desk, quotes, { kind: "place", at: ist("2026-11-02 09:20"), order: { id: "M1", token: FUT.token, side: "BUY", lots: 1, type: "MARKET" } }, FUT).desk;
+    expect(desk.orderBook?.map((record) => record.status)).toEqual(["COMPLETE"]);
+  });
+
   it("applies an event stamped before the account clock at the clock", () => {
     const quotes = new Map<number, Quote>();
     const desk = drive(openDesk(plan, "desk-1", ist("2026-11-02 09:00")), quotes, { kind: "clock", at: ist("2026-11-02 11:00") }).desk;

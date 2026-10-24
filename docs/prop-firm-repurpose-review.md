@@ -232,3 +232,21 @@ The storefront and pure trading library do not by themselves activate those serv
   the owner reconnects, and disconnecting turns prices off for everyone.
 - After deploying, an owner logs in to Kite once on `/markets`. The old per-browser cookie is no
   longer read.
+
+## Buy/Sell on the charts and the order book, 24 Oct 2026 (Claude)
+
+- Founder's choices: Buy/Sell trades evaluation accounts only (no free practice accounts), and F&O
+  only for now; stocks come later.
+- `/markets` is now the trading platform for the trader's active evaluation account, with an
+  account picker for several. Buy and Sell sit in the chart header; they set the ticket's side, and
+  are disabled on the index. Without an account they point to "Open an evaluation".
+- Order management: open orders can be modified (lots, limit, trigger) or cancelled. A new Order
+  history tab lists complete, cancelled and rejected orders with average price and reason. The
+  history comes from `Desk.orderBook`, kept by `deskStep` from the engine's outputs; desks stored
+  earlier start an empty book.
+- Engine: a pure `modify` event, checked like a new order and never below what has filled.
+  `PATCH /api/accounts/<id>/orders/<orderId>` sends it against a fresh quote.
+- Checked with unit tests (engine, desk, ticks) and a two-browser end-to-end run against the Kite
+  stand-in, 23 checks: account switching; Buy/Sell; limit order modified, then filled; stop
+  modified, then cancelled; a rejected naked short; history after a reload; the phone layout; and
+  the no-account card.

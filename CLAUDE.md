@@ -71,7 +71,12 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
   ([src/lib/accounts/store.ts](src/lib/accounts/store.ts)). At most `maximumAccounts` active.
 - The trading platform `/trade/<account>` runs the engine on the server: each poll
   (`/api/accounts/<id>/tick`) gets quotes through the shared Kite login and feeds them to the
-  account; orders and cancels go to `/api/accounts/<id>/orders`. Every account holder trades while
+  account; orders go to `/api/accounts/<id>/orders`, and modify (PATCH) and cancel (DELETE) to
+  `/orders/<orderId>`. `/markets` is the same platform for the trader's active evaluation account
+  (`?account=` picks one when they have several): Buy and Sell sit on the chart, and anyone without
+  an account gets "Open an evaluation". The blotter shows positions, open orders (modify, cancel),
+  the order history (`Desk.orderBook`: complete, cancelled, rejected, with average price and
+  reason), fills and activity. F&O only; stocks are a later step. Every account holder trades while
   an owner's Kite login is connected; after Kite's 06:00 IST logout traders see "Live prices are
   offline" until a `KITE_OWNER_EMAILS` sign-in connects again. Orders, stops and the 15:20
   square-off run while a platform page is open (the always-on engine service is still to build).
@@ -99,7 +104,9 @@ result. The future engine service (Node on AWS with the market-data feed) hosts 
   SL and SL-M orders fill against five-level depth with slippage; validation covers hours
   (09:15–15:20 IST), lots, freeze quantity, tick size, stale quotes, the expiry-day cutoff and naked
   short options (a short option must be covered by a long one of the same underlying, expiry and
-  type). Square-off at 15:20, day close at 15:30, breach → flatten, lock and breach report.
+  type). A `modify` event changes a working order's lots, limit or trigger under the same checks,
+  never below what has filled; a new price is worked against the book at once, a new size waits for
+  the next quote. Square-off at 15:20, day close at 15:30, breach → flatten, lock and breach report.
 - `charges.ts` + `charges-schedules.ts`: brokerage, STT, exchange charges, SEBI fee, stamp duty and
   GST from **dated schedules**. Add a new row when a rate changes; never edit one fills have used.
   The shipped row is `verified: false` until a real contract note matches it to the paisa.
