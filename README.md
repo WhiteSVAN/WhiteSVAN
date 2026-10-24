@@ -40,15 +40,15 @@ the signed-in **Tools** menu: imports, metrics, research profiles, AI briefs and
   to checkout. No payment gateway is live, so checkout is closed to the public; sign-ins in
   `STAFF_EMAILS` make test purchases that open a real evaluation account without a charge.
 - `/trade/<account>`: the trading platform for one evaluation account (chart, order ticket, positions,
-  orders, fills, rule meters), with the engine running on the server. Prices come from the firm's own
-  Zerodha account, so only `KITE_OWNER_EMAILS` can trade until a licensed exchange feed connects.
+  orders, fills, rule meters), with the engine running on the server. Prices come from the firm's
+  shared Zerodha login, so every account holder trades while an owner has it connected.
 - Signed-in workspace: My accounts (account cards), Evaluations, Payouts, Academy and Help, with the
   journal under Tools.
-- `/markets` (Tools → Zerodha charts): charts, live quotes and depth from the firm's own Zerodha
-  account through Kite Connect, for `KITE_OWNER_EMAILS` only. Kite data is for the account holder's
-  own use, so traders' charts will use a licensed exchange feed. Set `KITE_API_KEY`,
-  `KITE_API_SECRET` and `KITE_OWNER_EMAILS`, and register `<site>/api/zerodha/callback` as the Kite
-  app's redirect URL.
+- `/markets` (Tools → Zerodha charts): charts, live quotes and depth from the firm's Zerodha account
+  through Kite Connect, for every signed-in user. A `KITE_OWNER_EMAILS` sign-in logs in to Kite once
+  a day (Kite ends the login at 6 AM IST) and everyone reads through that login. Set
+  `KITE_API_KEY`, `KITE_API_SECRET` and `KITE_OWNER_EMAILS`, and register
+  `<site>/api/zerodha/callback` as the Kite app's redirect URL.
 - Programme numbers and rule text live in `src/lib/prop-firm.ts`; change them there only.
 - Optional: set `NEXT_PUBLIC_DISCORD_URL` to show a Discord link in the header and footer, and
   `NEXT_PUBLIC_SITE_URL` when a custom domain goes live (sitemap, robots and share images).

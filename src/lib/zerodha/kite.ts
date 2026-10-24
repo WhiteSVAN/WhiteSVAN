@@ -1,10 +1,8 @@
 /**
- * Zerodha Kite Connect v3: request building and response parsing for charts on the firm's own
- * Zerodha account. Kite data is for the account holder's own use; Zerodha's API FAQ says
- * "Displaying or redistributing Kite Connect API data on external platforms violates exchange
- * data vending policies." So nothing here may feed a page that other people see: traders' charts
- * and the evaluation engine need a licensed exchange feed (CLAUDE.md, "Zerodha charts").
- * Pure: no environment, network or clock; client.ts makes the calls and session.ts handles login.
+ * Zerodha Kite Connect v3: request building and response parsing for the firm's Zerodha account,
+ * whose login serves every signed-in user's charts and trading platform (CLAUDE.md, "Zerodha
+ * charts"). Pure: no environment, network or clock; client.ts makes the calls, session.ts and
+ * connection.ts handle the login.
  */
 import type { Candle, Interval } from "@/lib/market-data/candles";
 import type { Instrument, InstrumentKind, Underlying } from "@/lib/trading/instruments";

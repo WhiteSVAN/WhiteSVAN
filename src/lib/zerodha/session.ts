@@ -1,13 +1,12 @@
 /**
- * Kite login for the firm's own account. The day's access token lives only in an encrypted,
- * HTTP-only cookie in the browser that logged in: never in the database, never readable by page
- * scripts, and tied to the WhiteSVAN user who connected it. Server only (node:crypto).
+ * Kite login for the firm's account. The day's access token is sealed with AES-256-GCM, tied to
+ * the WhiteSVAN owner who connected it, and stored as the shared login (connection.ts): never in
+ * the clear, never sent to a browser. Server only (node:crypto).
  */
 import { createCipheriv, createDecipheriv, createHash, hkdfSync, randomBytes, timingSafeEqual } from "node:crypto";
 import { clockSeconds, istInstant, toIst } from "@/lib/trading/time";
 export { safeNextPath } from "@/lib/safe-path";
 
-export const KITE_SESSION_COOKIE = "wsv_kite";
 /** Short-lived login state, checked when Kite redirects back. */
 export const KITE_STATE_COOKIE = "wsv_kite_state";
 /** Where to return after the Kite login (a path on this site). */
@@ -52,7 +51,7 @@ export function sealKiteSession(session: KiteSession, secret: string): string {
   return Buffer.concat([iv, body, cipher.getAuthTag()]).toString("base64url");
 }
 
-/** The cookie's session if it decrypts, belongs to `userId` and has not expired; otherwise null. */
+/** The sealed session if it decrypts, belongs to `userId` and has not expired; otherwise null. */
 export function openKiteSession(value: string | undefined, secret: string, userId: string, now: number): KiteSession | null {
   if (!value) return null;
   try {

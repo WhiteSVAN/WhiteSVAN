@@ -54,6 +54,7 @@ model User {
   profileViews       ProfileView[]
   evaluationAccounts EvaluationAccount[]
   checkoutOrders     CheckoutOrder[]
+  kiteConnections    KiteConnection[]
 }
 
 // Trader = publishes a record; Client = allocator / firm / reviewer who discovers traders.
@@ -776,4 +777,20 @@ enum OrderStatus {
   PAID
   FAILED
   REFUNDED
+}
+
+// The firm's Kite Connect login, shared by every signed-in user's charts and trading platform.
+// One row (id "firm"), replaced at each owner login. The access token is sealed with AES-256-GCM
+// (src/lib/zerodha/session.ts), never stored in the clear; Kite ends it at 06:00 IST.
+model KiteConnection {
+  id        String   @id
+  // The KITE_OWNER_EMAILS sign-in that connected it.
+  userId    String
+  sealed    String
+  expiresAt DateTime
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

@@ -1,11 +1,14 @@
 /**
- * Kite Connect calls for the firm's own Zerodha account (server only). Kite's limits: 3 historical
- * requests and 1 quote request a second; see kite.ts on who may see the data.
+ * Kite Connect calls for the firm's Zerodha account (server only). One login serves every
+ * signed-in user, so quote and historical calls go through throttle.ts to stay inside Kite's
+ * limits: 1 quote request and 3 historical requests a second. Market data only: the same login
+ * can trade the firm's real account, so never add order, portfolio or funds calls here.
  */
 import { LOOKBACK_DAYS, type Candle, type Interval } from "@/lib/market-data/candles";
 import type { Underlying } from "@/lib/trading/instruments";
 import { toIst } from "@/lib/trading/time";
 import type { KiteConfig } from "./config";
+import { createGate, createQuoteBatcher, createSharedLoads, type Gate } from "./throttle";
 import {
   historicalPath,
   historicalRanges,
@@ -24,6 +27,34 @@ import {
   type MarketQuote,
 } from "./kite";
 import { sessionChecksum } from "./session";
+
+/** Kite allows 1 quote request a second; a little over a second apart leaves room. */
+const QUOTE_GAP_MS = 1_050;
+/** 3 historical requests a second. */
+const HISTORY_GAP_MS = 350;
+/** A quote this recent is served from memory to the next screen that asks. */
+const QUOTE_FRESH_MS = 1_000;
+const QUOTE_MAX_KEYS = 500;
+/** How long chart history is reused for the next screen opening the same chart. */
+const HISTORY_KEEP_MS = 15_000;
+const DAY_HISTORY_KEEP_MS = 60_000;
+
+interface KiteThrottle {
+  quoteGate: Gate;
+  historyGate: Gate;
+  /** By access token: Kite issues a new one each day. */
+  quotes: Map<string, (keys: readonly string[]) => Promise<MarketQuote[]>>;
+  history: ReturnType<typeof createSharedLoads<Candle[]>>;
+}
+
+// On globalThis so every route in a server process shares one gate, however it was bundled.
+const shared = globalThis as unknown as { kiteThrottle?: KiteThrottle };
+const throttle = (shared.kiteThrottle ??= {
+  quoteGate: createGate(QUOTE_GAP_MS, 8),
+  historyGate: createGate(HISTORY_GAP_MS, 24),
+  quotes: new Map(),
+  history: createSharedLoads<Candle[]>(),
+});
 
 interface CallOptions {
   accessToken?: string;
@@ -78,18 +109,37 @@ export async function endSession(config: KiteConfig, accessToken: string): Promi
   await callJson(config, `/session/token?${query}`, { method: "DELETE", accessToken });
 }
 
-/** The interval's lookback of candles up to `now`, with open interest for futures and options. */
-export async function fetchCandles(config: KiteConfig, accessToken: string, instrumentToken: number, interval: Interval, withOi: boolean, now: number): Promise<Candle[]> {
-  const lists: Candle[][] = [];
-  for (const [from, to] of historicalRanges(now - LOOKBACK_DAYS[interval] * 86_400_000, now, interval)) {
-    lists.push(parseCandles(await callJson(config, historicalPath(instrumentToken, interval, from, to, withOi), { accessToken })));
-  }
-  return mergeCandles(lists);
+/**
+ * The interval's lookback of candles up to `now`, with open interest for futures and options.
+ * Screens opening the same chart within a few seconds share one fetch.
+ */
+export function fetchCandles(config: KiteConfig, accessToken: string, instrumentToken: number, interval: Interval, withOi: boolean, now: number): Promise<Candle[]> {
+  const key = `${instrumentToken}|${interval}|${withOi ? "oi" : ""}`;
+  return throttle.history(key, interval === "day" ? DAY_HISTORY_KEEP_MS : HISTORY_KEEP_MS, async () => {
+    const lists: Candle[][] = [];
+    for (const [from, to] of historicalRanges(now - LOOKBACK_DAYS[interval] * 86_400_000, now, interval)) {
+      const path = historicalPath(instrumentToken, interval, from, to, withOi);
+      lists.push(parseCandles(await throttle.historyGate(() => callJson(config, path, { accessToken }))));
+    }
+    return mergeCandles(lists);
+  });
 }
 
-export async function fetchQuotes(config: KiteConfig, accessToken: string, keys: readonly string[], now: number): Promise<MarketQuote[]> {
-  const query = new URLSearchParams(keys.map((key) => ["i", key]));
-  return parseQuotes(await callJson(config, `/quote?${query}`, { accessToken }), now);
+/** Quotes with five-level depth. The screens polling in the same second share one Kite call. */
+export function fetchQuotes(config: KiteConfig, accessToken: string, keys: readonly string[]): Promise<MarketQuote[]> {
+  let quotes = throttle.quotes.get(accessToken);
+  if (!quotes) {
+    // A new login: the old token's quotes go with it.
+    throttle.quotes.clear();
+    quotes = createQuoteBatcher({
+      load: async (wanted) => parseQuotes(await callJson(config, `/quote?${new URLSearchParams(wanted.map((key) => ["i", key]))}`, { accessToken }), Date.now()),
+      gate: throttle.quoteGate,
+      freshMs: QUOTE_FRESH_MS,
+      maxKeys: QUOTE_MAX_KEYS,
+    });
+    throttle.quotes.set(accessToken, quotes);
+  }
+  return quotes(keys);
 }
 
 // Kite's index tokens never change, and its instrument list changes once a day: keep both in
@@ -101,7 +151,9 @@ export async function indexToken(config: KiteConfig, accessToken: string, underl
   const known = indexTokens.get(underlying);
   if (known) return known;
   const keys = Object.values(UNDERLYINGS).map((item) => item.indexKey);
-  const tokens = parseLtpTokens(await callJson(config, `/quote/ltp?${new URLSearchParams(keys.map((key) => ["i", key]))}`, { accessToken }));
+  // /quote/ltp counts against the quote limit.
+  const body = await throttle.quoteGate(() => callJson(config, `/quote/ltp?${new URLSearchParams(keys.map((key) => ["i", key]))}`, { accessToken }));
+  const tokens = parseLtpTokens(body);
   for (const [name, item] of Object.entries(UNDERLYINGS) as [Underlying, (typeof UNDERLYINGS)[Underlying]][]) {
     const token = tokens.get(item.indexKey);
     if (token) indexTokens.set(name, token);

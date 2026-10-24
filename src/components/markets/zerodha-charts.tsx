@@ -115,23 +115,25 @@ function Choice<T extends string | number>({ label, value, options, onChange }: 
 
 const selectClass = "mt-1 min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-3 font-mono text-xs text-[var(--foreground)] sm:w-auto";
 
-function SessionEnded({ message, loginHref }: { message: string; loginHref: string }) {
+/** The shared login ended mid-session. Owners get the Kite login (`loginHref`); everyone else waits for them. */
+function SessionEnded({ message, loginHref }: { message: string; loginHref: string | null }) {
   return (
     <div className="terminal-card px-6 py-12 text-center">
-      <h2 className="text-xl font-medium tracking-tight">Connect Zerodha again</h2>
+      <h2 className="text-xl font-medium tracking-tight">{loginHref ? "Connect Zerodha again" : "Live prices are offline"}</h2>
       <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">{message}</p>
       {/* A route handler redirect, so a plain link rather than a prefetching <Link>. */}
-      <a href={loginHref} className="mt-6 inline-flex min-h-11 items-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Log in with Zerodha</a>
+      {loginHref && <a href={loginHref} className="mt-6 inline-flex min-h-11 items-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Log in with Zerodha</a>}
     </div>
   );
 }
 
 /**
- * Charts, quotes and depth for NIFTY, BANK NIFTY and SENSEX from the owner's Kite session. With an
+ * Charts, quotes and depth for NIFTY, BANK NIFTY and SENSEX from the firm's shared Kite login, for
+ * any signed-in user; `canConnect` marks an owner, who can log in again when Kite ends it. With an
  * `account`, it is that evaluation account's trading platform: the order ticket and blotter, with
  * each poll feeding the account on the server.
  */
-export function ZerodhaCharts({ account }: { account?: { id: string; desk: Desk; planLabel: string } }) {
+export function ZerodhaCharts({ account, canConnect }: { account?: { id: string; desk: Desk; planLabel: string }; canConnect: boolean }) {
   const [underlying, setUnderlying] = useState<Underlying>("NIFTY");
   const [mode, setMode] = useState<Mode>("index");
   const [barInterval, setBarInterval] = useState<Interval>("5minute");
@@ -153,12 +155,13 @@ export function ZerodhaCharts({ account }: { account?: { id: string; desk: Desk;
   const [ended, setEnded] = useState<string | null>(null);
   const router = useRouter();
   const home = account ? `/trade/${account.id}` : "/markets";
-  // Kite's 06:00 logout or a revoked token: re-render the page from the server, which now offers a
-  // fresh login (the API route has already dropped the cookie).
+  // Kite's 06:00 logout or a revoked token: re-render the page from the server, which now offers
+  // owners a fresh login and shows everyone else the offline card (the API route has already
+  // forgotten the shared login).
   const sessionEnded = useCallback((message: string) => {
     setEnded(message);
-    router.replace(`${home}?zerodha=ended`);
-  }, [router, home]);
+    router.replace(`${home}?zerodha=${canConnect ? "ended" : "offline"}`);
+  }, [router, home, canConnect]);
   const latestQuotes = useRef<Record<string, MarketQuote>>({});
   const lastPoll = useRef(0);
   const [desk, setDesk] = useState<Desk | null>(account?.desk ?? null);
@@ -299,7 +302,7 @@ export function ZerodhaCharts({ account }: { account?: { id: string; desk: Desk;
     if (next === "option" && data && !strikePicked) setStrike(nearestStrike(data.chain, quotes[data.index.key]?.lastPrice));
   };
 
-  if (ended) return <SessionEnded message={ended} loginHref={`/api/zerodha/login?${new URLSearchParams({ next: home })}`} />;
+  if (ended) return <SessionEnded message={ended} loginHref={canConnect ? `/api/zerodha/login?${new URLSearchParams({ next: home })}` : null} />;
 
   const quote = selectedKey ? quotes[selectedKey] : undefined;
   const liveCandle = live && live.key === chartKey ? live.candle : null;

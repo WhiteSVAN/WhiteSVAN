@@ -1,16 +1,16 @@
 import type { NextRequest } from "next/server";
 import { errorFields, logger } from "@/lib/logger";
-import { currentKiteOwner, currentKiteSession, redirectTo, sameOriginPost } from "@/lib/zerodha/access";
+import { currentKiteOwner, redirectTo, sameOriginPost } from "@/lib/zerodha/access";
 import { endSession } from "@/lib/zerodha/client";
-import { KITE_SESSION_COOKIE } from "@/lib/zerodha/session";
+import { dropKiteSession, sharedKiteSession } from "@/lib/zerodha/connection";
 
-/** Disconnect: end the Kite session (best effort) and drop the cookie. Same-origin form posts only. */
+/** Disconnect the shared login for everyone: end the Kite session (best effort) and forget it. Owners only, same-origin form posts only. */
 export async function POST(request: NextRequest) {
   if (!sameOriginPost(request)) return new Response("Forbidden", { status: 403 });
   const owner = await currentKiteOwner();
   if (!owner) return new Response("Not found", { status: 404 });
 
-  const session = await currentKiteSession(owner);
+  const session = await sharedKiteSession(owner.config.sessionSecret);
   if (session) {
     try {
       await endSession(owner.config, session.accessToken);
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       logger.warn("zerodha.logout.failed", errorFields(error));
     }
   }
-  const response = redirectTo("/markets?zerodha=disconnected", 303);
-  response.cookies.set(KITE_SESSION_COOKIE, "", { path: "/", maxAge: 0 });
-  return response;
+  await dropKiteSession(owner.config.sessionSecret);
+  logger.info("zerodha.disconnected", { userId: owner.userId });
+  return redirectTo("/markets?zerodha=disconnected", 303);
 }
