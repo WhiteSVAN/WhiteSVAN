@@ -20,7 +20,7 @@ export default async function SignupPage({
   const plan = !asClient && sp.plan ? findEvaluationPlan(sp.plan) : undefined;
   const next = safeNextPath(sp.next) ?? undefined;
   // Creating the account is step 1 of 3; checkout (step 2) is where the size is chosen.
-  const continueTo = plan ? `/checkout/${plan.id}` : next;
+  const continueTo = next ?? (plan ? `/checkout/${plan.id}` : undefined);
 
   return (
     <div>

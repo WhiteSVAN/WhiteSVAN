@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { BookOpen } from "lucide-react";
@@ -9,6 +10,7 @@ import { WaitlistForm } from "@/app/waitlist-form";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { INDIAN_STATES, MAX_ACTIVE_ACCOUNTS } from "@/lib/checkout/billing";
+import { requireMember } from "@/lib/auth/dal";
 import { checkoutModeFor } from "@/lib/checkout/config";
 import { demoCreditLeft } from "@/lib/checkout/demo";
 import { activeAccountCount, lastBilling } from "@/lib/checkout/orders";
@@ -36,6 +38,7 @@ export default async function CheckoutPage({ params }: Props) {
   if (!plan) notFound();
   const userId = (await auth())?.user?.id;
   if (!userId) redirect(`/signup?plan=${plan.id}`);
+  await requireMember();
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true, demoCreditSpent: true } });
   if (!user?.email) redirect(`/login?${new URLSearchParams({ next: `/checkout/${plan.id}` })}`);
   const mode = checkoutModeFor(user.email);
@@ -57,6 +60,7 @@ export default async function CheckoutPage({ params }: Props) {
               mode={mode}
               creditLeft={demoCreditLeft(user.demoCreditSpent)}
               initialPlan={plan.id}
+              attemptId={randomUUID()}
               defaults={{ name: last?.name ?? user.name ?? "", phone: last?.phone?.slice(-10) ?? "", state: last && STATES.includes(last.state) ? last.state : "", terms: false }}
             />
           </>

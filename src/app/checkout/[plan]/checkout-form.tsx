@@ -21,9 +21,10 @@ function Errors({ messages }: { messages?: string[] }) {
  * place and the address follows it; the details start from the trader's last order. Pays as a
  * staff test purchase or, in demo mode, from the user's demo credit (`creditLeft`, in paise).
  */
-export function CheckoutForm({ action, email, defaults, mode, creditLeft, initialPlan }: { action: (state: CheckoutState | undefined, formData: FormData) => Promise<CheckoutState | undefined>; email: string; defaults: CheckoutValues; mode: "test" | "demo"; creditLeft: number; initialPlan: string }) {
+export function CheckoutForm({ action, email, defaults, mode, creditLeft, initialPlan, attemptId }: { action: (state: CheckoutState | undefined, formData: FormData) => Promise<CheckoutState | undefined>; email: string; defaults: CheckoutValues; mode: "test" | "demo"; creditLeft: number; initialPlan: string; attemptId: string }) {
   const [state, submit, pending] = useActionState(action, undefined);
   const [planId, setPlanId] = useState(initialPlan);
+  const [attempt] = useState(attemptId);
   const plan = findEvaluationPlan(planId) ?? RECOMMENDED_PLAN;
   const price = planAmount(plan);
   const total = formatInr(plan.fee);
@@ -37,16 +38,16 @@ export function CheckoutForm({ action, email, defaults, mode, creditLeft, initia
   };
 
   return (
-    <div className="mt-8 grid items-start gap-8 lg:grid-cols-[1.15fr_.85fr] lg:gap-12">
-      <section className="space-y-8 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 sm:p-8" aria-label="Checkout details">
+    <div className="mt-8 grid min-w-0 grid-cols-1 items-start gap-8 lg:grid-cols-[1.15fr_.85fr] lg:gap-12">
+      <section className="min-w-0 space-y-8 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-8" aria-label="Checkout details">
         {/* Outside the form: the size reaches the server through the hidden field below. */}
-        <fieldset disabled={pending}>
+        <fieldset disabled={pending} className="min-w-0">
           <legend className="text-sm font-medium">2. Choose your account size</legend>
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {EVALUATION_PLANS.map((tier) => {
               const selected = tier.id === plan.id;
               return (
-                <label key={tier.id} className={`flex cursor-pointer flex-col rounded-xl border p-4 ${selected ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border-strong)] hover:border-[var(--primary)]"}`}>
+                <label key={tier.id} className={`flex min-w-0 cursor-pointer flex-col rounded-xl border p-3 sm:p-4 ${selected ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border-strong)] hover:border-[var(--primary)]"}`}>
                   <span className="flex h-4 items-center justify-between gap-2">
                     <input type="radio" name="checkout-size" value={tier.id} checked={selected} onChange={() => choose(tier.id)} className="h-4 w-4" />
                     {tier.id === RECOMMENDED_PLAN.id && <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--primary)]">Recommended</span>}
@@ -62,9 +63,10 @@ export function CheckoutForm({ action, email, defaults, mode, creditLeft, initia
 
         <form action={submit} noValidate>
           <input type="hidden" name="plan" value={plan.id} />
-          <fieldset className="space-y-4">
+          <input type="hidden" name="attempt" value={attempt} />
+          <fieldset className="min-w-0 space-y-4">
             <legend className="text-sm font-medium">3. Pay</legend>
-            <p className="text-xs text-[var(--muted)]">Signed in as <span className="text-[var(--foreground)]">{email}</span>. Your receipt and account details go here.</p>
+            <p className="text-xs text-[var(--muted)]">Signed in as <span className="break-all text-[var(--foreground)]">{email}</span>. Your receipt and account details go here.</p>
             <label className={label} htmlFor="checkout-name">Full name
               <input id="checkout-name" name="name" defaultValue={values.name} autoComplete="name" required aria-invalid={Boolean(state?.errors?.name)} className={field} />
               <Errors messages={state?.errors?.name} />
