@@ -4,6 +4,7 @@ import { ArrowRight, ChartNoAxesCombined, ClipboardCheck, ShieldCheck } from "lu
 import { AccountSelector } from "@/components/prop-firm/account-selector";
 import { PropHeader } from "@/components/prop-firm/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { DEMO_CHECKOUT, DEMO_START_ANSWER } from "@/lib/checkout/demo";
 import { EVALUATION_PLANS, PROGRAMME_RULES as R } from "@/lib/prop-firm";
 
 export const metadata: Metadata = {
@@ -25,7 +26,7 @@ const COMPARISON: [string, string, string][] = [
 ];
 
 const FAQ: [string, string][] = [
-  ["When can I start?", "We're launching soon. Create your account now to get early access when evaluations open."],
+  ["When can I start?", DEMO_CHECKOUT ? DEMO_START_ANSWER : "We're launching soon. Create your account now to get early access when evaluations open."],
   ["Is the account balance real money?", `No. Evaluation and funded accounts are simulated. Your payouts are real: ${R.contractorSharePercent}% of the profit on your funded account, up to the cap for your account size.`],
   ["Is there a monthly fee?", "No. Each evaluation is a one-time fee with GST included. No subscription and no activation fee when you pass."],
   ["What happens if I break a rule?", "Your evaluation ends and you get a breach report showing the trade and the rule. Think it was wrong? Appeal within 7 days. You can start a new evaluation whenever you're ready."],

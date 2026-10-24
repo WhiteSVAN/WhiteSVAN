@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import { SvanLogo } from "@/components/svan-logo";
+import { DEMO_CHECKOUT, DEMO_CREDIT } from "@/lib/checkout/demo";
+import { formatInr } from "@/lib/prop-firm";
 
 const LINKS = [
   ["/#accounts", "Pricing"],
@@ -37,9 +39,9 @@ export function PropHeader() {
   const account = signedIn ? { href: "/dashboard", label: "My accounts" } : { href: "/login", label: "Log in" };
   return <>
     <div className="border-b border-[var(--border)] bg-[#172216] px-4 py-2.5 text-center text-[11px] text-[#c7d7bd]">
-      <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--primary)]" /> Launching soon
+      <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--primary)]" /> {DEMO_CHECKOUT ? `Demo open: ${formatInr(DEMO_CREDIT)} of virtual credit to start an evaluation` : "Launching soon"}
       <span className="hidden sm:inline"><span className="mx-3 text-[#52644b]">/</span> NIFTY, BANK NIFTY &amp; SENSEX futures and options</span>
-      <Link href="/signup" className="ml-3 font-medium text-[var(--primary)] underline-offset-4 hover:underline">Get early access</Link>
+      <Link href="/signup" className="ml-3 font-medium text-[var(--primary)] underline-offset-4 hover:underline">{DEMO_CHECKOUT ? "Try it free" : "Get early access"}</Link>
     </div>
     <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[#0b0f0d]/95 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center gap-8 px-5 sm:px-8">

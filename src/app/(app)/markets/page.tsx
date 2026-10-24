@@ -52,8 +52,8 @@ export default async function MarketsPage({ searchParams }: { searchParams: Prom
           key={chosen?.id ?? "charts"}
           canConnect={owner}
           home={home}
-          account={chosen ? { id: chosen.id, desk: chosen.desk, planLabel: planLabel(chosen.planId) } : undefined}
-          accounts={active.map((account) => ({ id: account.id, label: `${planLabel(account.planId)} · ${accountNumber(account.id, account.planId)}`, href: `/markets?account=${account.id}` }))}
+          account={chosen ? { id: chosen.id, desk: chosen.desk, planLabel: planLabel(chosen.planId), demo: chosen.demo } : undefined}
+          accounts={active.map((account) => ({ id: account.id, label: `${planLabel(account.planId)}${account.demo ? " demo" : ""} · ${accountNumber(account.id, account.planId)}`, href: `/markets?account=${account.id}` }))}
         />
       ) : owner ? (
         <ConnectZerodha next={home} />

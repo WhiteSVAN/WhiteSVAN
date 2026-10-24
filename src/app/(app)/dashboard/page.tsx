@@ -7,8 +7,10 @@ import { listAccounts } from "@/lib/accounts/store";
 import { requireMember } from "@/lib/auth/dal";
 import { accountNumber } from "@/lib/checkout/billing";
 import { checkoutModeFor } from "@/lib/checkout/config";
+import { demoCreditLeft } from "@/lib/checkout/demo";
 import { prisma } from "@/lib/db";
 import { findEvaluationPlan } from "@/lib/prop-firm";
+import { formatPaise } from "@/lib/trading/money";
 import { WaitlistForm } from "@/app/waitlist-form";
 
 const openedText = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric" });
@@ -19,7 +21,9 @@ export default async function DashboardPage() {
   const user = await requireMember();
   const importedAccountCount = await prisma.tradingAccount.count({ where: { userId: user.id } });
   const accounts = await listAccounts(user.id);
-  const canBuy = checkoutModeFor(user.email) === "test";
+  const mode = checkoutModeFor(user.email);
+  const canBuy = mode !== "closed";
+  const credit = mode === "demo" ? demoCreditLeft((await prisma.user.findUnique({ where: { id: user.id }, select: { demoCreditSpent: true } }))?.demoCreditSpent ?? 0) : null;
   const firstName = (user.name ?? user.profile?.displayName)?.trim().split(/\s+/)[0];
 
   return (
@@ -32,6 +36,9 @@ export default async function DashboardPage() {
             {firstName ? `Welcome back, ${firstName}. ` : "Welcome to WhiteSVAN. "}
             {accounts.length > 0 ? `You have ${accounts.length} account${accounts.length === 1 ? "" : "s"}.` : canBuy ? "Pick an account size to start your first evaluation." : "Evaluations are launching soon."}
           </p>
+          {credit !== null && (
+            <p className="mt-2 text-xs leading-5 text-[var(--muted)]">Demo credit <span className="font-mono text-sm text-[var(--primary)]">{formatPaise(credit, 2)}</span> · buy evaluations with virtual credit while payments launch. Nobody is charged.</p>
+          )}
         </div>
         <Link href="/evaluations" className="inline-flex min-h-11 items-center gap-3 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] transition hover:bg-[var(--primary-hover)]">
           Choose your account <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
@@ -56,9 +63,12 @@ export default async function DashboardPage() {
                         <h3 className="text-sm font-medium">{plan?.label ?? account.planId} evaluation</h3>
                         <p className="mt-1 font-mono text-[11px] text-[var(--muted)]">{accountNumber(account.id, account.planId)} · opened {openedText.format(account.createdAt)}</p>
                       </div>
-                      <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${status.className}`}>{status.text}</span>
+                      <span className="flex shrink-0 gap-1.5">
+                        {account.demo && <span className="rounded-full border border-[var(--warning)]/50 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--warning)]">Demo</span>}
+                        <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${status.className}`}>{status.text}</span>
+                      </span>
                     </div>
-                    <AccountMeters desk={account.desk} />
+                    <AccountMeters desk={account.desk} demo={account.demo} />
                     <Link href={`/trade/${account.id}`} className="mt-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">{account.status === "ACTIVE" ? "Start trading" : "Open account"} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
                   </article>
                 </li>
@@ -68,7 +78,7 @@ export default async function DashboardPage() {
         ) : canBuy ? (
           <div className="flex min-h-[260px] flex-col items-center justify-center px-6 py-14 text-center">
             <h3 className="text-xl font-medium tracking-tight">No accounts yet</h3>
-            <p className="mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">Choose an account size, check out, and your evaluation opens straight away.</p>
+            <p className="mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">{mode === "demo" ? "Choose an account size and pay with your demo credit. Your evaluation opens straight away." : "Choose an account size, check out, and your evaluation opens straight away."}</p>
             <Link href="/evaluations#accounts" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Choose your account <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </div>
         ) : (

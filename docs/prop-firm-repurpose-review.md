@@ -250,3 +250,25 @@ The storefront and pure trading library do not by themselves activate those serv
   stand-in, 23 checks: account switching; Buy/Sell; limit order modified, then filled; stop
   modified, then cancelled; a rejected naked short; history after a reload; the phone layout; and
   the no-account card.
+
+## Demo evaluations on virtual credit, 24 Oct 2026 (Claude)
+
+- Founder's decision, for demos while no payment gateway is signed: a demo wallet, not free
+  accounts. Every user has ₹50,000 of virtual credit (`DEMO_CREDIT` in `src/lib/checkout/demo.ts`)
+  and buys evaluations at the normal prices with it, so the whole purchase flow can be shown.
+- Checkout has three modes (`config.ts`): staff `test`, everyone else `demo`, or `closed` with
+  `DEMO_CHECKOUT = false`. A demo purchase spends the credit in the same transaction that opens
+  the account, conditional on enough being left, so double clicks can't overspend.
+- Migration `20261024150000_demo_evaluations` (additive): `User.demoCreditSpent` (paise) and
+  `EvaluationAccount.demo`. Orders keep the plan price with provider `"demo"`.
+- Demo accounts are labelled Demo on My accounts, the trading page, the ticket and the account
+  picker. Passing one says it doesn't move to a funded account, and the confirmation page and
+  email say nobody was charged.
+- Storefront copy says "Demo open". This covers the announcement bar, the hero, pricing, the
+  plan pages, rules, FAQs, help, the footer disclaimer and the app's top bar, so nothing says
+  evaluations can't be bought yet.
+- Checked with unit tests and an end-to-end run against a fresh Postgres, 19 checks:
+  - buying three ₹10L evaluations down to ₹5,003, then the 3-account cap;
+  - a short balance refused in the browser, and by the server when the button is forced;
+  - staff still making test purchases;
+  - the storefront copy and the phone layout.

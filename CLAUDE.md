@@ -51,10 +51,18 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
   `/signup?plan=<id>`, which returns to that checkout; sign-in honours `?next=`) → details, the
   agreements and payment → `/checkout/complete/<order>` → "Start trading" → `/trade/<account>`.
   Traders don't need a journal profile for any of this (`requireMember` in
-  [src/lib/auth/dal.ts](src/lib/auth/dal.ts)). No payment gateway is signed (Razorpay or Cashfree),
-  so checkout is closed to the public ("opens at launch", with the launch list); the sign-ins in
-  `STAFF_EMAILS` make **test purchases** that open a real account without a charge
-  ([src/lib/checkout/](src/lib/checkout/)). A gateway adds a third mode in `config.ts`.
+  [src/lib/auth/dal.ts](src/lib/auth/dal.ts)). No payment gateway is signed (Razorpay or Cashfree).
+  Until one is, checkout runs in **demo mode** (founder's decision, 24 Oct 2026, for demos):
+  - Every user has ₹50,000 of virtual demo credit (`DEMO_CREDIT` in
+    [src/lib/checkout/demo.ts](src/lib/checkout/demo.ts); `User.demoCreditSpent` in paise).
+  - Evaluations are bought at the normal prices with it. The order has provider `"demo"`, and the
+    credit is spent in the same transaction, conditional on enough being left.
+  - The account is marked `EvaluationAccount.demo`, shows a Demo label, and never leads to a funded
+    account or a payout.
+  - The sign-ins in `STAFF_EMAILS` still make **test purchases** (provider `"test"`, no credit used).
+  - `DEMO_CHECKOUT = false` closes checkout to the public again ("opens at launch", with the launch
+    list). The storefront copy follows the flag, so it's a code change, not an env var.
+  - A gateway adds a live mode in [src/lib/checkout/config.ts](src/lib/checkout/config.ts).
 - **Track record** (`/track`, [src/lib/track-record.ts](src/lib/track-record.ts)): the second route
   in. Traders trade NIFTY, BANK NIFTY and SENSEX F&O in their own Zerodha account, upload Console
   tradebooks, and the programme rules judge each day's closed result (no intraday prices, so limits
@@ -219,8 +227,9 @@ Prisma schema: [prisma/schema.prisma](prisma/schema.prisma). Two groups:
   `TradingAccount`, `Trade` (raw source rows kept in `raw` Json), `DailyPnl`
   (per-account/day rollup, rebuilt from loaded trades, `@@unique([accountId, tradeDate])`),
   `Report` (`metrics` + `aiReport` JSON, `DRAFT`/`PUBLISHED`), `WaitlistEntry` (launch list).
-  `EvaluationAccount` (the engine snapshot in `desk`, `version` for optimistic locking) and
-  `CheckoutOrder` (amount in paise, provider, billing, GST place of supply). There are no payout
+  `EvaluationAccount` (the engine snapshot in `desk`, `version` for optimistic locking, `demo` for
+  accounts bought with demo credit) and `CheckoutOrder` (amount in paise, provider `test`, `demo`
+  or a gateway, billing, GST place of supply). `User.demoCreditSpent` tracks demo credit. There are no payout
   tables yet (see the TRD's data model).
 
 Money is `Decimal(18,2)`; prices `Decimal(18,6)`; quantity `Decimal(18,4)`. Dates that are
@@ -309,7 +318,7 @@ metadata gates access without exposing private evidence files.
   and options; candles, volume, OI, live quotes, depth) with a source-agnostic chart component.
   Shared with every signed-in user since 24 Oct 2026.
 - ✅ **Checkout, accounts and the trading platform (Oct 2026)**: Tradeify-style buying from the plan
-  card to `/trade/<account>`, staff test purchases until a gateway is signed, stored evaluation
+  card to `/trade/<account>`, demo evaluations on ₹50,000 of virtual credit (staff: test purchases) until a gateway is signed, stored evaluation
   accounts on the server-side engine, My accounts cards. Every account holder trades on the shared
   Kite login.
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine

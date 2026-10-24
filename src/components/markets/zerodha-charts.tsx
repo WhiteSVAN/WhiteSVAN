@@ -149,7 +149,7 @@ const withParam = (path: string, name: string, value: string) => `${path}${path.
  * the order book, with each poll feeding the account on the server. `home` is the page to come back
  * to; `accounts` lets someone with several evaluation accounts switch between them.
  */
-export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }: { account?: { id: string; desk: Desk; planLabel: string }; canConnect: boolean; home?: string; accounts?: { id: string; label: string; href: string }[] }) {
+export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }: { account?: { id: string; desk: Desk; planLabel: string; demo?: boolean }; canConnect: boolean; home?: string; accounts?: { id: string; label: string; href: string }[] }) {
   const [underlying, setUnderlying] = useState<Underlying>("NIFTY");
   const [mode, setMode] = useState<Mode>("index");
   const [barInterval, setBarInterval] = useState<Interval>("5minute");
@@ -485,7 +485,7 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
                 </select>
               </label>
             )}
-            <AccountTicket desk={desk} planLabel={account.planLabel} contract={instrument?.contract ?? null} quote={quote} side={side} onSide={setSide} onPlace={sendOrder} />
+            <AccountTicket desk={desk} planLabel={account.planLabel} demo={account.demo} contract={instrument?.contract ?? null} quote={quote} side={side} onSide={setSide} onPlace={sendOrder} />
           </div>
         ) : (
           <OpenEvaluation />

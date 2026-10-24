@@ -3,6 +3,7 @@ import { findEvaluationPlan } from "@/lib/prop-firm";
 import { safeNextPath } from "@/lib/safe-path";
 import { accountNumber, billingSchema, planAmount } from "./billing";
 import { checkoutModeFor, staffEmails } from "./config";
+import { DEMO_CREDIT, demoCreditLeft } from "./demo";
 
 const valid = { name: "Aditya Nalluri", phone: "98765 43210", state: "Telangana", terms: "on" };
 
@@ -36,12 +37,20 @@ describe("checkout details", () => {
 describe("checkout mode", () => {
   const env = { STAFF_EMAILS: " Founder@WhiteSVAN.in , ops@whitesvan.in" };
 
-  it("lets staff make test purchases and keeps checkout closed for everyone else", () => {
+  it("lets staff make test purchases and everyone else buy demo evaluations, or none with demo off", () => {
     expect(staffEmails(env)).toEqual(["founder@whitesvan.in", "ops@whitesvan.in"]);
     expect(checkoutModeFor("FOUNDER@whitesvan.in", env)).toBe("test");
-    expect(checkoutModeFor("trader@example.com", env)).toBe("closed");
-    expect(checkoutModeFor(null, env)).toBe("closed");
-    expect(checkoutModeFor("founder@whitesvan.in", {})).toBe("closed");
+    expect(checkoutModeFor("trader@example.com", env)).toBe("demo");
+    expect(checkoutModeFor(null, env)).toBe("demo");
+    expect(checkoutModeFor("founder@whitesvan.in", {})).toBe("demo");
+    expect(checkoutModeFor("trader@example.com", env, false)).toBe("closed");
+    expect(checkoutModeFor("FOUNDER@whitesvan.in", env, false)).toBe("test");
+  });
+
+  it("counts demo credit down from the allowance and never below zero", () => {
+    expect(demoCreditLeft(0)).toBe(DEMO_CREDIT * 100);
+    expect(demoCreditLeft(planAmount(findEvaluationPlan("10l")!))).toBe(DEMO_CREDIT * 100 - 14_999_00);
+    expect(demoCreditLeft(DEMO_CREDIT * 100 + 1)).toBe(0);
   });
 });
 

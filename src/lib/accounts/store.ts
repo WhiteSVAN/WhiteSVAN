@@ -12,13 +12,15 @@ export interface StoredAccount {
   userId: string;
   planId: string;
   status: "ACTIVE" | "PASSED" | "FAILED";
+  /** Bought with demo credit: never leads to a funded account or a payout. */
+  demo: boolean;
   desk: Desk;
   version: number;
   createdAt: Date;
 }
 
-const SELECT = { id: true, userId: true, planId: true, status: true, desk: true, version: true, createdAt: true } as const;
-type Row = { id: string; userId: string; planId: string; status: StoredAccount["status"]; desk: Prisma.JsonValue; version: number; createdAt: Date };
+const SELECT = { id: true, userId: true, planId: true, status: true, demo: true, desk: true, version: true, createdAt: true } as const;
+type Row = { id: string; userId: string; planId: string; status: StoredAccount["status"]; demo: boolean; desk: Prisma.JsonValue; version: number; createdAt: Date };
 const stored = (row: Row): StoredAccount => ({ ...row, desk: row.desk as unknown as Desk });
 
 export async function listAccounts(userId: string): Promise<StoredAccount[]> {

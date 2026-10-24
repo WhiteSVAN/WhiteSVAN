@@ -54,12 +54,14 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
   });
 }
 
-export async function sendOrderConfirmation(to: string, order: { planLabel: string; accountNumber: string; accountId: string }): Promise<void> {
+export async function sendOrderConfirmation(to: string, order: { planLabel: string; accountNumber: string; accountId: string; demo?: boolean }): Promise<void> {
+  const kind = order.demo ? "demo evaluation" : "evaluation";
   await sendEmail({
     to,
-    subject: `Your ${order.planLabel} evaluation is ready`,
+    subject: `Your ${order.planLabel} ${kind} is ready`,
     text:
-      `Your ${order.planLabel} WhiteSVAN evaluation is open. Account ${order.accountNumber}.\n\n` +
+      `Your ${order.planLabel} WhiteSVAN ${kind} is open. Account ${order.accountNumber}.\n\n` +
+      (order.demo ? `It was paid with virtual demo credit: nobody was charged, and a demo account doesn't lead to a funded account or a payout.\n\n` : "") +
       `Open the trading platform:\n${SITE_URL}/trade/${order.accountId}\n\n` +
       `The rules: ${SITE_URL}/rules\n\n` +
       `Evaluation and funded accounts are simulated. Nothing here is investment advice.`,
