@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
 import { requireUser } from "@/lib/auth/dal";
 import { unreadCount } from "@/lib/notify";
+import { DEMO_CHECKOUT } from "@/lib/checkout/demo";
 import { kiteConfig } from "@/lib/zerodha/config";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { AccountMenu } from "./account-menu";
@@ -49,7 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="border-b border-[#202a23] bg-[#111711] font-mono text-[9px] uppercase tracking-[0.08em] text-[#8f9d8e]">
         <div className="mx-auto flex h-8 max-w-7xl items-center justify-between px-4 sm:px-8">
           <span className="flex items-center gap-2"><i className="terminal-dot" /> WhiteSVAN / Trader dashboard</span>
-          <span className="hidden sm:block">Evaluations launching soon</span>
+          <span className="hidden sm:block">{DEMO_CHECKOUT ? "Demo mode · evaluations on virtual credit" : "Evaluations launching soon"}</span>
         </div>
       </div>
       <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-xl">

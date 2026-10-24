@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { accountNumber } from "@/lib/checkout/billing";
+import { demoCreditLeft } from "@/lib/checkout/demo";
 import { findEvaluationPlan, formatInr, planLimits, PROGRAMME_RULES as R } from "@/lib/prop-firm";
 import { formatPaise } from "@/lib/trading/money";
 
@@ -27,6 +28,25 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
   const plan = findEvaluationPlan(order.planId);
   if (!plan) notFound();
   const limits = planLimits(plan);
+  const demo = order.provider === "demo";
+  const creditLeft = demo ? demoCreditLeft((await prisma.user.findUnique({ where: { id: userId }, select: { demoCreditSpent: true } }))?.demoCreditSpent ?? 0) : null;
+  const payment = order.provider === "test" ? "Test purchase, not charged" : demo ? "Demo credit, nobody charged" : order.provider;
+  const rows: [string, string][] = [
+    ["Account", accountNumber(order.accountId, plan.id)],
+    ["Order", order.id],
+    ["Amount", demo ? `${formatPaise(order.amount, 0)} in demo credit` : `${formatPaise(order.amount, 0)} · GST included`],
+    ["Payment", payment],
+    ...(creditLeft !== null ? [["Demo credit left", formatPaise(creditLeft, 2)] as [string, string]] : []),
+    ["Date", order.paidAt ? `${dateText.format(order.paidAt)} IST` : "—"],
+    ["Receipt sent to", order.billingEmail],
+  ];
+  const steps: [string, string][] = [
+    ["Trade the evaluation", "NIFTY, BANK NIFTY and SENSEX futures and options, intraday, on the platform."],
+    ["Pass", `Hit the ${R.targetPercent}% target in ${R.minimumDays} or more trading days, inside both loss limits.`],
+    demo
+      ? ["Demo only", "A demo evaluation shows how it works. Passing it doesn't lead to a funded account or a payout."]
+      : ["Get funded", `KYC and your funded trader agreement, then an ${R.contractorSharePercent}% profit split.`],
+  ];
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -35,7 +55,7 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
         <div className="text-center">
           <CircleCheck className="mx-auto h-12 w-12 text-[var(--primary)]" aria-hidden="true" />
           <p className="terminal-label mt-5 text-[var(--primary)]">Order complete</p>
-          <h1 className="mt-4 text-4xl font-medium tracking-[-.05em] sm:text-5xl">Your {plan.label} evaluation is ready.</h1>
+          <h1 className="mt-4 text-4xl font-medium tracking-[-.05em] sm:text-5xl">Your {plan.label} {demo ? "demo evaluation" : "evaluation"} is ready.</h1>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-[var(--muted)]">Open the trading platform and start whenever you like. Hit {formatInr(limits.profitTarget)} in at least {R.minimumDays} trading days without touching the {formatInr(limits.dailyLoss)} daily loss limit or the {formatInr(limits.maximumLoss)} max drawdown.</p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link href={`/trade/${order.accountId}`} className="inline-flex min-h-12 items-center gap-3 rounded-full bg-[var(--primary)] px-7 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start trading <ArrowRight size={16} aria-hidden="true" /></Link>
@@ -44,22 +64,11 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
         </div>
 
         <dl className="mt-12 divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)] bg-[var(--card)] px-6 text-sm">
-          {[
-            ["Account", accountNumber(order.accountId, plan.id)],
-            ["Order", order.id],
-            ["Amount", `${formatPaise(order.amount, 0)} · GST included`],
-            ["Payment", order.provider === "test" ? "Test purchase, not charged" : order.provider],
-            ["Date", order.paidAt ? `${dateText.format(order.paidAt)} IST` : "—"],
-            ["Receipt sent to", order.billingEmail],
-          ].map(([term, value]) => <div key={term} className="flex flex-wrap justify-between gap-3 py-4"><dt className="text-[var(--muted)]">{term}</dt><dd className="break-all font-mono text-xs sm:text-sm">{value}</dd></div>)}
+          {rows.map(([term, value]) => <div key={term} className="flex flex-wrap justify-between gap-3 py-4"><dt className="text-[var(--muted)]">{term}</dt><dd className="break-all font-mono text-xs sm:text-sm">{value}</dd></div>)}
         </dl>
 
         <ol className="mt-10 grid gap-4 sm:grid-cols-3">
-          {[
-            ["Trade the evaluation", "NIFTY, BANK NIFTY and SENSEX futures and options, intraday, on the platform."],
-            ["Pass", `Hit the ${R.targetPercent}% target in ${R.minimumDays} or more trading days, inside both loss limits.`],
-            ["Get funded", `KYC and your funded trader agreement, then an ${R.contractorSharePercent}% profit split.`],
-          ].map(([title, body], index) => (
+          {steps.map(([title, body], index) => (
             <li key={title} className="rounded-xl border border-[var(--border)] bg-[var(--card-deep)] p-5">
               <span className="font-mono text-xs text-[var(--primary)]">0{index + 1}</span>
               <h2 className="mt-3 text-sm font-medium">{title}</h2>

@@ -7,8 +7,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { WaitlistForm } from "@/app/waitlist-form";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { MAX_ACTIVE_ACCOUNTS } from "@/lib/checkout/billing";
+import { MAX_ACTIVE_ACCOUNTS, planAmount } from "@/lib/checkout/billing";
 import { checkoutModeFor } from "@/lib/checkout/config";
+import { demoCreditLeft } from "@/lib/checkout/demo";
 import { activeAccountCount } from "@/lib/checkout/orders";
 import { EVALUATION_PLANS, findEvaluationPlan, formatInr, planLimits, PROGRAMME_RULES as R } from "@/lib/prop-firm";
 import { checkout } from "../actions";
@@ -21,13 +22,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: plan ? `Checkout: ${plan.label} evaluation | WhiteSVAN` : "Checkout | WhiteSVAN", robots: { index: false } };
 }
 
-/** Checkout for one evaluation, in the order a prop-firm buyer expects: details, agreements, payment. */
+/**
+ * Checkout for one evaluation, in the order a prop-firm buyer expects: details, agreements, payment.
+ * Until payments go live, staff make test purchases and everyone else pays with demo credit.
+ */
 export default async function CheckoutPage({ params }: Props) {
   const plan = findEvaluationPlan((await params).plan);
   if (!plan) notFound();
   const userId = (await auth())?.user?.id;
   if (!userId) redirect(`/signup?plan=${plan.id}`);
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true } });
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true, demoCreditSpent: true } });
   if (!user?.email) redirect(`/login?${new URLSearchParams({ next: `/checkout/${plan.id}` })}`);
   const mode = checkoutModeFor(user.email);
   const active = await activeAccountCount(userId);
@@ -66,8 +70,8 @@ export default async function CheckoutPage({ params }: Props) {
                 <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Traders can hold up to {MAX_ACTIVE_ACCOUNTS} active evaluation accounts at a time. Pass or close one to buy another.</p>
                 <Link href="/dashboard" className="mt-6 inline-flex min-h-11 items-center rounded-full bg-[var(--primary)] px-6 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Go to my accounts</Link>
               </div>
-            ) : mode === "test" ? (
-              <CheckoutForm action={checkout.bind(null, plan.id)} email={user.email} defaultName={user.name ?? ""} total={total} />
+            ) : mode !== "closed" ? (
+              <CheckoutForm action={checkout.bind(null, plan.id)} email={user.email} defaultName={user.name ?? ""} total={total} mode={mode} price={planAmount(plan)} creditLeft={demoCreditLeft(user.demoCreditSpent)} />
             ) : (
               <div>
                 <p className="terminal-label text-[var(--primary)]">Launching soon</p>
@@ -85,7 +89,7 @@ export default async function CheckoutPage({ params }: Props) {
               <p className="text-lg font-medium">{plan.label} evaluation</p>
               <p className="text-3xl font-medium tracking-[-.04em]">{total}</p>
             </div>
-            <p className="mt-1 text-right text-xs text-[var(--muted)]">One-time · GST included</p>
+            <p className="mt-1 text-right text-xs text-[var(--muted)]">{mode === "demo" ? "Paid with demo credit · nobody is charged" : "One-time · GST included"}</p>
             <dl className="mt-6 divide-y divide-[var(--border)] border-y border-[var(--border)] text-xs">
               {summary.map(([term, value]) => <div key={term} className="flex justify-between gap-4 py-3"><dt className="text-[var(--muted)]">{term}</dt><dd className={term === "Activation fee" ? "text-[var(--primary)]" : ""}>{value}</dd></div>)}
             </dl>

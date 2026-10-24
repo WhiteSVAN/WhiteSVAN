@@ -5,6 +5,7 @@ import { AccountSelector } from "./account-selector";
 import { AccountPreview } from "./account-preview";
 import { SiteFooter } from "@/components/site-footer";
 import { WaitlistForm } from "@/app/waitlist-form";
+import { DEMO_CHECKOUT, DEMO_CREDIT, DEMO_START_ANSWER } from "@/lib/checkout/demo";
 import { EVALUATION_PLANS, formatInr, planLimits, PROGRAMME_RULES as R } from "@/lib/prop-firm";
 
 const FEATURED = EVALUATION_PLANS[1];
@@ -32,7 +33,7 @@ const FAQ = [
   ["How often can I get paid?", `Funded traders can request a payout twice a month once KYC is done. Payouts are capped by account size, from ${formatInr(EVALUATION_PLANS[0].payoutCap)} on a ${EVALUATION_PLANS[0].label} account to ${formatInr(EVALUATION_PLANS[EVALUATION_PLANS.length - 1].payoutCap)} on a ${EVALUATION_PLANS[EVALUATION_PLANS.length - 1].label} account.`],
   ["Are there monthly or activation fees?", "No. Every evaluation is a one-time fee with GST included. No subscription and no activation fee when you pass."],
   ["What can I trade?", "NIFTY and BANK NIFTY futures and options on NSE, and SENSEX futures and options on BSE. Intraday only, from 09:15 to 15:20 IST."],
-  ["When can I buy an evaluation?", "We're launching soon. Create your account now to get early access when evaluations open."],
+  ["When can I buy an evaluation?", DEMO_CHECKOUT ? DEMO_START_ANSWER : "We're launching soon. Create your account now to get early access when evaluations open."],
   ["Where is my trading journal?", "Log in and open Tools. Your journal, imports and performance reports are all still there."],
 ];
 
@@ -49,7 +50,7 @@ export function PropLanding() {
             <p className="mt-7 max-w-lg text-[15px] leading-7 text-[#a8b3a4] sm:text-base">Trade NIFTY, BANK NIFTY and SENSEX. Pass one evaluation, get a funded account up to {EVALUATION_PLANS[EVALUATION_PLANS.length - 1].label} and take an {R.contractorSharePercent}% profit split, paid twice a month.</p>
             <div className="mt-8 flex flex-wrap gap-3"><Link href="#accounts" className="prop-button">Start your evaluation <ArrowUpRight size={17} /></Link><Link href="#how-it-works" className="prop-button-outline"><span className="flex h-6 w-6 items-center justify-center rounded-full border border-[#5d7150]"><Play size={9} fill="currentColor" /></span> How it works</Link></div>
             <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[10px] text-[#9eae93]"><span className="flex items-center gap-1.5"><Check size={13} className="text-[var(--primary)]" /> One-time fee</span><span className="flex items-center gap-1.5"><Check size={13} className="text-[var(--primary)]" /> No activation fee</span><span className="flex items-center gap-1.5"><Check size={13} className="text-[var(--primary)]" /> End-of-day drawdown</span></div>
-            <p className="mt-6 max-w-md text-[10px] leading-5 text-[#75856f]">Launching soon. <Link href="/signup" className="text-[#bddda1] underline-offset-4 hover:underline">Create your account</Link> for early access.</p>
+            <p className="mt-6 max-w-md text-[10px] leading-5 text-[#75856f]">{DEMO_CHECKOUT ? <>Demo open. <Link href="/signup" className="text-[#bddda1] underline-offset-4 hover:underline">Create your account</Link> and start an evaluation with {formatInr(DEMO_CREDIT)} of virtual credit.</> : <>Launching soon. <Link href="/signup" className="text-[#bddda1] underline-offset-4 hover:underline">Create your account</Link> for early access.</>}</p>
           </div>
           <AccountPreview />
         </div>

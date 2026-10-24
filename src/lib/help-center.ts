@@ -1,4 +1,5 @@
 /** Public help-centre content. Rule figures come from the rulebook in prop-firm.ts. */
+import { DEMO_CHECKOUT, DEMO_START_ANSWER } from "./checkout/demo";
 import { EVALUATION_PLANS, PROGRAMME_RULES, formatInr, planLimits } from "./prop-firm";
 
 export type HelpArticle = { id: string; question: string; answer: string };
@@ -26,7 +27,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "buy-today",
         question: "When can I start?",
-        answer: "We're launching soon. Create your account now to get early access, and we'll email you when evaluations open.",
+        answer: DEMO_CHECKOUT ? DEMO_START_ANSWER : "We're launching soon. Create your account now to get early access, and we'll email you when evaluations open.",
       },
       {
         id: "who-can-join",

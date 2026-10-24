@@ -18,16 +18,18 @@ datasource db {
 // ─────────────────────────────────────────────────────────────
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  passwordHash  String? // set for credentials sign-in
-  role          UserRole? // chosen at signup (or onboarding for OAuth sign-ins)
-  referralCode  String?   @unique // trader invite code: /signup?ref=CODE
-  referredById  String?
-  createdAt     DateTime  @default(now())
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime?
+  image           String?
+  passwordHash    String? // set for credentials sign-in
+  role            UserRole? // chosen at signup (or onboarding for OAuth sign-ins)
+  referralCode    String?   @unique // trader invite code: /signup?ref=CODE
+  referredById    String?
+  // Paise of virtual demo credit spent on demo evaluations; the allowance is in src/lib/checkout/demo.ts.
+  demoCreditSpent Int       @default(0)
+  createdAt       DateTime  @default(now())
 
   accounts        Account[]
   sessions        Session[]
@@ -724,6 +726,8 @@ model EvaluationAccount {
   desk      Json
   // Bumped on every engine write; writes are conditional on it (optimistic locking).
   version   Int              @default(0)
+  // Bought with virtual demo credit: never leads to a funded account or a payout.
+  demo      Boolean          @default(false)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 

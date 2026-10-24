@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Check, CircleHelp, Layers3, ShieldCheck, Target } from "lucide-react";
+import { DEMO_CHECKOUT, DEMO_CREDIT } from "@/lib/checkout/demo";
 import { EVALUATION_PLANS, formatInr, planLimits, PROGRAMME_RULES } from "@/lib/prop-firm";
 
 export function AccountSelector() {
@@ -63,7 +64,7 @@ export function AccountSelector() {
         </div>
 
         <div className="mt-7 flex flex-col items-center justify-between gap-4 rounded-xl border border-[var(--border)] px-5 py-4 sm:flex-row">
-          <p className="flex max-w-3xl items-start gap-3 text-xs leading-6 text-[var(--muted)]"><ShieldCheck size={18} className="mt-1 shrink-0 text-[var(--primary)]" aria-hidden="true" /><span>Launching soon. Create your account for early access; rules and prices can change before launch.</span></p>
+          <p className="flex max-w-3xl items-start gap-3 text-xs leading-6 text-[var(--muted)]"><ShieldCheck size={18} className="mt-1 shrink-0 text-[var(--primary)]" aria-hidden="true" /><span>{DEMO_CHECKOUT ? `Demo open: new accounts get ${formatInr(DEMO_CREDIT)} of virtual credit to start an evaluation, and nobody is charged. Payments open at launch; rules and prices can change before then.` : "Launching soon. Create your account for early access; rules and prices can change before launch."}</span></p>
           <Link href="/rules" className="inline-flex shrink-0 items-center gap-2 text-xs font-medium text-[var(--primary)]"><CircleHelp size={14} aria-hidden="true" /> Read the full rules <ArrowRight size={14} aria-hidden="true" /></Link>
         </div>
         <p className="mt-4 text-center text-[10px] leading-5 text-[var(--faint)]">Drawdown trails your highest end-of-day balance and stops at your starting balance. Up to {PROGRAMME_RULES.maximumAccounts} accounts per trader.</p>

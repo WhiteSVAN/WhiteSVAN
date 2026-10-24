@@ -52,8 +52,8 @@ export function Meter({ label, value, detail, used, danger = false }: { label: s
   );
 }
 
-/** The account's balance and rule meters, shared by the platform and the dashboard. */
-export function AccountMeters({ desk }: { desk: Desk }) {
+/** The account's balance and rule meters, shared by the platform and the dashboard. A `demo` account never moves to funded. */
+export function AccountMeters({ desk, demo = false }: { desk: Desk; demo?: boolean }) {
   const meters = riskMeters(desk.state);
   const { rules } = desk.state;
   return (
@@ -79,7 +79,7 @@ export function AccountMeters({ desk }: { desk: Desk }) {
         </p>
       )}
       {desk.state.status === "PASSED" && (
-        <p role="status" className="rounded-md border border-[var(--primary)]/40 p-3 text-xs leading-5 text-[var(--primary)]">Passed on {desk.state.passedOn}. Next: KYC and your funded trader agreement.</p>
+        <p role="status" className="rounded-md border border-[var(--primary)]/40 p-3 text-xs leading-5 text-[var(--primary)]">Passed on {desk.state.passedOn}. {demo ? "This was a demo evaluation, so it doesn't move to a funded account." : "Next: KYC and your funded trader agreement."}</p>
       )}
     </>
   );
@@ -89,7 +89,7 @@ export function AccountMeters({ desk }: { desk: Desk }) {
  * The account's meters and the order ticket for the charted contract. The side is the caller's,
  * so the chart's Buy and Sell buttons can set it.
  */
-export function AccountTicket({ desk, planLabel, contract, quote, side, onSide, onPlace }: { desk: Desk; planLabel: string; contract: KiteContract | null; quote: MarketQuote | undefined; side: Side; onSide: (side: Side) => void; onPlace: (order: OrderInput) => Promise<EngineOutput[]> }) {
+export function AccountTicket({ desk, planLabel, demo = false, contract, quote, side, onSide, onPlace }: { desk: Desk; planLabel: string; demo?: boolean; contract: KiteContract | null; quote: MarketQuote | undefined; side: Side; onSide: (side: Side) => void; onPlace: (order: OrderInput) => Promise<EngineOutput[]> }) {
   const [type, setType] = useState<OrderType>("MARKET");
   const [lots, setLots] = useState(1);
   const [limitInput, setLimitInput] = useState("");
@@ -147,13 +147,13 @@ export function AccountTicket({ desk, planLabel, contract, quote, side, onSide, 
     <aside id="order-ticket" className="terminal-card flex scroll-mt-24 flex-col gap-5 p-5" aria-label="Account and order ticket">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="terminal-label">Evaluation account</p>
+          <p className="terminal-label">{demo ? "Demo evaluation" : "Evaluation account"}</p>
           <p className="mt-1 text-sm font-medium">{planLabel} · {rules.maxLots} lot{rules.maxLots === 1 ? "" : "s"}</p>
         </div>
         <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${status.className}`}>{status.text}</span>
       </div>
 
-      <AccountMeters desk={desk} />
+      <AccountMeters desk={desk} demo={demo} />
 
       <div className="border-t border-[var(--border)] pt-4">
         {contract ? (

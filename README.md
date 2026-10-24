@@ -37,8 +37,10 @@ the signed-in **Tools** menu: imports, metrics, research profiles, AI briefs and
   rule practice and "getting funded".
 - Buying, Tradeify-style: "Start evaluation" → `/checkout/<plan>` → `/checkout/complete/<order>` →
   "Start trading" → `/trade/<account>`. Signed-out buyers go through `/signup?plan=<id>` and come back
-  to checkout. No payment gateway is live, so checkout is closed to the public; sign-ins in
-  `STAFF_EMAILS` make test purchases that open a real evaluation account without a charge.
+  to checkout. No payment gateway is live, so checkout runs in demo mode: every user has ₹50,000 of
+  virtual demo credit to buy evaluations at the normal prices. Nobody is charged, and demo accounts
+  are labelled and never lead to funded accounts or payouts (`src/lib/checkout/demo.ts`). Sign-ins
+  in `STAFF_EMAILS` make test purchases without using credit.
 - `/trade/<account>`: the trading platform for one evaluation account (chart with Buy and Sell, order
   ticket, positions, open orders you can modify or cancel, order history, fills, rule meters), with
   the engine running on the server. `/markets` offers the same for the trader's active account.
