@@ -1,10 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { signOut } from "@/auth";
 import { prisma } from "@/lib/db";
 import { requireUserId } from "@/lib/auth/dal";
+import { applySignupRole } from "@/lib/auth/onboarding";
+import { safeNextPath } from "@/lib/safe-path";
 import { profileSchema, roleSchema, type ProfileInput } from "@/lib/auth/schemas";
 import { publicCopyError, publicCopyIssues } from "@/lib/public-copy";
 import { parseTraderDetails } from "@/lib/profile-details";
@@ -17,31 +18,16 @@ export type ProfileFormState =
 /**
  * Choose trader or client (users who signed in with Google, or pre-V1 accounts
  * without a profile). Also applies a pending referral code from the signup cookie.
+ * Traders go on to `next`, or checkout; clients set up their client profile.
  */
 export async function chooseRole(formData: FormData) {
   const userId = await requireUserId();
   const parsed = roleSchema.safeParse(formData.get("role"));
   if (!parsed.success) redirect("/onboarding");
 
-  const store = await cookies();
-  const ref = store.get("signup_ref")?.value?.toLowerCase() ?? "";
-  const referrer = /^[a-z0-9]{6,16}$/.test(ref)
-    ? await prisma.user.findUnique({ where: { referralCode: ref }, select: { id: true } })
-    : null;
-
-  await prisma.user.updateMany({
-    where: { id: userId, role: null },
-    data: { role: parsed.data },
-  });
-  if (referrer && referrer.id !== userId) {
-    await prisma.user.updateMany({
-      where: { id: userId, referredById: null },
-      data: { referredById: referrer.id },
-    });
-  }
-  store.delete("signup_role");
-  store.delete("signup_ref");
-  redirect("/onboarding");
+  await applySignupRole(userId, parsed.data);
+  const next = safeNextPath(String(formData.get("next") ?? ""));
+  redirect(parsed.data === "TRADER" ? (next ?? "/checkout") : "/onboarding");
 }
 
 export type ClientFormState = { message?: string } | undefined;

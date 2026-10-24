@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { findEvaluationPlan } from "@/lib/prop-firm";
 import { safeNextPath } from "@/lib/safe-path";
-import { accountNumber, billingSchema, planAmount } from "./billing";
+import { accountNumber, billingSchema, planAmount, startingPlan } from "./billing";
 import { checkoutModeFor, staffEmails } from "./config";
 import { DEMO_CREDIT, demoCreditLeft } from "./demo";
 
@@ -31,6 +31,20 @@ describe("checkout details", () => {
     expect(planAmount(findEvaluationPlan("1l")!)).toBe(2_999_00);
     expect(planAmount(findEvaluationPlan("10l")!)).toBe(14_999_00);
     expect(accountNumber("evmgx1k2abc123def456", "2-5l")).toBe("WSV-25L-DEF456");
+  });
+});
+
+describe("starting size", () => {
+  it("opens checkout on the recommended size, or the largest one the demo credit still covers", () => {
+    expect(startingPlan().id).toBe("5l");
+    expect(startingPlan(null).id).toBe("5l");
+    expect(startingPlan(DEMO_CREDIT * 100).id).toBe("5l");
+    expect(startingPlan(8_999_00).id).toBe("5l");
+    expect(startingPlan(8_998_00).id).toBe("2-5l");
+    expect(startingPlan(5_003_00).id).toBe("2-5l");
+    expect(startingPlan(2_999_00).id).toBe("1l");
+    // Nothing affordable: stay on the recommended size, which checkout shows as short of credit.
+    expect(startingPlan(1_000_00).id).toBe("5l");
   });
 });
 

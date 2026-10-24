@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BadgeIndianRupee, ChartNoAxesCombined, ClipboardCheck, ShieldCheck } from "lucide-react";
+import { ArrowRight, BadgeIndianRupee, ChartNoAxesCombined, ClipboardCheck } from "lucide-react";
 import { PropHeader } from "@/components/prop-firm/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { DEMO_CHECKOUT, DEMO_CREDIT } from "@/lib/checkout/demo";
 import { HELP_TOPICS } from "@/lib/help-center";
 import { EVALUATION_PLANS, formatInr, PROGRAMME_RULES as R } from "@/lib/prop-firm";
 import { clockSeconds } from "@/lib/trading/time";
@@ -21,9 +22,13 @@ const hhmm = (seconds: number) =>
 const STEPS = [
   {
     icon: ClipboardCheck,
-    title: "Choose your account",
-    body: `Pick an account from ${FIRST.label} to ${LAST.label}. Its size sets your profit target, loss limits, position size and payout cap.`,
-    points: [`One-time fee from ${formatInr(FIRST.fee)}, GST included`, "No subscription and no activation fee", `Up to ${R.maximumAccounts} accounts at a time`],
+    title: "Start your evaluation",
+    body: `Three steps, a few minutes: create your account, choose your account size and pay. Your evaluation account opens straight away.`,
+    points: [
+      "Create your account: name, email and a password",
+      `Choose ${FIRST.label} to ${LAST.label}: the size sets your target, limits, position size and payout cap`,
+      DEMO_CHECKOUT ? `Pay with your ${formatInr(DEMO_CREDIT)} of demo credit while payments launch` : `Pay one fee from ${formatInr(FIRST.fee)}, GST included. No subscription, no activation fee`,
+    ],
     link: { href: "/evaluations", label: "Compare accounts" },
   },
   {
@@ -38,18 +43,11 @@ const STEPS = [
     link: { href: "/academy?tab=evaluations", label: "Try the rules on a sample week" },
   },
   {
-    icon: ShieldCheck,
-    title: "Get funded",
-    body: "Complete KYC and sign your funded trader agreement. Your funded account keeps the same loss limits and has no profit target.",
-    points: ["KYC: PAN, Aadhaar through DigiLocker and a bank account check", "Same daily loss limit, drawdown and position size", "Funded accounts are simulated; payouts are real"],
-    link: { href: "/funded", label: "How funded accounts work" },
-  },
-  {
     icon: BadgeIndianRupee,
-    title: "Get paid",
-    body: `Keep ${R.contractorSharePercent}% of the profit on your funded account, paid in rupees to your bank.`,
-    points: ["Request a payout twice a month", `Payout caps from ${formatInr(FIRST.payoutCap)} to ${formatInr(LAST.payoutCap)} a payout`, "Profit equal to your max drawdown stays in the account as a buffer"],
-    link: { href: "/funded#calculator", label: "Work out a payout" },
+    title: "Get funded. Get paid.",
+    body: `Complete KYC and sign your funded trader agreement. Your funded account is simulated and keeps the same loss limits, with no profit target. Your payouts are real: ${R.contractorSharePercent}% of the profit, in rupees to your bank.`,
+    points: ["KYC: PAN, Aadhaar through DigiLocker and a bank account check", `Request a payout twice a month, up to ${formatInr(FIRST.payoutCap)}–${formatInr(LAST.payoutCap)} by account size`, "Profit equal to your max drawdown stays in the account as a buffer"],
+    link: { href: "/funded", label: "How funded accounts and payouts work" },
   },
 ];
 
@@ -71,16 +69,16 @@ export default function HowItWorksPage() {
       <div className="border-b border-[var(--border)] bg-[radial-gradient(ellipse_at_50%_0%,rgba(186,242,119,.09),transparent_70%)] px-5 pb-16 pt-16 text-center sm:pb-20 sm:pt-24">
         <p className="terminal-label text-[var(--primary)]">How it works</p>
         <h1 className="mx-auto mt-5 max-w-4xl text-5xl font-medium leading-[1.04] tracking-[-.055em] sm:text-7xl">From evaluation<br /><span className="text-[var(--primary)]">to payout.</span></h1>
-        <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[var(--muted)] sm:text-base">One evaluation, one funded account and payouts twice a month. Here is every step, and the rules that apply at each one.</p>
+        <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[var(--muted)] sm:text-base">Three steps: start an evaluation, pass it, then get funded and get paid twice a month. Here is each one, and the rules that apply.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href="/evaluations#accounts" className="inline-flex min-h-12 items-center gap-3 rounded-full bg-[var(--primary)] px-7 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Choose your account <ArrowRight size={16} aria-hidden="true" /></Link>
+          <Link href="/checkout" className="inline-flex min-h-12 items-center gap-3 rounded-full bg-[var(--primary)] px-7 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start your evaluation <ArrowRight size={16} aria-hidden="true" /></Link>
           <Link href="/rules" className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[var(--border-strong)] px-6 text-sm hover:bg-[var(--card-raised)]">Read the rules</Link>
         </div>
       </div>
 
       <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20" aria-labelledby="steps-title">
-        <h2 id="steps-title" className="sr-only">Four steps to a payout</h2>
-        <ol className="grid gap-5 md:grid-cols-2">
+        <h2 id="steps-title" className="sr-only">Three steps to a payout</h2>
+        <ol className="grid gap-5 lg:grid-cols-3">
           {STEPS.map(({ icon: Icon, title, body, points, link }, index) => <li key={title} className="flex flex-col rounded-xl border border-[var(--border)] bg-[var(--card)] p-7">
             <div className="flex items-center justify-between"><Icon size={24} className="text-[var(--primary)]" aria-hidden="true" /><span className="font-mono text-sm text-[var(--faint)]">0{index + 1}</span></div>
             <h3 className="mt-8 text-2xl font-medium tracking-[-.03em]">{title}</h3>
@@ -117,7 +115,7 @@ export default function HowItWorksPage() {
       <section className="mx-auto max-w-7xl px-5 pb-20 sm:px-8" aria-labelledby="start-title">
         <div className="flex flex-col items-start justify-between gap-6 rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] p-7 sm:flex-row sm:items-center sm:p-9">
           <div><p className="terminal-label">Ready when you are</p><h2 id="start-title" className="mt-3 text-2xl font-medium tracking-tight">Evaluations from {formatInr(FIRST.fee)}.</h2><p className="mt-2 text-sm text-[var(--muted)]">One-time fee, GST included. No subscription, no activation fee.</p></div>
-          <Link href="/evaluations#accounts" className="inline-flex min-h-12 shrink-0 items-center gap-3 rounded-full bg-[var(--primary)] px-6 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Choose your account <ArrowRight size={16} aria-hidden="true" /></Link>
+          <Link href="/checkout" className="inline-flex min-h-12 shrink-0 items-center gap-3 rounded-full bg-[var(--primary)] px-6 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start your evaluation <ArrowRight size={16} aria-hidden="true" /></Link>
         </div>
       </section>
     </main>

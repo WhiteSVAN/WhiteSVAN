@@ -5,10 +5,10 @@ Traders learn with SVAN Academy, take a one-time-fee simulated evaluation (₹1L
 profit target, 4% end-of-day drawdown, 2% daily loss limit), and those who pass get a simulated
 funded account with an 80% profit split, paid twice a month in rupees.
 
-The site is launching soon: pricing, rules, the help center and free Academy lessons are live;
-checkout, evaluation accounts and payouts are not built yet. The trading core that will run them
-(simulated orders and fills, Indian F&O charges, the rule engine, risk meters and payout quotes) is
-in `src/lib/trading` as tested, deterministic TypeScript. All evaluation and funded accounts are
+The site is launching soon: pricing, rules, the help center and free Academy lessons are live, and
+evaluations can be bought in demo mode on virtual credit; payments and payouts are not built yet.
+The trading core (simulated orders and fills, Indian F&O charges, the rule engine, risk meters and
+payout quotes) is in `src/lib/trading` as tested, deterministic TypeScript. All evaluation and funded accounts are
 simulated. Nothing on the site is investment advice, and public pages keep the past-performance
 disclaimer.
 
@@ -35,9 +35,10 @@ the signed-in **Tools** menu: imports, metrics, research profiles, AI briefs and
 - `/funded`: funded accounts, payout rules, caps by account size and a payout calculator.
 - `/rules`: full rule table and sections. `/help`: searchable help center. `/academy`: free lessons,
   rule practice and "getting funded".
-- Buying, Tradeify-style: "Start evaluation" → `/checkout/<plan>` → `/checkout/complete/<order>` →
-  "Start trading" → `/trade/<account>`. Signed-out buyers go through `/signup?plan=<id>` and come back
-  to checkout. No payment gateway is live, so checkout runs in demo mode: every user has ₹50,000 of
+- Buying takes three steps: create your account, choose the size, pay. "Get funded" goes to
+  `/checkout` (signed out: sign-up first, with no size to pick), which opens on the recommended size;
+  the size and payment share one screen, then `/checkout/complete/<order>` → "Start trading" →
+  `/trade/<account>`. Pricing cards open checkout on their own size. No payment gateway is live, so checkout runs in demo mode: every user has ₹50,000 of
   virtual demo credit to buy evaluations at the normal prices. Nobody is charged, and demo accounts
   are labelled and never lead to funded accounts or payouts (`src/lib/checkout/demo.ts`). Sign-ins
   in `STAFF_EMAILS` make test purchases without using credit.

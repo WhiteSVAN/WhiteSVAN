@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Check, CircleHelp, Layers3, ShieldCheck, Target } from "lucide-react";
 import { DEMO_CHECKOUT, DEMO_CREDIT } from "@/lib/checkout/demo";
-import { EVALUATION_PLANS, formatInr, planLimits, PROGRAMME_RULES } from "@/lib/prop-firm";
+import { EVALUATION_PLANS, formatInr, planLimits, PROGRAMME_RULES, RECOMMENDED_PLAN } from "@/lib/prop-firm";
 
 export function AccountSelector() {
   const [stage, setStage] = useState<"evaluation" | "funded">("evaluation");
@@ -29,17 +29,18 @@ export function AccountSelector() {
         <p className="mt-5 min-h-10 text-center text-xs leading-6 text-[var(--muted)]" aria-live="polite">{isEvaluation ? "One-time fee · GST included · Pass in as few as 5 trading days" : `After you pass and complete KYC · ${PROGRAMME_RULES.contractorSharePercent}% profit split · Payouts twice a month`}</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {EVALUATION_PLANS.map((plan, index) => {
+          {EVALUATION_PLANS.map((plan) => {
             const limits = planLimits(plan);
-            return <article key={plan.id} className={`relative flex flex-col overflow-hidden rounded-2xl border bg-[var(--card)] ${index === 2 ? "border-[var(--primary)] shadow-[0_0_50px_-25px_rgba(186,242,119,.35)]" : "border-[var(--border)]"}`}>
-              <div className={`h-1 ${index === 2 ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`} />
+            const recommended = plan.id === RECOMMENDED_PLAN.id;
+            return <article key={plan.id} className={`relative flex flex-col overflow-hidden rounded-2xl border bg-[var(--card)] ${recommended ? "border-[var(--primary)] shadow-[0_0_50px_-25px_rgba(186,242,119,.35)]" : "border-[var(--border)]"}`}>
+              <div className={`h-1 ${recommended ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`} />
               <div className="px-6 pb-6 pt-6">
-                <div className="flex h-6 items-center justify-between gap-2"><p className="font-mono text-[10px] uppercase tracking-[.12em] text-[var(--muted)]">{isEvaluation ? "Evaluation" : "Funded account"}</p>{index === 2 && <span className="rounded border border-[var(--primary)] px-2 py-0.5 font-mono text-[9px] uppercase text-[var(--primary)]">Recommended</span>}</div>
+                <div className="flex h-6 items-center justify-between gap-2"><p className="font-mono text-[10px] uppercase tracking-[.12em] text-[var(--muted)]">{isEvaluation ? "Evaluation" : "Funded account"}</p>{recommended && <span className="rounded border border-[var(--primary)] px-2 py-0.5 font-mono text-[9px] uppercase text-[var(--primary)]">Recommended</span>}</div>
                 <h3 className="mt-4 text-[2.8rem] font-medium leading-none tracking-[-.065em]">{plan.label}</h3>
                 <p className="mt-2 text-xs text-[var(--muted)]">Account size</p>
                 <div className="mt-7 flex items-baseline gap-1.5"><span className="text-3xl font-medium tracking-[-.04em]">{isEvaluation ? formatInr(plan.fee) : `${PROGRAMME_RULES.contractorSharePercent}%`}</span><span className="text-xs text-[var(--muted)]">{isEvaluation ? "one-time" : "profit split"}</span></div>
                 <p className="mt-2 text-[11px] leading-5 text-[var(--muted)]">{isEvaluation ? "GST included" : `Up to ${formatInr(plan.payoutCap)} per payout`}</p>
-                <Link href={isEvaluation ? `/checkout/${plan.id}` : "/funded"} className={`mt-6 flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium ${index === 2 ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]" : "border border-[var(--border-strong)] bg-[var(--card-raised)] hover:border-[var(--primary)] hover:text-[var(--primary)]"}`}>{isEvaluation ? "Start evaluation" : "See how payouts work"}<ArrowRight size={15} aria-hidden="true" /></Link>
+                <Link href={isEvaluation ? `/checkout/${plan.id}` : "/funded"} className={`mt-6 flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium ${recommended ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]" : "border border-[var(--border-strong)] bg-[var(--card-raised)] hover:border-[var(--primary)] hover:text-[var(--primary)]"}`}>{isEvaluation ? "Start evaluation" : "See how payouts work"}<ArrowRight size={15} aria-hidden="true" /></Link>
               </div>
               <dl className="mx-6 border-t border-[var(--border)] py-2 text-xs">
                 {isEvaluation ? <>

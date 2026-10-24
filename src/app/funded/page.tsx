@@ -53,7 +53,7 @@ export default function FundedPage() {
         <h1 className="mx-auto mt-5 max-w-4xl text-5xl font-medium leading-[1.04] tracking-[-.055em] sm:text-7xl">Get funded.<br /><span className="text-[var(--primary)]">Get paid twice a month.</span></h1>
         <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[var(--muted)] sm:text-base">Pass the evaluation and trade a funded account with the same loss limits and no profit target. Keep {R.contractorSharePercent}% of the profit, paid in rupees to your bank.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href="/evaluations#accounts" className="inline-flex min-h-12 items-center gap-3 rounded-full bg-[var(--primary)] px-7 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Choose your account <ArrowRight size={16} aria-hidden="true" /></Link>
+          <Link href="/checkout" className="inline-flex min-h-12 items-center gap-3 rounded-full bg-[var(--primary)] px-7 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start your evaluation <ArrowRight size={16} aria-hidden="true" /></Link>
           <a href="#calculator" className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[var(--border-strong)] px-6 text-sm hover:bg-[var(--card-raised)]">Work out a payout</a>
         </div>
       </div>

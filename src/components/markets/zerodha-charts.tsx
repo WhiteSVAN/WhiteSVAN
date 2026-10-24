@@ -135,7 +135,7 @@ function OpenEvaluation() {
       <p className="terminal-label">Trade these charts</p>
       <h2 className="text-lg font-medium tracking-tight">Open an evaluation to place orders</h2>
       <p className="text-sm leading-6 text-[var(--muted)]">Buy and sell NIFTY, BANK NIFTY and SENSEX futures and options on a simulated account, with an order ticket, positions and a full order book.</p>
-      <Link id="open-evaluation" href="/evaluations" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">See evaluations</Link>
+      <Link id="open-evaluation" href="/checkout" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start an evaluation</Link>
     </aside>
   );
 }

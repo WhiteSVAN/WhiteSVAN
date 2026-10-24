@@ -1,5 +1,5 @@
 /** Public help-centre content. Rule figures come from the rulebook in prop-firm.ts. */
-import { DEMO_CHECKOUT, DEMO_START_ANSWER } from "./checkout/demo";
+import { DEMO_CHECKOUT, DEMO_CREDIT, DEMO_START_ANSWER } from "./checkout/demo";
 import { EVALUATION_PLANS, PROGRAMME_RULES, formatInr, planLimits } from "./prop-firm";
 
 export type HelpArticle = { id: string; question: string; answer: string };
@@ -23,6 +23,11 @@ export const HELP_TOPICS: HelpTopic[] = [
         id: "what-is-whitesvan",
         question: "What is WhiteSVAN?",
         answer: `WhiteSVAN is a prop trading firm for Indian index futures and options. Pass our evaluation, get a funded account and earn an ${R.contractorSharePercent}% profit split trading NIFTY, BANK NIFTY and SENSEX.`,
+      },
+      {
+        id: "how-to-start",
+        question: "How do I start an evaluation?",
+        answer: `In three steps: create your account, choose your account size (${first.label} to ${last.label}) and pay ${DEMO_CHECKOUT ? `with your ${formatInr(DEMO_CREDIT)} of demo credit` : "the one-time fee"}. You don't need to pick a size to create your account: you choose it at checkout, on the same screen as paying. Your evaluation account opens as soon as you pay.`,
       },
       {
         id: "buy-today",

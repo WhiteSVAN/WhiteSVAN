@@ -35,13 +35,13 @@ export default async function LoginPage({
       {googleEnabled && (
         <>
           <AuthDivider />
-          <GoogleButton />
+          <GoogleButton next={next} />
         </>
       )}
 
       <p className="mt-6 text-center text-sm text-zinc-500">
         New here?{" "}
-        <Link href={plan ? `/signup?plan=${plan}` : "/signup"} className="font-medium text-zinc-200 hover:text-zinc-100">
+        <Link href={plan ? `/signup?plan=${plan}` : next ? `/signup?${new URLSearchParams({ next })}` : "/signup"} className="font-medium text-zinc-200 hover:text-zinc-100">
           Create an account
         </Link>
       </p>

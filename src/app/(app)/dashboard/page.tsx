@@ -40,8 +40,8 @@ export default async function DashboardPage() {
             <p className="mt-2 text-xs leading-5 text-[var(--muted)]">Demo credit <span className="font-mono text-sm text-[var(--primary)]">{formatPaise(credit, 2)}</span> · buy evaluations with virtual credit while payments launch. Nobody is charged.</p>
           )}
         </div>
-        <Link href="/evaluations" className="inline-flex min-h-11 items-center gap-3 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] transition hover:bg-[var(--primary-hover)]">
-          Choose your account <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+        <Link href="/checkout" className="inline-flex min-h-11 items-center gap-3 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] transition hover:bg-[var(--primary-hover)]">
+          Start an evaluation <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>
 
@@ -78,8 +78,8 @@ export default async function DashboardPage() {
         ) : canBuy ? (
           <div className="flex min-h-[260px] flex-col items-center justify-center px-6 py-14 text-center">
             <h3 className="text-xl font-medium tracking-tight">No accounts yet</h3>
-            <p className="mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">{mode === "demo" ? "Choose an account size and pay with your demo credit. Your evaluation opens straight away." : "Choose an account size, check out, and your evaluation opens straight away."}</p>
-            <Link href="/evaluations#accounts" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Choose your account <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            <p className="mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">{mode === "demo" ? "Choose a size and pay with your demo credit, on one screen. Your evaluation opens straight away." : "Choose a size and check out, on one screen. Your evaluation opens straight away."}</p>
+            <Link href="/checkout" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start an evaluation <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </div>
         ) : (
         <div className="relative flex min-h-[310px] flex-col items-center justify-center overflow-hidden px-6 py-14 text-center">

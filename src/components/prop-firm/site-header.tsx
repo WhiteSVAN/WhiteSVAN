@@ -41,7 +41,7 @@ export function PropHeader() {
     <div className="border-b border-[var(--border)] bg-[#172216] px-4 py-2.5 text-center text-[11px] text-[#c7d7bd]">
       <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--primary)]" /> {DEMO_CHECKOUT ? `Demo open: ${formatInr(DEMO_CREDIT)} of virtual credit to start an evaluation` : "Launching soon"}
       <span className="hidden sm:inline"><span className="mx-3 text-[#52644b]">/</span> NIFTY, BANK NIFTY &amp; SENSEX futures and options</span>
-      <Link href="/signup" className="ml-3 font-medium text-[var(--primary)] underline-offset-4 hover:underline">{DEMO_CHECKOUT ? "Try it free" : "Get early access"}</Link>
+      <Link href={DEMO_CHECKOUT ? "/checkout" : "/signup"} className="ml-3 font-medium text-[var(--primary)] underline-offset-4 hover:underline">{DEMO_CHECKOUT ? "Try it free" : "Get early access"}</Link>
     </div>
     <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[#0b0f0d]/95 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center gap-8 px-5 sm:px-8">
@@ -52,7 +52,7 @@ export function PropHeader() {
         </nav>
         <div className="ml-auto flex items-center gap-5 lg:ml-3">
           <Link href={account.href} className="hidden text-xs text-[#d4ddcf] sm:block">{account.label}</Link>
-          <Link href="/#accounts" className="prop-button prop-header-cta min-h-10 px-4 text-xs">Get funded <ArrowUpRight size={15} /></Link>
+          <Link href="/checkout" className="prop-button prop-header-cta min-h-10 px-4 text-xs">Get funded <ArrowUpRight size={15} /></Link>
           <button type="button" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} aria-controls="prop-mobile-nav" onClick={() => setOpen(!open)} className="flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--border)] lg:hidden">{open ? <X size={19} /> : <Menu size={19} />}</button>
         </div>
       </div>

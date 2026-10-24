@@ -40,14 +40,14 @@ export default function EvaluationsPage() {
         <p className="terminal-label text-[var(--primary)]">Evaluations</p>
         <h1 className="mx-auto mt-5 max-w-4xl text-5xl font-medium leading-[1.04] tracking-[-.055em] sm:text-7xl">Pass one evaluation.<br /><span className="text-[var(--primary)]">Get funded.</span></h1>
         <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[var(--muted)] sm:text-base">A one-step evaluation on a {FIRST.label}–{LAST.label} account. Hit {R.targetPercent}%, stay inside your drawdown and get a funded account with an {R.contractorSharePercent}% profit split.</p>
-        <a href="#accounts" className="mt-8 inline-flex min-h-12 items-center gap-3 rounded-full bg-[var(--primary)] px-7 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Choose your account <ArrowRight size={16} aria-hidden="true" /></a>
+        <Link href="/checkout" className="mt-8 inline-flex min-h-12 items-center gap-3 rounded-full bg-[var(--primary)] px-7 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start your evaluation <ArrowRight size={16} aria-hidden="true" /></Link>
       </div>
       <AccountSelector />
       <section className="border-y border-[var(--border)] bg-[var(--card-deep)] py-16 sm:py-20" aria-labelledby="evaluation-path-title">
         <div className="mx-auto max-w-7xl px-5 sm:px-8">
           <div className="flex flex-wrap items-end justify-between gap-5"><div><p className="terminal-label">How it works</p><h2 id="evaluation-path-title" className="mt-4 text-3xl font-medium tracking-[-.04em] sm:text-4xl">Three steps to a funded account.</h2></div><Link href="/rules" className="flex items-center gap-2 text-sm text-[var(--primary)]">See all rules <ArrowRight size={15} aria-hidden="true" /></Link></div>
           <div className="mt-10 grid gap-5 md:grid-cols-3">{[
-            { icon: ClipboardCheck, number: "01", title: "Choose your account", body: `Pick ${FIRST.label} to ${LAST.label}. One-time fee with GST included. No subscription, no activation fee.` },
+            { icon: ClipboardCheck, number: "01", title: "Start your evaluation", body: `Create your account, choose ${FIRST.label} to ${LAST.label} and pay one fee, GST included. No subscription, no activation fee.` },
             { icon: ChartNoAxesCombined, number: "02", title: "Pass the evaluation", body: `Hit the ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days without hitting the ${R.dailyLossPercent}% daily loss limit or the ${R.maximumLossPercent}% end-of-day drawdown.` },
             { icon: ShieldCheck, number: "03", title: "Get funded", body: `Complete KYC, sign your funded trader agreement and request payouts twice a month at an ${R.contractorSharePercent}% profit split.` },
           ].map(({ icon: Icon, number, title, body }) => <article key={number} className="rounded-xl border border-[var(--border)] bg-[var(--background)] p-7"><div className="flex items-center justify-between"><Icon size={24} className="text-[var(--primary)]" aria-hidden="true" /><span className="font-mono text-sm text-[var(--faint)]">{number}</span></div><h3 className="mt-8 text-xl font-medium">{title}</h3><p className="mt-3 text-sm leading-7 text-[var(--muted)]">{body}</p></article>)}</div>

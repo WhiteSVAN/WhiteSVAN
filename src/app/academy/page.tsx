@@ -92,7 +92,7 @@ export default async function AcademyPage({ searchParams }: { searchParams: Prom
 
           <section aria-labelledby="start-title" className="mt-12 flex flex-col items-start justify-between gap-6 rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] p-7 sm:flex-row sm:items-center sm:p-9">
             <div><p className="terminal-label">Ready when you are</p><h2 id="start-title" className="mt-3 text-2xl font-medium tracking-tight">Evaluations from {formatInr(EVALUATION_PLANS[0].fee)}.</h2><p className="mt-2 text-sm text-[var(--muted)]">One-time fee, GST included. No subscription, no activation fee.</p></div>
-            <Link href="/evaluations#accounts" className="inline-flex min-h-12 shrink-0 items-center gap-3 rounded-full bg-[var(--primary)] px-6 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Choose your account <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            <Link href="/checkout" className="inline-flex min-h-12 shrink-0 items-center gap-3 rounded-full bg-[var(--primary)] px-6 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start your evaluation <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </section>
         </div>
       </main>

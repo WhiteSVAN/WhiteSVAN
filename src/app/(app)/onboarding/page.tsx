@@ -1,20 +1,22 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { requireUser } from "@/lib/auth/dal";
+import { pendingSignupRole } from "@/lib/auth/onboarding";
+import { safeNextPath } from "@/lib/safe-path";
 import { RolePicker } from "@/components/auth/role-picker";
 import { chooseRole } from "../actions";
 import { OnboardingForm } from "./onboarding-form";
 import { ClientOnboardingForm } from "./client-onboarding-form";
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const user = await requireUser();
 
   if (!user.role) {
-    const pending = (await cookies()).get("signup_role")?.value;
+    const next = safeNextPath((await searchParams).next);
     return (
       <Shell step="01" title="How will you use WhiteSVAN?" blurb="You can't switch roles later from the app, so pick the one that fits.">
         <form action={chooseRole} className="space-y-5">
-          <RolePicker defaultRole={pending === "CLIENT" ? "CLIENT" : pending === "TRADER" ? "TRADER" : undefined} />
+          {next && <input type="hidden" name="next" value={next} />}
+          <RolePicker defaultRole={(await pendingSignupRole()) ?? undefined} />
           <button type="submit" className="flex min-h-11 w-full items-center justify-center rounded-md bg-zinc-100 px-4 text-sm font-medium text-zinc-950 hover:bg-white">
             Continue
           </button>

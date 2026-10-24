@@ -116,7 +116,7 @@ export default async function ExampleOperatorPage({ params }: { params: Promise<
         <section className="border-y border-[#202821] bg-[#0e1410]">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-6 px-4 py-10 sm:px-8">
             <div><p className="terminal-label">This is an example, not an endorsement</p><h2 className="mt-2 text-2xl font-medium tracking-[-0.035em]">Build a record from your own source data.</h2></div>
-            <Link href="/signup" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-[#baf277] px-5 text-sm font-medium text-[#17200e] hover:bg-[#cdf995]">Build your record <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/signup?next=/journal" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-[#baf277] px-5 text-sm font-medium text-[#17200e] hover:bg-[#cdf995]">Build your record <ArrowRight className="h-4 w-4" /></Link>
           </div>
         </section>
       </main>
