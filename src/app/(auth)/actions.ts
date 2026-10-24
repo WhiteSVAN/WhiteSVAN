@@ -89,7 +89,7 @@ export async function signup(
     // picked, if they picked one) unless they were headed elsewhere; clients onboard first.
     const plan = findEvaluationPlan(String(formData.get("plan") ?? ""));
     const next = safeNextPath(String(formData.get("next") ?? ""));
-    await signIn("credentials", { email, password, redirectTo: role === "CLIENT" ? "/onboarding" : plan ? `/checkout/${plan.id}` : (next ?? "/checkout") });
+    await signIn("credentials", { email, password, redirectTo: role === "CLIENT" ? "/onboarding" : (next ?? (plan ? `/checkout/${plan.id}` : "/checkout")) });
     return undefined;
   } catch (error) {
     if (error instanceof AuthError) return { message: "Account created — please sign in." };
@@ -117,6 +117,9 @@ export async function signInWithGoogle(formData: FormData) {
   const role = String(formData.get("role") ?? "");
   const ref = String(formData.get("ref") ?? "");
   const next = safeNextPath(String(formData.get("next") ?? ""));
+  // Every OAuth attempt replaces prior context, including when nothing was chosen.
+  store.delete(SIGNUP_ROLE_COOKIE);
+  store.delete(SIGNUP_REF_COOKIE);
   if (role === "TRADER" || role === "CLIENT") store.set(SIGNUP_ROLE_COOKIE, role, opts);
   if (ref) store.set(SIGNUP_REF_COOKIE, ref.slice(0, 16), opts);
   await signIn("google", { redirectTo: next ? `/onboarding/continue?${new URLSearchParams({ next })}` : "/onboarding/continue" });

@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { formatInr, type EvaluationPlan } from "@/lib/prop-firm";
 import { openDesk } from "@/lib/trading/desk";
 import { MAX_ACTIVE_ACCOUNTS, planAmount, type Billing } from "./billing";
+import { checkoutAttemptKey, isCheckoutAttemptId } from "./attempt";
 import { DEMO_CREDIT } from "./demo";
 
 export class CheckoutError extends Error {
@@ -32,10 +33,23 @@ export async function lastBilling(userId: string): Promise<{ name: string; phone
  * charge) or a demo purchase paid from the user's virtual demo credit (provider "demo"), which opens
  * a demo account. Either way the order is recorded at the plan's price and the account opens.
  */
-export async function completePurchase(input: { mode: "test" | "demo"; userId: string; email: string; plan: EvaluationPlan; billing: Billing; now: number }): Promise<{ orderId: string; accountId: string }> {
-  const { mode, userId, email, plan, billing, now } = input;
+export async function completePurchase(input: { mode: "test" | "demo"; userId: string; email: string; plan: EvaluationPlan; billing: Billing; now: number; attemptId: string }): Promise<{ orderId: string; accountId: string }> {
+  const { mode, userId, email, plan, billing, now, attemptId } = input;
+  if (!isCheckoutAttemptId(attemptId)) throw new CheckoutError("Refresh checkout and try again.");
+  const providerOrderId = checkoutAttemptKey(userId, mode, attemptId);
   const amount = planAmount(plan);
   return prisma.$transaction(async (tx) => {
+    // Lock before counting for BOTH modes. The later demo-credit debit cannot
+    // protect a count that has already been read by another transaction.
+    const owners = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
+    if (!owners.length) throw new CheckoutError("Sign in again to complete checkout.");
+    const existing = await tx.checkoutOrder.findUnique({ where: { providerOrderId }, select: { id: true, userId: true, planId: true, status: true, accountId: true } });
+    if (existing) {
+      if (existing.userId !== userId || existing.planId !== plan.id || existing.status !== "PAID" || !existing.accountId) {
+        throw new CheckoutError("This checkout attempt has already been used. Refresh checkout and try again.");
+      }
+      return { orderId: existing.id, accountId: existing.accountId };
+    }
     const active = await tx.evaluationAccount.count({ where: { userId, status: "ACTIVE" } });
     if (active >= MAX_ACTIVE_ACCOUNTS) throw new CheckoutError(`You can hold up to ${MAX_ACTIVE_ACCOUNTS} active evaluation accounts at a time.`);
     if (mode === "demo") {
@@ -53,6 +67,7 @@ export async function completePurchase(input: { mode: "test" | "demo"; userId: s
         amount,
         status: "PAID",
         provider: mode,
+        providerOrderId,
         accountId,
         billingName: billing.name,
         billingEmail: email,

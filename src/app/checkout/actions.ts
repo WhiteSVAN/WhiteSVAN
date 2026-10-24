@@ -4,7 +4,9 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { tradingNow } from "@/lib/accounts/clock";
+import { requireMember } from "@/lib/auth/dal";
 import { accountNumber, billingSchema } from "@/lib/checkout/billing";
+import { isCheckoutAttemptId } from "@/lib/checkout/attempt";
 import { checkoutModeFor } from "@/lib/checkout/config";
 import { CheckoutError, completePurchase } from "@/lib/checkout/orders";
 import { sendOrderConfirmation } from "@/lib/email";
@@ -33,8 +35,11 @@ export async function checkout(_previous: CheckoutState | undefined, formData: F
   const plan = findEvaluationPlan(String(formData.get("plan") ?? ""));
   const userId = (await auth())?.user?.id;
   if (!userId) redirect(`/login?${new URLSearchParams({ next: plan ? `/checkout/${plan.id}` : "/checkout" })}`);
+  await requireMember();
   const values: CheckoutValues = { name: String(formData.get("name") ?? ""), phone: String(formData.get("phone") ?? ""), state: String(formData.get("state") ?? ""), terms: formData.get("terms") === "on" };
   if (!plan) return { message: "Choose an account size.", values };
+  const attemptId = formData.get("attempt");
+  if (!isCheckoutAttemptId(attemptId)) return { message: "Refresh checkout and try again.", values };
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
   if (!user?.email) return { message: "Add an email address to your account to check out.", values };
   const mode = checkoutModeFor(user.email);
@@ -45,7 +50,7 @@ export async function checkout(_previous: CheckoutState | undefined, formData: F
 
   let order: { orderId: string; accountId: string };
   try {
-    order = await completePurchase({ mode, userId, email: user.email, plan, billing: parsed.data, now: tradingNow() });
+    order = await completePurchase({ mode, userId, email: user.email, plan, billing: parsed.data, now: tradingNow(), attemptId });
   } catch (error) {
     if (error instanceof CheckoutError) return { message: error.message, values };
     throw error;
