@@ -18,7 +18,7 @@ describe("Kite session", () => {
     expect(kiteTokenExpiry(ist("2026-10-17 06:00"))).toBe(ist("2026-10-18 06:00"));
   });
 
-  it("round-trips the encrypted cookie for its owner until it expires", () => {
+  it("round-trips the sealed login for its owner until it expires", () => {
     const sealed = sealKiteSession(session, SECRET);
     expect(sealed).not.toContain("access-token");
     expect(openKiteSession(sealed, SECRET, "user_1", ist("2026-10-16 15:00"))).toEqual(session);
@@ -27,7 +27,7 @@ describe("Kite session", () => {
     expect(sealKiteSession(session, SECRET)).not.toBe(sealed);
   });
 
-  it("rejects a tampered cookie, another secret or junk", () => {
+  it("rejects a tampered login, another secret or junk", () => {
     const sealed = sealKiteSession(session, SECRET);
     const flipped = sealed.slice(0, 20) + (sealed[20] === "A" ? "B" : "A") + sealed.slice(21);
     const now = ist("2026-10-16 15:00");
@@ -56,7 +56,7 @@ describe("Kite configuration", () => {
     }
   });
 
-  it("lets only listed sign-ins use the account, ignoring case", () => {
+  it("lets only listed sign-ins connect the account, ignoring case", () => {
     const config = kiteConfig(env);
     expect(isKiteOwner(config, "FOUNDER@whitesvan.in")).toBe(true);
     expect(isKiteOwner(config, "trader@example.com")).toBe(false);

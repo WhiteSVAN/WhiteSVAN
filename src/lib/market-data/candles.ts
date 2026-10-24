@@ -1,6 +1,6 @@
 /**
- * Candles for price charts, whatever the data source: Zerodha Kite for the firm's own account
- * today, a licensed exchange feed for traders later. Prices are integer paise like the trading
+ * Candles for price charts, whatever the data source: the firm's shared Zerodha Kite login today,
+ * any other feed later. Prices are integer paise like the trading
  * core; times are UTC epoch milliseconds, bucketed on the IST trading day. Pure: callers pass
  * every timestamp in.
  */

@@ -1,13 +1,15 @@
 import type { NextRequest } from "next/server";
 import { errorFields, logger } from "@/lib/logger";
-import { currentKiteOwner, kiteCookie, redirectTo } from "@/lib/zerodha/access";
+import { currentKiteOwner, redirectTo } from "@/lib/zerodha/access";
 import { createSession } from "@/lib/zerodha/client";
+import { saveKiteSession } from "@/lib/zerodha/connection";
 import { KiteError } from "@/lib/zerodha/kite";
-import { KITE_NEXT_COOKIE, KITE_SESSION_COOKIE, KITE_STATE_COOKIE, kiteTokenExpiry, safeNextPath, sameState, sealKiteSession } from "@/lib/zerodha/session";
+import { KITE_NEXT_COOKIE, KITE_STATE_COOKIE, kiteTokenExpiry, safeNextPath, sameState } from "@/lib/zerodha/session";
 
 /**
  * Kite's redirect after login (register this URL in the Kite developer console). Checks the login
- * state, swaps the request token for the day's access token and keeps it in the encrypted cookie.
+ * state, swaps the request token for the day's access token and stores it, sealed, as the shared
+ * login every signed-in user's prices come from.
  */
 export async function GET(request: NextRequest) {
   const owner = await currentKiteOwner();
@@ -28,14 +30,12 @@ export async function GET(request: NextRequest) {
   try {
     const login = await createSession(owner.config, requestToken);
     const expiresAt = kiteTokenExpiry(Date.now());
-    const sealed = sealKiteSession(
+    await saveKiteSession(
       { userId: owner.userId, kiteUserId: login.userId, kiteUserName: login.userName, accessToken: login.accessToken, expiresAt },
       owner.config.sessionSecret,
     );
-    const response = back("connected");
-    response.cookies.set(KITE_SESSION_COOKIE, sealed, kiteCookie(new Date(expiresAt)));
     logger.info("zerodha.connected", { userId: owner.userId, kiteUserId: login.userId });
-    return response;
+    return back("connected");
   } catch (error) {
     logger.error("zerodha.login.failed", error instanceof KiteError ? { status: error.status, errorType: error.errorType, error: error.message } : errorFields(error));
     return back("failed");

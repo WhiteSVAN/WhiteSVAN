@@ -1,7 +1,8 @@
 /**
  * Zerodha charts are switched on by KITE_API_KEY, KITE_API_SECRET and KITE_OWNER_EMAILS (the
- * WhiteSVAN sign-ins allowed to use the firm's Zerodha account). Kite itself only lets the app's
- * own Zerodha client ID log in. Server only.
+ * WhiteSVAN sign-ins that may connect and disconnect the firm's Zerodha account; every signed-in
+ * user reads prices through that login). Kite itself only lets the app's own Zerodha client ID
+ * log in. Server only.
  */
 import { KITE_API_ROOT, KITE_LOGIN_URL } from "./kite";
 

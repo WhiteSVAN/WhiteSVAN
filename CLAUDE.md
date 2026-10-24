@@ -70,11 +70,11 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
   optimistic locking on `version`) and `CheckoutOrder` the purchase
   ([src/lib/accounts/store.ts](src/lib/accounts/store.ts)). At most `maximumAccounts` active.
 - The trading platform `/trade/<account>` runs the engine on the server: each poll
-  (`/api/accounts/<id>/tick`) makes one Kite quote call and feeds it to the account; orders and
-  cancels go to `/api/accounts/<id>/orders`. Prices come from the firm's Kite session, so today only
-  `KITE_OWNER_EMAILS` can trade; other traders see their account and "trading opens when live prices
-  connect" until a licensed feed exists. Orders, stops and the 15:20 square-off run while a platform
-  page is open (the always-on engine service is still to build).
+  (`/api/accounts/<id>/tick`) gets quotes through the shared Kite login and feeds them to the
+  account; orders and cancels go to `/api/accounts/<id>/orders`. Every account holder trades while
+  an owner's Kite login is connected; after Kite's 06:00 IST logout traders see "Live prices are
+  offline" until a `KITE_OWNER_EMAILS` sign-in connects again. Orders, stops and the 15:20
+  square-off run while a platform page is open (the always-on engine service is still to build).
 - Signed-in workspace ([src/app/(app)/layout.tsx](src/app/(app)/layout.tsx)): My accounts
   (`/dashboard`, account cards with meters), Evaluations, Payouts (`/payouts`), Academy and Help, with
   the journal tools under **Tools** ([src/components/workspace-nav.tsx](src/components/workspace-nav.tsx)).
@@ -110,28 +110,38 @@ result. The future engine service (Node on AWS with the market-data feed) hosts 
 - The Academy rule practice ([src/lib/academy-practice.ts](src/lib/academy-practice.ts)) runs these
   same rule functions over daily closes.
 
-## Zerodha charts (firm's own account) and market data
+## Zerodha charts (the firm's shared Kite login) and market data
 
 `/markets` (signed-in, **Tools → Zerodha charts**) charts NIFTY, BANK NIFTY and SENSEX (index,
-futures and options) from the firm's Zerodha account through Kite Connect: candles from 1 minute to
-1 day, volume and open-interest panes, live quotes and five-level depth.
+futures and options) for every signed-in user, from the firm's Zerodha account through Kite
+Connect: candles from 1 minute to 1 day, volume and open-interest panes, live quotes and five-level
+depth.
 
-- **Own use only (load-bearing).** Zerodha's API FAQ: "Displaying or redistributing Kite Connect API
-  data on external platforms violates exchange data vending policies." NSE's data policy and SEBI's
-  circulars say the same for virtual trading. Kite data may never feed a page that traders or
-  visitors see, or the evaluation engine. Those need a licensed exchange feed (Notion: "Market Data
-  & Trading Platform Plan"). `/markets` is a 404, and the API routes answer 404, for anyone not in
-  `KITE_OWNER_EMAILS`; Kite itself only lets the app's own Zerodha client ID log in.
+- **Shared with every signed-in user (founder's decision, 24 Oct 2026).** A `KITE_OWNER_EMAILS`
+  sign-in logs in to Kite. The day's access token is stored, sealed, in the `KiteConnection` row,
+  and every user's charts, quotes and trading platform read through it until Kite's 06:00 IST
+  logout. Only owners connect or disconnect it, and Kite itself only lets the app's own Zerodha
+  client ID log in. The founder made this call aware that Zerodha's API FAQ says "Displaying or
+  redistributing Kite Connect API data on external platforms violates exchange data vending
+  policies", and that NSE's data policy (cl. 8.4) bars market data for virtual trading. It rests on
+  the platform staying private (sign-ups are still open). The licensed-feed routes are in Notion:
+  "Market Data & Trading Platform Plan".
+- **Market data only.** The same login can trade the firm's real Zerodha account, so `client.ts`
+  makes quote, historical and instrument calls only. Never add order, portfolio or funds calls, and
+  never send the token to a browser.
 - [src/lib/market-data/candles.ts](src/lib/market-data/candles.ts): source-agnostic candles in paise,
   bucketed from the 09:15 IST open like the exchanges' bars, and `foldTick` for live updates.
   [src/components/markets/price-chart.tsx](src/components/markets/price-chart.tsx) draws any candle
   source with TradingView Lightweight Charts (Apache-2.0; keep its attribution logo), so trader
   screens can reuse it on a licensed feed.
 - [src/lib/zerodha/](src/lib/zerodha/): `kite.ts` (request building and parsing to paise, and
-  `toEngineQuote` into the trading core's `Quote`), `client.ts` (calls; 3 historical and 1 quote
-  request a second), `session.ts` (login checksum; the day's access token sealed with AES-256-GCM in
-  an HTTP-only cookie that expires at Kite's 06:00 IST logout, never stored in the database),
-  `config.ts` and `access.ts` (owner checks, JSON errors, relative redirects).
+  `toEngineQuote` into the trading core's `Quote`), `client.ts` (the calls), `throttle.ts` (one
+  login for everyone: a gate keeps to Kite's 1 quote and 3 historical requests a second, screens
+  polling together share one quote call, and chart history is reused for 15 s; it works per server
+  instance, so a 429 from a second instance makes screens retry), `session.ts` (login checksum; the
+  day's access token sealed with AES-256-GCM), `connection.ts` (the shared `KiteConnection` row,
+  re-read every 10 s, forgotten when Kite rejects the token), `config.ts` and `access.ts` (owner
+  checks, JSON errors, relative redirects).
 - Evaluation accounts trade on the same screen (`ZerodhaCharts` with an `account`):
   [src/lib/trading/desk.ts](src/lib/trading/desk.ts) hosts the engine (contracts, quotes, time
   order, fill and activity log) and [src/lib/accounts/ticks.ts](src/lib/accounts/ticks.ts) feeds it
@@ -288,11 +298,13 @@ metadata gates access without exposing private evidence files.
   Academy rule practice running on it. Covers the pure-logic parts of stories S3-01, S3-02, S4-06,
   S5-02 and PAY-2; still open there: a contract-note match for the charges, the contract-master
   service and data feed, and hosting the engine live.
-- ✅ **Zerodha charts (Oct 2026)**: `/markets` on the firm's own Kite Connect account (index, futures
+- ✅ **Zerodha charts (Oct 2026)**: `/markets` on the firm's Kite Connect login (index, futures
   and options; candles, volume, OI, live quotes, depth) with a source-agnostic chart component.
+  Shared with every signed-in user since 24 Oct 2026.
 - ✅ **Checkout, accounts and the trading platform (Oct 2026)**: Tradeify-style buying from the plan
   card to `/trade/<account>`, staff test purchases until a gateway is signed, stored evaluation
-  accounts on the server-side engine, My accounts cards. Traders trade once a licensed feed connects.
+  accounts on the server-side engine, My accounts cards. Every account holder trades on the shared
+  Kite login.
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine
   service with Redis and a replay provider, checkout (UPI/cards via an Indian gateway), evaluation
   provisioning with live risk meters, KYC, payouts with TDS, then the optional copy desk.

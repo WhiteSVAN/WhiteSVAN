@@ -1,43 +1,44 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ConnectZerodha } from "@/components/markets/connect-zerodha";
+import { ConnectZerodha, PricesOffline } from "@/components/markets/connect-zerodha";
 import { ZerodhaCharts } from "@/components/markets/zerodha-charts";
 import { ZerodhaNotice } from "@/components/markets/zerodha-notice";
 import { requireUser } from "@/lib/auth/dal";
-import { currentKiteSession } from "@/lib/zerodha/access";
 import { isKiteOwner, kiteConfig } from "@/lib/zerodha/config";
+import { sharedKiteSession } from "@/lib/zerodha/connection";
 
 export const metadata: Metadata = { title: "Zerodha charts · WhiteSVAN", robots: { index: false } };
 
 const sessionEnd = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 
-/** Charts on the firm's own Zerodha account. A 404 for everyone not in KITE_OWNER_EMAILS. */
+/** Charts for every signed-in user on the firm's shared Zerodha login, which the KITE_OWNER_EMAILS connect. A 404 while Zerodha isn't set up. */
 export default async function MarketsPage({ searchParams }: { searchParams: Promise<{ zerodha?: string }> }) {
   const user = await requireUser();
   const config = kiteConfig();
-  if (!isKiteOwner(config, user.email)) notFound();
-  const session = await currentKiteSession({ userId: user.id, config });
+  if (!config) notFound();
+  const owner = isKiteOwner(config, user.email);
+  const session = await sharedKiteSession(config.sessionSecret);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="terminal-label">Firm tools</p>
+          <p className="terminal-label">Markets</p>
           <h1 className="mt-2 text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Zerodha charts</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">NIFTY, BANK NIFTY and SENSEX: the index, futures and options, with live prices and market depth from the firm&apos;s Zerodha account. To trade, open an evaluation account from My accounts.</p>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">NIFTY, BANK NIFTY and SENSEX: the index, futures and options, with live prices and market depth from Zerodha. To trade, open an evaluation account from My accounts.</p>
         </div>
-        {session && (
+        {owner && session && (
           <form action="/api/zerodha/logout" method="post" className="flex flex-wrap items-center gap-3 text-xs text-[var(--muted)]">
-            <span>Connected as <span className="font-mono text-[var(--foreground)]">{session.kiteUserId}</span> until {sessionEnd.format(session.expiresAt)} IST</span>
+            <span>Shared with every signed-in user. Connected as <span className="font-mono text-[var(--foreground)]">{session.kiteUserId}</span> until {sessionEnd.format(session.expiresAt)} IST</span>
             <button type="submit" className="min-h-9 rounded-md border border-[var(--border-strong)] px-3 text-[var(--foreground)] hover:bg-[var(--card-raised)]">Disconnect</button>
           </form>
         )}
       </div>
 
       <ZerodhaNotice code={(await searchParams).zerodha} />
-      {session ? <ZerodhaCharts /> : <ConnectZerodha next="/markets" />}
+      {session ? <ZerodhaCharts canConnect={owner} /> : owner ? <ConnectZerodha next="/markets" /> : <PricesOffline />}
 
-      <p className="max-w-3xl text-xs leading-6 text-[var(--muted)]">Prices come from your Zerodha account through Kite Connect and are shown only to you. Zerodha&apos;s terms don&apos;t allow Kite data on pages other people see, so trader evaluations will chart a licensed exchange feed. Charts by TradingView Lightweight Charts.</p>
+      <p className="max-w-3xl text-xs leading-6 text-[var(--muted)]">Prices and depth come from the firm&apos;s Zerodha account through Kite Connect. Charts by TradingView Lightweight Charts.</p>
     </div>
   );
 }

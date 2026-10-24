@@ -208,3 +208,27 @@ The storefront and pure trading library do not by themselves activate those serv
   a licensed feed, KYC, payouts, and counsel's terms, privacy, refund and contact pages (S3-04).
 - Product note: on the ₹1L plan one NIFTY futures round trip costs about ₹1,100 in charges, over half
   the ₹2,000 daily loss limit, so small accounts effectively trade options.
+
+## Zerodha charts for every signed-in user, 24 Oct 2026 (Claude)
+
+- Founder's decision: the firm's Kite login now serves every signed-in user's `/markets` charts and
+  `/trade/<account>` platform, not just `KITE_OWNER_EMAILS`. The founder made the call after being
+  shown that Zerodha's terms bar showing Kite data to other people and that NSE's data policy
+  (cl. 8.4) bars market data for virtual trading. It rests on the platform staying private.
+- How it works: an owner's Kite login is stored sealed (AES-256-GCM) in a new `KiteConnection` row
+  (migration `20261024120000_kite_connection`, additive) instead of a browser cookie. Any signed-in
+  user's requests read through it, and only owners connect or disconnect it. After Kite's 06:00 IST
+  logout, owners get the login card and everyone else gets "Live prices are offline".
+- One login for everyone: `src/lib/zerodha/throttle.ts` sends one Kite quote call a second for all
+  screens together, spaces historical calls at 3 a second, and reuses chart history for 15 s. The
+  limits hold per server instance.
+- The login can trade the firm's real Zerodha account, so `client.ts` keeps to market-data calls
+  and the token never reaches a browser.
+- Checked end to end with two browsers against the Kite stand-in on a temporary Postgres, 29
+  checks. An owner connects. A trader who isn't an owner gets live index and futures charts with
+  depth, buys a test evaluation and fills a market order. The trader can't log in to Kite or
+  disconnect it, and no response or cookie carries the token. Two screens polling for 12 s made 7
+  Kite quote calls at least 1.05 s apart, with no 429s. After Kite's logout the trader waits while
+  the owner reconnects, and disconnecting turns prices off for everyone.
+- After deploying, an owner logs in to Kite once on `/markets`. The old per-browser cookie is no
+  longer read.

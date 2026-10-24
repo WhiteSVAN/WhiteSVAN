@@ -6,8 +6,9 @@ import { applyTick, tickKeys } from "@/lib/accounts/ticks";
 import { fetchQuotes } from "@/lib/zerodha/client";
 
 /**
- * The platform's poll: one Kite quote call for the account's contracts and the screen's
- * (`{ keys }`), fed into the account (fills, marks, square-off, day close). Returns both.
+ * The platform's poll: quotes for the account's contracts and the screen's (`{ keys }`), shared
+ * with the other screens polling that second, fed into the account (fills, marks, square-off,
+ * day close). Returns both.
  */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const keys = typeof body === "object" && body !== null && "keys" in body && Array.isArray(body.keys) ? body.keys.filter((key): key is string => typeof key === "string").slice(0, 16) : [];
   return accountJson("tick", id, async ({ userId, account, config, accessToken }) => {
     const wanted = tickKeys(account.desk, keys);
-    const quotes = wanted.length > 0 ? await fetchQuotes(config, accessToken, wanted, Date.now()) : [];
+    const quotes = wanted.length > 0 ? await fetchQuotes(config, accessToken, wanted) : [];
     const changed = await changeAccount(userId, id, (desk) => ({ desk: applyTick(desk, quotes, tradingNow()), result: null }));
     return { quotes, desk: changed?.account.desk ?? account.desk };
   });
