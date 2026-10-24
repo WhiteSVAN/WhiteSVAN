@@ -3,7 +3,7 @@ import { findEvaluationPlan } from "@/lib/prop-firm";
 import { openDesk } from "@/lib/trading/desk";
 import { ist } from "@/lib/trading/time";
 import { contractInstrument, type KiteContract, type MarketQuote } from "@/lib/zerodha/kite";
-import { applyOrder, applyTick, engineBooks, MAX_TICK_KEYS, tickKeys } from "./ticks";
+import { applyModify, applyOrder, applyTick, engineBooks, MAX_TICK_KEYS, tickKeys } from "./ticks";
 
 // Fixture values, not exchange values.
 const FUT: KiteContract = { token: 13238786, exchange: "NFO", tradingSymbol: "NIFTY26OCTFUT", underlying: "NIFTY", kind: "FUT", expiry: "2026-10-27", strike: null, lotSize: 75, tickSize: 10 };
@@ -54,5 +54,15 @@ describe("account ticks", () => {
   it("refuses an order when the only quote is stale", () => {
     const stale = applyOrder(opened(), contractInstrument(FUT), { id: "O1", token: FUT.token, side: "BUY", lots: 1, type: "MARKET" }, [quote("NFO:NIFTY26OCTFUT", FUT.token, "2026-10-16 09:50:00", 25_000)], ist("2026-10-16 10:00:00"));
     expect(stale.outputs).toEqual([expect.objectContaining({ kind: "rejected", reason: "STALE_QUOTE" })]);
+  });
+
+  it("moves a working order against a fresh quote and fills it once marketable", () => {
+    const placed = applyOrder(opened(), contractInstrument(FUT), { id: "L1", token: FUT.token, side: "BUY", lots: 1, type: "LIMIT", limitPrice: r(24_900) }, [quote("NFO:NIFTY26OCTFUT", FUT.token, "2026-10-16 10:00:00", 25_000)], ist("2026-10-16 10:00:01"));
+    expect(placed.desk.state.orders).toHaveLength(1);
+    const later = [quote("NFO:NIFTY26OCTFUT", FUT.token, "2026-10-16 10:05:00", 25_000)];
+    const moved = applyModify(placed.desk, "L1", { limitPrice: r(25_000) + 10 }, later, ist("2026-10-16 10:05:01"));
+    expect(moved.outputs.map((output) => output.kind)).toEqual(["modified", "fill"]);
+    expect(moved.desk.orderBook?.[0]).toMatchObject({ id: "L1", status: "COMPLETE", limitPrice: r(25_000) + 10, averagePrice: r(25_000) + 10 });
+    expect(applyModify(moved.desk, "L1", { limitPrice: r(24_950) }, later, ist("2026-10-16 10:05:02")).outputs).toEqual([expect.objectContaining({ kind: "rejected", reason: "UNKNOWN_ORDER" })]);
   });
 });

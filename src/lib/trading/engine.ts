@@ -1,7 +1,7 @@
 /**
  * Simulated account engine (TRD SIM and RULE; stories S3-02, S4-06). One evaluation or funded
- * account as a deterministic state machine: apply timestamped events (quotes, orders, cancels,
- * clock ticks, payout debits) and get the next state plus what happened (fills with charges,
+ * account as a deterministic state machine: apply timestamped events (quotes, orders, modifications,
+ * cancels, clock ticks, payout debits) and get the next state plus what happened (fills with charges,
  * rejections, breaches, day closes, passes). It reads no clock, draws no random numbers and does
  * no I/O, so replaying the same events reproduces every result (RULE-5). The engine service will
  * host it next to the market-data feed; Postgres keeps the state and outputs.
@@ -29,6 +29,13 @@ export interface OrderRequest {
   /** LIMIT and SL orders. */
   limitPrice?: Paise;
   /** SL and SL-M orders. */
+  triggerPrice?: Paise;
+}
+
+/** New terms for a working order; whatever is left out stays. Side and type don't change. */
+export interface OrderChanges {
+  lots?: number;
+  limitPrice?: Paise;
   triggerPrice?: Paise;
 }
 
@@ -158,6 +165,7 @@ export interface EngineContext {
 export type EngineEvent =
   | { kind: "quote"; at: number; quote: Quote }
   | { kind: "place"; at: number; order: OrderRequest }
+  | { kind: "modify"; at: number; orderId: string; changes: OrderChanges }
   | { kind: "cancel"; at: number; orderId: string }
   | { kind: "clock"; at: number }
   | { kind: "payout"; at: number; debit: Paise };
@@ -177,12 +185,14 @@ export type RejectReason =
   | "EXPIRY_WINDOW"
   | "LOT_LIMIT"
   | "NAKED_SHORT"
-  | "UNKNOWN_ORDER";
+  | "UNKNOWN_ORDER"
+  | "BELOW_FILLED";
 
 export type CancelReason = "TRADER" | "SQUARE_OFF" | "BREACH" | "LOT_LIMIT" | "NAKED_SHORT";
 
 export type EngineOutput =
   | { kind: "accepted"; at: number; orderId: string }
+  | { kind: "modified"; at: number; orderId: string }
   | { kind: "rejected"; at: number; orderId: string; reason: RejectReason; message: string }
   | { kind: "triggered"; at: number; orderId: string }
   | { kind: "fill"; fill: Fill }
@@ -211,7 +221,8 @@ export function rejectMessage(reason: RejectReason, rules: RuleSet): string {
     case "EXPIRY_WINDOW": return "No new positions in expiring contracts in the last hour of expiry day.";
     case "LOT_LIMIT": return `This order would take you over your ${rules.maxLots}-lot position limit.`;
     case "NAKED_SHORT": return "Sell options only inside a defined-risk spread: hold the protective option first.";
-    case "UNKNOWN_ORDER": return "There's no working order with this id.";
+    case "UNKNOWN_ORDER": return "This order isn't working any more: it has filled or been cancelled.";
+    case "BELOW_FILLED": return "That's no more than has already filled. Cancel the order to stop the rest.";
   }
 }
 
@@ -411,6 +422,7 @@ class Run {
     switch (event.kind) {
       case "quote": return this.onQuote(event.quote);
       case "place": return this.place(event.order);
+      case "modify": return this.modify(event.orderId, event.changes);
       case "cancel": return this.cancel(event.orderId);
       case "payout": return this.payout(event.debit);
       case "clock": return;
@@ -527,6 +539,70 @@ class Run {
     s.orders.push(working);
     this.outputs.push({ kind: "accepted", at: this.at, orderId: order.id });
     this.work(working);
+    this.checkLimits(this.at, () => this.fillTrigger());
+  }
+
+  /**
+   * New lots or prices for a working order, checked as a new order would be: what is still unfilled
+   * counts against the limits as if it filled now. A new price is worked against the book straight
+   * away; a new size waits for the next quote, since this book's depth may be what it filled from.
+   */
+  private modify(orderId: string, changes: OrderChanges) {
+    const { s, ctx } = this;
+    const reject = (reason: RejectReason) => {
+      this.outputs.push({ kind: "rejected", at: this.at, orderId, reason, message: rejectMessage(reason, s.rules) });
+    };
+    const order = s.orders.find((candidate) => candidate.id === orderId);
+    if (!order) return reject("UNKNOWN_ORDER");
+    if (s.status !== "ACTIVE") return reject("ACCOUNT_LOCKED");
+    const now = toIst(this.at);
+    const { session } = s.rules;
+    const day = s.day;
+    if (!day || day.date !== now.date || day.squaredOff || now.second < session.open || now.second >= session.squareOff) {
+      return reject("MARKET_CLOSED");
+    }
+    const instrument = ctx.instrument(order.token);
+    if (!instrument) return reject("UNKNOWN_INSTRUMENT");
+    const lots = changes.lots ?? order.lots;
+    if (!Number.isSafeInteger(lots) || lots < 1) return reject("INVALID_QUANTITY");
+    const quantity = lots * instrument.lotSize;
+    if (quantity > instrument.freezeQuantity) return reject("FREEZE_QUANTITY");
+    if (quantity <= order.filled) return reject("BELOW_FILLED");
+    const next: OrderRequest = {
+      id: order.id,
+      token: order.token,
+      side: order.side,
+      lots,
+      type: order.type,
+      ...(order.type === "LIMIT" || order.type === "SL" ? { limitPrice: changes.limitPrice ?? order.limitPrice } : {}),
+      ...(isStop(order) ? { triggerPrice: changes.triggerPrice ?? order.triggerPrice } : {}),
+    };
+    if (!pricesValid(next, instrument)) return reject("INVALID_PRICE");
+    const book = this.book(order.token);
+    if (!book) return reject("NO_QUOTE");
+    if (this.at - book.at > ctx.staleAfterMs) return reject("STALE_QUOTE");
+    if (isStop(next) && !order.triggered && (next.side === "BUY" ? book.lastPrice >= next.triggerPrice! : book.lastPrice <= next.triggerPrice!)) {
+      return reject("TRIGGER_ALREADY_CROSSED");
+    }
+    const remaining = quantity - order.filled;
+    if (quantity > order.quantity && instrument.expiry === now.date && now.second >= session.expiryCutoff) {
+      const held = this.netUnits(order.token);
+      const signed = order.side === "BUY" ? remaining : -remaining;
+      const reducing = held !== 0 && Math.sign(signed) !== Math.sign(held) && Math.abs(signed) <= Math.abs(held);
+      if (!reducing) return reject("EXPIRY_WINDOW");
+    }
+    const violation = this.exposureViolation(instrument, order.side === "BUY" ? remaining : -remaining);
+    if (violation) return reject(violation);
+
+    const repriced = next.limitPrice !== order.limitPrice || next.triggerPrice !== order.triggerPrice;
+    order.lots = lots;
+    order.quantity = quantity;
+    if (next.limitPrice !== undefined) order.limitPrice = next.limitPrice;
+    if (next.triggerPrice !== undefined) order.triggerPrice = next.triggerPrice;
+    this.outputs.push({ kind: "modified", at: this.at, orderId: order.id });
+    if (!repriced) return;
+    order.resting = false;
+    this.work(order);
     this.checkLimits(this.at, () => this.fillTrigger());
   }
 

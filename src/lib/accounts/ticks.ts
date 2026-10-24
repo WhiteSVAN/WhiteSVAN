@@ -4,7 +4,7 @@
  * followed by a clock event that runs the 15:20 square-off and the 15:30 day close.
  */
 import { deskQuoteKeys, deskStep, type Desk } from "@/lib/trading/desk";
-import type { EngineOutput, OrderRequest } from "@/lib/trading/engine";
+import type { EngineOutput, OrderChanges, OrderRequest } from "@/lib/trading/engine";
 import type { Instrument } from "@/lib/trading/instruments";
 import type { Quote } from "@/lib/trading/matching";
 import { isQuoteKey, toEngineQuote, type MarketQuote } from "@/lib/zerodha/kite";
@@ -37,4 +37,13 @@ export function applyOrder(desk: Desk, instrument: Instrument, order: OrderReque
   const quote = books.get(instrument.token);
   const marked = quote ? deskStep(desk, { kind: "quote", at: now, quote }, books, instrument).desk : desk;
   return deskStep(marked, { kind: "place", at: now, order }, books, instrument);
+}
+
+/** New terms for a working order against a fresh quote for its contract. */
+export function applyModify(desk: Desk, orderId: string, changes: OrderChanges, quotes: readonly MarketQuote[], now: number): { desk: Desk; outputs: EngineOutput[] } {
+  const books = engineBooks(quotes);
+  const order = desk.state.orders.find((item) => item.id === orderId);
+  const quote = order ? books.get(order.token) : undefined;
+  const marked = quote ? deskStep(desk, { kind: "quote", at: now, quote }, books).desk : desk;
+  return deskStep(marked, { kind: "modify", at: now, orderId, changes }, books);
 }

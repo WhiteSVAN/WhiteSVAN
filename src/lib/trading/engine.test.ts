@@ -173,6 +173,65 @@ describe("simulated orders", () => {
   });
 });
 
+describe("modifying orders", () => {
+  const modify = (sim: Sim, time: string, orderId: string, changes: { lots?: number; limit?: number; trigger?: number }) =>
+    sim.send({
+      kind: "modify",
+      at: ist(time),
+      orderId,
+      changes: {
+        ...(changes.lots !== undefined ? { lots: changes.lots } : {}),
+        ...(changes.limit !== undefined ? { limitPrice: r(changes.limit) } : {}),
+        ...(changes.trigger !== undefined ? { triggerPrice: r(changes.trigger) } : {}),
+      },
+    });
+
+  it("moves a resting limit order and fills it once the new price meets the book", () => {
+    const sim = new Sim();
+    sim.quote("2026-11-02 09:20", CE1, 101, { bids: [[100.95, 100]], asks: [[101, 100]] });
+    sim.place("2026-11-02 09:20", { id: "L1", token: CE1.token, side: "BUY", type: "LIMIT", limit: 100 });
+    expect(kinds(modify(sim, "2026-11-02 09:20", "L1", { limit: 100.5 }))).toEqual(["modified"]);
+    expect(sim.state.orders[0]).toMatchObject({ limitPrice: r(100.5), lots: 1, quantity: 50 });
+    const out = modify(sim, "2026-11-02 09:20", "L1", { limit: 101 });
+    expect(kinds(out)).toEqual(["modified", "fill"]);
+    expect(fills(out)[0]).toMatchObject({ orderId: "L1", price: r(101), quantity: 50 });
+    expect(sim.state.orders).toEqual([]);
+  });
+
+  it("changes the size around what has filled, but not below it", () => {
+    const sim = new Sim({ plan: "10l" });
+    sim.quote("2026-11-02 09:20", CE1, 100, { asks: [[100, 60]] });
+    sim.place("2026-11-02 09:20", { id: "L1", token: CE1.token, side: "BUY", type: "LIMIT", limit: 100, lots: 2 });
+    expect(sim.state.orders[0]).toMatchObject({ quantity: 100, filled: 60 });
+    expect(reasonOf(modify(sim, "2026-11-02 09:20", "L1", { lots: 1 }))).toBe("BELOW_FILLED");
+    expect(kinds(modify(sim, "2026-11-02 09:20", "L1", { lots: 3 }))).toEqual(["modified"]);
+    expect(sim.state.orders[0]).toMatchObject({ lots: 3, quantity: 150, filled: 60 });
+  });
+
+  it("checks new terms like a new order", () => {
+    const sim = new Sim();
+    sim.quote("2026-11-02 09:20", CE1, 100);
+    sim.place("2026-11-02 09:20", { id: "L1", token: CE1.token, side: "BUY", type: "LIMIT", limit: 99 });
+    expect(reasonOf(modify(sim, "2026-11-02 09:20", "L1", { limit: 99.03 }))).toBe("INVALID_PRICE");
+    expect(reasonOf(modify(sim, "2026-11-02 09:20", "L1", { lots: 2 }))).toBe("LOT_LIMIT");
+    expect(reasonOf(modify(sim, "2026-11-02 09:20", "nope", { limit: 98 }))).toBe("UNKNOWN_ORDER");
+    sim.place("2026-11-02 09:20", { token: CE1.token, side: "BUY" });
+    sim.place("2026-11-02 09:20", { id: "S1", token: CE1.token, side: "SELL", type: "SL-M", trigger: 95 });
+    expect(reasonOf(modify(sim, "2026-11-02 09:20", "S1", { trigger: 101 }))).toBe("TRIGGER_ALREADY_CROSSED");
+    expect(kinds(modify(sim, "2026-11-02 09:20", "S1", { trigger: 97 }))).toEqual(["modified"]);
+    expect(sim.state.orders.find((order) => order.id === "S1")).toMatchObject({ triggerPrice: r(97), triggered: false });
+    expect(reasonOf(modify(sim, "2026-11-02 09:20:06", "S1", { trigger: 96 }))).toBe("STALE_QUOTE");
+  });
+
+  it("refuses changes once the 15:20 square-off has cancelled the order", () => {
+    const sim = new Sim();
+    sim.quote("2026-11-02 09:20", CE1, 101);
+    sim.place("2026-11-02 09:20", { id: "L1", token: CE1.token, side: "BUY", type: "LIMIT", limit: 100 });
+    sim.clock("2026-11-02 15:20");
+    expect(reasonOf(modify(sim, "2026-11-02 15:21", "L1", { limit: 100.5 }))).toBe("UNKNOWN_ORDER");
+  });
+});
+
 describe("order checks", () => {
   it("accepts orders only from 09:15 to 15:20 IST on trading days", () => {
     const sim = new Sim();

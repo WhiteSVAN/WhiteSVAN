@@ -1,16 +1,15 @@
 /**
  * In-memory host for one simulated account, the way the engine service will host many: it keeps
  * the contracts the account has ordered or held, applies events in time order against the host's
- * latest quotes, and keeps a short log of fills and activity. JSON-serialisable, so the owner's
- * test desk on /markets keeps it in the browser and a server can store it. Pure: callers pass
- * every time and quote in.
+ * latest quotes, and keeps the order book and a short log of fills and activity. JSON-serialisable,
+ * so the server stores it whole (EvaluationAccount.desk). Pure: callers pass every time and quote in.
  */
 import type { EvaluationPlan } from "../prop-firm";
 import { CHARGES_SCHEDULES } from "./charges-schedules";
-import { openAccount, step, type AccountState, type EngineContext, type EngineEvent, type EngineOutput, type Fill } from "./engine";
-import type { Instrument } from "./instruments";
+import { openAccount, step, type AccountState, type CancelReason, type EngineContext, type EngineEvent, type EngineOutput, type Fill, type OrderType } from "./engine";
+import type { Instrument, Side } from "./instruments";
 import type { Quote } from "./matching";
-import { formatPaise } from "./money";
+import { formatPaise, type Paise } from "./money";
 import { ruleSetFor } from "./rules";
 import { isWeekday } from "./time";
 
@@ -18,11 +17,36 @@ import { isWeekday } from "./time";
 export const DESK_SETTINGS = { slippageTicks: 1, staleAfterMs: 5_000 } as const;
 const FILLS_KEPT = 200;
 const NOTES_KEPT = 100;
+const ORDERS_KEPT = 200;
 
 export interface DeskNote {
   at: number;
   tone: "good" | "bad" | "info";
   text: string;
+}
+
+export type OrderStatus = "OPEN" | "COMPLETE" | "CANCELLED" | "REJECTED";
+
+/** One order as the order book shows it, from placement to its final state. */
+export interface OrderRecord {
+  id: string;
+  token: number;
+  tradingSymbol: string;
+  side: Side;
+  type: OrderType;
+  lots: number;
+  /** Units ordered and filled so far. */
+  quantity: number;
+  filled: number;
+  limitPrice?: Paise;
+  triggerPrice?: Paise;
+  /** Volume-weighted fill price; null until the first fill. */
+  averagePrice: Paise | null;
+  placedAt: number;
+  updatedAt: number;
+  status: OrderStatus;
+  /** Why it was rejected or cancelled. */
+  reason?: string;
 }
 
 export interface Desk {
@@ -34,11 +58,13 @@ export interface Desk {
   fills: Fill[];
   /** Newest first. */
   notes: DeskNote[];
+  /** Every order placed, newest first. Desks stored before the order book existed have none. */
+  orderBook?: OrderRecord[];
 }
 
 export function openDesk(plan: EvaluationPlan, id: string, at: number): Desk {
   const state = openAccount({ id, phase: "EVALUATION", rules: ruleSetFor(plan), at });
-  return { version: 1, state, instruments: [], fills: [], notes: [{ at, tone: "info", text: `Opened a ${plan.label} evaluation account.` }] };
+  return { version: 1, state, instruments: [], fills: [], notes: [{ at, tone: "info", text: `Opened a ${plan.label} evaluation account.` }], orderBook: [] };
 }
 
 /** Quote keys (`exchange:tradingsymbol`) the host must keep fresh: held and ordered contracts. */
@@ -59,10 +85,11 @@ export function deskStep(desk: Desk, event: EngineEvent, quotes: ReadonlyMap<num
     charges: CHARGES_SCHEDULES,
     ...DESK_SETTINGS,
   };
-  const { state, outputs } = step(desk.state, { ...event, at: Math.max(event.at, desk.state.clock) }, context);
+  const applied = { ...event, at: Math.max(event.at, desk.state.clock) };
+  const { state, outputs } = step(desk.state, applied, context);
   const live = new Set([...state.positions.map((position) => position.instrument.token), ...state.orders.map((order) => order.token)]);
   const symbol = (token: number) => known.get(token)?.tradingSymbol ?? String(token);
-  const notes = outputs.flatMap((output) => noteFor(output, symbol)).reverse();
+  const notes = outputs.flatMap((output) => noteFor(output, symbol, event.kind)).reverse();
   return {
     desk: {
       version: 1,
@@ -70,21 +97,102 @@ export function deskStep(desk: Desk, event: EngineEvent, quotes: ReadonlyMap<num
       instruments: [...known.values()].filter((item) => live.has(item.token)),
       fills: [...outputs.flatMap((output) => (output.kind === "fill" ? [output.fill] : [])).reverse(), ...desk.fills].slice(0, FILLS_KEPT),
       notes: [...notes, ...desk.notes].slice(0, NOTES_KEPT),
+      orderBook: recordOrders(desk.orderBook ?? [], applied, outputs, known),
     },
     outputs,
   };
 }
 
+/** Short reasons for the order book's Cancelled rows. */
+const CANCELLED_WHY: Record<CancelReason, string> = {
+  TRADER: "Cancelled by you",
+  SQUARE_OFF: "15:20 square-off",
+  BREACH: "A loss limit was hit",
+  LOT_LIMIT: "Would pass your lot limit",
+  NAKED_SHORT: "Would leave a naked short option",
+};
+
+/** The order book after one event: a placed order opens a row, and fills, changes and cancels update it. */
+function recordOrders(book: readonly OrderRecord[], event: EngineEvent, outputs: readonly EngineOutput[], known: ReadonlyMap<number, Instrument>): OrderRecord[] {
+  const records = [...book];
+  const index = new Map(records.map((record, position) => [record.id, position]));
+  const update = (id: string, change: (record: OrderRecord) => OrderRecord) => {
+    const position = index.get(id);
+    if (position !== undefined) records[position] = change(records[position]);
+  };
+  // A repeated order id is rejected by the engine and must not touch the original row.
+  const placed = event.kind === "place" && !index.has(event.order.id) ? event.order : null;
+  if (placed) {
+    const instrument = known.get(placed.token);
+    records.unshift({
+      id: placed.id,
+      token: placed.token,
+      tradingSymbol: instrument?.tradingSymbol ?? String(placed.token),
+      side: placed.side,
+      type: placed.type,
+      lots: placed.lots,
+      quantity: placed.lots * (instrument?.lotSize ?? 0),
+      filled: 0,
+      ...(placed.limitPrice !== undefined && (placed.type === "LIMIT" || placed.type === "SL") ? { limitPrice: placed.limitPrice } : {}),
+      ...(placed.triggerPrice !== undefined && (placed.type === "SL" || placed.type === "SL-M") ? { triggerPrice: placed.triggerPrice } : {}),
+      averagePrice: null,
+      placedAt: event.at,
+      updatedAt: event.at,
+      status: "OPEN",
+    });
+    for (const [id, position] of index) index.set(id, position + 1);
+    index.set(placed.id, 0);
+  }
+  for (const output of outputs) {
+    switch (output.kind) {
+      case "rejected":
+        // A refused change or cancel leaves the order as it was; only a refused new order is Rejected.
+        if (placed && output.orderId === placed.id) update(output.orderId, (record) => ({ ...record, status: "REJECTED", reason: output.message, updatedAt: output.at }));
+        break;
+      case "modified":
+        if (event.kind === "modify") {
+          const { changes } = event;
+          update(output.orderId, (record) => ({
+            ...record,
+            ...(changes.lots !== undefined ? { lots: changes.lots, quantity: changes.lots * (known.get(record.token)?.lotSize ?? 0) } : {}),
+            ...(changes.limitPrice !== undefined && record.limitPrice !== undefined ? { limitPrice: changes.limitPrice } : {}),
+            ...(changes.triggerPrice !== undefined && record.triggerPrice !== undefined ? { triggerPrice: changes.triggerPrice } : {}),
+            updatedAt: output.at,
+          }));
+        }
+        break;
+      case "fill": {
+        const { fill } = output;
+        if (fill.orderId === null) break;
+        update(fill.orderId, (record) => {
+          const filled = record.filled + fill.quantity;
+          const averagePrice = Math.round(((record.averagePrice ?? 0) * record.filled + fill.price * fill.quantity) / filled);
+          return { ...record, filled, averagePrice, status: filled >= record.quantity ? "COMPLETE" : record.status, updatedAt: fill.at };
+        });
+        break;
+      }
+      case "cancelled":
+        update(output.orderId, (record) => ({ ...record, status: "CANCELLED", reason: CANCELLED_WHY[output.reason], updatedAt: output.at }));
+        break;
+    }
+  }
+  return records.slice(0, ORDERS_KEPT);
+}
+
 const money = (paise: number) => formatPaise(paise, 2);
 
-/** A plain-English line for the activity log, or nothing for routine acknowledgements. */
-export function noteFor(output: EngineOutput, symbol: (token: number) => string): DeskNote[] {
+/** A plain-English line for the activity log, or nothing for routine acknowledgements. `event` is what was applied. */
+export function noteFor(output: EngineOutput, symbol: (token: number) => string, event?: EngineEvent["kind"]): DeskNote[] {
   switch (output.kind) {
     case "accepted":
     case "payout-debited":
       return [];
-    case "rejected":
-      return [{ at: output.at, tone: "bad", text: `Order rejected: ${output.message}` }];
+    case "rejected": {
+      const what = event === "modify" ? "Change refused" : event === "cancel" ? "Cancel refused" : "Order rejected";
+      return [{ at: output.at, tone: "bad", text: `${what}: ${output.message}` }];
+    }
+    case "modified":
+      return [{ at: output.at, tone: "info", text: "Order modified." }];
     case "triggered":
       return [{ at: output.at, tone: "info", text: "Stop order triggered." }];
     case "cancelled": {
