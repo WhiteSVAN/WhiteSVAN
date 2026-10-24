@@ -21,6 +21,12 @@ export async function activeAccountCount(userId: string): Promise<number> {
   return prisma.evaluationAccount.count({ where: { userId, status: "ACTIVE" } });
 }
 
+/** The details from the user's last order, to fill in their next checkout. */
+export async function lastBilling(userId: string): Promise<{ name: string; phone: string | null; state: string } | null> {
+  const order = await prisma.checkoutOrder.findFirst({ where: { userId }, orderBy: { createdAt: "desc" }, select: { billingName: true, billingPhone: true, billingState: true } });
+  return order && { name: order.billingName, phone: order.billingPhone, state: order.billingState };
+}
+
 /**
  * A purchase without a gateway, in one transaction: a staff test purchase (provider "test", no
  * charge) or a demo purchase paid from the user's virtual demo credit (provider "demo"), which opens

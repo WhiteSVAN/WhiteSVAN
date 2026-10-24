@@ -3,7 +3,7 @@
  * The state is the GST place of supply on the invoice; fees are GST-inclusive.
  */
 import { z } from "zod";
-import { PROGRAMME_RULES, type EvaluationPlan } from "@/lib/prop-firm";
+import { EVALUATION_PLANS, PROGRAMME_RULES, RECOMMENDED_PLAN, type EvaluationPlan } from "@/lib/prop-firm";
 
 export const INDIAN_STATES = [
   "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh",
@@ -31,6 +31,15 @@ export type Billing = z.infer<typeof billingSchema>;
 
 /** The amount charged for a plan, in paise, GST included. */
 export const planAmount = (plan: EvaluationPlan) => plan.fee * 100;
+
+/**
+ * The size checkout opens on when the trader hasn't picked one: the recommended size, or, with demo
+ * credit (in paise) that doesn't cover it, the largest size the credit does cover.
+ */
+export function startingPlan(creditLeft: number | null = null): EvaluationPlan {
+  if (creditLeft === null || creditLeft >= planAmount(RECOMMENDED_PLAN)) return RECOMMENDED_PLAN;
+  return EVALUATION_PLANS.findLast((plan) => planAmount(plan) <= creditLeft) ?? RECOMMENDED_PLAN;
+}
 
 /** A short, readable account number for screens and support: WSV-1L-4F2A9C. */
 export const accountNumber = (id: string, planId: string) => `WSV-${planId.replace(/-/g, "").toUpperCase()}-${id.slice(-6).toUpperCase()}`;

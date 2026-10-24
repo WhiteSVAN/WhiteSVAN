@@ -14,6 +14,7 @@ import {
   requestResetSchema,
   resetPasswordSchema,
 } from "@/lib/auth/schemas";
+import { SIGNUP_REF_COOKIE, SIGNUP_ROLE_COOKIE } from "@/lib/auth/onboarding";
 import { createPasswordResetToken, consumePasswordResetToken } from "@/lib/auth/reset";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
@@ -52,7 +53,7 @@ export async function authenticate(
   }
 }
 
-/** Create an account, then sign the new user in and send them to onboarding. */
+/** Create an account, then sign the new user in: traders go on to checkout, clients to onboarding. */
 export async function signup(
   _prev: AuthFormState,
   formData: FormData,
@@ -84,9 +85,11 @@ export async function signup(
   logger.info("auth.signup.created", { userId: created.id, email, role });
 
   try {
-    // Traders go straight to checkout for the plan they picked (or My accounts); clients onboard first.
-    const plan = role === "TRADER" ? findEvaluationPlan(String(formData.get("plan") ?? "")) : undefined;
-    await signIn("credentials", { email, password, redirectTo: role === "CLIENT" ? "/onboarding" : plan ? `/checkout/${plan.id}` : "/dashboard" });
+    // Creating the account is step 1 of 3, so traders go straight on to checkout (on the size they
+    // picked, if they picked one) unless they were headed elsewhere; clients onboard first.
+    const plan = findEvaluationPlan(String(formData.get("plan") ?? ""));
+    const next = safeNextPath(String(formData.get("next") ?? ""));
+    await signIn("credentials", { email, password, redirectTo: role === "CLIENT" ? "/onboarding" : plan ? `/checkout/${plan.id}` : (next ?? "/checkout") });
     return undefined;
   } catch (error) {
     if (error instanceof AuthError) return { message: "Account created — please sign in." };
@@ -104,17 +107,19 @@ async function referrerIdFor(code: string): Promise<string | null> {
 
 /**
  * Start a Google sign-in. The chosen role and referral code ride along in
- * short-lived cookies; onboarding applies them to a new account (Google users
- * without a role are asked for one there).
+ * short-lived cookies, which /onboarding/continue applies to a new account
+ * before sending the user on to `next` (Google users without a role are asked
+ * for one on the onboarding page).
  */
 export async function signInWithGoogle(formData: FormData) {
   const store = await cookies();
   const opts = { httpOnly: true, sameSite: "lax" as const, path: "/", maxAge: 60 * 30 };
   const role = String(formData.get("role") ?? "");
   const ref = String(formData.get("ref") ?? "");
-  if (role === "TRADER" || role === "CLIENT") store.set("signup_role", role, opts);
-  if (ref) store.set("signup_ref", ref.slice(0, 16), opts);
-  await signIn("google", { redirectTo: "/onboarding" });
+  const next = safeNextPath(String(formData.get("next") ?? ""));
+  if (role === "TRADER" || role === "CLIENT") store.set(SIGNUP_ROLE_COOKIE, role, opts);
+  if (ref) store.set(SIGNUP_REF_COOKIE, ref.slice(0, 16), opts);
+  await signIn("google", { redirectTo: next ? `/onboarding/continue?${new URLSearchParams({ next })}` : "/onboarding/continue" });
 }
 
 /**

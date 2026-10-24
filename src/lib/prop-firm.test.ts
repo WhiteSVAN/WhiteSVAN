@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EVALUATION_PLANS, findEvaluationPlan, formatInr, planLimits } from "./prop-firm";
+import { EVALUATION_PLANS, findEvaluationPlan, formatInr, FUNDED_STEPS, planLimits, RECOMMENDED_PLAN } from "./prop-firm";
 
 describe("published evaluation preview", () => {
   it("keeps the rupee targets and limits aligned across all four v4 tiers", () => {
@@ -14,6 +14,15 @@ describe("published evaluation preview", () => {
   it("does not silently select a plan for an invalid detail URL", () => {
     expect(findEvaluationPlan("5l")?.balance).toBe(500000);
     expect(findEvaluationPlan("unlimited")).toBeUndefined();
+  });
+
+  it("recommends one of the listed sizes", () => {
+    expect(EVALUATION_PLANS).toContain(RECOMMENDED_PLAN);
+    expect(RECOMMENDED_PLAN.id).toBe("5l");
+  });
+
+  it("describes the path after a pass in three steps", () => {
+    expect(FUNDED_STEPS.map(([title]) => title)).toEqual(["Pass the evaluation", "Complete KYC and sign your agreement", "Trade and get paid"]);
   });
 
   it("formats Indian rupee grouping without shortening the disclosed amount", () => {

@@ -6,7 +6,8 @@ WhiteSVAN is an India-first **prop trading firm** for NIFTY, BANK NIFTY and SENS
 options, modelled on MFFU, Tradeify and Topstep. Traders learn with **SVAN Academy**, pay a one-time
 fee for a **simulated evaluation**, and those who pass get a **simulated funded account** with an
 80% profit split, paid out in rupees. The public site (`/`, `/evaluations`, `/rules`, `/help`,
-`/academy`) is the storefront. It is **launching soon**: there is no checkout yet.
+`/academy`) is the storefront. It is **launching soon**: no payment gateway yet, so checkout runs in
+demo mode (below).
 
 The original product, a trader-verification **journal** (imports, metrics, research profiles, AI
 briefs, discovery network), still ships as secondary tools under the signed-in **Tools** menu
@@ -47,10 +48,17 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
   [src/lib/help-center.ts](src/lib/help-center.ts)), `/academy` (lessons in
   [src/lib/academy-content.ts](src/lib/academy-content.ts)). `sitemap.ts`, `robots.ts` and the
   storefront `opengraph-image.tsx` read the public origin from [src/lib/site.ts](src/lib/site.ts).
-- **Buying an evaluation** (Tradeify's flow): "Start evaluation" → `/checkout/<plan>` (signed out:
-  `/signup?plan=<id>`, which returns to that checkout; sign-in honours `?next=`) → details, the
-  agreements and payment → `/checkout/complete/<order>` → "Start trading" → `/trade/<account>`.
-  Traders don't need a journal profile for any of this (`requireMember` in
+- **Buying an evaluation: three steps** (founder's rule of three, 25 Oct 2026): create an account,
+  choose the size, pay. "Get funded" and "Start your evaluation" go to `/checkout`. Signed out,
+  that's sign-up first (`/signup?next=/checkout`), which asks for no size, and sign-up sends
+  traders straight on to checkout (or to `?next=`). `/checkout` opens `/checkout/<plan>` on
+  `startingPlan` (`RECOMMENDED_PLAN`, ₹5L, or the largest size the demo credit covers); a pricing
+  card opens its own size (signed out: `/signup?plan=<id>`). Checkout is one screen: step 2 picks
+  the size in place (the address follows; the form posts `plan`), step 3 is the details (filled in
+  from the last order), the agreement and Pay → `/checkout/complete/<order>` → "Start trading" →
+  `/trade/<account>`. `StartSteps` shows the steps on sign-up and checkout. Google sign-ups land
+  on `/onboarding/continue`, which applies the trader role and continues without the role picker.
+  Keep new step lists to three. Traders don't need a journal profile for any of this (`requireMember` in
   [src/lib/auth/dal.ts](src/lib/auth/dal.ts)). No payment gateway is signed (Razorpay or Cashfree).
   Until one is, checkout runs in **demo mode** (founder's decision, 24 Oct 2026, for demos):
   - Every user has ₹50,000 of virtual demo credit (`DEMO_CREDIT` in
@@ -317,8 +325,8 @@ metadata gates access without exposing private evidence files.
 - ✅ **Zerodha charts (Oct 2026)**: `/markets` on the firm's Kite Connect login (index, futures
   and options; candles, volume, OI, live quotes, depth) with a source-agnostic chart component.
   Shared with every signed-in user since 24 Oct 2026.
-- ✅ **Checkout, accounts and the trading platform (Oct 2026)**: Tradeify-style buying from the plan
-  card to `/trade/<account>`, demo evaluations on ₹50,000 of virtual credit (staff: test purchases) until a gateway is signed, stored evaluation
+- ✅ **Checkout, accounts and the trading platform (Oct 2026)**: three-step buying (account, size,
+  pay) to `/trade/<account>`, demo evaluations on ₹50,000 of virtual credit (staff: test purchases) until a gateway is signed, stored evaluation
   accounts on the server-side engine, My accounts cards. Every account holder trades on the shared
   Kite login.
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine

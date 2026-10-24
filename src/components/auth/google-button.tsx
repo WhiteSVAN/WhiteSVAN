@@ -2,13 +2,15 @@ import { signInWithGoogle } from "@/app/(auth)/actions";
 
 /**
  * "Continue with Google" — a plain server-action form so it works without JS.
- * Rendered only when Google OAuth is configured (see `googleEnabled`).
+ * Rendered only when Google OAuth is configured (see `googleEnabled`). `next` is
+ * where the user goes once signed in.
  */
-export function GoogleButton({ role, referral }: { role?: string; referral?: string }) {
+export function GoogleButton({ role, referral, next }: { role?: string; referral?: string; next?: string }) {
   return (
     <form action={signInWithGoogle}>
       {role && <input type="hidden" name="role" value={role} />}
       {referral && <input type="hidden" name="ref" value={referral} />}
+      {next && <input type="hidden" name="next" value={next} />}
       <button
         type="submit"
         className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-zinc-700 bg-zinc-950 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-400 hover:text-white"

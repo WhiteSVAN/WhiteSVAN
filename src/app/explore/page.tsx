@@ -156,7 +156,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Sear
                 Join as a client
               </Link>
               <Link
-                href="/signup"
+                href="/signup?next=/journal"
                 className="inline-flex min-h-10 items-center gap-2 rounded-md bg-zinc-100 px-4 font-medium text-zinc-950 hover:bg-white"
               >
                 Build your record <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -219,7 +219,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Sear
               </p>
               {viewer.role !== "CLIENT" && (
                 <Link
-                  href={signedIn ? "/dashboard" : "/signup"}
+                  href={signedIn ? "/dashboard" : "/signup?next=/journal"}
                   className="mt-6 inline-flex min-h-10 items-center gap-2 rounded-md bg-[#baf277] px-4 text-xs font-medium text-[#17200e]"
                 >
                   {signedIn ? "Publish your record" : "Build your record"} <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />

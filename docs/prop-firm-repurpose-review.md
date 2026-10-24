@@ -272,3 +272,33 @@ The storefront and pure trading library do not by themselves activate those serv
   - a short balance refused in the browser, and by the server when the button is forced;
   - staff still making test purchases;
   - the storefront copy and the phone layout.
+
+## Three steps to a paid evaluation, 25 Oct 2026 (Claude)
+
+- Founder's direction: the rule of three, with as few steps as possible before a trader pays, and
+  no size to pick before creating an account. The path is now 1. create your account, 2. choose
+  the size, 3. pay: three actions for a new visitor (Get funded, Create account, Pay).
+- Every "Get funded" and "Start your evaluation" button goes to `/checkout`. Signed out, that's
+  sign-up first (`/signup?next=/checkout`), which asks for no size. Sign-up sends traders straight
+  on to checkout (a `?next=` wins, so the journal's "Build your record" links keep going to the
+  journal). Signed in, `/checkout` opens on `startingPlan`: the Recommended ₹5L
+  (`RECOMMENDED_PLAN` in `prop-firm.ts`, which the pricing cards mark too), or the largest size the
+  demo credit still covers. Pricing cards still open their own size.
+- Checkout is one screen. Step 2 picks the size in place: the summary, credit and Pay button follow
+  it, the address follows through `history.replaceState`, and the form posts it as `plan`. Step 3
+  is name (from sign-up), mobile, state, the agreement and Pay. The details come from the trader's
+  last order, and a refused checkout keeps what was typed (a keyed `<select>`, because React resets
+  the form after each submission). The agreement is never pre-ticked. `StartSteps` shows the three
+  steps on sign-up and checkout.
+- Google sign-ups land on `/onboarding/continue`, which applies the trader role the sign-up page
+  asked for and continues to checkout, skipping the role picker and the journal-profile form. The
+  picker, when it still shows, sends traders on to checkout too. Google sign-in isn't switched on
+  in production yet.
+- Step lists are threes: How it works (start, pass, get funded and get paid, three points each),
+  "From pass to payout" (`FUNDED_STEPS`), the landing and evaluations steps, and a help article,
+  "How do I start an evaluation?".
+- Checked with unit tests and an end-to-end run against a fresh Postgres, 38 checks: the three
+  actions from Get funded to a paid order, switching size without a reload, refused checkouts
+  keeping their details, the prefilled second order, the starting size on low credit, the account
+  cap, the pricing-card and sign-in paths, journal sign-ups, the Google landing route (with and
+  without a role), staff test purchases and 375px phone widths.

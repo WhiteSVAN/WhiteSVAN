@@ -21,6 +21,12 @@ describe("HELP_TOPICS", () => {
     expect(allAnswers).toContain(`floor starts at ${formatInr(96_000)} and locks at ${formatInr(100_000)}`);
   });
 
+  it("gives the three steps to an evaluation, with no size needed to sign up", () => {
+    const answer = HELP_TOPICS.flatMap((t) => t.articles).find((a) => a.id === "how-to-start")?.answer ?? "";
+    expect(answer).toMatch(/^In three steps: create your account, choose your account size \(₹1L to ₹10L\) and pay/);
+    expect(answer).toContain("You don't need to pick a size to create your account");
+  });
+
   it("never promises returns", () => {
     for (const phrase of ["guaranteed returns", "risk-free", "will make money", "assured profits"]) {
       expect(allAnswers.toLowerCase()).not.toContain(phrase);

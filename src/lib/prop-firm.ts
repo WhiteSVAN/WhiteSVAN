@@ -7,6 +7,10 @@ export const EVALUATION_PLANS = [
 ] as const;
 
 export type EvaluationPlan = (typeof EVALUATION_PLANS)[number];
+
+/** The size the pricing cards mark Recommended, and the one checkout opens on. */
+export const RECOMMENDED_PLAN: EvaluationPlan = EVALUATION_PLANS[2];
+
 export const PROGRAMME_RULES = {
   targetPercent: 6,
   maximumLossPercent: 4,
@@ -42,11 +46,10 @@ export function formatInr(value: number): string {
   }).format(value);
 }
 
-/** What happens after a pass, in order. */
+/** What happens after a pass, in three steps. */
 export const FUNDED_STEPS: readonly (readonly [title: string, body: string])[] = [
   ["Pass the evaluation", `Hit the ${PROGRAMME_RULES.targetPercent}% profit target in at least ${PROGRAMME_RULES.minimumDays} trading days, inside the drawdown and daily loss limits.`],
-  ["Complete KYC", "PAN, Aadhaar through DigiLocker and bank-account verification."],
-  ["Sign your funded trader agreement", "It sets your profit split, payout caps, risk limits, confidentiality and non-solicit terms."],
+  ["Complete KYC and sign your agreement", "PAN, Aadhaar through DigiLocker and a bank-account check, then your funded trader agreement: profit split, payout caps, risk limits, confidentiality and non-solicit terms."],
   ["Trade and get paid", `Keep ${PROGRAMME_RULES.contractorSharePercent}% of the profit, with a payout twice a month up to the cap for your account size. Your funded account stays simulated; your payouts are real.`],
 ];
 
