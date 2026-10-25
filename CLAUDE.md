@@ -88,6 +88,11 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
     arrives. The row is locked so concurrent confirmations open one account. Authorized but
     uncaptured payments remain pending. Staff sign-ins in `STAFF_EMAILS` always use provider
     `"test"`: the normal fee is recorded without a charge, even with Razorpay configured.
+  - **Razorpay test mode for demos** (founder, 25 Oct 2026: Razorpay "just for demo purposes" until
+    real payments and payout APIs come later). Test keys (`rzp_test_…`) set `testMode`: orders are
+    recorded with provider `"razorpay-test"`, checkout shows Razorpay's test UPI ID and card
+    (`TEST_PAYMENT`), and the confirmation page and receipt say "test mode, not charged". Live keys
+    record `"razorpay"`.
   - Free/test attempts use a stable, owner-scoped key so retries reuse the same order. New
     purchases check the active-account cap before payment; an already-paid order still opens its
     account if that cap has since been reached. Passing an evaluation opens its funded account
@@ -121,11 +126,19 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   with its depth, and the chart selector switches back to the index. B and S select the option
   on the ticket without changing the chart. Index charts have no depth, volume or OI panes and
   cannot be traded. On desktop, the large chart sits beside the chain and ticket, with rule meters
-  below. The ticket takes Market, Limit and Stop-loss orders. The engine runs on the server:
+  below. The ticket takes Market, Limit and Stop-loss orders, and a buy can carry a **stop-loss and
+  target**: [desk.ts](src/lib/trading/desk.ts) (`Bracket`, `exitsProblem`) places them as an SL-M
+  sell and a limit sell (ids `<buy>-SL` and `<buy>-TP`) once the buy fills, cancels the other when
+  one fills (one-cancels-other), cancels both when the position is closed some other way ("Position
+  closed") and trims them when part of it is sold. This runs in `deskStep` after every event, inside
+  the same write, so polls, orders, cancels and the square-off all keep it. The option chart marks the
+  position's average price, the stop-loss, the target and working orders (`chartLines`), and fills,
+  stops and targets pop up as alerts. The engine runs on the server:
   each poll (`/api/accounts/<id>/tick`,
   up to `MAX_TICK_KEYS` = 40 contracts in one Kite call, with full depth only for the selected
   option and the account's own; `screenQuotes`) feeds the account. Orders go to
-  `/api/accounts/<id>/orders`, and modify (PATCH) and cancel (DELETE) to `/orders/<orderId>`.
+  `/api/accounts/<id>/orders` (with `stopLoss` and `target` in paise for a buy), and modify (PATCH)
+  and cancel (DELETE) to `/orders/<orderId>`.
   **Order policy** (`orderPolicyProblem` in [src/lib/accounts/ticks.ts](src/lib/accounts/ticks.ts),
   checked before the engine): options only; buy to open, sell only to close what you hold; no
   calls and puts on the same index together, counting working buys and the trader's other active
@@ -297,7 +310,7 @@ Prisma schema: [prisma/schema.prisma](prisma/schema.prisma). Two groups:
   optimistic-lock `version`, phase and a unique `fromAccountId` for a funded account's evaluation.
   `demo` and `User.demoCreditSpent` remain legacy fields; virtual credit is no longer spent and
   old demo accounts continue under the current account flow. `CheckoutOrder` stores amount in
-  paise, provider `free`, `test`, `razorpay` (or legacy `demo`), billing, GST place of supply and
+  paise, provider `free`, `test`, `razorpay`, `razorpay-test` (or legacy `demo`), billing, GST place of supply and
   unique provider order/payment references.
   `JournalNote` (a trader's note on a date, `@@unique([userId, date])`). There are no payout
   tables yet (see the TRD's data model).

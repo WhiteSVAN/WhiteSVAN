@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db";
 import { INDIAN_STATES, MAX_ACTIVE_ACCOUNTS } from "@/lib/checkout/billing";
 import { requireMember } from "@/lib/auth/dal";
 import { checkoutModeFor } from "@/lib/checkout/config";
+import { razorpayConfig } from "@/lib/checkout/razorpay";
 import { activeAccountCount, lastBilling } from "@/lib/checkout/orders";
 import { findEvaluationPlan } from "@/lib/prop-firm";
 import { checkout } from "../actions";
@@ -56,6 +57,7 @@ export default async function CheckoutPage({ params }: Props) {
               action={checkout}
               email={user.email}
               mode={mode}
+              testMode={mode === "razorpay" && razorpayConfig()?.testMode === true}
               initialPlan={plan.id}
               attemptId={randomUUID()}
               defaults={{ name: last?.name ?? user.name ?? "", phone: last?.phone?.slice(-10) ?? "", state: last && STATES.includes(last.state) ? last.state : "", terms: false }}

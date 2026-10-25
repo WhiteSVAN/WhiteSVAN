@@ -13,7 +13,16 @@ export interface RazorpayConfig {
   /** Signs webhooks; set in the dashboard when the webhook is added. Optional: the browser's handler still completes orders. */
   webhookSecret: string | null;
   apiRoot: string;
+  /** Test keys (`rzp_test_…`): Razorpay's test mode, where payments are simulated and no money moves. */
+  testMode: boolean;
 }
+
+/** Orders are recorded with the mode they were paid in, so a test payment never reads as money received. */
+export const RAZORPAY_PROVIDERS = ["razorpay", "razorpay-test"] as const;
+export const razorpayProvider = (config: Pick<RazorpayConfig, "testMode">) => (config.testMode ? "razorpay-test" : "razorpay");
+
+/** Razorpay's test-mode details, shown at checkout so a demo can pay without real money. */
+export const TEST_PAYMENT = { upi: "success@razorpay", card: "4100 2800 0000 1007" } as const;
 
 /**
  * Razorpay's keys, or null when they aren't set (checkout then opens evaluations without payment).
@@ -24,7 +33,7 @@ export function razorpayConfig(env: Env = process.env): RazorpayConfig | null {
   const keySecret = env.RAZORPAY_KEY_SECRET?.trim();
   if (!keyId || !keySecret) return null;
   const standIn = env.NODE_ENV !== "production" ? env.RAZORPAY_API_ROOT?.trim() : undefined;
-  return { keyId, keySecret, webhookSecret: env.RAZORPAY_WEBHOOK_SECRET?.trim() || null, apiRoot: standIn || "https://api.razorpay.com/v1" };
+  return { keyId, keySecret, webhookSecret: env.RAZORPAY_WEBHOOK_SECRET?.trim() || null, apiRoot: standIn || "https://api.razorpay.com/v1", testMode: keyId.startsWith("rzp_test_") };
 }
 
 export interface RazorpayOrder {

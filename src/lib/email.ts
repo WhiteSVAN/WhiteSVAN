@@ -57,12 +57,13 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
 }
 
 /** How an order was settled, as its receipt states it: nothing is said to be paid that wasn't. */
-export type OrderPayment = { kind: "paid"; amount: number; paymentId: string } | { kind: "test" } | { kind: "free" };
+export type OrderPayment = { kind: "paid"; amount: number; paymentId: string; test?: boolean } | { kind: "test" } | { kind: "free" };
 
 export async function sendOrderConfirmation(to: string, order: { planLabel: string; planId: string; accountId: string; payment: OrderPayment }): Promise<void> {
   const { payment } = order;
   const settled =
-    payment.kind === "paid" ? `Payment received: ${formatPaise(payment.amount, 2)}, GST included (Razorpay payment ${payment.paymentId}).`
+    payment.kind === "paid" && payment.test ? `Test payment of ${formatPaise(payment.amount, 2)} in Razorpay test mode (${payment.paymentId}): no money was charged.`
+    : payment.kind === "paid" ? `Payment received: ${formatPaise(payment.amount, 2)}, GST included (Razorpay payment ${payment.paymentId}).`
     : payment.kind === "test" ? "Test purchase: nothing was charged."
     : "No payment was taken for this evaluation.";
   await sendEmail({

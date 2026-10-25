@@ -7,7 +7,7 @@ import { RefreshCw } from "lucide-react";
 import { PriceChart } from "@/components/markets/price-chart";
 import { AccountBlotter, AccountMeters, AccountTicket, type OrderInput } from "@/components/markets/account-panel";
 import { foldTick, type Candle, type Interval, type LiveTick } from "@/lib/market-data/candles";
-import type { Desk } from "@/lib/trading/desk";
+import { chartLines, type Desk, type DeskNote } from "@/lib/trading/desk";
 import type { EngineOutput, OrderChanges } from "@/lib/trading/engine";
 import type { Side, Underlying } from "@/lib/trading/instruments";
 import { clockSeconds, toIst } from "@/lib/trading/time";
@@ -163,6 +163,17 @@ function ChainCell({ contract, quote, side, itm, selected, onSelect, onTrade }: 
   return side === "CE" ? <>{priceCell}{buttons}</> : <>{buttons}{priceCell}</>;
 }
 
+const ALERTS_SHOWN = 3;
+const ALERT_MS = 6_000;
+const noteKey = (note: DeskNote) => `${note.at}|${note.text}`;
+
+/** Notes in `next` that `previous` didn't have: the newest come first, ahead of what was there. */
+function newNotes(previous: readonly DeskNote[], next: readonly DeskNote[]): DeskNote[] {
+  if (previous.length === 0) return [];
+  const seen = next.findIndex((note) => noteKey(note) === noteKey(previous[0]));
+  return (seen === -1 ? next : next.slice(0, seen)).slice(0, ALERTS_SHOWN);
+}
+
 const withParam = (path: string, name: string, value: string) => `${path}${path.includes("?") ? "&" : "?"}${name}=${encodeURIComponent(value)}`;
 
 /**
@@ -205,8 +216,25 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
   const centred = useRef(false);
   const userPicked = useRef(false);
   const [desk, setDeskState] = useState<Desk | null>(account?.desk ?? null);
-  // Never step back to an older snapshot: a poll answered after an order can carry the desk from before it.
-  const setDesk = useCallback((next: Desk) => setDeskState((current) => (current && next.state.clock < current.state.clock ? current : next)), []);
+  const latestDesk = useRef<Desk | null>(account?.desk ?? null);
+  const [alerts, setAlerts] = useState<(DeskNote & { key: number })[]>([]);
+  const alertCount = useRef(0);
+  // Never step back to an older snapshot: a poll answered after an order can carry the desk from
+  // before it. What the account did since the last snapshot (fills, stops, targets) pops up.
+  const setDesk = useCallback((next: Desk) => {
+    const current = latestDesk.current;
+    if (current && next.state.clock < current.state.clock) return;
+    latestDesk.current = next;
+    setDeskState(next);
+    const fresh = newNotes(current?.notes ?? [], next.notes);
+    if (fresh.length > 0) setAlerts((shown) => [...fresh.map((note) => ({ ...note, key: (alertCount.current += 1) })), ...shown].slice(0, ALERTS_SHOWN));
+  }, []);
+  // Each alert stays a few seconds; the oldest goes first.
+  useEffect(() => {
+    if (alerts.length === 0) return;
+    const timer = setTimeout(() => setAlerts((shown) => shown.slice(0, -1)), ALERT_MS);
+    return () => clearTimeout(timer);
+  }, [alerts]);
   const [side, setSide] = useState<Side>("BUY");
   const accountId = account?.id ?? null;
 
@@ -464,7 +492,7 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
               </div>
 
               <div className="relative px-1 pt-2 sm:px-2">
-                <PriceChart key={chartsOption ? "option" : "index"} candles={candles ?? NO_CANDLES} live={liveCandle} interval={barInterval} minMove={chartsOption ? contract.tickSize / 100 : 0.05} derivative={chartsOption} label={`${chartTitle}, ${intervalName} candles`} />
+                <PriceChart key={chartsOption ? "option" : "index"} candles={candles ?? NO_CANDLES} live={liveCandle} interval={barInterval} minMove={chartsOption ? contract.tickSize / 100 : 0.05} derivative={chartsOption} label={`${chartTitle}, ${intervalName} candles`} lines={chartsOption && desk ? chartLines(desk, contract.token) : undefined} />
                 {!candles && (
                   <div className="absolute inset-0 flex items-center justify-center bg-[#0b0f0d]/60 text-sm text-[var(--muted)]">
                     {failed ? (
@@ -544,6 +572,11 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
         </section>
       )}
       {desk && <AccountBlotter desk={desk} onCancel={cancelOrder} onPlace={sendOrder} onModify={modifyOrder} />}
+      <div aria-live="polite" className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2">
+        {alerts.map((alert) => (
+          <p key={alert.key} role="status" className={`pointer-events-auto rounded-lg border bg-[var(--card-raised)] px-4 py-3 text-xs leading-5 shadow-lg shadow-black/40 ${alert.tone === "good" ? "border-[var(--primary)]/50" : alert.tone === "bad" ? "border-[var(--danger)]/60 text-[var(--danger)]" : "border-[var(--border-strong)]"}`}>{alert.text}</p>
+        ))}
+      </div>
     </div>
   );
 }

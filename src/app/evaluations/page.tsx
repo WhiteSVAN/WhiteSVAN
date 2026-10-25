@@ -18,13 +18,13 @@ export const metadata: Metadata = {
 const CHANGES: [string, string, string][] = [
   ["Profit target", `${R.targetPercent}%`, "None"],
   ["Profit split", "—", `${R.contractorSharePercent}%`],
-  ["Payouts", "—", "When eligible, up to your cap"],
+  ["Payouts", "—", "Above the buffer, up to your cap"],
 ];
 
 const FAQ: [string, string][] = [
   ["When can I start?", "Now. Create your account, choose a size and check out on one screen: your demo account opens straight away."],
-  ["Is the account balance real money?", `No. Evaluation and funded accounts are simulated. Your payouts are real: ${R.contractorSharePercent}% of the profit on your funded account, up to the cap for your account size.`],
-  ["What happens if I break a rule?", "Your evaluation ends and you get a breach report showing the trade and the rule. Think it was wrong? Appeal within 7 days. You can start a new evaluation whenever you're ready."],
+  ["Is the account balance real money?", `No. Demo and funded accounts are simulated. Your payouts are real: ${R.contractorSharePercent}% of the profit on your funded account, up to the cap for your account size.`],
+  ["What happens if I break a rule?", "Your evaluation ends, and the platform shows the rule, the date and your equity at the time. You can start a new evaluation whenever you're ready."],
 ];
 
 export default function EvaluationsPage() {

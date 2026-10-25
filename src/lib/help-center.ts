@@ -22,7 +22,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "how-to-start",
         question: "How do I start an evaluation?",
-        answer: `In three steps: create your account, choose your account size (${first.label} to ${last.label}) and check out. You don't need to pick a size to create your account: you choose it at checkout, on the same screen as paying. Your demo account, the evaluation, opens as soon as you check out.`,
+        answer: `In three steps: create your account, choose your account size (${first.label} to ${last.label}) and check out. You don't pick a size to create your account: you choose it at checkout, on the same screen as paying. Your demo account opens as soon as you check out.`,
       },
       {
         id: "buy-today",
@@ -47,12 +47,12 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "rule-breach",
         question: "What happens if I break a rule?",
-        answer: "Hitting the daily loss limit or the max drawdown ends the account. You get a breach report showing the trade and the rule, and you can appeal within 7 days. You can start a new evaluation any time.",
+        answer: "Hitting the daily loss limit or the max drawdown ends the account, and the platform shows the rule, the date and your equity at the time. You can start a new evaluation any time.",
       },
       {
         id: "how-many-accounts",
         question: "How many accounts can I have?",
-        answer: `Up to ${R.maximumAccounts} evaluation or funded accounts at once. Hedging across accounts, copying another trader and sharing logins are not allowed.`,
+        answer: `Up to ${R.maximumAccounts} demo or funded accounts at once. Hedging across accounts, copying another trader and sharing logins are not allowed.`,
       },
     ],
   },
@@ -101,22 +101,22 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "after-passing",
         question: "What happens after I pass?",
-        answer: "Your funded account opens as soon as you pass: the same size and loss limits, with no profit target. Your payout figures show on the Payouts page. Before your first payout, complete KYC and sign your funded trader agreement.",
+        answer: "Your funded account opens as soon as you pass: the same size and loss limits, with no profit target. Its payout figures are on the Payouts page. Before your first payout, complete KYC and sign your funded trader agreement.",
       },
       {
         id: "contractor-pay",
         question: "How do payouts work?",
-        answer: `You keep ${R.contractorSharePercent}% of the profit on your funded account. Request a payout whenever you have eligible profit, up to ${caps} per payout for ${first.label} to ${last.label} accounts. Profit equal to your max drawdown stays in the account as a buffer. Complete KYC, the funded trader agreement and bank verification before your first payout. Tax is deducted at source where it applies.`,
+        answer: `You keep ${R.contractorSharePercent}% of the profit on your funded account. Profit equal to your max drawdown stays in the account as a buffer, and you can request a payout whenever your profit is above it, up to ${caps} per payout for ${first.label} to ${last.label} accounts. Complete KYC, the funded trader agreement and bank verification before your first payout. Tax is deducted at source where it applies.`,
       },
       {
         id: "real-money",
         question: "Is the account balance real money?",
-        answer: "No. Demo (evaluation) and funded accounts are simulated. The account size sets your limits and your payout cap; your payouts are real.",
+        answer: "No. Demo and funded accounts are simulated. The account size sets your limits and your payout cap; your payouts are real.",
       },
       {
         id: "live-capital",
         question: "Is my funded account live money?",
-        answer: "No. Funded accounts are simulated, like the evaluation; your payouts are real. WhiteSVAN may copy some funded traders with its own capital, which doesn't change your account or your payouts.",
+        answer: "No. Funded accounts are simulated, like demo accounts; your payouts are real. WhiteSVAN may copy some funded traders with its own capital, which doesn't change your account or your payouts.",
       },
       {
         id: "deposits",

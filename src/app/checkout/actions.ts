@@ -9,7 +9,7 @@ import { billingSchema } from "@/lib/checkout/billing";
 import { isCheckoutAttemptId } from "@/lib/checkout/attempt";
 import { checkoutModeFor } from "@/lib/checkout/config";
 import { CheckoutError, completePurchase, fulfilRazorpayOrder, startRazorpayOrder } from "@/lib/checkout/orders";
-import { fetchRazorpayPayment, paymentSignatureValid, razorpayConfig, type RazorpayPayment } from "@/lib/checkout/razorpay";
+import { fetchRazorpayPayment, paymentSignatureValid, RAZORPAY_PROVIDERS, razorpayConfig, type RazorpayPayment } from "@/lib/checkout/razorpay";
 import { sendReceipt } from "@/lib/checkout/receipt";
 import { logger } from "@/lib/logger";
 import { findEvaluationPlan } from "@/lib/prop-firm";
@@ -106,7 +106,7 @@ export async function confirmPayment(input: { orderId: string; paymentId: string
   }
   const pending = `If you were charged, your account opens as soon as Razorpay confirms the payment (payment ${paymentId}). Check My accounts in a few minutes.`;
   const config = razorpayConfig();
-  const order = await prisma.checkoutOrder.findFirst({ where: { id: orderId, userId, provider: "razorpay" }, select: { providerOrderId: true, amount: true } });
+  const order = await prisma.checkoutOrder.findFirst({ where: { id: orderId, userId, provider: { in: [...RAZORPAY_PROVIDERS] } }, select: { providerOrderId: true, amount: true } });
   if (!config || !order?.providerOrderId) return { message: `We couldn't confirm the payment here. ${pending}` };
   if (!paymentSignatureValid(config.keySecret, order.providerOrderId, paymentId, signature)) {
     logger.warn("checkout.razorpay_signature_mismatch", { userId, orderId });
@@ -130,7 +130,7 @@ export async function confirmPayment(input: { orderId: string; paymentId: string
   if (!fulfilled) return { message: `This order is closed. ${pending}` };
   if (fulfilled.opened) {
     logger.info("checkout.razorpay_paid", { userId, orderId: fulfilled.orderId, accountId: fulfilled.accountId, via: "handler" });
-    await sendReceipt(fulfilled.email, fulfilled, { kind: "paid", amount: fulfilled.amount, paymentId });
+    await sendReceipt(fulfilled.email, fulfilled, { kind: "paid", amount: fulfilled.amount, paymentId, test: fulfilled.provider === "razorpay-test" });
   }
   redirect(`/checkout/complete/${fulfilled.orderId}`);
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { dayPositions, dayTotals, type Desk, type OrderRecord } from "@/lib/trading/desk";
+import { dayPositions, dayTotals, exitRole, exitsProblem, type Desk, type OrderRecord } from "@/lib/trading/desk";
 import { riskMeters, type EngineOutput, type OrderChanges, type OrderType, type WorkingOrder } from "@/lib/trading/engine";
 import type { Instrument, Side } from "@/lib/trading/instruments";
 import { parseRupees } from "@/lib/trading/money";
@@ -18,7 +18,16 @@ export interface OrderInput {
   type: OrderType;
   limitPrice?: number;
   triggerPrice?: number;
+  /** A buy's stop-loss trigger and target, placed as sell orders once it fills. */
+  stopLoss?: number;
+  target?: number;
 }
+
+/** "Stop-loss" or "Target" for a buy's exit orders, after the order type. */
+const exitTag = (orderId: string) => {
+  const role = exitRole(orderId);
+  return role === "stop" ? " · Stop-loss" : role === "target" ? " · Target" : "";
+};
 
 const priceText = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const clockText = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
@@ -109,6 +118,9 @@ export function AccountTicket({ desk, planLabel, contract, label, quote, side, o
   const [lots, setLots] = useState(1);
   const [limitInput, setLimitInput] = useState("");
   const [triggerInput, setTriggerInput] = useState("");
+  const [exitsOn, setExitsOn] = useState(false);
+  const [stopInput, setStopInput] = useState("");
+  const [targetInput, setTargetInput] = useState("");
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState<{ tone: "good" | "bad" | "info"; text: string } | null>(null);
 
@@ -121,7 +133,16 @@ export function AccountTicket({ desk, planLabel, contract, label, quote, side, o
   const tick = contract?.tickSize ?? 5;
   const limitProblem = withLimit ? priceProblem(limit, limitInput, tick) : null;
   const triggerProblem = withTrigger ? priceProblem(trigger, triggerInput, tick) : null;
-  const ready = contract && desk.state.status === "ACTIVE" && !pending && !limitProblem && !triggerProblem;
+  // A buy can carry a stop-loss and target, checked against where it should fill.
+  const withExits = side === "BUY" && exitsOn;
+  const stop = withExits && stopInput.trim() ? parseRupees(stopInput, 7) : null;
+  const target = withExits && targetInput.trim() ? parseRupees(targetInput, 7) : null;
+  const expected = type === "MARKET" ? quote?.lastPrice : type === "LIMIT" ? limit ?? undefined : trigger ?? undefined;
+  const exitsError = !withExits ? null
+    : stopInput.trim() && stop === null ? "Enter the stop-loss in rupees."
+    : targetInput.trim() && target === null ? "Enter the target in rupees."
+    : exitsProblem({ stop: stop ?? undefined, target: target ?? undefined }, side, expected, tick);
+  const ready = contract && desk.state.status === "ACTIVE" && !pending && !limitProblem && !triggerProblem && !exitsError;
   const typeName = ORDER_TYPES.find(([value]) => value === type)?.[1] ?? type;
   const action = `${side === "BUY" ? "Buy" : "Sell"} ${lots} lot${lots === 1 ? "" : "s"}${type === "MARKET" ? " at market" : ` · ${typeName}`}`;
 
@@ -137,15 +158,21 @@ export function AccountTicket({ desk, planLabel, contract, label, quote, side, o
         type,
         ...(withLimit && limit !== null ? { limitPrice: limit } : {}),
         ...(withTrigger && trigger !== null ? { triggerPrice: trigger } : {}),
+        ...(withExits && stop !== null ? { stopLoss: stop } : {}),
+        ...(withExits && target !== null ? { target } : {}),
       });
       const rejected = rejectionOf(outputs);
-      const fills = outputs.flatMap((output) => (output.kind === "fill" && output.fill.reason === "ORDER" ? [output.fill] : []));
-      if (rejected) setResult({ tone: "bad", text: rejected });
+      // The buy's own fills; its stop-loss and target are reported after them.
+      const fills = outputs.flatMap((output) => (output.kind === "fill" && output.fill.reason === "ORDER" && !exitRole(output.fill.orderId ?? "") ? [output.fill] : []));
+      const exits = outputs.flatMap((output) => (output.kind === "accepted" && exitRole(output.orderId) ? [exitRole(output.orderId)] : []));
+      const working = exits.length === 2 ? " Stop-loss and target working." : exits[0] === "stop" ? " Stop-loss working." : exits[0] === "target" ? " Target working." : "";
+      const asked = withExits && (stop !== null || target !== null);
+      if (rejected && fills.length === 0) setResult({ tone: "bad", text: rejected });
       else if (fills.length > 0) {
         const units = fills.reduce((sum, fill) => sum + fill.quantity, 0);
         const average = Math.round(fills.reduce((sum, fill) => sum + fill.price * fill.quantity, 0) / units);
-        setResult({ tone: "good", text: `Filled ${units} at ${rupees(average)}${fills.length > 1 ? " average" : ""}.` });
-      } else if (outputs.some((output) => output.kind === "accepted")) setResult({ tone: "info", text: "Order working. It fills when the market reaches your price." });
+        setResult({ tone: "good", text: `Filled ${units} at ${rupees(average)}${fills.length > 1 ? " average" : ""}.${working}${asked && !working ? " Check the activity for the stop-loss and target." : ""}` });
+      } else if (outputs.some((output) => output.kind === "accepted")) setResult({ tone: "info", text: `Order working. It fills when the market reaches your price${asked ? ", then the stop-loss and target go in" : ""}.` });
       else setResult({ tone: "bad", text: "No price for this contract yet. Try again in a moment." });
     } catch (error) {
       setResult({ tone: "bad", text: error instanceof Error ? error.message : "Couldn't place the order. Try again." });
@@ -201,6 +228,29 @@ export function AccountTicket({ desk, planLabel, contract, label, quote, side, o
                 <input inputMode="decimal" value={triggerInput} onChange={(event) => setTriggerInput(event.target.value)} placeholder={quote ? price(quote.lastPrice) : ""} aria-invalid={Boolean(triggerInput && triggerProblem)} className={field} />
                 {triggerInput && triggerProblem && <span className="mt-1 block text-[var(--danger)]">{triggerProblem}</span>}
               </label>
+            )}
+            {side === "BUY" && (
+              <fieldset className="rounded-md border border-[var(--border)] p-3">
+                <legend className="sr-only">Stop-loss and target</legend>
+                <label className="flex items-center gap-2 text-xs">
+                  <input id="ticket-exits" type="checkbox" checked={exitsOn} onChange={(event) => setExitsOn(event.target.checked)} className="h-4 w-4 accent-[var(--primary)]" />
+                  Add a stop-loss and target
+                </label>
+                {exitsOn && (
+                  <>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <label className="block text-xs text-[var(--muted)]">Stop-loss (₹)
+                        <input id="ticket-stop" inputMode="decimal" value={stopInput} onChange={(event) => setStopInput(event.target.value)} aria-invalid={Boolean(exitsError && stopInput)} className={field} />
+                      </label>
+                      <label className="block text-xs text-[var(--muted)]">Target (₹)
+                        <input id="ticket-target" inputMode="decimal" value={targetInput} onChange={(event) => setTargetInput(event.target.value)} aria-invalid={Boolean(exitsError && targetInput)} className={field} />
+                      </label>
+                    </div>
+                    {exitsError && <p className="mt-2 text-xs text-[var(--danger)]">{exitsError}</p>}
+                    <p className="mt-2 text-[11px] leading-4 text-[var(--faint)]">Both go in as sell orders once the buy fills. When one fills, the other is cancelled.</p>
+                  </>
+                )}
+              </fieldset>
             )}
             <button type="submit" disabled={!ready} className={`min-h-11 w-full rounded-lg text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${side === "BUY" ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]" : "bg-[var(--danger)] text-[#2a0f0a] hover:opacity-90"}`}>
               {pending ? "Placing…" : action}
@@ -355,6 +405,13 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
   const action = "rounded border border-[var(--border-strong)] px-2 py-1 font-sans hover:bg-[var(--card-raised)] disabled:opacity-40";
   const sideText = (side: Side) => <span className={side === "BUY" ? "text-[var(--primary)]" : "text-[var(--danger)]"}>{side === "BUY" ? "Buy" : "Sell"}</span>;
   const average = (value: number, quantity: number) => (quantity > 0 ? price(Math.round(value / quantity)) : "—");
+  /** A position's working stop-loss and target, as "SL 100.00 · TP 150.00". */
+  const exitsText = (token: number) => {
+    const exits = orders.filter((order) => order.token === token && exitRole(order.id));
+    const stop = exits.find((order) => exitRole(order.id) === "stop")?.triggerPrice;
+    const target = exits.find((order) => exitRole(order.id) === "target")?.limitPrice;
+    return stop === undefined && target === undefined ? "—" : [stop !== undefined ? `SL ${price(stop)}` : null, target !== undefined ? `TP ${price(target)}` : null].filter(Boolean).join(" · ");
+  };
 
   return (
     <section className="terminal-card overflow-hidden" aria-label="Positions, orders and trades">
@@ -382,8 +439,8 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
               <button type="button" disabled={!active || open.length === 0 || exiting} onClick={() => void exitAll()} className="min-h-9 rounded-md border border-[var(--danger)]/60 px-3 text-xs font-medium text-[var(--danger)] hover:bg-[var(--danger)]/10 disabled:cursor-not-allowed disabled:opacity-40">{exiting ? "Exiting…" : "Exit all"}</button>
             </div>
             {positions.length === 0 ? <p className="p-5 text-xs text-[var(--muted)]">No positions today. Buy an option from the chain to open one.</p> : (
-              <table className="w-full min-w-[720px] text-left font-mono text-xs">
-                <thead><tr>{["Contract", "Net qty", "Bought", "Sold", "LTP", "P&L", ""].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
+              <table className="w-full min-w-[820px] text-left font-mono text-xs">
+                <thead><tr>{["Contract", "Net qty", "Bought", "Sold", "LTP", "Stop / target", "P&L", ""].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
                 <tbody className="divide-y divide-[var(--border)]">
                   {positions.map((position) => {
                     const pnl = position.realised + position.unrealised;
@@ -396,6 +453,7 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
                         <td className={cell}>{position.buyQuantity > 0 ? `${position.buyQuantity} @ ${average(position.buyValue, position.buyQuantity)}` : "—"}</td>
                         <td className={cell}>{position.sellQuantity > 0 ? `${position.sellQuantity} @ ${average(position.sellValue, position.sellQuantity)}` : "—"}</td>
                         <td className={cell}>{price(position.mark)}</td>
+                        <td className={`${cell} whitespace-nowrap`}>{exitsText(position.token)}</td>
                         <td className={`${cell} ${tone(pnl)}`}>{signed(pnl)}</td>
                         <td className={`${cell} text-right`}>{exit && <button type="button" disabled={!active} onClick={() => run(onPlace(exit))} className={action}>Exit</button>}</td>
                       </tr>
@@ -421,7 +479,7 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
                       <td className={cell}>{clockText.format(order.placedAt)}</td>
                       <td className={cell}>{instrumentFor(order.token)?.tradingSymbol ?? order.token}</td>
                       <td className={cell}>{sideText(order.side)}</td>
-                      <td className={cell}>{order.type}{order.triggered ? " (triggered)" : ""}</td>
+                      <td className={cell}>{order.type}{order.triggered ? " (triggered)" : ""}{exitTag(order.id)}</td>
                       <td className={cell}>{order.lots}{order.filled > 0 ? ` · ${order.filled} filled` : ""}</td>
                       <td className={cell}>{order.limitPrice !== undefined ? price(order.limitPrice) : "—"}</td>
                       <td className={cell}>{order.triggerPrice !== undefined ? price(order.triggerPrice) : "—"}</td>
@@ -444,7 +502,7 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
                       <td className={`${cell} whitespace-nowrap`}>{stampText.format(record.updatedAt)}</td>
                       <td className={cell}>{record.tradingSymbol}</td>
                       <td className={cell}>{sideText(record.side)}</td>
-                      <td className={cell}>{record.type}</td>
+                      <td className={cell}>{record.type}{exitTag(record.id)}</td>
                       <td className={cell}>{record.filled}/{record.quantity}</td>
                       <td className={`${cell} whitespace-nowrap`}>{orderPrice(record)}</td>
                       <td className={cell}>{record.averagePrice !== null ? price(record.averagePrice) : "—"}</td>

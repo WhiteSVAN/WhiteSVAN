@@ -6,7 +6,7 @@
  */
 import type { EvaluationPlan } from "../prop-firm";
 import { CHARGES_SCHEDULES } from "./charges-schedules";
-import { netQuantity, openAccount, step, unrealisedPnl, type AccountPhase, type AccountState, type CancelReason, type EngineContext, type EngineEvent, type EngineOutput, type Fill, type OrderType } from "./engine";
+import { netQuantity, openAccount, step, unrealisedPnl, type AccountPhase, type AccountState, type CancelReason, type EngineContext, type EngineEvent, type EngineOutput, type Fill, type OrderRequest, type OrderType, type WorkingOrder } from "./engine";
 import type { Instrument, Side } from "./instruments";
 import type { Quote } from "./matching";
 import { divRound, formatPaise, type Paise } from "./money";
@@ -18,6 +18,9 @@ export const DESK_SETTINGS = { slippageTicks: 1, staleAfterMs: 5_000 } as const;
 const FILLS_KEPT = 200;
 const NOTES_KEPT = 100;
 const ORDERS_KEPT = 200;
+/** Exit orders are named after the buy they protect. */
+const STOP_SUFFIX = "-SL";
+const TARGET_SUFFIX = "-TP";
 
 export interface DeskNote {
   at: number;
@@ -62,6 +65,51 @@ export interface Desk {
   orderBook?: OrderRecord[];
   /** Fills per IST trading date, for the journal. Desks stored before it existed start empty. */
   dayTrades?: Record<string, number>;
+  /** Stop-losses and targets still waiting or working. */
+  brackets?: Bracket[];
+}
+
+/** A stop-loss trigger and a target price for a buy, in paise; either can be left out. */
+export interface Exits {
+  stop?: Paise;
+  target?: Paise;
+}
+
+/**
+ * A buy's stop-loss and target. Once the buy has filled they work as two sell orders for the filled
+ * lots, a stop-loss market order and a limit at the target, and each cancels the other: when one
+ * fills, or the position is closed some other way, the rest is cancelled.
+ */
+export interface Bracket extends Exits {
+  entryId: string;
+  token: number;
+  /** WAITING for the buy to finish filling; ACTIVE while the exit orders work. */
+  status: "WAITING" | "ACTIVE";
+  stopOrderId?: string;
+  targetOrderId?: string;
+}
+
+/** Which exit an order is, from its id: the stop-loss or the target of a buy. */
+export function exitRole(orderId: string): "stop" | "target" | null {
+  return orderId.endsWith(STOP_SUFFIX) ? "stop" : orderId.endsWith(TARGET_SUFFIX) ? "target" : null;
+}
+
+/**
+ * What's wrong with a buy's stop-loss and target, or null. `price` is where the buy is expected to
+ * fill (the last price for a market order, the limit or the trigger otherwise): the stop-loss goes
+ * below it and the target above, both on the contract's tick.
+ */
+export function exitsProblem(exits: Exits, side: OrderRequest["side"], price: Paise | undefined, tick: number): string | null {
+  if (exits.stop === undefined && exits.target === undefined) return null;
+  if (side !== "BUY") return "A stop-loss and target go with a buy.";
+  for (const value of [exits.stop, exits.target]) {
+    if (value !== undefined && (!Number.isSafeInteger(value) || value <= 0 || value % tick !== 0)) return `Use prices in multiples of ₹${(tick / 100).toFixed(2)}.`;
+  }
+  if (exits.stop !== undefined && exits.target !== undefined && exits.stop >= exits.target) return "Set the stop-loss below the target.";
+  if (price === undefined) return null;
+  if (exits.stop !== undefined && exits.stop >= price) return `Set the stop-loss below ${formatPaise(price, 2)}.`;
+  if (exits.target !== undefined && exits.target <= price) return `Set the target above ${formatPaise(price, 2)}.`;
+  return null;
 }
 
 /** A new account on the plan's rules: a demo account (the evaluation), or the funded account a pass opens. */
@@ -76,10 +124,18 @@ export const deskQuoteKeys = (desk: Desk) => desk.instruments.map((instrument) =
 
 /**
  * Apply one event. `quotes` holds the host's latest quote per contract (update it before a quote
- * event); `instrument` adds the contract an order is for. Times never run backwards: an event
- * stamped before the account's clock is applied at the clock.
+ * event); `instrument` adds the contract an order is for, and `exits` a stop-loss and target for a
+ * buy. Times never run backwards: an event stamped before the account's clock is applied at the
+ * clock. Stop-losses and targets are then placed, trimmed or cancelled as the event left things.
  */
-export function deskStep(desk: Desk, event: EngineEvent, quotes: ReadonlyMap<number, Quote>, instrument?: Instrument): { desk: Desk; outputs: EngineOutput[] } {
+export function deskStep(desk: Desk, event: EngineEvent, quotes: ReadonlyMap<number, Quote>, instrument?: Instrument, exits?: Exits): { desk: Desk; outputs: EngineOutput[] } {
+  const bracketed = event.kind === "place" && event.order.side === "BUY" && exits !== undefined && (exits.stop !== undefined || exits.target !== undefined) && !(desk.brackets ?? []).some((item) => item.entryId === event.order.id);
+  const start = bracketed ? { ...desk, brackets: [...(desk.brackets ?? []), { entryId: event.order.id, token: event.order.token, ...exits, status: "WAITING" as const }] } : desk;
+  return followBrackets(applyEvent(start, event, quotes, instrument), quotes);
+}
+
+/** One engine step and its bookkeeping. `describe` replaces the step's activity notes. */
+function applyEvent(desk: Desk, event: EngineEvent, quotes: ReadonlyMap<number, Quote>, instrument?: Instrument, describe?: DeskNote[]): { desk: Desk; outputs: EngineOutput[] } {
   const known = new Map(desk.instruments.map((item) => [item.token, item]));
   if (instrument) known.set(instrument.token, instrument);
   const context: EngineContext = {
@@ -93,7 +149,7 @@ export function deskStep(desk: Desk, event: EngineEvent, quotes: ReadonlyMap<num
   const { state, outputs } = step(desk.state, applied, context);
   const live = new Set([...state.positions.map((position) => position.instrument.token), ...state.orders.map((order) => order.token)]);
   const symbol = (token: number) => known.get(token)?.tradingSymbol ?? String(token);
-  const notes = outputs.flatMap((output) => noteFor(output, symbol, event.kind)).reverse();
+  const notes = describe ?? outputs.flatMap((output) => noteFor(output, symbol, event.kind)).reverse();
   const fills = outputs.flatMap((output) => (output.kind === "fill" ? [output.fill] : []));
   const dayTrades = { ...desk.dayTrades };
   for (const fill of fills) {
@@ -109,9 +165,90 @@ export function deskStep(desk: Desk, event: EngineEvent, quotes: ReadonlyMap<num
       notes: [...notes, ...desk.notes].slice(0, NOTES_KEPT),
       orderBook: recordOrders(desk.orderBook ?? [], applied, outputs, known),
       dayTrades,
+      ...(desk.brackets?.length ? { brackets: desk.brackets } : {}),
     },
     outputs,
   };
+}
+
+const heldUnits = (state: AccountState, token: number) => {
+  const position = state.positions.find((item) => item.instrument.token === token);
+  return position ? netQuantity(position) : 0;
+};
+
+/**
+ * Bring every stop-loss and target in line with the account after a step: place them once their
+ * buy has filled, cancel the other when one fills or when the position is closed, and trim them to
+ * the units still held. Runs at the step's time, inside the same write.
+ */
+function followBrackets(result: { desk: Desk; outputs: EngineOutput[] }, quotes: ReadonlyMap<number, Quote>): { desk: Desk; outputs: EngineOutput[] } {
+  if (!result.desk.brackets?.length) return result;
+  let { desk } = result;
+  const outputs = [...result.outputs];
+  const at = desk.state.clock;
+  const run = (event: EngineEvent, describe?: DeskNote[]) => {
+    const next = applyEvent(desk, event, quotes, undefined, describe);
+    desk = next.desk;
+    outputs.push(...next.outputs);
+    return next.outputs;
+  };
+  const working = (id: string | undefined) => (id ? desk.state.orders.find((order) => order.id === id) : undefined);
+  const recordOf = (id: string | undefined) => (id ? desk.orderBook?.find((record) => record.id === id) : undefined);
+  const instrumentOf = (token: number) => desk.instruments.find((item) => item.token === token);
+  /** Cancel an exit and say why, in the order book and the activity log. */
+  const cancel = (order: WorkingOrder, why: string) => {
+    const name = exitRole(order.id) === "stop" ? "Stop-loss" : "Target";
+    run({ kind: "cancel", at, orderId: order.id }, [{ at, tone: "info", text: `${name} on ${instrumentOf(order.token)?.tradingSymbol ?? order.token} cancelled: ${why.toLowerCase()}.` }]);
+    desk = { ...desk, orderBook: desk.orderBook?.map((record) => (record.id === order.id && record.status === "CANCELLED" ? { ...record, reason: why } : record)) };
+  };
+  const kept: Bracket[] = [];
+  for (const original of desk.brackets ?? []) {
+    const bracket = { ...original };
+    if (bracket.status === "WAITING") {
+      if (working(bracket.entryId)) {
+        kept.push(bracket);
+        continue;
+      }
+      const instrument = instrumentOf(bracket.token);
+      const lots = instrument ? Math.floor(Math.min(recordOf(bracket.entryId)?.filled ?? 0, heldUnits(desk.state, bracket.token)) / instrument.lotSize) : 0;
+      if (lots < 1) continue;
+      const placed: string[] = [];
+      const exit = (id: string, order: Pick<OrderRequest, "type" | "limitPrice" | "triggerPrice">, name: string): string | undefined => {
+        const refused = run({ kind: "place", at, order: { id, token: bracket.token, side: "SELL", lots, ...order } }).find((output) => output.kind === "rejected");
+        if (refused?.kind === "rejected") {
+          // In place of the step's own "Order rejected" note.
+          desk = { ...desk, notes: [{ at, tone: "bad", text: `${name} not placed: ${refused.message}` }, ...desk.notes.slice(1)] };
+          return undefined;
+        }
+        placed.push(`${name.toLowerCase()} at ${formatPaise(order.triggerPrice ?? order.limitPrice ?? 0, 2)}`);
+        return id;
+      };
+      if (bracket.stop !== undefined) bracket.stopOrderId = exit(`${bracket.entryId}${STOP_SUFFIX}`, { type: "SL-M", triggerPrice: bracket.stop }, "Stop-loss");
+      if (bracket.target !== undefined) bracket.targetOrderId = exit(`${bracket.entryId}${TARGET_SUFFIX}`, { type: "LIMIT", limitPrice: bracket.target }, "Target");
+      if (placed.length > 0) desk = { ...desk, notes: [{ at, tone: "info", text: `Working a ${placed.join(" and a ")} for ${lots} lot${lots === 1 ? "" : "s"} of ${instrument?.tradingSymbol ?? bracket.token}.` }, ...desk.notes] };
+      if (!bracket.stopOrderId && !bracket.targetOrderId) continue;
+      bracket.status = "ACTIVE";
+    }
+    // One cancels the other: a filled exit cancels its partner.
+    const stop = working(bracket.stopOrderId);
+    const target = working(bracket.targetOrderId);
+    if (target && recordOf(bracket.stopOrderId)?.status === "COMPLETE") cancel(target, "Stop-loss hit");
+    if (stop && recordOf(bracket.targetOrderId)?.status === "COMPLETE") cancel(stop, "Target hit");
+    // Closed some other way, or partly sold: an exit never sells more than is held.
+    for (const id of [bracket.stopOrderId, bracket.targetOrderId]) {
+      const order = working(id);
+      if (!order) continue;
+      const lotSize = instrumentOf(order.token)?.lotSize ?? 0;
+      const held = heldUnits(desk.state, order.token);
+      if (lotSize === 0 || held < lotSize) cancel(order, "Position closed");
+      else if (order.quantity - order.filled > held) run({ kind: "modify", at, orderId: order.id, changes: { lots: Math.floor((order.filled + held) / lotSize) } }, []);
+    }
+    if (working(bracket.stopOrderId) || working(bracket.targetOrderId)) kept.push(bracket);
+  }
+  const next: Desk = { ...desk };
+  if (kept.length > 0) next.brackets = kept;
+  else delete next.brackets;
+  return { desk: next, outputs };
 }
 
 /** Short reasons for the order book's Cancelled rows. */
@@ -225,6 +362,35 @@ export function noteFor(output: EngineOutput, symbol: (token: number) => string,
     case "passed":
       return [{ at: output.at, tone: "good", text: `Evaluation passed on ${output.date} with ${money(output.profit)} profit.` }];
   }
+}
+
+/** A price to mark on a contract's chart: the position's average, a stop-loss, a target or another working order. */
+export interface ChartLine {
+  price: Paise;
+  title: string;
+  tone: "average" | "stop" | "target" | "order";
+}
+
+/** The lines for a contract's chart: the open position's average price and every working order's price. */
+export function chartLines(desk: Desk, token: number): ChartLine[] {
+  const lines: ChartLine[] = [];
+  const position = desk.state.positions.find((item) => item.instrument.token === token);
+  const quantity = position ? netQuantity(position) : 0;
+  if (position && quantity !== 0) {
+    const cost = position.open.reduce((sum, lot) => sum + lot.price * lot.quantity, 0);
+    lines.push({ price: divRound(Math.abs(cost), Math.abs(quantity)), title: `Avg ${quantity > 0 ? "+" : ""}${quantity}`, tone: "average" });
+  }
+  for (const order of desk.state.orders) {
+    if (order.token !== token) continue;
+    const role = exitRole(order.id);
+    if (role === "stop" && order.triggerPrice !== undefined) lines.push({ price: order.triggerPrice, title: "SL", tone: "stop" });
+    else if (role === "target" && order.limitPrice !== undefined) lines.push({ price: order.limitPrice, title: "TP", tone: "target" });
+    else {
+      const at = order.type === "LIMIT" ? order.limitPrice : order.triggerPrice;
+      if (at !== undefined) lines.push({ price: at, title: `${order.side === "BUY" ? "Buy" : "Sell"} ${order.type}`, tone: "order" });
+    }
+  }
+  return lines;
 }
 
 /** One contract traded today, as a broker's positions screen shows it: open or closed, with its P&L. */

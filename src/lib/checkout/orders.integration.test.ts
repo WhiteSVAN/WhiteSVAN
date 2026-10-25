@@ -20,7 +20,7 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
   const plan = findEvaluationPlan("1l")!;
   const now = Date.UTC(2026, 9, 24, 4);
   const billing: Billing = { name: "Checkout integration", phone: "+919876543210", state: "Telangana", terms: "on" };
-  const razorpay: RazorpayConfig = { keyId: "rzp_test_key", keySecret: "key-secret", webhookSecret: null, apiRoot: "https://razorpay.invalid/v1" };
+  const razorpay: RazorpayConfig = { keyId: "rzp_test_key", keySecret: "key-secret", webhookSecret: null, apiRoot: "https://razorpay.invalid/v1", testMode: true };
   /** Razorpay's order API, answering with a fresh order id for whatever amount was asked. */
   const razorpayApi = (async (_url: string, init?: RequestInit) => Response.json({ id: `order_${randomUUID().replace(/-/g, "").slice(0, 14)}`, amount: JSON.parse(String(init?.body)).amount, currency: "INR", status: "created" })) as unknown as typeof fetch;
 
@@ -93,7 +93,7 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
     const user = await makeUser();
     const started = await startRazorpayOrder({ config: razorpay, userId: user.id, email: user.email!, plan, billing, now }, razorpayApi);
     const pending = await prisma.checkoutOrder.findUniqueOrThrow({ where: { id: started.orderId } });
-    expect(pending).toMatchObject({ status: "PENDING", provider: "razorpay", amount: planAmount(plan), providerOrderId: started.razorpayOrderId, accountId: null, paidAt: null });
+    expect(pending).toMatchObject({ status: "PENDING", provider: "razorpay-test", amount: planAmount(plan), providerOrderId: started.razorpayOrderId, accountId: null, paidAt: null });
     expect(await prisma.evaluationAccount.count({ where: { userId: user.id } })).toBe(0);
 
     // The browser's handler and the webhook, at once and again later.

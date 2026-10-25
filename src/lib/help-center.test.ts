@@ -24,7 +24,7 @@ describe("HELP_TOPICS", () => {
   it("gives the three steps to an evaluation, with no size needed to sign up", () => {
     const answer = HELP_TOPICS.flatMap((t) => t.articles).find((a) => a.id === "how-to-start")?.answer ?? "";
     expect(answer).toMatch(/^In three steps: create your account, choose your account size \(₹1L to ₹10L\) and check out/);
-    expect(answer).toContain("You don't need to pick a size to create your account");
+    expect(answer).toContain("You don't pick a size to create your account");
   });
 
   it("opens the funded account on a pass, with KYC before the first payout", () => {

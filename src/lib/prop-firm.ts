@@ -61,8 +61,8 @@ export function formatInr(value: number): string {
 /** The programme in three steps, wherever the site explains it. */
 export const PROGRAMME_STEPS = [
   { title: "Pass the evaluation", body: `Hit the ${PROGRAMME_RULES.targetPercent}% profit target in at least ${PROGRAMME_RULES.minimumDays} trading days without touching the daily loss limit or the max drawdown.` },
-  { title: "Get funded", body: "Your funded account opens as soon as you pass. It's simulated, like your demo account, and keeps the same loss limits, with no profit target." },
-  { title: "Get paid", body: `Keep ${PROGRAMME_RULES.contractorSharePercent}% of the profit. Request a payout whenever you have eligible profit, up to the cap for your account size.` },
+  { title: "Get funded", body: "Your funded account opens the moment you pass, with the same loss limits and no profit target." },
+  { title: "Get paid", body: `Keep ${PROGRAMME_RULES.contractorSharePercent}% of the profit. Request a payout whenever your profit is above the buffer, up to the cap for your account size.` },
 ] as const;
 
 export const RULE_SECTIONS = [
@@ -94,18 +94,18 @@ export const RULE_SECTIONS = [
     id: "conduct",
     label: "Prohibited activity",
     title: "Trade your own account, your own way.",
-    description: "Up to three evaluation or funded accounts per trader. Not allowed: hedging across accounts, copying another trader, sharing logins, using another person's account or exploiting stale prices or news delays. Every fill includes brokerage, STT, exchange charges, the SEBI fee, stamp duty and GST.",
+    description: "Up to three demo or funded accounts per trader. Not allowed: hedging across accounts, copying another trader, sharing logins, using another person's account, or exploiting stale prices or news delays. Every fill includes brokerage, STT, exchange charges, the SEBI fee, stamp duty and GST.",
   },
   {
     id: "desk",
     label: "Funded accounts & payouts",
     title: "Get funded and get paid.",
-    description: "Pass and your funded account opens, on the same size and loss limits with no profit target. You keep 80% of its profit. Request a payout whenever you have eligible profit, up to the cap for your account size; profit equal to your maximum drawdown stays in the account as a buffer. Before your first payout, complete KYC (PAN, Aadhaar and bank verification) and sign your funded trader agreement. Funded accounts are simulated.",
+    description: "Pass and your funded account opens, with the same size and loss limits and no profit target. You keep 80% of its profit. Profit equal to your maximum drawdown stays in the account as a buffer; request a payout whenever your profit is above it, up to the cap for your account size. Before your first payout, complete KYC (PAN, Aadhaar and bank verification) and sign your funded trader agreement. Funded accounts are simulated.",
   },
   {
-    id: "appeals",
-    label: "Fees & appeals",
-    title: "One fee. A fair review.",
-    description: "Each evaluation is a one-time fee with GST included: no subscription and no activation fee. Think a breach was wrong? Appeal within seven days and a second reviewer decides from the trade data. Fees are for the evaluation service; you never deposit trading capital.",
+    id: "fees",
+    label: "Fees",
+    title: "One fee, nothing else.",
+    description: "Each evaluation is a one-time fee with GST included: no subscription, no activation fee and no deposit. The fee pays for the evaluation; you never put up trading capital.",
   },
 ] as const;

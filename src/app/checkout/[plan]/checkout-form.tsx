@@ -5,6 +5,7 @@ import { useActionState, useEffect, useRef, useState, useTransition } from "reac
 import { Lock } from "lucide-react";
 import { INDIAN_STATES } from "@/lib/checkout/billing";
 import type { CheckoutMode } from "@/lib/checkout/config";
+import { TEST_PAYMENT } from "@/lib/checkout/razorpay";
 import { EVALUATION_PLANS, findEvaluationPlan, formatInr, RECOMMENDED_PLAN } from "@/lib/prop-firm";
 import { confirmPayment, type CheckoutState, type CheckoutValues, type PaymentRequest } from "../actions";
 import { OrderSummary } from "./order-summary";
@@ -60,7 +61,7 @@ function Errors({ messages }: { messages?: string[] }) {
  * how it settles: Razorpay Checkout for the fee, a free start while payments aren't switched on,
  * or a staff test purchase.
  */
-export function CheckoutForm({ action, email, defaults, mode, initialPlan, attemptId }: { action: (state: CheckoutState | undefined, formData: FormData) => Promise<CheckoutState | undefined>; email: string; defaults: CheckoutValues; mode: CheckoutMode; initialPlan: string; attemptId: string }) {
+export function CheckoutForm({ action, email, defaults, mode, testMode = false, initialPlan, attemptId }: { action: (state: CheckoutState | undefined, formData: FormData) => Promise<CheckoutState | undefined>; email: string; defaults: CheckoutValues; mode: CheckoutMode; testMode?: boolean; initialPlan: string; attemptId: string }) {
   const [state, submit, pending] = useActionState(action, undefined);
   const [confirming, startConfirming] = useTransition();
   const [notice, setNotice] = useState<string | null>(null);
@@ -179,7 +180,10 @@ export function CheckoutForm({ action, email, defaults, mode, initialPlan, attem
             {mode === "test" ? (
               <p className="rounded-lg border border-[var(--warning)]/40 bg-[var(--warning)]/5 p-4 text-xs leading-6 text-[var(--warning)]">Test checkout: your sign-in is on the staff list, so this purchase isn&apos;t charged. It opens a real demo account on the current rules.</p>
             ) : mode === "razorpay" ? (
-              <p className="rounded-lg border border-[var(--border)] bg-[var(--card-deep)] p-4 text-xs leading-6 text-[var(--muted)]">You pay {total} through Razorpay: UPI, cards or netbanking. One-time, GST included. Your demo account opens as soon as the payment goes through.</p>
+              <div className="rounded-lg border border-[var(--border)] bg-[var(--card-deep)] p-4 text-xs leading-6 text-[var(--muted)]">
+                <p>You pay {total} through Razorpay: UPI, cards or netbanking. One-time, GST included. Your demo account opens as soon as the payment goes through.</p>
+                {testMode && <p className="mt-2 text-[var(--warning)]">Razorpay test mode: no money moves. Pay with the UPI ID <span className="font-mono">{TEST_PAYMENT.upi}</span>, or the card <span className="whitespace-nowrap font-mono">{TEST_PAYMENT.card}</span> with any future expiry, any CVV and any 4-digit OTP.</p>}
+              </div>
             ) : (
               <p className="rounded-lg border border-[var(--primary)]/40 bg-[var(--primary)]/5 p-4 text-xs leading-6 text-[var(--muted)]">No payment is taken: your demo account opens free of charge, on the same rules as a paid one.</p>
             )}

@@ -265,7 +265,7 @@ export interface ReplaySetup {
   quotes?: readonly Quote[];
 }
 
-/** Re-run an account over recorded events from its opening state or a snapshot (RULE-5, appeals). */
+/** Re-run an account over recorded events from its opening state or a snapshot (RULE-5: any result can be reproduced). */
 export function replay(initial: AccountState, events: readonly EngineEvent[], setup: ReplaySetup): { state: AccountState; outputs: EngineOutput[] } {
   const instruments = new Map(setup.instruments.map((instrument) => [instrument.token, instrument]));
   const quotes = new Map<number, Quote>((setup.quotes ?? []).map((quote) => [quote.token, quote]));

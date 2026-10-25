@@ -23,8 +23,8 @@ const INDIA = [
 
 const FAQ = [
   ["How does the evaluation work?", `Hit a ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days without breaching the ${R.dailyLossPercent}% daily loss limit or the ${R.maximumLossPercent}% end-of-day trailing drawdown. When you pass, your best day can be no more than ${R.consistencyPercent}% of your total profit.`],
-  ["Are the accounts real money?", `No. Your demo account (the evaluation) and your funded account are simulated. Your payouts are real: you receive ${R.contractorSharePercent}% of the profit you make on your funded account, up to the payout cap for your account size.`],
-  ["How often can I get paid?", `Request a payout whenever you have eligible profit and have completed KYC, the funded trader agreement and bank verification. Payouts are capped by account size, from ${formatInr(FIRST.payoutCap)} on a ${FIRST.label} account to ${formatInr(LAST.payoutCap)} on a ${LAST.label} account.`],
+  ["Are the accounts real money?", `No. Demo and funded accounts are simulated. Your payouts are real: ${R.contractorSharePercent}% of the profit on your funded account, up to the payout cap for your account size.`],
+  ["How often can I get paid?", `Whenever your profit is above the buffer, once KYC, your funded trader agreement and bank verification are done. Each payout is capped by account size, from ${formatInr(FIRST.payoutCap)} on a ${FIRST.label} account to ${formatInr(LAST.payoutCap)} on a ${LAST.label} account.`],
   ["Are there monthly or activation fees?", "No. Every evaluation is a one-time fee with GST included. No subscription and no activation fee when you pass."],
   ["What can I trade?", "NIFTY and BANK NIFTY options on NSE, and SENSEX options on BSE. Intraday only, from 09:15 to 15:20 IST. Buy calls or puts, and sell only to close."],
   ["When can I start?", "Now. Create your account, choose a size and check out on one screen: your demo account opens straight away."],
@@ -39,7 +39,7 @@ export function PropLanding() {
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[1.2fr_.8fr] lg:gap-16">
           <div className="qd-fade-up">
             <h1 className="text-[clamp(3.4rem,6.3vw,6.1rem)] font-semibold leading-[1.03] tracking-[-.065em]">Pass. Get funded.<br /><span className="text-[var(--primary)]">Get paid.</span></h1>
-            <p className="mt-7 max-w-lg text-[15px] leading-7 text-[#a8b3a4] sm:text-base">Trade NIFTY, BANK NIFTY and SENSEX. Pass one evaluation, get a funded account up to {LAST.label} and keep {R.contractorSharePercent}% of the profit. Request a payout when eligible.</p>
+            <p className="mt-7 max-w-lg text-[15px] leading-7 text-[#a8b3a4] sm:text-base">Trade NIFTY, BANK NIFTY and SENSEX. Pass one evaluation, get a funded account of up to {LAST.label} and keep {R.contractorSharePercent}% of the profit.</p>
             <div className="mt-8 flex flex-wrap gap-3"><Link href="/checkout" className="prop-button">Start your evaluation <ArrowUpRight size={17} /></Link><Link href="#how-it-works" className="prop-button-outline"><span className="flex h-6 w-6 items-center justify-center rounded-full border border-[#5d7150]"><Play size={9} fill="currentColor" /></span> How it works</Link></div>
             <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-[#9eae93]">{["One-time fee", "No activation fee", "End-of-day drawdown"].map((item) => <span key={item} className="flex items-center gap-1.5"><Check size={13} className="text-[var(--primary)]" /> {item}</span>)}</div>
           </div>

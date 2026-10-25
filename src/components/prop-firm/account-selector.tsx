@@ -26,7 +26,7 @@ export function AccountSelector() {
           </div>
         </div>
 
-        <p className="mt-5 min-h-10 text-center text-xs leading-6 text-[var(--muted)]" aria-live="polite">{isEvaluation ? `One-time fee · GST included · Pass in as few as ${PROGRAMME_RULES.minimumDays} trading days` : `After you pass and complete KYC · ${PROGRAMME_RULES.contractorSharePercent}% profit split · Payouts on demand`}</p>
+        <p className="mt-5 min-h-10 text-center text-xs leading-6 text-[var(--muted)]" aria-live="polite">{isEvaluation ? `One-time fee · GST included · Pass in as few as ${PROGRAMME_RULES.minimumDays} trading days` : `Opens when you pass · ${PROGRAMME_RULES.contractorSharePercent}% profit split · Payouts on demand`}</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {EVALUATION_PLANS.map((plan) => {

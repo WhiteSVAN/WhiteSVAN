@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     if (!fulfilled) logger.warn("razorpay.webhook_no_open_order", { razorpayOrderId: payment.razorpayOrderId, paymentId: payment.paymentId });
     else if (fulfilled.opened) {
       logger.info("checkout.razorpay_paid", { userId: fulfilled.userId, orderId: fulfilled.orderId, accountId: fulfilled.accountId, via: "webhook" });
-      await sendReceipt(fulfilled.email, fulfilled, { kind: "paid", amount: fulfilled.amount, paymentId: payment.paymentId });
+      await sendReceipt(fulfilled.email, fulfilled, { kind: "paid", amount: fulfilled.amount, paymentId: payment.paymentId, test: fulfilled.provider === "razorpay-test" });
     }
     return Response.json({ ok: true });
   } catch (error) {
