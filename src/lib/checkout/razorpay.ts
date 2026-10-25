@@ -83,8 +83,8 @@ export async function createRazorpayOrder(
     throw new RazorpayError(`Razorpay refused the order: ${description}`, response.status);
   }
   const order = body as Partial<RazorpayOrder> | null;
-  if (!order || typeof order.id !== "string" || order.amount !== input.amount) throw new RazorpayError("Razorpay returned an unexpected order.", 502);
-  return { id: order.id, amount: order.amount, currency: order.currency ?? "INR", status: order.status ?? "created" };
+  if (!order || typeof order.id !== "string" || !/^order_\w{6,40}$/.test(order.id) || order.amount !== input.amount || order.currency !== "INR" || order.status !== "created") throw new RazorpayError("Razorpay returned an unexpected order.", 502);
+  return { id: order.id, amount: order.amount, currency: order.currency, status: order.status };
 }
 
 /** Fetch authoritative payment state: a Checkout signature alone does not prove capture. */
@@ -134,6 +134,6 @@ export function capturedPayment(event: unknown): { razorpayOrderId: string; paym
   if (typeof event !== "object" || event === null || !("event" in event) || !("payload" in event)) return null;
   if (event.event !== "payment.captured" && event.event !== "order.paid") return null;
   const payment = (event.payload as { payment?: { entity?: Record<string, unknown> } } | null)?.payment?.entity;
-  if (!payment || payment.status !== "captured" || typeof payment.id !== "string" || typeof payment.order_id !== "string" || typeof payment.amount !== "number") return null;
+  if (!payment || payment.status !== "captured" || payment.currency !== "INR" || typeof payment.id !== "string" || !/^pay_\w{6,40}$/.test(payment.id) || typeof payment.order_id !== "string" || !/^order_\w{6,40}$/.test(payment.order_id) || typeof payment.amount !== "number" || !Number.isSafeInteger(payment.amount) || payment.amount < 1) return null;
   return { razorpayOrderId: payment.order_id, paymentId: payment.id, amount: payment.amount };
 }

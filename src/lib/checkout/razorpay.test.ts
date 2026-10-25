@@ -37,7 +37,7 @@ describe("razorpay signatures", () => {
 });
 
 describe("razorpay events", () => {
-  const payment = { id: "pay_XYZ789", order_id: "order_ABC123", amount: 8_999_00, status: "captured" };
+  const payment = { id: "pay_XYZ789", order_id: "order_ABC123", amount: 8_999_00, currency: "INR", status: "captured" };
 
   it("reads the captured payment from payment.captured and order.paid", () => {
     expect(capturedPayment({ event: "payment.captured", payload: { payment: { entity: payment } } })).toEqual({ razorpayOrderId: "order_ABC123", paymentId: "pay_XYZ789", amount: 8_999_00 });
@@ -50,6 +50,19 @@ describe("razorpay events", () => {
     expect(capturedPayment({ event: "payment.captured", payload: {} })).toBeNull();
     expect(capturedPayment(null)).toBeNull();
     expect(capturedPayment("payment.captured")).toBeNull();
+  });
+
+  it.each([
+    { ...payment, currency: "USD" },
+    { ...payment, currency: undefined },
+    { ...payment, amount: 100.5 },
+    { ...payment, amount: -1 },
+    { ...payment, amount: 0 },
+    { ...payment, amount: Number.MAX_SAFE_INTEGER + 1 },
+    { ...payment, id: "bad" },
+    { ...payment, order_id: "" },
+  ])("ignores captured events with invalid currency, amount or identifiers: %j", (entity) => {
+    expect(capturedPayment({ event: "payment.captured", payload: { payment: { entity } } })).toBeNull();
   });
 });
 
@@ -70,6 +83,16 @@ describe("razorpay orders", () => {
     const wrong = vi.fn(async () => Response.json({ id: "order_ABC123", amount: 100 }));
     await expect(createRazorpayOrder(config, { amount: 8_999_00, receipt: "ord_1", notes: {} }, wrong as unknown as typeof fetch)).rejects.toBeInstanceOf(RazorpayError);
     await expect(createRazorpayOrder(config, { amount: 99, receipt: "ord_1", notes: {} })).rejects.toThrow(RangeError);
+  });
+
+  it.each([
+    { id: "order_ABC123", amount: 8_999_00, currency: "USD", status: "created" },
+    { id: "order_ABC123", amount: 8_999_00, status: "created" },
+    { id: "", amount: 8_999_00, currency: "INR", status: "created" },
+    { id: "order_ABC123", amount: 8_999_00, currency: "INR" },
+    { id: "order_ABC123", amount: 8_999_00, currency: "INR", status: "paid" },
+  ])("rejects malformed, non-INR or non-created order responses: %j", async (body) => {
+    await expect(createRazorpayOrder(config, { amount: 8_999_00, receipt: "ord_1", notes: {} }, (async () => Response.json(body)) as typeof fetch)).rejects.toBeInstanceOf(RazorpayError);
   });
 });
 

@@ -130,7 +130,19 @@ export const deskQuoteKeys = (desk: Desk) => desk.instruments.map((instrument) =
  */
 export function deskStep(desk: Desk, event: EngineEvent, quotes: ReadonlyMap<number, Quote>, instrument?: Instrument, exits?: Exits): { desk: Desk; outputs: EngineOutput[] } {
   const bracketed = event.kind === "place" && event.order.side === "BUY" && exits !== undefined && (exits.stop !== undefined || exits.target !== undefined) && !(desk.brackets ?? []).some((item) => item.entryId === event.order.id);
-  const start = bracketed ? { ...desk, brackets: [...(desk.brackets ?? []), { entryId: event.order.id, token: event.order.token, ...exits, status: "WAITING" as const }] } : desk;
+  let start = bracketed ? { ...desk, brackets: [...(desk.brackets ?? []), { entryId: event.order.id, token: event.order.token, ...exits, status: "WAITING" as const }] } : desk;
+  if (event.kind === "quote") {
+    for (const bracket of start.brackets ?? []) {
+      if (bracket.status !== "ACTIVE" || !start.state.orders.some((order) => order.id === bracket.entryId)) continue;
+      const stop = start.state.orders.find((order) => order.id === bracket.stopOrderId);
+      const target = start.state.orders.find((order) => order.id === bracket.targetOrderId);
+      const stopCrossed = stop?.type === "SL-M" && event.quote.lastPrice <= (stop.triggerPrice ?? Number.NEGATIVE_INFINITY);
+      const targetCrossed = target?.type === "LIMIT" && event.quote.bids.some((level) => level.price >= (target.limitPrice ?? Number.POSITIVE_INFINITY));
+      if (stopCrossed || targetCrossed) {
+        start = applyEvent(start, { kind: "cancel", at: event.at, orderId: bracket.entryId }, quotes, undefined, [{ at: event.at, tone: "info", text: `Entry remainder on ${start.instruments.find((item) => item.token === bracket.token)?.tradingSymbol ?? bracket.token} cancelled: exit triggered.` }]).desk;
+      }
+    }
+  }
   return followBrackets(applyEvent(start, event, quotes, instrument), quotes);
 }
 
@@ -195,23 +207,25 @@ function followBrackets(result: { desk: Desk; outputs: EngineOutput[] }, quotes:
   const working = (id: string | undefined) => (id ? desk.state.orders.find((order) => order.id === id) : undefined);
   const recordOf = (id: string | undefined) => (id ? desk.orderBook?.find((record) => record.id === id) : undefined);
   const instrumentOf = (token: number) => desk.instruments.find((item) => item.token === token);
-  /** Cancel an exit and say why, in the order book and the activity log. */
+  /** Cancel an exit or entry remainder and say why, in the order book and the activity log. */
   const cancel = (order: WorkingOrder, why: string) => {
-    const name = exitRole(order.id) === "stop" ? "Stop-loss" : "Target";
+    const role = exitRole(order.id);
+    const name = role === "stop" ? "Stop-loss" : role === "target" ? "Target" : "Entry remainder";
     run({ kind: "cancel", at, orderId: order.id }, [{ at, tone: "info", text: `${name} on ${instrumentOf(order.token)?.tradingSymbol ?? order.token} cancelled: ${why.toLowerCase()}.` }]);
     desk = { ...desk, orderBook: desk.orderBook?.map((record) => (record.id === order.id && record.status === "CANCELLED" ? { ...record, reason: why } : record)) };
   };
   const kept: Bracket[] = [];
   for (const original of desk.brackets ?? []) {
     const bracket = { ...original };
+    const instrument = instrumentOf(bracket.token);
+    const entryRecord = recordOf(bracket.entryId);
+    const entryFilled = entryRecord?.filled ?? 0;
     if (bracket.status === "WAITING") {
-      if (working(bracket.entryId)) {
-        kept.push(bracket);
+      const lots = instrument ? Math.floor(Math.min(entryFilled, heldUnits(desk.state, bracket.token)) / instrument.lotSize) : 0;
+      if (lots < 1) {
+        if (working(bracket.entryId)) kept.push(bracket);
         continue;
       }
-      const instrument = instrumentOf(bracket.token);
-      const lots = instrument ? Math.floor(Math.min(recordOf(bracket.entryId)?.filled ?? 0, heldUnits(desk.state, bracket.token)) / instrument.lotSize) : 0;
-      if (lots < 1) continue;
       const placed: string[] = [];
       const exit = (id: string, order: Pick<OrderRequest, "type" | "limitPrice" | "triggerPrice">, name: string): string | undefined => {
         const refused = run({ kind: "place", at, order: { id, token: bracket.token, side: "SELL", lots, ...order } }).find((output) => output.kind === "rejected");
@@ -229,11 +243,17 @@ function followBrackets(result: { desk: Desk; outputs: EngineOutput[] }, quotes:
       if (!bracket.stopOrderId && !bracket.targetOrderId) continue;
       bracket.status = "ACTIVE";
     }
-    // One cancels the other: a filled exit cancels its partner.
+    // One cancels the other: a filled exit cancels its partner and any entry remainder.
     const stop = working(bracket.stopOrderId);
     const target = working(bracket.targetOrderId);
-    if (target && recordOf(bracket.stopOrderId)?.status === "COMPLETE") cancel(target, "Stop-loss hit");
-    if (stop && recordOf(bracket.targetOrderId)?.status === "COMPLETE") cancel(stop, "Target hit");
+    const stopHit = recordOf(bracket.stopOrderId)?.status === "COMPLETE";
+    const targetHit = recordOf(bracket.targetOrderId)?.status === "COMPLETE";
+    if (stopHit || targetHit) {
+      const entry = working(bracket.entryId);
+      if (entry) cancel(entry, stopHit ? "Stop-loss hit" : "Target hit");
+    }
+    if (target && stopHit) cancel(target, "Stop-loss hit");
+    if (stop && targetHit) cancel(stop, "Target hit");
     // Closed some other way, or partly sold: an exit never sells more than is held.
     for (const id of [bracket.stopOrderId, bracket.targetOrderId]) {
       const order = working(id);
@@ -241,7 +261,10 @@ function followBrackets(result: { desk: Desk; outputs: EngineOutput[] }, quotes:
       const lotSize = instrumentOf(order.token)?.lotSize ?? 0;
       const held = heldUnits(desk.state, order.token);
       if (lotSize === 0 || held < lotSize) cancel(order, "Position closed");
-      else if (order.quantity - order.filled > held) run({ kind: "modify", at, orderId: order.id, changes: { lots: Math.floor((order.filled + held) / lotSize) } }, []);
+      else {
+        const lots = Math.floor((order.filled + held) / lotSize);
+        if (lots !== order.lots) run({ kind: "modify", at, orderId: order.id, changes: { lots } }, []);
+      }
     }
     if (working(bracket.stopOrderId) || working(bracket.targetOrderId)) kept.push(bracket);
   }

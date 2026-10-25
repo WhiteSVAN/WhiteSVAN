@@ -89,9 +89,28 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
     expect(first.orderId).not.toBe(second.orderId);
   });
 
+  it("reuses one Razorpay order for concurrent and later retries of a stable checkout attempt", async () => {
+    const user = await makeUser();
+    const input = { config: razorpay, userId: user.id, email: user.email!, plan, billing, now, attemptId: randomUUID() };
+    let calls = 0;
+    const api = (async (_url: string, init?: RequestInit) => {
+      calls++;
+      await new Promise(resolve => setTimeout(resolve, 30));
+      return Response.json({ id: "order_IDEMPOTENT123", amount: JSON.parse(String(init?.body)).amount, currency: "INR", status: "created" });
+    }) as unknown as typeof fetch;
+    const simultaneous = await Promise.allSettled([startRazorpayOrder(input, api), startRazorpayOrder(input, api), startRazorpayOrder(input, api)]);
+    expect(simultaneous.filter(result => result.status === "fulfilled").length).toBeGreaterThanOrEqual(1);
+    expect(calls).toBe(1);
+    expect(await prisma.checkoutOrder.count({ where: { userId: user.id } })).toBe(1);
+    const original = simultaneous.find(result => result.status === "fulfilled")!;
+    if (original.status !== "fulfilled") throw new Error("No original order");
+    expect(await startRazorpayOrder(input, api)).toEqual(original.value);
+    expect(calls).toBe(1);
+  });
+
   it("holds a Razorpay order as pending, then opens one account however many confirmations arrive", async () => {
     const user = await makeUser();
-    const started = await startRazorpayOrder({ config: razorpay, userId: user.id, email: user.email!, plan, billing, now }, razorpayApi);
+    const started = await startRazorpayOrder({ config: razorpay, attemptId: randomUUID(), userId: user.id, email: user.email!, plan, billing, now }, razorpayApi);
     const pending = await prisma.checkoutOrder.findUniqueOrThrow({ where: { id: started.orderId } });
     expect(pending).toMatchObject({ status: "PENDING", provider: "razorpay-test", amount: planAmount(plan), providerOrderId: started.razorpayOrderId, accountId: null, paidAt: null });
     expect(await prisma.evaluationAccount.count({ where: { userId: user.id } })).toBe(0);
@@ -108,7 +127,7 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
 
   it("refuses a payment for another amount, and orders it doesn't know", async () => {
     const user = await makeUser();
-    const started = await startRazorpayOrder({ config: razorpay, userId: user.id, email: user.email!, plan, billing, now }, razorpayApi);
+    const started = await startRazorpayOrder({ config: razorpay, attemptId: randomUUID(), userId: user.id, email: user.email!, plan, billing, now }, razorpayApi);
     await expect(fulfilRazorpayOrder({ razorpayOrderId: started.razorpayOrderId, paymentId: "pay_INTEGRATION2", now, amount: 100 })).rejects.toBeInstanceOf(CheckoutError);
     expect(await prisma.checkoutOrder.findUniqueOrThrow({ where: { id: started.orderId } })).toMatchObject({ status: "PENDING", accountId: null });
     expect(await fulfilRazorpayOrder({ razorpayOrderId: "order_UNKNOWN0000", paymentId: "pay_INTEGRATION3", now })).toBeNull();
@@ -117,9 +136,9 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
   it("checks the account limit before taking money, and opens a paid order's account past it", async () => {
     const user = await makeUser();
     await seedActive(user.id, MAX_ACTIVE_ACCOUNTS - 1);
-    const started = await startRazorpayOrder({ config: razorpay, userId: user.id, email: user.email!, plan, billing, now }, razorpayApi);
+    const started = await startRazorpayOrder({ config: razorpay, attemptId: randomUUID(), userId: user.id, email: user.email!, plan, billing, now }, razorpayApi);
     await seedActive(user.id, 1);
-    await expect(startRazorpayOrder({ config: razorpay, userId: user.id, email: user.email!, plan, billing, now }, razorpayApi)).rejects.toThrow("active accounts");
+    await expect(startRazorpayOrder({ config: razorpay, attemptId: randomUUID(), userId: user.id, email: user.email!, plan, billing, now }, razorpayApi)).rejects.toThrow("active accounts");
     expect((await fulfilRazorpayOrder({ razorpayOrderId: started.razorpayOrderId, paymentId: "pay_INTEGRATION4", now }))?.opened).toBe(true);
     expect(await prisma.evaluationAccount.count({ where: { userId: user.id, status: "ACTIVE" } })).toBe(MAX_ACTIVE_ACCOUNTS + 1);
   });
@@ -127,7 +146,7 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
   it("marks the order failed when Razorpay won't create it", async () => {
     const user = await makeUser();
     const down = (async () => Response.json({ error: { description: "Server error" } }, { status: 500 })) as unknown as typeof fetch;
-    await expect(startRazorpayOrder({ config: razorpay, userId: user.id, email: user.email!, plan, billing, now }, down)).rejects.toThrow("Razorpay refused the order");
+    await expect(startRazorpayOrder({ config: razorpay, attemptId: randomUUID(), userId: user.id, email: user.email!, plan, billing, now }, down)).rejects.toThrow("Razorpay refused the order");
     expect(await prisma.checkoutOrder.findFirstOrThrow({ where: { userId: user.id } })).toMatchObject({ status: "FAILED", providerOrderId: null });
   });
 });

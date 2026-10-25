@@ -4,6 +4,7 @@
  * free orders complete at once. A Razorpay order waits as PENDING until its payment is confirmed,
  * by the browser's signed handler or by the webhook, whichever arrives first.
  */
+import { createHash } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { newAccountId } from "@/lib/accounts/store";
@@ -92,19 +93,37 @@ export async function completePurchase(input: { mode: "test" | "free"; userId: s
  * the browser opens Checkout.js on. The account limit is checked here, before any money is taken;
  * the account itself opens when the payment is confirmed (`fulfilRazorpayOrder`).
  */
-export async function startRazorpayOrder(input: { config: RazorpayConfig; userId: string; email: string; plan: EvaluationPlan; billing: Billing; now: number }, fetchImpl?: typeof fetch): Promise<{ orderId: string; razorpayOrderId: string; amount: number }> {
-  const { config, userId, email, plan, billing, now } = input;
+export async function startRazorpayOrder(input: { config: RazorpayConfig; userId: string; email: string; plan: EvaluationPlan; billing: Billing; now: number; attemptId: string }, fetchImpl?: typeof fetch): Promise<{ orderId: string; razorpayOrderId: string; amount: number; accountId?: string }> {
+  const { config, userId, email, plan, billing, now, attemptId } = input;
+  if (!isCheckoutAttemptId(attemptId)) throw new CheckoutError("Refresh checkout and try again.");
+  const provider = razorpayProvider(config);
+  // A deterministic opaque primary key uses the existing uniqueness constraint.
+  // It is also under Razorpay's 40-character receipt limit. Mode/owner isolate attempts.
+  const id = `rp${createHash("sha256").update(`${provider}:${userId}:${attemptId.toLowerCase()}`).digest("hex").slice(0, 32)}`;
   const amount = planAmount(plan);
-  const order = await prisma.$transaction(async (tx) => {
+  const prepared = await prisma.$transaction(async (tx) => {
     await lockUser(tx, userId);
+    const existing = await tx.checkoutOrder.findUnique({ where: { id } });
+    if (existing) {
+      if (existing.userId !== userId || existing.planId !== plan.id || existing.provider !== provider || existing.amount !== amount || existing.status === "FAILED" || existing.status === "REFUNDED") {
+        throw new CheckoutError("This checkout attempt has already been used. Refresh checkout and try again.");
+      }
+      if (!existing.providerOrderId) throw new CheckoutError("This payment is still being prepared. Wait a moment and retry this checkout; don't start another payment.");
+      return { order: existing, created: false };
+    }
     await checkLimit(tx, userId);
-    return tx.checkoutOrder.create({ data: { ...billingData(userId, email, plan, billing, now), amount, status: "PENDING", provider: razorpayProvider(config) }, select: { id: true } });
+    const order = await tx.checkoutOrder.create({ data: { ...billingData(userId, email, plan, billing, now), id, amount, status: "PENDING", provider } });
+    return { order, created: true };
   });
+  const order = prepared.order;
+  if (!prepared.created) return { orderId: order.id, razorpayOrderId: order.providerOrderId!, amount: order.amount, ...(order.accountId ? { accountId: order.accountId } : {}) };
   try {
     const razorpay = await createRazorpayOrder(config, { amount, receipt: order.id, notes: { order: order.id, plan: plan.id } }, fetchImpl);
     await prisma.checkoutOrder.update({ where: { id: order.id }, data: { providerOrderId: razorpay.id } });
     return { orderId: order.id, razorpayOrderId: razorpay.id, amount };
   } catch (error) {
+    // Do not start a second provider order for an uncertain attempt. A fresh checkout
+    // is needed after a definitive failure; paid/captured records remain handled by fulfillment.
     await prisma.checkoutOrder.update({ where: { id: order.id }, data: { status: "FAILED" } });
     throw error;
   }

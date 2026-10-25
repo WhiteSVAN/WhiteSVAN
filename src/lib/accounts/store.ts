@@ -104,6 +104,60 @@ export async function changeAccount<T>(userId: string, id: string, change: (desk
   throw new AccountBusyError();
 }
 
+/**
+ * Apply an order while serializing all of the trader's order placements. The callback receives the
+ * target and every other active account only after the user lock is held; it is called again after
+ * an optimistic write conflict, so policy is never decided from the stale first snapshot.
+ */
+export async function changeAccountForOrder<T>(
+  userId: string,
+  id: string,
+  change: (account: StoredAccount, others: StoredAccount[]) => { desk: Desk; result: T } | Promise<{ desk: Desk; result: T }>,
+): Promise<{ account: StoredAccount; result: T } | null> {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const outcome = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`account-orders:${userId}`}, 0))`;
+
+      const row = await tx.evaluationAccount.findFirst({ where: { id, userId }, select: SELECT });
+      if (!row) return { kind: "missing" as const };
+      const account = stored(row);
+      const otherRows = await tx.evaluationAccount.findMany({
+        where: { userId, status: "ACTIVE", id: { not: id } },
+        orderBy: { createdAt: "desc" },
+        select: SELECT,
+      });
+      const { desk, result } = await change(account, otherRows.map(stored));
+      const where = { id, userId, version: account.version };
+      const data = { desk: desk as unknown as Prisma.InputJsonValue, version: { increment: 1 }, status: desk.state.status, phase: desk.state.phase };
+      const passes = account.phase === "EVALUATION" && account.status !== "PASSED" && desk.state.status === "PASSED";
+      // Keep the funded-account creation in the same transaction as the conditional write.
+      const { saved, fundedId } = passes
+        ? await (async () => {
+            const updated = await tx.evaluationAccount.updateMany({ where, data });
+            return { saved: updated.count, fundedId: updated.count === 1 ? await openFundedAccount(tx, account, desk.state.clock) : null };
+          })()
+        : { saved: (await tx.evaluationAccount.updateMany({ where, data })).count, fundedId: null };
+      if (saved !== 1) return { kind: "retry" as const };
+      return {
+        kind: "saved" as const,
+        account: { ...account, desk, status: desk.state.status, version: account.version + 1 },
+        result,
+        fundedId,
+      };
+    });
+    if (outcome.kind === "missing") return null;
+    if (outcome.kind === "retry") continue;
+    if (outcome.fundedId) {
+      logger.info("accounts.funded", { userId, evaluationId: id, fundedId: outcome.fundedId });
+      await announceFunded(outcome.account, outcome.fundedId).catch((error: unknown) => {
+        logger.warn("accounts.funded_email_failed", { fundedId: outcome.fundedId, error: error instanceof Error ? error.message : String(error) });
+      });
+    }
+    return { account: outcome.account, result: outcome.result };
+  }
+  throw new AccountBusyError();
+}
+
 /** Whether the trading day the desk has open is one `now` closes (the platform was shut before 15:30). */
 function closesDay(desk: Desk, now: number): boolean {
   const open = desk.state.day;
