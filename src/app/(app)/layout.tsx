@@ -7,8 +7,8 @@ import { WorkspaceNav } from "@/components/workspace-nav";
 import { AccountMenu } from "./account-menu";
 
 /**
- * Authenticated app shell: My accounts, Charts (once live prices are set up) and Payouts, with
- * Academy, Help, Settings and sign-out in the account menu. `requireUser()` redirects to /login
+ * Authenticated app shell: My accounts, Trade (once live prices are set up) and Journal, with
+ * Payouts, Academy, Help, Settings and sign-out in the account menu. `requireUser()` redirects to /login
  * when there is no session; pages still guard their own data (layouts don't re-run on every
  * client navigation; see the Next.js auth guide).
  */
@@ -16,8 +16,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await requireUser();
   const nav = [
     { href: "/dashboard", label: "My accounts" },
-    ...(kiteConfig() ? [{ href: "/markets", label: "Charts" }] : []),
-    { href: "/payouts", label: "Payouts" },
+    ...(kiteConfig() ? [{ href: "/markets", label: "Trade" }] : []),
+    { href: "/journal", label: "Journal" },
   ];
 
   return (

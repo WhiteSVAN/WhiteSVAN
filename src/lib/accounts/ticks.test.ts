@@ -3,7 +3,7 @@ import { findEvaluationPlan } from "@/lib/prop-firm";
 import { openDesk } from "@/lib/trading/desk";
 import { ist } from "@/lib/trading/time";
 import { contractInstrument, type KiteContract, type MarketQuote } from "@/lib/zerodha/kite";
-import { applyModify, applyOrder, applyTick, engineBooks, MAX_TICK_KEYS, tickKeys } from "./ticks";
+import { applyModify, applyOrder, applyTick, engineBooks, MAX_TICK_KEYS, orderPolicyProblem, screenQuotes, tickKeys } from "./ticks";
 
 // Fixture values, not exchange values.
 const FUT: KiteContract = { token: 13238786, exchange: "NFO", tradingSymbol: "NIFTY26OCTFUT", underlying: "NIFTY", kind: "FUT", expiry: "2026-10-27", strike: null, lotSize: 75, tickSize: 10 };
@@ -26,7 +26,7 @@ describe("account ticks", () => {
   it("asks for the account's contracts first, drops unknown keys and stays within one call", () => {
     const desk = { ...opened(), instruments: [contractInstrument(FUT)] };
     expect(tickKeys(desk, ["NSE:NIFTY 50", "NFO:NIFTY26OCTFUT", "bad key", "MCX:GOLD"])).toEqual(["NFO:NIFTY26OCTFUT", "NSE:NIFTY 50"]);
-    const many = Array.from({ length: 12 }, (_, i) => `NFO:NIFTY26OCT${24_000 + i * 50}CE`);
+    const many = Array.from({ length: MAX_TICK_KEYS + 4 }, (_, i) => `NFO:NIFTY26OCT${24_000 + i * 50}CE`);
     expect(tickKeys(desk, many)).toHaveLength(MAX_TICK_KEYS);
     expect(tickKeys(desk, many)[0]).toBe("NFO:NIFTY26OCTFUT");
   });
@@ -64,5 +64,55 @@ describe("account ticks", () => {
     expect(moved.outputs.map((output) => output.kind)).toEqual(["modified", "fill"]);
     expect(moved.desk.orderBook?.[0]).toMatchObject({ id: "L1", status: "COMPLETE", limitPrice: r(25_000) + 10, averagePrice: r(25_000) + 10 });
     expect(applyModify(moved.desk, "L1", { limitPrice: r(24_950) }, later, ist("2026-10-16 10:05:02")).outputs).toEqual([expect.objectContaining({ kind: "rejected", reason: "UNKNOWN_ORDER" })]);
+  });
+
+  describe("trading policy", () => {
+    const CALL: KiteContract = { ...FUT, token: 13238800, tradingSymbol: "NIFTY26OCT25000CE", kind: "CE", strike: r(25_000), tickSize: 5 };
+    const PUT: KiteContract = { ...CALL, token: 13238801, tradingSymbol: "NIFTY26OCT25000PE", kind: "PE" };
+    const BANK_PUT: KiteContract = { ...PUT, token: 13238900, tradingSymbol: "BANKNIFTY26OCT56000PE", underlying: "BANKNIFTY", strike: r(56_000) };
+    const buy = (desk: ReturnType<typeof opened>, contract: KiteContract, lots = 1, type: "MARKET" | "LIMIT" = "MARKET") =>
+      applyOrder(desk, contractInstrument(contract), { id: `O${contract.token}${type}`, token: contract.token, side: "BUY", lots, type, ...(type === "LIMIT" ? { limitPrice: r(100) } : {}) }, [quote(`NFO:${contract.tradingSymbol}`, contract.token, "2026-10-16 10:00:00", 120)], ist("2026-10-16 10:00:01")).desk;
+
+    it("buys calls and puts, and sells only to close what is held", () => {
+      const desk = opened();
+      expect(orderPolicyProblem(desk, contractInstrument(CALL), "BUY", 1)).toBeNull();
+      expect(orderPolicyProblem(desk, contractInstrument(CALL), "SELL", 1)).toBe("Sell only to close an option you hold: short options aren't allowed.");
+      const long = buy(desk, CALL, 2);
+      expect(orderPolicyProblem(long, contractInstrument(CALL), "SELL", 2)).toBeNull();
+      expect(orderPolicyProblem(long, contractInstrument(CALL), "SELL", 3)).toBe("Sell only to close an option you hold: short options aren't allowed.");
+      expect(orderPolicyProblem(long, contractInstrument(CALL), "BUY", 1)).toBeNull();
+    });
+
+    it("bets one direction per index, including working buys", () => {
+      const long = buy(opened(), CALL);
+      expect(orderPolicyProblem(long, contractInstrument(PUT), "BUY", 1)).toBe("Directional bets only: you hold NIFTY calls, so close them before buying puts.");
+      expect(orderPolicyProblem(long, contractInstrument(BANK_PUT), "BUY", 1)).toBeNull();
+      const working = buy(opened(), PUT, 1, "LIMIT");
+      expect(working.state.orders).toHaveLength(1);
+      expect(orderPolicyProblem(working, contractInstrument(CALL), "BUY", 1)).toBe("Directional bets only: you hold NIFTY puts, so close them before buying calls.");
+    });
+
+    it("doesn't hedge across the trader's accounts", () => {
+      const other = buy(opened(), CALL);
+      expect(orderPolicyProblem(opened(), contractInstrument(PUT), "BUY", 1, [other])).toBe("No hedging across accounts: another of your accounts holds NIFTY calls.");
+      expect(orderPolicyProblem(opened(), contractInstrument(CALL), "BUY", 1, [other])).toBeNull();
+    });
+
+    it("trades options only, though a futures position can still be closed", () => {
+      const desk = opened();
+      expect(orderPolicyProblem(desk, contractInstrument(FUT), "BUY", 1)).toBe("Only options can be traded.");
+      const long = applyOrder(desk, contractInstrument(FUT), { id: "O1", token: FUT.token, side: "BUY", lots: 2, type: "MARKET" }, [quote("NFO:NIFTY26OCTFUT", FUT.token, "2026-10-16 10:00:00", 25_000)], ist("2026-10-16 10:00:01")).desk;
+      expect(orderPolicyProblem(long, contractInstrument(FUT), "SELL", 2)).toBeNull();
+      expect(orderPolicyProblem(long, contractInstrument(FUT), "SELL", 3)).toBe("Only options can be traded.");
+      expect(orderPolicyProblem(long, contractInstrument(FUT), "BUY", 1)).toBe("Only options can be traded.");
+    });
+  });
+
+  it("sends full depth only for the contracts on screen", () => {
+    const deep = (key: string, token: number) => ({ ...quote(key, token, "2026-10-16 10:00:00", 120), bids: [1, 2, 3].map((step) => ({ price: r(120) - step * 5, quantity: 75, orders: 1 })), asks: [1, 2, 3].map((step) => ({ price: r(120) + step * 5, quantity: 75, orders: 1 })) });
+    const [charted, chain] = screenQuotes([deep("NFO:A", 1), deep("NFO:B", 2)], new Set(["NFO:A"]));
+    expect([charted.bids.length, charted.asks.length]).toEqual([3, 3]);
+    expect([chain.bids.length, chain.asks.length]).toEqual([1, 1]);
+    expect(chain.bids[0].price).toBe(r(120) - 5);
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
@@ -13,11 +13,11 @@ import type { Side, Underlying } from "@/lib/trading/instruments";
 import { clockSeconds, toIst } from "@/lib/trading/time";
 import { quoteKey, UNDERLYINGS, type InstrumentList, type KiteContract, type MarketQuote, type OptionStrike } from "@/lib/zerodha/kite";
 
-type Mode = "index" | "future" | "option";
+type Right = "CE" | "PE";
 
 const UNDERLYING_ORDER: Underlying[] = ["NIFTY", "BANKNIFTY", "SENSEX"];
-const INDEX_KEYS = UNDERLYING_ORDER.map((name) => UNDERLYINGS[name].indexKey);
-const MODES: [Mode, string][] = [["index", "Index"], ["future", "Futures"], ["option", "Options"]];
+/** Strikes either side of the money in the option chain. */
+const CHAIN_SIDE = 6;
 const INTERVAL_CHOICES: [Interval, string, string][] = [
   ["minute", "1m", "1-minute"],
   ["3minute", "3m", "3-minute"],
@@ -39,11 +39,9 @@ const price = (paise: number) => priceText.format(paise / 100);
 const expiryLabel = (date: string) => expiryText.format(new Date(`${date}T00:00:00Z`));
 
 function contractLabel(contract: KiteContract): string {
-  const name = UNDERLYINGS[contract.underlying].contractName;
   const day = expiryText.formatToParts(new Date(`${contract.expiry}T00:00:00Z`));
   const part = (type: string) => day.find((item) => item.type === type)?.value ?? "";
-  const expiry = `${part("day")} ${part("month")}`;
-  return contract.kind === "FUT" ? `${name} ${expiry} FUT` : `${name} ${expiry} ${strikeText.format((contract.strike ?? 0) / 100)} ${contract.kind}`;
+  return `${UNDERLYINGS[contract.underlying].contractName} ${part("day")} ${part("month")} ${strikeText.format((contract.strike ?? 0) / 100)} ${contract.kind}`;
 }
 
 /** Weekday trading hours with a few minutes either side; quotes poll faster then. */
@@ -52,10 +50,17 @@ function marketHours(at: number): boolean {
   return weekday >= 1 && weekday <= 5 && second >= clockSeconds("09:10") && second < clockSeconds("15:35");
 }
 
+/** The strike nearest the index (the money), or the chain's middle before the index has a price. */
 function nearestStrike(chain: readonly OptionStrike[], target: number | undefined): number | null {
   if (chain.length === 0) return null;
   if (target === undefined) return chain[Math.floor(chain.length / 2)].strike;
   return chain.reduce((best, row) => (Math.abs(row.strike - target) < Math.abs(best - target) ? row.strike : best), chain[0].strike);
+}
+
+/** The chain's rows around the money. */
+function chainWindow(chain: readonly OptionStrike[], atm: number | null): OptionStrike[] {
+  const middle = Math.max(0, chain.findIndex((row) => row.strike === atm));
+  return chain.slice(Math.max(0, middle - CHAIN_SIDE), middle + CHAIN_SIDE + 1);
 }
 
 class ApiError extends Error {
@@ -79,15 +84,6 @@ async function getJson<T>(url: string, signal?: AbortSignal, init?: { method: "P
     throw new ApiError(message, response.status);
   }
   return body as T;
-}
-
-interface ChartInstrument {
-  key: string;
-  token: number;
-  label: string;
-  /** Smallest price step in paise. */
-  tick: number;
-  contract: KiteContract | null;
 }
 
 function Change({ quote, className = "" }: { quote: MarketQuote; className?: string }) {
@@ -128,37 +124,58 @@ function SessionEnded({ message, loginHref }: { message: string; loginHref: stri
   );
 }
 
-/** Where the chart's Buy and Sell buttons send someone without an evaluation account. */
+/** Where Buy and Sell send someone without an evaluation account. */
 function OpenEvaluation() {
   return (
     <aside id="order-ticket" className="terminal-card flex scroll-mt-24 flex-col gap-4 p-5" aria-label="Trade">
-      <p className="terminal-label">Trade these charts</p>
+      <p className="terminal-label">Trade these options</p>
       <h2 className="text-lg font-medium tracking-tight">Open an evaluation to place orders</h2>
-      <p className="text-sm leading-6 text-[var(--muted)]">Buy and sell NIFTY, BANK NIFTY and SENSEX futures and options on a simulated account, with an order ticket, positions and a full order book.</p>
+      <p className="text-sm leading-6 text-[var(--muted)]">Buy and sell NIFTY, BANK NIFTY and SENSEX options on a simulated account, with an order ticket, positions and a full order book.</p>
       <Link id="open-evaluation" href="/checkout" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start an evaluation</Link>
     </aside>
   );
 }
 
+/** One side of a chain row: the option's last price and its Buy and Sell buttons. */
+function ChainCell({ contract, quote, side, itm, selected, onSelect, onTrade }: { contract: KiteContract | null; quote: MarketQuote | undefined; side: Right; itm: boolean; selected: boolean; onSelect: () => void; onTrade: (side: Side) => void }) {
+  if (!contract) return <td colSpan={2} className="px-2 py-1.5 text-center text-[var(--faint)]">—</td>;
+  const label = contractLabel(contract);
+  const change = quote && quote.previousClose > 0 ? quote.lastPrice - quote.previousClose : null;
+  const percent = quote && change !== null ? ((Math.abs(change) * 100) / quote.previousClose).toFixed(1) : null;
+  const priceCell = (
+    <td className={`px-2 py-1.5 ${side === "CE" ? "text-right" : "text-left"} ${itm ? "bg-[var(--card-raised)]" : ""}`}>
+      <button type="button" onClick={onSelect} aria-pressed={selected} aria-label={`Chart ${label}`} className={`inline-flex min-h-8 min-w-20 flex-col rounded-md px-2 py-0.5 ${side === "CE" ? "items-end" : "items-start"} ${selected ? "ring-1 ring-[var(--primary)]" : "hover:bg-[var(--card-deep)]"}`}>
+        <span className="font-mono text-sm">{quote ? price(quote.lastPrice) : "—"}</span>
+        {change !== null && percent !== null && <span className={`font-mono text-[10px] ${change >= 0 ? "text-[var(--primary)]" : "text-[var(--danger)]"}`}>{change >= 0 ? "+" : "−"}{percent}%</span>}
+      </button>
+    </td>
+  );
+  const buttons = (
+    <td className={`px-1 py-1.5 ${itm ? "bg-[var(--card-raised)]" : ""}`}>
+      <span className="flex gap-1">
+        <button type="button" onClick={() => onTrade("BUY")} aria-label={`Buy ${label}`} className="min-h-8 min-w-8 rounded bg-[var(--primary)] px-2 text-xs font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">B</button>
+        <button type="button" onClick={() => onTrade("SELL")} aria-label={`Sell ${label}`} className="min-h-8 min-w-8 rounded bg-[var(--danger)] px-2 text-xs font-medium text-[#2a0f0a] hover:opacity-90">S</button>
+      </span>
+    </td>
+  );
+  return side === "CE" ? <>{priceCell}{buttons}</> : <>{buttons}{priceCell}</>;
+}
+
 const withParam = (path: string, name: string, value: string) => `${path}${path.includes("?") ? "&" : "?"}${name}=${encodeURIComponent(value)}`;
 
 /**
- * Charts, quotes and depth for NIFTY, BANK NIFTY and SENSEX from the firm's shared Kite login, for
- * any signed-in user; `canConnect` marks an owner, who can log in again when Kite ends it. With an
- * `account`, it is that evaluation account's trading platform: Buy and Sell, the order ticket and
- * the order book, with each poll feeding the account on the server. `home` is the page to come back
- * to; `accounts` lets someone with several evaluation accounts switch between them.
+ * Options trading on live prices for NIFTY, BANK NIFTY and SENSEX: an option chain around the
+ * money, the selected option's chart and depth, and, with an evaluation `account`, the order ticket
+ * and the account's positions, orders and trades, with each poll feeding the account on the
+ * server. `canConnect` marks an owner, who can reconnect the price feed when it ends. `home` is the
+ * page to come back to; `accounts` lets someone with several evaluation accounts switch.
  */
 export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }: { account?: { id: string; desk: Desk; planLabel: string; demo?: boolean }; canConnect: boolean; home?: string; accounts?: { id: string; label: string; href: string }[] }) {
   const [underlying, setUnderlying] = useState<Underlying>("NIFTY");
-  const [mode, setMode] = useState<Mode>("index");
   const [barInterval, setBarInterval] = useState<Interval>("5minute");
   const [expiryChoice, setExpiryChoice] = useState<string | null>(null);
-  const [futureToken, setFutureToken] = useState<number | null>(null);
-  const [strike, setStrike] = useState<number | null>(null);
-  /** False until the owner picks a strike; until then Options opens at the money. */
-  const [strikePicked, setStrikePicked] = useState(false);
-  const [right, setRight] = useState<"CE" | "PE">("CE");
+  /** The charted option; it follows the money until the trader picks one. */
+  const [pick, setPick] = useState<{ strike: number; right: Right } | null>(null);
   const [list, setList] = useState<InstrumentList | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [history, setHistory] = useState<{ key: string; candles: Candle[] } | null>(null);
@@ -171,16 +188,21 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
   const [ended, setEnded] = useState<string | null>(null);
   const router = useRouter();
   const home = homePath ?? (account ? `/trade/${account.id}` : "/markets");
-  // Kite's 06:00 logout or a revoked token: re-render the page from the server, which now offers
-  // owners a fresh login and shows everyone else the offline card (the API route has already
-  // forgotten the shared login).
+  // The price feed's 06:00 logout or a revoked token: re-render the page from the server, which now
+  // offers owners a fresh login and shows everyone else the offline card.
   const sessionEnded = useCallback((message: string) => {
     setEnded(message);
     router.replace(withParam(home, "feed", canConnect ? "ended" : "offline"));
   }, [router, home, canConnect]);
   const latestQuotes = useRef<Record<string, MarketQuote>>({});
   const lastPoll = useRef(0);
-  const [desk, setDesk] = useState<Desk | null>(account?.desk ?? null);
+  /** The list the selection was made from, and whether it sits on a real money line yet. */
+  const listRef = useRef<InstrumentList | null>(null);
+  const centred = useRef(false);
+  const userPicked = useRef(false);
+  const [desk, setDeskState] = useState<Desk | null>(account?.desk ?? null);
+  // Never step back to an older snapshot: a poll answered after an order can carry the desk from before it.
+  const setDesk = useCallback((next: Desk) => setDeskState((current) => (current && next.state.clock < current.state.clock ? current : next)), []);
   const [side, setSide] = useState<Side>("BUY");
   const accountId = account?.id ?? null;
 
@@ -192,44 +214,45 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
     if (expiryChoice) query.set("expiry", expiryChoice);
     getJson<InstrumentList>(`/api/zerodha/instruments?${query}`, controller.signal)
       .then((next) => {
+        listRef.current = next;
         setList(next);
         setListError(null);
-        const atm = nearestStrike(next.chain, latestQuotes.current[next.index.key]?.lastPrice);
-        setStrike((current) => (current !== null && next.chain.some((row) => row.strike === current) ? current : atm));
+        const spot = latestQuotes.current[next.index.key]?.lastPrice;
+        centred.current = spot !== undefined;
+        setPick((current) => {
+          if (current && userPicked.current && next.chain.some((row) => row.strike === current.strike)) return current;
+          const strike = nearestStrike(next.chain, spot);
+          return strike === null ? null : { strike, right: current?.right ?? "CE" };
+        });
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
         if (error instanceof ApiError && error.status === 401) sessionEnded(error.message);
-        else setListError(error instanceof Error ? error.message : "Could not load the contract list.");
+        else setListError(error instanceof Error ? error.message : "Could not load the option chain.");
       });
     return () => controller.abort();
   }, [underlying, expiryChoice, reloads, sessionEnded]);
 
-  const instrument = useMemo((): ChartInstrument | null => {
-    if (!data) return null;
-    const fromContract = (contract: KiteContract): ChartInstrument => ({ key: quoteKey(contract), token: contract.token, label: contractLabel(contract), tick: contract.tickSize, contract });
-    if (mode === "index") return { key: data.index.key, token: data.index.token, label: data.index.label, tick: 1, contract: null };
-    if (mode === "future") {
-      const contract = data.futures.find((item) => item.token === futureToken) ?? data.futures[0];
-      return contract ? fromContract(contract) : null;
-    }
-    const row = data.chain.find((item) => item.strike === strike);
-    const contract = row ? (right === "CE" ? row.call : row.put) : null;
-    return contract ? fromContract(contract) : null;
-  }, [data, mode, futureToken, strike, right]);
-
-  const token = instrument?.token ?? null;
-  const derivative = Boolean(instrument?.contract);
-  const selectedKey = instrument?.key ?? null;
+  const spot = data ? quotes[data.index.key]?.lastPrice : undefined;
+  const atm = data ? nearestStrike(data.chain, spot) : null;
+  const rows = data ? chainWindow(data.chain, atm) : [];
+  const selectedRow = data && pick ? data.chain.find((row) => row.strike === pick.strike) : undefined;
+  const contract = selectedRow && pick ? (pick.right === "CE" ? selectedRow.call : selectedRow.put) : null;
+  const selectedKey = contract ? quoteKey(contract) : null;
+  const token = contract?.token ?? null;
   const chartKey = token === null ? null : `${token}|${barInterval}`;
   const candles = history && history.key === chartKey ? history.candles : null;
+  // The charted option first (it gets full depth), then the index for the money line, then the chain.
+  // A string, so the poll restarts only when the set of contracts changes.
+  const keysText = data
+    ? [...new Set([...(selectedKey ? [selectedKey] : []), data.index.key, ...rows.flatMap((row) => [row.call, row.put].flatMap((item) => (item ? [quoteKey(item)] : [])))])].join("\n")
+    : "";
 
   useEffect(() => {
     if (token === null) return;
     const key = `${token}|${barInterval}`;
     const controller = new AbortController();
-    const query = new URLSearchParams({ token: String(token), interval: barInterval });
-    if (derivative) query.set("oi", "1");
+    const query = new URLSearchParams({ token: String(token), interval: barInterval, oi: "1" });
     getJson<{ candles: Candle[] }>(`/api/zerodha/candles?${query}`, controller.signal)
       .then((body) => setHistory({ key, candles: body.candles }))
       .catch((error: unknown) => {
@@ -238,30 +261,39 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
         else setHistoryError({ key, message: error instanceof Error ? error.message : "Could not load candles." });
       });
     return () => controller.abort();
-  }, [token, derivative, barInterval, reloads, sessionEnded]);
+  }, [token, barInterval, reloads, sessionEnded]);
 
   useEffect(() => {
+    if (!keysText) return;
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let previous: LiveTick | null = null;
     let current: Candle | null = candles?.[candles.length - 1] ?? null;
-    // One Kite call per poll: the charted contract, then the index cards. On an account the server
-    // puts the account's own contracts first.
-    const keys = [...new Set([...(selectedKey ? [selectedKey] : []), ...INDEX_KEYS])];
+    const keys = keysText.split("\n");
     const poll = async () => {
       let delay = marketHours(Date.now()) ? 2_000 : 20_000;
       if (!document.hidden) {
         lastPoll.current = Date.now();
         try {
+          // One quote call per poll; on an account the server puts the account's own contracts first.
           const body: { quotes: MarketQuote[]; desk?: Desk } = accountId
             ? await getJson(`/api/accounts/${accountId}/tick`, undefined, { method: "POST", body: { keys } })
             : await getJson(`/api/zerodha/quotes?${new URLSearchParams(keys.map((key) => ["i", key]))}`);
-          if (stopped) return;
+          // Prices and the account are kept even when the poll restarted while this was in flight.
           if (body.desk) setDesk(body.desk);
           latestQuotes.current = { ...latestQuotes.current, ...Object.fromEntries(body.quotes.map((quote) => [quote.key, quote])) };
           setQuotes(latestQuotes.current);
           setPolledAt(Date.now());
           setQuoteError(null);
+          // The first index price puts a selection the trader didn't make at the money.
+          const listed = listRef.current;
+          const indexPrice = listed ? latestQuotes.current[listed.index.key]?.lastPrice : undefined;
+          if (listed && indexPrice !== undefined && !centred.current && !userPicked.current) {
+            centred.current = true;
+            const strike = nearestStrike(listed.chain, indexPrice);
+            if (strike !== null) setPick((now) => ({ strike, right: now?.right ?? "CE" }));
+          }
+          if (stopped) return;
           const quote = body.quotes.find((item) => item.key === selectedKey);
           if (quote && candles && chartKey) {
             const tick: LiveTick = { at: quote.lastTradeAt ?? quote.at, price: quote.lastPrice, dayVolume: quote.volume, oi: quote.oi };
@@ -281,13 +313,13 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
       }
       if (!stopped) timer = setTimeout(poll, delay);
     };
-    // Kite allows one quote request a second, so a restart waits for the last poll's second to pass.
+    // One quote request a second, so a restart waits for the last poll's second to pass.
     timer = setTimeout(poll, Math.max(0, 1_100 - (Date.now() - lastPoll.current)));
     return () => {
       stopped = true;
       clearTimeout(timer);
     };
-  }, [selectedKey, accountId, chartKey, candles, barInterval, sessionEnded]);
+  }, [keysText, selectedKey, accountId, chartKey, candles, barInterval, sessionEnded, setDesk]);
 
   const sendOrder = useCallback(async (order: OrderInput): Promise<EngineOutput[]> => {
     if (!accountId) return [];
@@ -299,12 +331,12 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
       if (error instanceof ApiError && error.status === 401) sessionEnded(error.message);
       throw error;
     }
-  }, [accountId, sessionEnded]);
+  }, [accountId, sessionEnded, setDesk]);
   const cancelOrder = useCallback(async (orderId: string) => {
     if (!accountId) return;
     const body = await getJson<{ desk: Desk }>(`/api/accounts/${accountId}/orders/${encodeURIComponent(orderId)}`, undefined, { method: "DELETE" });
     setDesk(body.desk);
-  }, [accountId]);
+  }, [accountId, setDesk]);
   const modifyOrder = useCallback(async (orderId: string, changes: OrderChanges): Promise<EngineOutput[]> => {
     if (!accountId) return [];
     try {
@@ -315,31 +347,39 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
       if (error instanceof ApiError && error.status === 401) sessionEnded(error.message);
       throw error;
     }
-  }, [accountId, sessionEnded]);
+  }, [accountId, sessionEnded, setDesk]);
 
-  /** The chart's Buy and Sell: set the ticket's side and bring it into view, or point to evaluations. */
+  /** Chart an option from the chain. */
+  const select = (strike: number, right: Right) => {
+    userPicked.current = true;
+    setPick({ strike, right });
+  };
+  /** Buy or Sell: set the ticket's side and bring it into view, or point to evaluations. */
   const trade = (next: Side) => {
     setSide(next);
     document.getElementById("order-ticket")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     document.getElementById(desk ? "ticket-lots" : "open-evaluation")?.focus({ preventScroll: true });
   };
-
+  const restart = () => {
+    userPicked.current = false;
+    centred.current = false;
+  };
   const chooseUnderlying = (next: Underlying) => {
     if (next === underlying) return;
+    restart();
     setUnderlying(next);
     setExpiryChoice(null);
-    setFutureToken(null);
-    setStrike(null);
-    setStrikePicked(false);
+    setPick(null);
   };
-  const chooseMode = (next: Mode) => {
-    setMode(next);
-    if (next === "option" && data && !strikePicked) setStrike(nearestStrike(data.chain, quotes[data.index.key]?.lastPrice));
+  const chooseExpiry = (next: string) => {
+    restart();
+    setExpiryChoice(next);
   };
 
   if (ended) return <SessionEnded message={ended} loginHref={canConnect ? `/api/zerodha/login?${new URLSearchParams({ next: home })}` : null} />;
 
   const quote = selectedKey ? quotes[selectedKey] : undefined;
+  const label = contract ? contractLabel(contract) : null;
   const liveCandle = live && live.key === chartKey ? live.candle : null;
   const failed = historyError && historyError.key === chartKey ? historyError.message : null;
   const fresh = quote && polledAt !== null && marketHours(polledAt) && polledAt - (quote.lastTradeAt ?? quote.at) < 60_000;
@@ -347,45 +387,14 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-2 sm:grid-cols-3">
-        {UNDERLYING_ORDER.map((name) => {
-          const index = quotes[UNDERLYINGS[name].indexKey];
-          const active = name === underlying;
-          return (
-            <button key={name} type="button" aria-pressed={active} onClick={() => chooseUnderlying(name)} className={`rounded-xl border px-4 py-3 text-left transition ${active ? "border-[var(--primary)] bg-[var(--card-raised)]" : "border-[var(--border)] bg-[var(--card)] hover:border-[var(--border-strong)]"}`}>
-              <span className="block font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">{UNDERLYINGS[name].label}</span>
-              <span className="mt-1 flex flex-wrap items-baseline justify-between gap-x-3">
-                <span className="font-mono text-lg">{index ? price(index.lastPrice) : "—"}</span>
-                {index && <Change quote={index} className="text-xs" />}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
-        <Choice label="Contract" value={mode} options={MODES} onChange={chooseMode} />
-        {mode === "future" && data && data.futures.length > 0 && (
+        <Choice label="Index" value={underlying} options={UNDERLYING_ORDER.map((name) => [name, UNDERLYINGS[name].contractName] as const)} onChange={chooseUnderlying} />
+        {data && data.expiries.length > 0 && (
           <label className="text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Expiry
-            <select value={instrument?.token ?? ""} onChange={(event) => setFutureToken(Number(event.target.value))} className={`${selectClass} block`}>
-              {data.futures.map((contract) => <option key={contract.token} value={contract.token}>{expiryLabel(contract.expiry)}</option>)}
+            <select value={data.expiry ?? ""} onChange={(event) => chooseExpiry(event.target.value)} className={`${selectClass} block`}>
+              {data.expiries.map((expiry) => <option key={expiry} value={expiry}>{expiryLabel(expiry)}</option>)}
             </select>
           </label>
-        )}
-        {mode === "option" && data && data.expiries.length > 0 && (
-          <>
-            <label className="text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Expiry
-              <select value={data.expiry ?? ""} onChange={(event) => setExpiryChoice(event.target.value)} className={`${selectClass} block`}>
-                {data.expiries.map((expiry) => <option key={expiry} value={expiry}>{expiryLabel(expiry)}</option>)}
-              </select>
-            </label>
-            <label className="text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Strike
-              <select value={strike ?? ""} onChange={(event) => { setStrike(Number(event.target.value)); setStrikePicked(true); }} className={`${selectClass} block`}>
-                {data.chain.map((row) => <option key={row.strike} value={row.strike}>{strikeText.format(row.strike / 100)}</option>)}
-              </select>
-            </label>
-            <Choice label="Option type" value={right} options={[["CE", "Call"], ["PE", "Put"]] as const} onChange={setRight} />
-          </>
         )}
         <div className="sm:ml-auto">
           <Choice label="Candle interval" value={barInterval} options={INTERVAL_CHOICES.map(([value, short]) => [value, short] as const)} onChange={setBarInterval} />
@@ -400,24 +409,58 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
               <button type="button" onClick={() => setReloads((count) => count + 1)} className="inline-flex items-center gap-1.5 text-xs underline"><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Try again</button>
             </p>
           )}
-          {!data && !listError && <div className="terminal-card flex h-[420px] items-center justify-center text-sm text-[var(--muted)]">Loading {UNDERLYINGS[underlying].label} contracts…</div>}
-          {data && !instrument && <p className="rounded-lg border border-[var(--border)] p-4 text-sm text-[var(--muted)]">The contract list has no {mode === "future" ? "futures" : "options"} for {UNDERLYINGS[underlying].label} today.</p>}
+          {!data && !listError && <div className="terminal-card flex h-[420px] items-center justify-center text-sm text-[var(--muted)]">Loading {UNDERLYINGS[underlying].contractName} options…</div>}
+          {data && rows.length === 0 && <p className="rounded-lg border border-[var(--border)] p-4 text-sm text-[var(--muted)]">No {UNDERLYINGS[underlying].contractName} options are listed today.</p>}
 
-          {instrument && (
-            <section className="terminal-card overflow-hidden" aria-label={instrument.label}>
+          {data && rows.length > 0 && (
+            <section className="terminal-card overflow-hidden" aria-labelledby="chain-title">
+              <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border)] px-4 py-3">
+                <h2 id="chain-title" className="text-sm font-medium">{UNDERLYINGS[underlying].contractName} option chain{data.expiry ? <span className="text-[var(--muted)]"> · {expiryLabel(data.expiry)}</span> : null}</h2>
+                <p className="text-[11px] text-[var(--muted)]">Calls on the left, puts on the right. Shaded: in the money.</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[520px] text-xs">
+                  <caption className="sr-only">{UNDERLYINGS[underlying].contractName} calls and puts by strike, with buy and sell</caption>
+                  <thead className="text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
+                    <tr><th scope="col" className="hidden px-2 py-2 text-right font-normal sm:table-cell">OI</th><th scope="col" colSpan={2} className="px-2 py-2 text-right font-normal">Calls</th><th scope="col" className="px-2 py-2 text-center font-normal">Strike</th><th scope="col" colSpan={2} className="px-2 py-2 text-left font-normal">Puts</th><th scope="col" className="hidden px-2 py-2 text-left font-normal sm:table-cell">OI</th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)]">
+                    {rows.map((row) => {
+                      const callQuote = row.call ? quotes[quoteKey(row.call)] : undefined;
+                      const putQuote = row.put ? quotes[quoteKey(row.put)] : undefined;
+                      const isAtm = row.strike === atm && spot !== undefined;
+                      const oi = (item: MarketQuote | undefined) => (item && item.oi !== null ? countText.format(item.oi) : "—");
+                      return (
+                        <tr key={row.strike} className={isAtm ? "bg-[var(--primary)]/5" : ""}>
+                          <td className={`hidden px-2 py-1.5 text-right font-mono text-[var(--muted)] sm:table-cell ${spot !== undefined && row.strike < spot ? "bg-[var(--card-raised)]" : ""}`}>{oi(callQuote)}</td>
+                          <ChainCell contract={row.call} quote={callQuote} side="CE" itm={spot !== undefined && row.strike < spot} selected={pick?.strike === row.strike && pick.right === "CE"} onSelect={() => select(row.strike, "CE")} onTrade={(value) => { select(row.strike, "CE"); trade(value); }} />
+                          <th scope="row" className={`px-2 py-1.5 text-center font-mono text-sm font-medium ${isAtm ? "text-[var(--primary)]" : ""}`}>{strikeText.format(row.strike / 100)}{isAtm && <span className="block font-sans text-[9px] font-normal uppercase tracking-[0.12em]">ATM</span>}</th>
+                          <ChainCell contract={row.put} quote={putQuote} side="PE" itm={spot !== undefined && row.strike > spot} selected={pick?.strike === row.strike && pick.right === "PE"} onSelect={() => select(row.strike, "PE")} onTrade={(value) => { select(row.strike, "PE"); trade(value); }} />
+                          <td className={`hidden px-2 py-1.5 text-left font-mono text-[var(--muted)] sm:table-cell ${spot !== undefined && row.strike > spot ? "bg-[var(--card-raised)]" : ""}`}>{oi(putQuote)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {contract && (
+            <section className="terminal-card overflow-hidden" aria-label={label ?? undefined}>
               <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-[var(--border)] px-4 py-4 sm:px-6">
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">{instrument.key}</p>
-                  <h2 className="mt-1 text-lg font-medium tracking-tight sm:text-xl">{instrument.label}</h2>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">{contract.tradingSymbol}</p>
+                  <h2 className="mt-1 text-lg font-medium tracking-tight sm:text-xl">{label}</h2>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
                   <div className="flex flex-wrap items-baseline gap-x-3" aria-live="off">
                     <span className="font-mono text-3xl tracking-tight">{quote ? price(quote.lastPrice) : "—"}</span>
                     {quote && <Change quote={quote} className="text-sm" />}
                   </div>
-                  <div className="flex gap-2" role="group" aria-label="Trade this contract">
+                  <div className="flex gap-2" role="group" aria-label="Trade this option">
                     {(["BUY", "SELL"] as const).map((value) => (
-                      <button key={value} type="button" disabled={!instrument.contract} onClick={() => trade(value)} title={instrument.contract ? undefined : "Indices can't be traded. Pick Futures or Options."} className={`min-h-10 min-w-20 rounded-lg px-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 ${value === "BUY" ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]" : "bg-[var(--danger)] text-[#2a0f0a] hover:opacity-90"}`}>
+                      <button key={value} type="button" onClick={() => trade(value)} className={`min-h-10 min-w-20 rounded-lg px-4 text-sm font-medium ${value === "BUY" ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]" : "bg-[var(--danger)] text-[#2a0f0a] hover:opacity-90"}`}>
                         {value === "BUY" ? "Buy" : "Sell"}
                       </button>
                     ))}
@@ -429,9 +472,8 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
                     ["High", quote ? price(quote.high) : "—"],
                     ["Low", quote ? price(quote.low) : "—"],
                     ["Prev close", quote ? price(quote.previousClose) : "—"],
-                    ...(instrument.contract
-                      ? [["Volume", quote ? countText.format(quote.volume) : "—"], ["Open interest", quote && quote.oi !== null ? countText.format(quote.oi) : "—"]]
-                      : []),
+                    ["Volume", quote ? countText.format(quote.volume) : "—"],
+                    ["Open interest", quote && quote.oi !== null ? countText.format(quote.oi) : "—"],
                   ].map(([term, value]) => (
                     <div key={term}><dt className="text-[var(--muted)]">{term}</dt><dd className="mt-1 font-mono text-sm">{value}</dd></div>
                   ))}
@@ -439,13 +481,13 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
                 <p className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
                   <span className="inline-flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${fresh ? "bg-[var(--primary)]" : "bg-[var(--faint)]"}`} aria-hidden="true" />{fresh ? "Live" : polledAt !== null && !marketHours(polledAt) ? "Market closed" : "Waiting for prices"}</span>
                   {quote && <span>Last update {clockText.format(quote.lastTradeAt ?? quote.at)} IST</span>}
-                  {instrument.contract && <span>Lot {instrument.contract.lotSize} · tick ₹{(instrument.contract.tickSize / 100).toFixed(2)}</span>}
+                  <span>Lot {contract.lotSize} · tick ₹{(contract.tickSize / 100).toFixed(2)}</span>
                   {quoteError && <span className="text-[var(--warning)]">{quoteError}</span>}
                 </p>
               </div>
 
               <div className="relative px-1 pt-2 sm:px-2">
-                <PriceChart key={derivative ? "fno" : "index"} candles={candles ?? NO_CANDLES} live={liveCandle} interval={barInterval} minMove={instrument.tick / 100} derivative={derivative} label={`${instrument.label}, ${intervalName} candles`} />
+                <PriceChart candles={candles ?? NO_CANDLES} live={liveCandle} interval={barInterval} minMove={contract.tickSize / 100} derivative label={`${label}, ${intervalName} candles`} />
                 {!candles && (
                   <div className="absolute inset-0 flex items-center justify-center bg-[#0b0f0d]/60 text-sm text-[var(--muted)]">
                     {failed ? (
@@ -458,7 +500,7 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
                 )}
               </div>
 
-              {instrument.contract && quote && (quote.bids.length > 0 || quote.asks.length > 0) && (
+              {quote && (quote.bids.length > 0 || quote.asks.length > 0) && (
                 <div className="grid gap-px border-t border-[var(--border)] bg-[var(--border)] sm:grid-cols-2">
                   {([["Bids", quote.bids, "text-[var(--primary)]"], ["Offers", quote.asks, "text-[var(--danger)]"]] as const).map(([title, levels, tone]) => (
                     <table key={title} className="w-full bg-[var(--card-deep)] text-left font-mono text-xs">
@@ -476,20 +518,22 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
             </section>
           )}
         </div>
-        {desk && account ? (
-          <div className="space-y-3">
-            {accounts && accounts.length > 1 && (
-              <label className="block text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Account
-                <select value={account.id} onChange={(event) => { const next = accounts.find((item) => item.id === event.target.value); if (next) router.push(next.href); }} className="mt-1 block min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-3 font-mono text-xs normal-case tracking-normal text-[var(--foreground)]">
-                  {accounts.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
-                </select>
-              </label>
-            )}
-            <AccountTicket desk={desk} planLabel={account.planLabel} demo={account.demo} contract={instrument?.contract ?? null} quote={quote} side={side} onSide={setSide} onPlace={sendOrder} />
-          </div>
-        ) : (
-          <OpenEvaluation />
-        )}
+        <div className="space-y-3 xl:sticky xl:top-24">
+          {desk && account ? (
+            <>
+              {accounts && accounts.length > 1 && (
+                <label className="block text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Account
+                  <select value={account.id} onChange={(event) => { const next = accounts.find((item) => item.id === event.target.value); if (next) router.push(next.href); }} className="mt-1 block min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-3 font-mono text-xs normal-case tracking-normal text-[var(--foreground)]">
+                    {accounts.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+                  </select>
+                </label>
+              )}
+              <AccountTicket desk={desk} planLabel={account.planLabel} demo={account.demo} contract={contract} label={label} quote={quote} side={side} onSide={setSide} onPlace={sendOrder} />
+            </>
+          ) : (
+            <OpenEvaluation />
+          )}
+        </div>
       </div>
       {desk && <AccountBlotter desk={desk} onCancel={cancelOrder} onPlace={sendOrder} onModify={modifyOrder} />}
     </div>

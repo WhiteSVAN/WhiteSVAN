@@ -354,3 +354,44 @@ journal.
   - a ₹2.5L account still opening;
   - role-less and Google sign-ins;
   - 375px phone widths.
+
+## Options-only OMS and the journal, 25 Oct 2026 (Claude)
+
+Founder's direction:
+- remove index and futures and keep options only;
+- build the whole order management system, with simulated P&L from buys and sells on live prices;
+- traders take directional bets only: no hedging across accounts, no spreads, outright calls or puts;
+- a basic journal with total P&L, a P&L calendar and notes on days.
+
+- **Options only.** The trade screen has index tabs, an expiry and an option chain of 13 strikes
+  around the money, with OI, live price, change and B/S on every call and put, ATM marked and
+  in-the-money shaded. The selected option is charted with depth. Index and futures modes are gone.
+  `/api/zerodha/instruments` returns options only, and the order route refuses futures, except to
+  close a position held from before.
+- **Order policy** (`orderPolicyProblem`): buy to open and sell only to close, so no short options
+  and no spreads. No calls and puts on the same index together, counting working buys and the
+  trader's other active accounts. The engine's message for a naked short now says the same thing.
+- **Positions as a broker shows them** (`dayPositions`, `dayTotals`): each option traded today,
+  open or closed, with bought and sold quantities at averages, LTP and P&L. The summary shows
+  realised after charges, open P&L and day P&L, which reconciles to the engine's balance to the
+  paisa (tested). Exit and Exit all.
+- **Blotter in threes:** Positions, Orders (working, then history) and Trades. Ticket order types
+  are Market, Limit and Stop-loss; SL-M orders placed before still show, modify and cancel.
+- **Polls:** up to 40 contracts in one Kite call per poll (the account's, the charted option, the
+  index, the chain), with full depth only where it's shown. A poll answered after its effect
+  restarted still updates prices and the account. An older desk snapshot never replaces a newer one.
+- **Journal** (`/journal`): Net P&L, win rate and trades; a Monday-to-Friday calendar with daily P&L,
+  trade counts, note markers and weekly totals; and the day's trades and note. `Desk.dayTrades`
+  counts fills per date. `JournalNote` (migration `20261025120000_journal_notes`, additive) holds
+  notes. The old TrustSVAN journal page is replaced; its other routes stay switched off.
+- **Copy:** options-only throughout the storefront, help and rules, and "buy calls or puts, sell
+  only to close" replaces the spread wording.
+- **Checks:** 432 unit tests, type-check, lint and build all pass. An end-to-end run against the
+  Kite stand-in (open market) passed 31 checks:
+  - the owner connects and gets the chain, priced;
+  - a call round trip, with realised P&L equal to sold minus bought and the day summary matching the
+    database;
+  - naked short, both-sides and cross-account hedge refusals, and Exit all;
+  - the server's futures refusal;
+  - the journal's totals, calendar cell, trades and a note saved, kept and deleted;
+  - no futures on public pages, and 375px phones.

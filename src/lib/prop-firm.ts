@@ -81,8 +81,8 @@ export const RULE_SECTIONS = [
   {
     id: "markets",
     label: "Products",
-    title: "Trade Indian index futures and options.",
-    description: "NIFTY and BANK NIFTY on NSE, and SENSEX on BSE: futures and options on listed expiries. Sell options only inside defined-risk spreads; naked short options are not allowed. Position limits are in lots and follow the exchange's current lot sizes.",
+    title: "Trade Indian index options.",
+    description: "NIFTY and BANK NIFTY on NSE, and SENSEX on BSE: options on listed expiries. Take a direction: buy calls or puts, and sell only to close them. Short options, spreads and holding calls and puts on the same index together are not allowed. Position limits are in lots and follow the exchange's current lot sizes.",
   },
   {
     id: "sessions",

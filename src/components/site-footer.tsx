@@ -35,7 +35,7 @@ const DISCLAIMERS = [
     : "WhiteSVAN is launching soon. Evaluations are not yet available to buy, and rules and prices may change before launch.",
   "All evaluation and funded accounts are simulated. Account sizes are virtual balances that set risk limits; they are not deposits, loans or capital given to the trader. Evaluation fees are service fees.",
   "Nothing on this site is investment advice, a recommendation or a trading signal. WhiteSVAN does not manage client money and does not promise any income, payout or return.",
-  "Trading futures and options carries a substantial risk of loss. Simulated results have limitations and do not represent actual trading.",
+  "Trading options carries a substantial risk of loss. Simulated results have limitations and do not represent actual trading.",
 ];
 
 export function SiteFooter() {

@@ -4,7 +4,7 @@ import { fetchContracts, indexToken } from "@/lib/zerodha/client";
 import { contractsFor, isUnderlying, UNDERLYINGS, type InstrumentList } from "@/lib/zerodha/kite";
 import { toIst } from "@/lib/trading/time";
 
-/** An underlying's index, futures, option expiries and one expiry's strikes: `?underlying=NIFTY[&expiry=YYYY-MM-DD]`. */
+/** An underlying's option expiries and one expiry's strikes, and its index for the money line: `?underlying=NIFTY[&expiry=YYYY-MM-DD]`. */
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const underlying = params.get("underlying") ?? "";
@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
     const now = Date.now();
     const { label, indexKey, exchange } = UNDERLYINGS[underlying];
     const [token, contracts] = await Promise.all([indexToken(config, accessToken, underlying), fetchContracts(config, accessToken, exchange, now)]);
-    const { futures, expiries, chain } = contractsFor(contracts, underlying, toIst(now).date);
+    const { expiries, chain } = contractsFor(contracts, underlying, toIst(now).date);
     const expiry = asked && expiries.includes(asked) ? asked : expiries[0] ?? null;
-    return { underlying, index: { key: indexKey, token, label }, futures, expiries, expiry, chain: expiry ? chain(expiry) : [] };
+    return { underlying, index: { key: indexKey, token, label }, expiries, expiry, chain: expiry ? chain(expiry) : [] };
   });
 }

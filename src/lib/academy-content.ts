@@ -22,7 +22,7 @@ export const ACADEMY_LESSONS: AcademyLesson[] = [
     title: "Know the contract before the trade",
     summary: "Identify an index derivative from its full contract and the applicable specification.",
     reading: [
-      "NIFTY, BANK NIFTY and SENSEX name underlying indices. The underlying name alone does not identify a futures or options contract. Record the exchange, instrument type, expiry and contract identifier; an option also needs its strike and call or put type.",
+      "NIFTY, BANK NIFTY and SENSEX name underlying indices. The underlying name alone does not identify an options contract. Record the exchange, instrument type, expiry and contract identifier; an option also needs its strike and call or put type.",
       "Check the exchange contract specification and your broker's instrument file for the relevant trading date. Keep the source, publication or effective date, and a copy or reference with your notes. Lot sizes, expiry conventions and available contracts can change, so a remembered value is not a reliable calculation input.",
     ],
     checklist: [
@@ -50,7 +50,7 @@ export const ACADEMY_LESSONS: AcademyLesson[] = [
     summary: "Read a contract note and distinguish a trading result from a cash movement.",
     reading: [
       "A price move is only part of the result. Start with the broker's contract note and ledger, then identify gross trading profit or loss, brokerage, exchange or clearing charges, applicable taxes and other charges. Use the amounts and rules relevant to that transaction and date; these sample lessons do not supply current rates.",
-      "Check how the export defines realised P&L. It may already include some costs. Subtracting the same charge again makes the result wrong. Deposits, withdrawals and margin transfers also change cash but are not trading profit or loss. Where futures settlements or other adjustments appear, reconcile them using the broker's documented statement conventions.",
+      "Check how the export defines realised P&L. It may already include some costs. Subtracting the same charge again makes the result wrong. Deposits, withdrawals and margin transfers also change cash but are not trading profit or loss. Where settlements or other adjustments appear, reconcile them using the broker's documented statement conventions.",
     ],
     checklist: [
       "Match executions, account and statement period before comparing totals.",

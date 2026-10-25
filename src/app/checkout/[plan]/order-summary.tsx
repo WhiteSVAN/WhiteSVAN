@@ -29,7 +29,7 @@ export function OrderSummary({ plan, mode }: { plan: EvaluationPlan; mode: Check
         {summary.map(([term, value]) => <div key={term} className="flex justify-between gap-4 py-3"><dt className="text-[var(--muted)]">{term}</dt><dd className={term === "Activation fee" ? "text-[var(--primary)]" : ""}>{value}</dd></div>)}
       </dl>
       <ul className="mt-6 space-y-2.5 text-xs leading-5 text-[var(--muted)]">
-        {["NIFTY, BANK NIFTY and SENSEX futures and options", "Intraday: positions close at 15:20 IST", `When you pass, your best day is at most ${R.consistencyPercent}% of your profit`].map((item) => (
+        {["NIFTY, BANK NIFTY and SENSEX options", "Intraday: positions close at 15:20 IST", `When you pass, your best day is at most ${R.consistencyPercent}% of your profit`].map((item) => (
           <li key={item} className="flex gap-2.5"><Check size={14} className="mt-0.5 shrink-0 text-[var(--primary)]" aria-hidden="true" />{item}</li>
         ))}
       </ul>

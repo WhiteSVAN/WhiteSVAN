@@ -11,9 +11,10 @@ demo mode (below).
 
 The original product, a trader-verification **journal** (imports, metrics, research profiles, AI
 briefs, discovery network), and the Zerodha **track record** are **switched off** (25 Oct 2026):
-`next.config.ts` redirects their routes (`/journal`, `/upload`, `/reports`, `/explore`, `/p/…`,
-`/feed`, `/communities`, `/inbox`, `/track`, …) to My accounts or home, and nothing links to them.
-Their code is still in the repo; deleting those redirects brings them back.
+`next.config.ts` redirects their routes (`/upload`, `/reports`, `/explore`, `/p/…`, `/feed`,
+`/communities`, `/inbox`, `/track`, …) to My accounts or home, and nothing links to them. Their
+code is still in the repo; deleting those redirects brings them back. `/journal` is now the
+evaluation accounts' own basic journal (P&L calendar and day notes, below).
 
 > Founder direction (Oct 2026): match the wording and structure of MFFU, Tradeify and Topstep
 > (evaluation, funded account, profit split, payouts, max drawdown, "Get funded") in our own
@@ -25,6 +26,11 @@ Their code is still in the repo; deleting those redirects brings them back.
 > choose size, pay), and lists of three where a list is needed. No filler copy or illustrative
 > numbers. Never show Zerodha or Kite in anything users read: say "live prices" or "the price
 > feed" (code, env vars and `/api/zerodha/*` keep their names).
+>
+> Founder direction (25 Oct 2026, later): **options only, directional bets only.** Traders buy a
+> call or a put and sell only to close it: no index or futures trading, no short options, no
+> spreads, and no calls and puts on the same index together, in one account or across a trader's
+> accounts. A basic journal only: total P&L, a P&L calendar and notes on days.
 
 ## Programme boundaries (load-bearing)
 
@@ -97,21 +103,36 @@ Their code is still in the repo; deleting those redirects brings them back.
 - Accounts: `EvaluationAccount` stores the engine host snapshot (`desk` JSON, written with
   optimistic locking on `version`) and `CheckoutOrder` the purchase
   ([src/lib/accounts/store.ts](src/lib/accounts/store.ts)). At most `maximumAccounts` active.
-- The trading platform `/trade/<account>` runs the engine on the server: each poll
-  (`/api/accounts/<id>/tick`) gets quotes through the shared Kite login and feeds them to the
-  account; orders go to `/api/accounts/<id>/orders`, and modify (PATCH) and cancel (DELETE) to
-  `/orders/<orderId>`. `/markets` is the same platform for the trader's active evaluation account
-  (`?account=` picks one when they have several): Buy and Sell sit on the chart, and anyone without
-  an account gets "Open an evaluation". The blotter shows positions, open orders (modify, cancel),
-  the order history (`Desk.orderBook`: complete, cancelled, rejected, with average price and
-  reason), fills and activity. F&O only; stocks are a later step. Every account holder trades while
+- The trading platform `/trade/<account>` (and `/markets`, the Trade tab, for the trader's active
+  account; `?account=` picks one) is **options only**: NIFTY / BANK NIFTY / SENSEX tabs, an expiry,
+  and an option chain of 13 strikes around the money (calls left, puts right, ATM marked, B and S
+  on every option). The selected option is charted with its depth, and the ticket takes Market,
+  Limit and Stop-loss orders. The engine runs on the server: each poll (`/api/accounts/<id>/tick`,
+  up to `MAX_TICK_KEYS` = 40 contracts in one Kite call, with full depth only for the charted
+  option and the account's own; `screenQuotes`) feeds the account. Orders go to
+  `/api/accounts/<id>/orders`, and modify (PATCH) and cancel (DELETE) to `/orders/<orderId>`.
+  **Order policy** (`orderPolicyProblem` in [src/lib/accounts/ticks.ts](src/lib/accounts/ticks.ts),
+  checked before the engine): options only; buy to open, sell only to close what you hold; no
+  calls and puts on the same index together, counting working buys and the trader's other active
+  accounts (no hedging); a futures position from before can still be closed. The engine's own
+  rules still apply (lots, naked shorts, hours, expiry cutoff, loss limits). The blotter has three
+  tabs: Positions (today's open and closed options from `dayPositions` in
+  [src/lib/trading/desk.ts](src/lib/trading/desk.ts): bought and sold at averages, LTP and P&L, with
+  realised-after-charges, open and day P&L, Exit and Exit all), Orders (working orders to modify or
+  cancel, then the history from `Desk.orderBook`) and Trades (fills). Every account holder trades while
   an owner's Kite login is connected; after Kite's 06:00 IST logout traders see "Live prices are
   offline" until a `KITE_OWNER_EMAILS` sign-in connects again. Orders, stops and the 15:20
   square-off run while a platform page is open (the always-on engine service is still to build).
 - Signed-in workspace ([src/app/(app)/layout.tsx](src/app/(app)/layout.tsx)): three tabs, My
-  accounts (`/dashboard`, account cards with meters), Charts (`/markets`, once Kite is configured) and
-  Payouts (`/payouts`); Academy, Help, Settings (name and email only) and sign-out sit in the account
-  menu.
+  accounts (`/dashboard`, account cards with meters), Trade (`/markets`, once Kite is configured) and
+  Journal (`/journal`); Payouts, Academy, Help, Settings (name and email only) and sign-out sit in
+  the account menu.
+- **Journal** (`/journal`, [src/lib/journal.ts](src/lib/journal.ts)): basic, on the evaluation
+  accounts' own trades. Net P&L, win rate (by day) and trades; a Monday-to-Friday P&L calendar with
+  weekly totals; and the selected day's trades and note. Daily P&L comes from the engine's closed
+  days (`state.days`) plus today so far; trade counts from `Desk.dayTrades` (fills per IST date,
+  counted by `deskStep`); `settledDesk` closes a day nobody closed, for display only. Notes are
+  `JournalNote` rows (one per trader and date, across accounts; saved by `saveDayNote`).
   The launch list ([src/app/waitlist-form.tsx](src/app/waitlist-form.tsx)) writes `WaitlistEntry`.
 - **Not built yet:** a payment gateway, GST invoices and refunds, the always-on engine service with a
   licensed market-data feed, KYC, payout processing and the copy engine. The spec is the Notion page
@@ -148,10 +169,11 @@ result. The future engine service (Node on AWS with the market-data feed) hosts 
 
 ## Zerodha charts (the firm's shared Kite login) and market data
 
-`/markets` (signed-in, the **Charts** tab; the UI never names Zerodha) charts NIFTY, BANK NIFTY and SENSEX (index,
-futures and options) for every signed-in user, from the firm's Zerodha account through Kite
-Connect: candles from 1 minute to 1 day, volume and open-interest panes, live quotes and five-level
-depth.
+`/markets` (signed-in, the **Trade** tab; the UI never names Zerodha) shows NIFTY, BANK NIFTY and
+SENSEX options for every signed-in user, from the firm's Zerodha account through Kite Connect: the
+option chain, candles from 1 minute to 1 day, volume and open-interest panes, live quotes and
+five-level depth. The index price only places the money line; index and futures aren't shown or
+traded.
 
 - **Shared with every signed-in user (founder's decision, 24 Oct 2026).** A `KITE_OWNER_EMAILS`
   sign-in logs in to Kite. The day's access token is stored, sealed, in the `KiteConnection` row,
@@ -252,7 +274,8 @@ Prisma schema: [prisma/schema.prisma](prisma/schema.prisma). Two groups:
   `Report` (`metrics` + `aiReport` JSON, `DRAFT`/`PUBLISHED`), `WaitlistEntry` (launch list).
   `EvaluationAccount` (the engine snapshot in `desk`, `version` for optimistic locking, `demo` for
   accounts bought with demo credit) and `CheckoutOrder` (amount in paise, provider `test`, `demo`
-  or a gateway, billing, GST place of supply). `User.demoCreditSpent` tracks demo credit. There are no payout
+  or a gateway, billing, GST place of supply). `User.demoCreditSpent` tracks demo credit.
+  `JournalNote` (a trader's note on a date, `@@unique([userId, date])`). There are no payout
   tables yet (see the TRD's data model).
 
 Money is `Decimal(18,2)`; prices `Decimal(18,6)`; quantity `Decimal(18,4)`. Dates that are
@@ -344,6 +367,9 @@ metadata gates access without exposing private evidence files.
   pay) to `/trade/<account>`, demo evaluations on ₹50,000 of virtual credit (staff: test purchases) until a gateway is signed, stored evaluation
   accounts on the server-side engine, My accounts cards. Every account holder trades on the shared
   Kite login.
+- ✅ **Options-only OMS and journal (Oct 2026)**: the option chain, directional order policy
+  (buy to open, sell to close, no shorts, spreads or hedges across accounts), day positions with
+  realised and open P&L, Exit all, and the basic journal with the P&L calendar and day notes.
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine
   service with Redis and a replay provider, checkout (UPI/cards via an Indian gateway), evaluation
   provisioning with live risk meters, KYC, payouts with TDS, then the optional copy desk.

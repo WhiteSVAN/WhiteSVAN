@@ -10,7 +10,7 @@ import { findAccountPlan } from "@/lib/prop-firm";
 import { isKiteOwner, kiteConfig } from "@/lib/zerodha/config";
 import { sharedKiteSession } from "@/lib/zerodha/connection";
 
-export const metadata: Metadata = { title: "Charts · WhiteSVAN", robots: { index: false } };
+export const metadata: Metadata = { title: "Trade · WhiteSVAN", robots: { index: false } };
 
 const sessionEnd = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 
@@ -34,8 +34,8 @@ export default async function MarketsPage({ searchParams }: { searchParams: Prom
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Charts</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">NIFTY, BANK NIFTY and SENSEX, with live prices and depth. Trade futures and options from the chart on your evaluation account.</p>
+          <h1 className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Trade</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">NIFTY, BANK NIFTY and SENSEX options on live prices. Pick a strike from the chain, then buy or sell on your evaluation account.</p>
         </div>
         {owner && session && (
           <form action="/api/zerodha/logout" method="post" className="flex flex-wrap items-center gap-3 text-xs text-[var(--muted)]">

@@ -24,7 +24,7 @@ const LAST = EVALUATION_PLANS[EVALUATION_PLANS.length - 1];
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "WhiteSVAN | Get funded trading NIFTY, BANK NIFTY and SENSEX",
-  description: `The prop firm for Indian index futures and options. Pass one evaluation on a ${FIRST.label}–${LAST.label} account, get funded and keep ${PROGRAMME_RULES.contractorSharePercent}% of your profits.`,
+  description: `The prop firm for Indian index options. Pass one evaluation on a ${FIRST.label}–${LAST.label} account, get funded and keep ${PROGRAMME_RULES.contractorSharePercent}% of your profits.`,
   openGraph: { siteName: "WhiteSVAN", type: "website", locale: "en_IN" },
   twitter: { card: "summary_large_image" },
 };
