@@ -28,7 +28,7 @@ export default async function LoginPage({
   return (
     <div>
       <h1 className="text-lg font-semibold text-zinc-100">Sign in</h1>
-      <p className="mt-1 text-sm text-zinc-500">Return to your WhiteSVAN trader workspace.</p>
+      <p className="mt-1 text-sm text-zinc-500">Welcome back.</p>
 
       <LoginForm initialMessage={initialMessage} notice={notice} next={next} />
 

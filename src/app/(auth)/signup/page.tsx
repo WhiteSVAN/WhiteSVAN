@@ -7,32 +7,25 @@ import { findEvaluationPlan, formatInr } from "@/lib/prop-firm";
 import { safeNextPath } from "@/lib/safe-path";
 import { SignupForm } from "./signup-form";
 
+/** Step 1 of 3: create the account. No size to pick here; that's step 2, at checkout. */
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ as?: string; ref?: string; plan?: string; next?: string }>;
+  searchParams: Promise<{ ref?: string; plan?: string; next?: string }>;
 }) {
   const sp = await searchParams;
-  // Prop-firm sign-ups are traders; firms and allocators opt in to the client role.
-  const asClient = sp.as === "client";
-  const initialRole = asClient ? "CLIENT" : "TRADER";
   const referral = sp.ref?.slice(0, 16);
-  const plan = !asClient && sp.plan ? findEvaluationPlan(sp.plan) : undefined;
+  const plan = sp.plan ? findEvaluationPlan(sp.plan) : undefined;
   const next = safeNextPath(sp.next) ?? undefined;
-  // Creating the account is step 1 of 3; checkout (step 2) is where the size is chosen.
   const continueTo = next ?? (plan ? `/checkout/${plan.id}` : undefined);
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-zinc-100">{asClient ? "Create a client account" : "Create your account"}</h1>
+      <h1 className="text-lg font-semibold text-zinc-100">Create your account</h1>
       <p className="mt-1 text-sm text-zinc-500">
-        {asClient
-          ? "Discover traders and review their published records."
-          : DEMO_CHECKOUT
-            ? `Start your evaluation in three steps. New accounts get ${formatInr(DEMO_CREDIT)} of demo credit to pay with.`
-            : "Get early access to WhiteSVAN evaluations, free Academy lessons and your trading journal."}
+        {DEMO_CHECKOUT ? `New accounts get ${formatInr(DEMO_CREDIT)} of demo credit to pay with.` : "Evaluations open at launch."}
       </p>
-      {!asClient && DEMO_CHECKOUT && <div className="mt-5"><StartSteps done={0} /></div>}
+      {DEMO_CHECKOUT && <div className="mt-5"><StartSteps done={0} /></div>}
 
       {plan && (
         <div className="mt-5 rounded-lg border border-[#3a493d] bg-[#141c16] px-4 py-3">
@@ -43,17 +36,12 @@ export default async function SignupPage({
         </div>
       )}
 
-      <SignupForm initialRole={initialRole} chooseRole={asClient} referral={referral} plan={plan?.id} next={next} />
+      <SignupForm referral={referral} plan={plan?.id} next={next} />
 
       {googleEnabled && (
         <>
           <AuthDivider />
-          <GoogleButton role={asClient ? undefined : "TRADER"} referral={referral} next={asClient ? undefined : (continueTo ?? "/checkout")} />
-          {asClient && (
-            <p className="mt-2 text-center text-xs text-zinc-500">
-              With Google you&apos;ll choose trader or client on the next screen.
-            </p>
-          )}
+          <GoogleButton role="TRADER" referral={referral} next={continueTo ?? "/checkout"} />
         </>
       )}
 
@@ -63,14 +51,6 @@ export default async function SignupPage({
           Sign in
         </Link>
       </p>
-      {!asClient && (
-        <p className="mt-2 text-center text-xs text-zinc-500">
-          Firm or allocator?{" "}
-          <Link href="/signup?as=client" className="text-zinc-300 hover:text-zinc-100">
-            Create a client account
-          </Link>
-        </p>
-      )}
     </div>
   );
 }

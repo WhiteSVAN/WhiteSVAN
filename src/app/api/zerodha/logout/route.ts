@@ -20,5 +20,5 @@ export async function POST(request: NextRequest) {
   }
   await dropKiteSession(owner.config.sessionSecret);
   logger.info("zerodha.disconnected", { userId: owner.userId });
-  return redirectTo("/markets?zerodha=disconnected", 303);
+  return redirectTo("/markets?feed=disconnected", 303);
 }

@@ -43,17 +43,16 @@ export function CheckoutForm({ action, email, defaults, mode, creditLeft, initia
         {/* Outside the form: the size reaches the server through the hidden field below. */}
         <fieldset disabled={pending} className="min-w-0">
           <legend className="text-sm font-medium">2. Choose your account size</legend>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
             {EVALUATION_PLANS.map((tier) => {
               const selected = tier.id === plan.id;
               return (
                 <label key={tier.id} className={`flex min-w-0 cursor-pointer flex-col rounded-xl border p-3 sm:p-4 ${selected ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border-strong)] hover:border-[var(--primary)]"}`}>
-                  <span className="flex h-4 items-center justify-between gap-2">
-                    <input type="radio" name="checkout-size" value={tier.id} checked={selected} onChange={() => choose(tier.id)} className="h-4 w-4" />
-                    {tier.id === RECOMMENDED_PLAN.id && <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--primary)]">Recommended</span>}
-                  </span>
+                  <input type="radio" name="checkout-size" value={tier.id} checked={selected} onChange={() => choose(tier.id)} className="h-4 w-4" />
                   <span className="mt-3 text-2xl font-medium tracking-[-.04em]">{tier.label}</span>
-                  <span className="mt-1 text-xs text-[var(--muted)]">{formatInr(tier.fee)} · {tier.lots} {tier.lots === 1 ? "lot" : "lots"}</span>
+                  <span className="mt-1 text-xs text-[var(--muted)]">{formatInr(tier.fee)}</span>
+                  <span className="text-xs text-[var(--muted)]">{tier.lots} {tier.lots === 1 ? "lot" : "lots"}</span>
+                  {tier.id === RECOMMENDED_PLAN.id && <span className="mt-2 font-mono text-[9px] uppercase text-[var(--primary)]">Recommended</span>}
                 </label>
               );
             })}
@@ -66,11 +65,14 @@ export function CheckoutForm({ action, email, defaults, mode, creditLeft, initia
           <input type="hidden" name="attempt" value={attempt} />
           <fieldset className="min-w-0 space-y-4">
             <legend className="text-sm font-medium">3. Pay</legend>
-            <p className="text-xs text-[var(--muted)]">Signed in as <span className="break-all text-[var(--foreground)]">{email}</span>. Your receipt and account details go here.</p>
-            <label className={label} htmlFor="checkout-name">Full name
-              <input id="checkout-name" name="name" defaultValue={values.name} autoComplete="name" required aria-invalid={Boolean(state?.errors?.name)} className={field} />
-              <Errors messages={state?.errors?.name} />
-            </label>
+            <p className="text-xs text-[var(--muted)]">{defaults.name ? <><span className="text-[var(--foreground)]">{defaults.name}</span> · </> : null}<span className="break-all">{email}</span>. Your receipt goes here.</p>
+            {/* The name comes from the account; only an account without one is asked for it. */}
+            {defaults.name ? <input type="hidden" name="name" value={defaults.name} /> : (
+              <label className={label} htmlFor="checkout-name">Full name
+                <input id="checkout-name" name="name" defaultValue={values.name} autoComplete="name" required aria-invalid={Boolean(state?.errors?.name)} className={field} />
+                <Errors messages={state?.errors?.name} />
+              </label>
+            )}
             <div className="grid gap-4 sm:grid-cols-2">
               <label className={label} htmlFor="checkout-phone">Mobile number
                 <input id="checkout-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder="98765 43210" defaultValue={values.phone} required aria-invalid={Boolean(state?.errors?.phone)} className={field} />

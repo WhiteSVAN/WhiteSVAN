@@ -36,7 +36,7 @@ function batcherWith(options: { maxKeys?: number; fail?: () => boolean; skip?: (
   const quotes = createQuoteBatcher({
     load: async (keys) => {
       calls.push({ at: clock.now(), keys });
-      if (options.fail?.()) throw new KiteError("Zerodha could not be reached.", 504, "NetworkException");
+      if (options.fail?.()) throw new KiteError("The price feed could not be reached.", 504, "NetworkException");
       return keys.filter((key) => !options.skip?.(key)).map((key) => quote(key));
     },
     gate: createGate(1_000, 4, clock),

@@ -38,9 +38,10 @@ describe("signup continuation", () => {
     await signup(undefined, form({ ...valid, plan: "1l", next: "https://other.example" }));
     expect(mocks.signIn).toHaveBeenCalledWith("credentials", expect.objectContaining({ redirectTo: "/checkout/1l" }));
   });
-  it("keeps client onboarding and the default trader checkout destination", async () => {
+  it("makes every sign-up a trader (the client role is switched off) and defaults to checkout", async () => {
     await signup(undefined, form({ ...valid, role: "CLIENT", next: "/checkout" }));
-    expect(mocks.signIn).toHaveBeenLastCalledWith("credentials", expect.objectContaining({ redirectTo: "/onboarding" }));
+    expect(mocks.create).toHaveBeenLastCalledWith(expect.objectContaining({ data: expect.objectContaining({ role: "TRADER" }) }));
+    expect(mocks.signIn).toHaveBeenLastCalledWith("credentials", expect.objectContaining({ redirectTo: "/checkout" }));
     await signup(undefined, form(valid));
     expect(mocks.signIn).toHaveBeenLastCalledWith("credentials", expect.objectContaining({ redirectTo: "/checkout" }));
   });

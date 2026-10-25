@@ -10,13 +10,21 @@ fee for a **simulated evaluation**, and those who pass get a **simulated funded 
 demo mode (below).
 
 The original product, a trader-verification **journal** (imports, metrics, research profiles, AI
-briefs, discovery network), still ships as secondary tools under the signed-in **Tools** menu
-(`/journal`, `/upload`, `/reports`, `/explore`, `/feed`, `/communities`, `/inbox`).
+briefs, discovery network), and the Zerodha **track record** are **switched off** (25 Oct 2026):
+`next.config.ts` redirects their routes (`/journal`, `/upload`, `/reports`, `/explore`, `/p/…`,
+`/feed`, `/communities`, `/inbox`, `/track`, …) to My accounts or home, and nothing links to them.
+Their code is still in the repo; deleting those redirects brings them back.
 
 > Founder direction (Oct 2026): match the wording and structure of MFFU, Tradeify and Topstep
 > (evaluation, funded account, profit split, payouts, max drawdown, "Get funded") in our own
 > sentences, with our real numbers, in the existing forest/lime colour grading. The business plan,
 > sprint backlog, technical requirements (TRD) and cost model live in Notion ("SVAN India v4").
+>
+> Founder direction (25 Oct 2026): keep it simple, in threes. Three indices, three account sizes,
+> three steps (pass the evaluation, get funded, get paid), three steps to pay (create account,
+> choose size, pay), and lists of three where a list is needed. No filler copy or illustrative
+> numbers. Never show Zerodha or Kite in anything users read: say "live prices" or "the price
+> feed" (code, env vars and `/api/zerodha/*` keep their names).
 
 ## Programme boundaries (load-bearing)
 
@@ -36,13 +44,16 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
 ## Prop-firm site: where things live
 
 - [src/lib/prop-firm.ts](src/lib/prop-firm.ts): the single source of programme numbers and rule text.
-  `EVALUATION_PLANS` (₹1L–₹10L: fee, lots, payout cap), `PROGRAMME_RULES` (6% target, 4% end-of-day
-  drawdown, 2% daily loss, 5 days, 50% consistency, 80% split, 3 accounts) and `RULE_SECTIONS`
-  (anchors such as `#desk`). Pages, the help center and Academy lessons derive figures from here.
+  `EVALUATION_PLANS` (the three sizes on sale, ₹1L, ₹5L and ₹10L: fee, lots, payout cap;
+  `RECOMMENDED_PLAN` is ₹5L), `PROGRAMME_RULES` (6% target, 4% end-of-day drawdown, 2% daily loss,
+  5 days, 50% consistency, 80% split, 3 accounts), `PROGRAMME_STEPS` (pass, get funded, get paid)
+  and `RULE_SECTIONS` (anchors such as `#desk`). ₹2.5L is retired: `findEvaluationPlan` (on sale)
+  no longer finds it, `findAccountPlan` (labels and rules of existing accounts) still does. Pages,
+  the help center and Academy lessons derive figures from here.
 - [src/components/prop-firm/](src/components/prop-firm/): `PropHeader` (announcement bar, nav, and an
   optional Discord link when `NEXT_PUBLIC_DISCORD_URL` is set), `PropLanding`, `AccountSelector`
   (Evaluation / Funded toggle) and `HelpCenter` (client-side search).
-- Routes: `/`, `/evaluations`, `/evaluations/[plan]` (plan ids `1l`, `2-5l`, `5l`, `10l`),
+- Routes: `/`, `/evaluations`, `/evaluations/[plan]` (plan ids `1l`, `5l`, `10l`),
   `/how-it-works`, `/funded` (funded accounts, payout rules and the payout calculator; the signed-in
   `/payouts` is a different page), `/rules`, `/help` (content and search in
   [src/lib/help-center.ts](src/lib/help-center.ts)), `/academy` (lessons in
@@ -54,11 +65,12 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
   traders straight on to checkout (or to `?next=`). `/checkout` opens `/checkout/<plan>` on
   `startingPlan` (`RECOMMENDED_PLAN`, ₹5L, or the largest size the demo credit covers); a pricing
   card opens its own size (signed out: `/signup?plan=<id>`). Checkout is one screen: step 2 picks
-  the size in place (the address follows; the form posts `plan`), step 3 is the details (filled in
-  from the last order), the agreement and Pay → `/checkout/complete/<order>` → "Start trading" →
-  `/trade/<account>`. `StartSteps` shows the steps on sign-up and checkout. Google sign-ups land
-  on `/onboarding/continue`, which applies the trader role and continues without the role picker.
-  Keep new step lists to three. Traders don't need a journal profile for any of this (`requireMember` in
+  the size in place (the address follows; the form posts `plan`), step 3 is mobile, state (filled
+  in from the last order), the agreement and Pay; the name comes from the account →
+  `/checkout/complete/<order>` → "Start trading" → `/trade/<account>`. `StartSteps` shows the
+  steps on sign-up and checkout. Every account is a trader: sign-up has no client option, Google
+  sign-ups land on `/onboarding/continue` (trader role, then `next`), and `requireMember` makes
+  any role-less user a trader in place. Keep new step lists to three. Traders don't need a journal profile for any of this (`requireMember` in
   [src/lib/auth/dal.ts](src/lib/auth/dal.ts)). No payment gateway is signed (Razorpay or Cashfree).
   Until one is, checkout runs in **demo mode** (founder's decision, 24 Oct 2026, for demos):
   - Every user has ₹50,000 of virtual demo credit (`DEMO_CREDIT` in
@@ -71,8 +83,8 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
   - `DEMO_CHECKOUT = false` closes checkout to the public again ("opens at launch", with the launch
     list). The storefront copy follows the flag, so it's a code change, not an env var.
   - A gateway adds a live mode in [src/lib/checkout/config.ts](src/lib/checkout/config.ts).
-- **Track record** (`/track`, [src/lib/track-record.ts](src/lib/track-record.ts)): the second route
-  in. Traders trade NIFTY, BANK NIFTY and SENSEX F&O in their own Zerodha account, upload Console
+- **Track record** (`/track`, [src/lib/track-record.ts](src/lib/track-record.ts), switched off with
+  the journal): the second route in. Traders trade NIFTY, BANK NIFTY and SENSEX F&O in their own Zerodha account, upload Console
   tradebooks, and the programme rules judge each day's closed result (no intraday prices, so limits
   are checked at day end and lot limits aren't checked). `parseZerodhaTradebook` in
   [src/lib/csv/brokers.ts](src/lib/csv/brokers.ts) FIFO-matches fills by execution time, estimates
@@ -96,9 +108,10 @@ briefs, discovery network), still ships as secondary tools under the signed-in *
   an owner's Kite login is connected; after Kite's 06:00 IST logout traders see "Live prices are
   offline" until a `KITE_OWNER_EMAILS` sign-in connects again. Orders, stops and the 15:20
   square-off run while a platform page is open (the always-on engine service is still to build).
-- Signed-in workspace ([src/app/(app)/layout.tsx](src/app/(app)/layout.tsx)): My accounts
-  (`/dashboard`, account cards with meters), Evaluations, Payouts (`/payouts`), Academy and Help, with
-  the journal tools under **Tools** ([src/components/workspace-nav.tsx](src/components/workspace-nav.tsx)).
+- Signed-in workspace ([src/app/(app)/layout.tsx](src/app/(app)/layout.tsx)): three tabs, My
+  accounts (`/dashboard`, account cards with meters), Charts (`/markets`, once Kite is configured) and
+  Payouts (`/payouts`); Academy, Help, Settings (name and email only) and sign-out sit in the account
+  menu.
   The launch list ([src/app/waitlist-form.tsx](src/app/waitlist-form.tsx)) writes `WaitlistEntry`.
 - **Not built yet:** a payment gateway, GST invoices and refunds, the always-on engine service with a
   licensed market-data feed, KYC, payout processing and the copy engine. The spec is the Notion page
@@ -135,7 +148,7 @@ result. The future engine service (Node on AWS with the market-data feed) hosts 
 
 ## Zerodha charts (the firm's shared Kite login) and market data
 
-`/markets` (signed-in, **Tools → Zerodha charts**) charts NIFTY, BANK NIFTY and SENSEX (index,
+`/markets` (signed-in, the **Charts** tab; the UI never names Zerodha) charts NIFTY, BANK NIFTY and SENSEX (index,
 futures and options) for every signed-in user, from the firm's Zerodha account through Kite
 Connect: candles from 1 minute to 1 day, volume and open-interest panes, live quotes and five-level
 depth.
@@ -195,6 +208,8 @@ differently. Build against what's here:
 | Hosting  | Vercel              | **Vercel**: production is white-svan.vercel.app, from `main` |
 
 ## Journal tools: the one rule
+
+(Switched off since 25 Oct 2026; see the top of this file. This applies if they come back.)
 
 **Code calculates numbers. AI only explains them.** Never let the model compute P&L, returns, or
 drawdown. The flow is strictly one-directional:
@@ -315,8 +330,8 @@ metadata gates access without exposing private evidence files.
 
 - ✅ **Prop-firm storefront (Oct 2026)**: landing in the MFFU/Tradeify/Topstep pattern, pricing with
   an Evaluation / Funded toggle, plan pages, rules, searchable help center, Academy (free lessons and
-  rule practice), launch list, plan-aware trader sign-up, prop-first workspace with the journal under
-  Tools. Handoff notes: [docs/prop-firm-repurpose-review.md](docs/prop-firm-repurpose-review.md).
+  rule practice), launch list, plan-aware trader sign-up, prop-only workspace (journal switched off
+  25 Oct 2026). Handoff notes: [docs/prop-firm-repurpose-review.md](docs/prop-firm-repurpose-review.md).
 - ✅ **Trading core (Oct 2026)**: `src/lib/trading` (paise money, charges from dated schedules,
   order matching, positions, rule engine, risk meters, payout quote, deterministic replay), with the
   Academy rule practice running on it. Covers the pure-logic parts of stories S3-01, S3-02, S4-06,
@@ -332,7 +347,7 @@ metadata gates access without exposing private evidence files.
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine
   service with Redis and a replay provider, checkout (UPI/cards via an Indian gateway), evaluation
   provisioning with live risk meters, KYC, payouts with TDS, then the optional copy desk.
-- ✅ **Journal (formerly TrustSVAN), M1–M6 and trust features**: NextAuth app shell; `/upload` source
+- ⏸ **Journal (formerly TrustSVAN), M1–M6 and trust features** (switched off 25 Oct 2026): NextAuth app shell; `/upload` source
   history bridge with `DailyPnl` rebuild; metrics dashboard (now `/journal`) with Research ⇄ Trader
   views; AI reports with live compliance; public `/p/[slug]` profiles with evidence locker and Proof
   Levels via [src/lib/proof.ts](src/lib/proof.ts); `/explore` directory; Transparency Score breakdown

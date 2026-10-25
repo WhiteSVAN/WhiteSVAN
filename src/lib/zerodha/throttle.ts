@@ -21,7 +21,7 @@ export type Gate = <T>(task: () => Promise<T>) => Promise<T>;
 /** Results are dropped this long after they were fetched. */
 const KEEP_MS = 60_000;
 
-const busy = () => new KiteError("Zerodha is limiting requests. Retrying shortly.", 429, "RateLimitException");
+const busy = () => new KiteError("The price feed is busy. Retrying shortly.", 429, "RateLimitException");
 
 /**
  * Runs tasks one at a time, each starting at least `gapMs` after the previous one started. With

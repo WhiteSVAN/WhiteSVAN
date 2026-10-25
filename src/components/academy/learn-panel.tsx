@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
-import Link from "next/link";
 import { ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle2 } from "lucide-react";
 import { ACADEMY_LESSONS } from "@/lib/academy-content";
 
@@ -49,8 +48,8 @@ export function LearnPanel() {
             Learn what the evaluation tests.
           </h2>
           <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
-            Four free lessons for NIFTY, BANK NIFTY and SENSEX traders: contracts, costs, reviewing
-            your record and how the evaluation works. Each ends with a journal prompt and a quick self-check.
+            Three free lessons: contracts, costs and how the evaluation works. Each ends with an
+            exercise and a quick self-check.
           </p>
         </div>
         <div className="rounded-md border border-[var(--border)] bg-[var(--card-deep)] px-4 py-3">
@@ -118,12 +117,8 @@ export function LearnPanel() {
             </ul>
 
             <div className="rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] p-4 sm:p-5">
-              <h4 className="terminal-label">Take it to your journal</h4>
+              <h4 className="terminal-label">Try it</h4>
               <p className="mt-3 text-sm leading-7 text-[var(--foreground)]">{lesson.reviewPrompt}</p>
-              <p className="mt-2 text-[11px] leading-5 text-[var(--muted)]">Write your answer in your trading journal.</p>
-              <Link href={lesson.journalLink.href} prefetch={false} className="mt-4 inline-flex min-h-10 items-center gap-2 text-xs font-medium text-[var(--primary)] underline-offset-4 hover:underline">
-                {lesson.journalLink.label}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-              </Link>
             </div>
 
             <form key={lesson.id} onSubmit={checkAnswer} className="border-t border-[var(--border)] pt-6">

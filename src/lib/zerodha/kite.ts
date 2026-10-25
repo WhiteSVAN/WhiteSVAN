@@ -48,7 +48,7 @@ export class KiteError extends Error {
   }
 }
 
-const dataError = (what: string) => new KiteError(`Zerodha sent ${what} this app cannot read.`, 502, "DataException");
+const dataError = (what: string) => new KiteError(`The price feed sent ${what} this app cannot read.`, 502, "DataException");
 
 type Json = Record<string, unknown>;
 const isObject = (value: unknown): value is Json => typeof value === "object" && value !== null && !Array.isArray(value);
@@ -57,7 +57,7 @@ const isObject = (value: unknown): value is Json => typeof value === "object" &&
 export function kiteData(body: unknown, status = 200): unknown {
   if (isObject(body) && body.status === "success" && "data" in body) return body.data;
   if (isObject(body) && body.status === "error") {
-    throw new KiteError(typeof body.message === "string" ? body.message : "Zerodha returned an error.", status, typeof body.error_type === "string" ? body.error_type : "GeneralException");
+    throw new KiteError(typeof body.message === "string" ? body.message : "The price feed returned an error.", status, typeof body.error_type === "string" ? body.error_type : "GeneralException");
   }
   throw dataError("a response");
 }

@@ -7,7 +7,6 @@ export interface AcademyLesson {
   reading: string[];
   checklist: string[];
   reviewPrompt: string;
-  journalLink: { href: string; label: string };
   selfCheck: {
     question: string;
     choices: string[];
@@ -33,7 +32,6 @@ export const ACADEMY_LESSONS: AcademyLesson[] = [
     ],
     reviewPrompt:
       "Take one past trade. Write its complete contract identity and identify the dated source you would use to validate quantity and contract terms. Mark any missing fields as unknown.",
-    journalLink: { href: "/upload", label: "Open your import workspace" },
     selfCheck: {
       question: "Which input is suitable for checking the quantity of a historical options trade?",
       choices: [
@@ -52,54 +50,25 @@ export const ACADEMY_LESSONS: AcademyLesson[] = [
     summary: "Read a contract note and distinguish a trading result from a cash movement.",
     reading: [
       "A price move is only part of the result. Start with the broker's contract note and ledger, then identify gross trading profit or loss, brokerage, exchange or clearing charges, applicable taxes and other charges. Use the amounts and rules relevant to that transaction and date; these sample lessons do not supply current rates.",
-      "Check how the export defines realised P&L. It may already include some costs. Subtracting the same charge again makes the journal wrong. Deposits, withdrawals and margin transfers also change cash but are not trading profit or loss. Where futures settlements or other adjustments appear, reconcile them using the broker's documented statement conventions.",
+      "Check how the export defines realised P&L. It may already include some costs. Subtracting the same charge again makes the result wrong. Deposits, withdrawals and margin transfers also change cash but are not trading profit or loss. Where futures settlements or other adjustments appear, reconcile them using the broker's documented statement conventions.",
     ],
     checklist: [
       "Match executions, account and statement period before comparing totals.",
-      "Document which charges are included in each imported P&L field.",
+      "Note which charges each P&L figure already includes.",
       "Explain differences with the ledger instead of forcing the numbers to agree.",
     ],
     reviewPrompt:
       "Choose one statement period. Make a bridge from the broker's gross result to its reported net result, label every cost, and list cash movements separately. Record any unreconciled difference.",
-    journalLink: { href: "/upload", label: "Review an import with its source" },
     selfCheck: {
       question: "The broker export already deducts a particular charge from P&L. What should your reconciliation do?",
       choices: [
-        "Deduct every charge again to make the journal conservative.",
+        "Deduct every charge again to be conservative.",
         "Add deposits to trading profit to match the cash balance.",
         "Record that charge as included and avoid deducting it a second time.",
       ],
       correctChoice: 2,
       rationale:
         "A reconciliation needs consistent definitions. Identify included costs so each charge affects the result once, and keep funding movements separate from trading performance.",
-    },
-  },
-  {
-    id: "journal-coverage",
-    title: "Review the record and its blind spots",
-    summary: "Ask what the journal can establish before interpreting a performance number.",
-    reading: [
-      "Begin a review with the account, currency, date coverage and source. A file uploaded today can contain an old record. A gap can mean no trading, missing history or an incomplete export; it needs explanation. An attached statement supports a record but does not, by itself, mean an independent reviewer has verified it.",
-      "Read metric definitions carefully. A daily P&L journal may report winning days rather than winning trades, and a drawdown derived from daily closed P&L is not the worst intraday equity decline. Open positions, cash movements and omitted charges can also change the interpretation. Record these limitations alongside your observations.",
-    ],
-    checklist: [
-      "State the observation window and compare like accounts and currencies.",
-      "Distinguish coverage date, upload date and publication date.",
-      "Write one process improvement that the source data actually supports.",
-    ],
-    reviewPrompt:
-      "Review a past week in your journal. Note one repeated behaviour, one missing piece of evidence and one measurable process change. Avoid a conclusion about future returns.",
-    journalLink: { href: "/journal", label: "Open your trading record" },
-    selfCheck: {
-      question: "A daily closed-P&L record stays within a loss threshold. What does that establish?",
-      choices: [
-        "The recorded daily results stayed within that threshold; intraday equity may still have crossed it.",
-        "Every open position and intraday loss was within the threshold.",
-        "The trader will stay within the threshold in the future.",
-      ],
-      correctChoice: 0,
-      rationale:
-        "A result is limited by its observation frequency and data coverage. Daily closed P&L cannot establish intraday equity or future behaviour.",
     },
   },
   {
@@ -117,7 +86,6 @@ export const ACADEMY_LESSONS: AcademyLesson[] = [
     ],
     reviewPrompt:
       "Write your evaluation plan: your account size, your daily stop, the most you will risk on one trade, and what you will do after a losing day.",
-    journalLink: { href: "/journal", label: "Open your trading journal" },
     selfCheck: {
       question: "What do you get when you pass the evaluation?",
       choices: [

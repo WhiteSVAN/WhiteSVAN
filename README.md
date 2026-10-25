@@ -1,7 +1,7 @@
 # WhiteSVAN
 
 WhiteSVAN is an India-first prop trading firm for NIFTY, BANK NIFTY and SENSEX futures and options.
-Traders learn with SVAN Academy, take a one-time-fee simulated evaluation (₹1L–₹10L accounts, 6%
+Traders learn with SVAN Academy, take a one-time-fee simulated evaluation (₹1L, ₹5L or ₹10L, 6%
 profit target, 4% end-of-day drawdown, 2% daily loss limit), and those who pass get a simulated
 funded account with an 80% profit split, paid twice a month in rupees.
 
@@ -12,8 +12,8 @@ payout quotes) is in `src/lib/trading` as tested, deterministic TypeScript. All 
 simulated. Nothing on the site is investment advice, and public pages keep the past-performance
 disclaimer.
 
-The original trader-verification journal (formerly TrustSVAN) still ships as secondary tools under
-the signed-in **Tools** menu: imports, metrics, research profiles, AI briefs and the trader directory.
+The original trader-verification journal (formerly TrustSVAN) and the Zerodha track record are
+switched off: `next.config.ts` redirects their routes, and their code stays in the repo.
 
 ## Current Stack
 
@@ -29,8 +29,8 @@ the signed-in **Tools** menu: imports, metrics, research profiles, AI briefs and
 
 - `/`: landing page (hero, how it works, pricing with an Evaluation / Funded toggle, rules, built for
   India, free resources, FAQ, early-access signup).
-- `/evaluations` and `/evaluations/[plan]` (`1l`, `2-5l`, `5l`, `10l`): plans, evaluation vs funded
-  comparison and plan detail.
+- `/evaluations` and `/evaluations/[plan]` (`1l`, `5l`, `10l`): plans, what changes when you pass
+  and plan detail.
 - `/how-it-works`: every step from choosing an account to a payout, and the IST trading day.
 - `/funded`: funded accounts, payout rules, caps by account size and a payout calculator.
 - `/rules`: full rule table and sections. `/help`: searchable help center. `/academy`: free lessons,
@@ -47,9 +47,9 @@ the signed-in **Tools** menu: imports, metrics, research profiles, AI briefs and
   the engine running on the server. `/markets` offers the same for the trader's active account.
   Prices come from the firm's shared Zerodha login, so every account holder trades while an owner
   has it connected.
-- Signed-in workspace: My accounts (account cards), Evaluations, Payouts, Academy and Help, with the
-  journal under Tools.
-- `/markets` (Tools → Zerodha charts): charts, live quotes and depth from the firm's Zerodha account
+- Signed-in workspace: My accounts (account cards), Charts and Payouts; Academy, Help and Settings in
+  the account menu.
+- `/markets` (the Charts tab): charts, live quotes and depth from the firm's Zerodha account
   through Kite Connect, for every signed-in user. A `KITE_OWNER_EMAILS` sign-in logs in to Kite once
   a day (Kite ends the login at 6 AM IST) and everyone reads through that login. Set
   `KITE_API_KEY`, `KITE_API_SECRET` and `KITE_OWNER_EMAILS`, and register

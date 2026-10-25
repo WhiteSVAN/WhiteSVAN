@@ -54,15 +54,15 @@ export const requireOnboardedUser = cache(async () => {
 });
 
 /**
- * Signed-in member for the prop-firm workspace (My accounts, checkout, payouts): a role is needed,
- * and clients finish their onboarding, but traders don't need a journal profile to buy or trade
- * an evaluation.
+ * Signed-in member for the prop-firm workspace (My accounts, checkout, payouts); no journal profile
+ * is needed. A user still without a role becomes a trader here, in place: a redirect to the
+ * /onboarding/continue route would run that route twice during a client navigation.
  */
 export const requireMember = cache(async () => {
   const user = await requireUser();
-  if (!user.role) redirect("/onboarding");
-  if (user.role === "CLIENT" && !user.clientProfile) redirect("/onboarding");
-  return user;
+  if (user.role) return user;
+  await prisma.user.updateMany({ where: { id: user.id, role: null }, data: { role: "TRADER" } });
+  return { ...user, role: "TRADER" as const };
 });
 
 /** Signed-in trader with a profile, or redirect (clients go to their home). */

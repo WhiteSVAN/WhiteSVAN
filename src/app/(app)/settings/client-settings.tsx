@@ -69,7 +69,6 @@ export async function ClientSettings({ userId, saved }: { userId: string; saved:
           <AccountBasicsForm
             name={user.name ?? ""}
             email={user.email}
-            roleLabel="Client"
             memberSince={format(user.createdAt, "MMM yyyy")}
           />
         </div>

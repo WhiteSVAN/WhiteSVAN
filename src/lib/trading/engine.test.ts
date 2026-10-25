@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findEvaluationPlan } from "../prop-firm";
+import { findAccountPlan } from "../prop-firm";
 import { chargesForFill, type ChargesSchedule } from "./charges";
 import { CHARGES_SCHEDULES } from "./charges-schedules";
 import {
@@ -47,7 +47,7 @@ class Sim {
   private orders = 0;
 
   constructor(options: { plan?: string; phase?: AccountPhase; charges?: readonly ChargesSchedule[]; slippageTicks?: number } = {}) {
-    this.state = openAccount({ id: "A1", phase: options.phase ?? "EVALUATION", rules: ruleSetFor(findEvaluationPlan(options.plan ?? "1l")!), at: ist("2026-11-02 08:00") });
+    this.state = openAccount({ id: "A1", phase: options.phase ?? "EVALUATION", rules: ruleSetFor(findAccountPlan(options.plan ?? "1l")!), at: ist("2026-11-02 08:00") });
     this.initial = this.state;
     const instruments = new Map(INSTRUMENTS.map((instrument) => [instrument.token, instrument]));
     this.context = {

@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   if (!owner) return new Response("Not found", { status: 404 });
   const next = safeNextPath(request.cookies.get(KITE_NEXT_COOKIE)?.value) ?? "/markets";
   const back = (result: string) => {
-    const response = redirectTo(`${next}${next.includes("?") ? "&" : "?"}zerodha=${result}`);
+    const response = redirectTo(`${next}${next.includes("?") ? "&" : "?"}feed=${result}`);
     response.cookies.set(KITE_STATE_COOKIE, "", { path: "/api/zerodha", maxAge: 0 });
     response.cookies.set(KITE_NEXT_COOKIE, "", { path: "/api/zerodha", maxAge: 0 });
     return response;

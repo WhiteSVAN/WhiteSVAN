@@ -75,7 +75,7 @@ async function send(config: KiteConfig, path: string, options: CallOptions): Pro
       signal: AbortSignal.timeout(20_000),
     });
   } catch {
-    throw new KiteError("Zerodha could not be reached.", 504, "NetworkException");
+    throw new KiteError("The price feed could not be reached.", 504, "NetworkException");
   }
 }
 
@@ -86,14 +86,14 @@ async function failure(response: Response): Promise<KiteError> {
     if (error instanceof KiteError && error.errorType !== "DataException") return error;
   }
   const type = response.status === 429 ? "RateLimitException" : response.status === 403 ? "TokenException" : "GeneralException";
-  return new KiteError(`Zerodha returned HTTP ${response.status}.`, response.status, type);
+  return new KiteError(`The price feed returned HTTP ${response.status}.`, response.status, type);
 }
 
 async function callJson(config: KiteConfig, path: string, options: CallOptions = {}): Promise<unknown> {
   const response = await send(config, path, options);
   if (!response.ok) throw await failure(response);
   return response.json().catch(() => {
-    throw new KiteError("Zerodha sent a response this app cannot read.", 502, "DataException");
+    throw new KiteError("The price feed sent a response this app cannot read.", 502, "DataException");
   });
 }
 
@@ -159,7 +159,7 @@ export async function indexToken(config: KiteConfig, accessToken: string, underl
     if (token) indexTokens.set(name, token);
   }
   const token = indexTokens.get(underlying);
-  if (!token) throw new KiteError(`Zerodha did not return ${UNDERLYINGS[underlying].label}.`, 502, "DataException");
+  if (!token) throw new KiteError(`The price feed did not return ${UNDERLYINGS[underlying].label}.`, 502, "DataException");
   return token;
 }
 

@@ -8,7 +8,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { accountNumber } from "@/lib/checkout/billing";
 import { demoCreditLeft } from "@/lib/checkout/demo";
-import { findEvaluationPlan, formatInr, planLimits, PROGRAMME_RULES as R } from "@/lib/prop-firm";
+import { findAccountPlan, formatInr, planLimits, PROGRAMME_RULES as R } from "@/lib/prop-firm";
 import { formatPaise } from "@/lib/trading/money";
 
 export const metadata: Metadata = { title: "Order complete | WhiteSVAN", robots: { index: false } };
@@ -25,7 +25,7 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
     select: { id: true, planId: true, amount: true, provider: true, status: true, accountId: true, paidAt: true, billingEmail: true },
   });
   if (!order || order.status !== "PAID" || !order.accountId) notFound();
-  const plan = findEvaluationPlan(order.planId);
+  const plan = findAccountPlan(order.planId);
   if (!plan) notFound();
   const limits = planLimits(plan);
   const demo = order.provider === "demo";
