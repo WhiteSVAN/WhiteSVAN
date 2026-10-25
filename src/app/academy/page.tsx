@@ -10,7 +10,7 @@ import { EVALUATION_PLANS, formatInr, PROGRAMME_RULES as R, PROGRAMME_STEPS } fr
 
 export const metadata: Metadata = {
   title: "SVAN Academy | WhiteSVAN",
-  description: "Free lessons on NIFTY, BANK NIFTY and SENSEX futures and options, position sizing and every evaluation rule, plus a drawdown exercise to practise before you trade.",
+  description: "Free lessons on NIFTY, BANK NIFTY and SENSEX options, position sizing and every evaluation rule, plus a drawdown exercise to practise before you trade.",
 };
 
 // The "consultants" key is kept so existing ?tab= links keep working.
@@ -41,7 +41,7 @@ export default async function AcademyPage({ searchParams }: { searchParams: Prom
             <div>
               <p className="terminal-label flex items-center gap-2"><GraduationCap className="h-4 w-4" aria-hidden="true" /> SVAN Academy</p>
               <h1 className="mt-5 max-w-3xl text-4xl font-medium leading-[1.05] tracking-[-0.05em] sm:text-6xl">Learn the rules.<br /><span className="text-[var(--primary)]">Pass the evaluation.</span></h1>
-              <p className="mt-6 max-w-xl text-sm leading-7 text-[var(--muted)]">Free lessons on NIFTY, BANK NIFTY and SENSEX futures and options, position sizing and every evaluation rule, built to get you funded.</p>
+              <p className="mt-6 max-w-xl text-sm leading-7 text-[var(--muted)]">Free lessons on NIFTY, BANK NIFTY and SENSEX options, position sizing and every evaluation rule, built to get you funded.</p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Link href="/academy?tab=learn#academy-content" className="inline-flex min-h-11 items-center gap-3 rounded-md bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start learning <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
                 <Link href="/evaluations" className="inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--border-strong)] px-4 text-sm hover:bg-[var(--card-raised)]">See evaluations <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>

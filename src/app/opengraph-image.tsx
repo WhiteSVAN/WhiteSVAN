@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { EVALUATION_PLANS, PROGRAMME_RULES as R } from "@/lib/prop-firm";
 
-export const alt = "WhiteSVAN: get funded trading NIFTY, BANK NIFTY and SENSEX futures and options";
+export const alt = "WhiteSVAN: get funded trading NIFTY, BANK NIFTY and SENSEX options";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -56,7 +56,7 @@ export default function Image() {
               <div style={{ display: "flex", color: ACCENT }}>Get paid.</div>
             </div>
             <div style={{ display: "flex", fontSize: 28, color: MUTED, lineHeight: 1.35 }}>
-              The prop firm for NIFTY, BANK NIFTY and SENSEX futures and options.
+              The prop firm for NIFTY, BANK NIFTY and SENSEX options.
             </div>
             <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
               {STATS.map(([value, label]) => (

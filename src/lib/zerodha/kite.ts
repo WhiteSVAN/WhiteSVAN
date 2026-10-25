@@ -348,11 +348,10 @@ export function contractsFor(contracts: readonly KiteContract[], underlying: Und
   return { futures, expiries, chain };
 }
 
-/** What /api/zerodha/instruments returns for one underlying. */
+/** What /api/zerodha/instruments returns for one underlying: its options, and its index for the money line. */
 export interface InstrumentList {
   underlying: Underlying;
   index: { key: string; token: number; label: string };
-  futures: KiteContract[];
   expiries: string[];
   /** The expiry `chain` lists: the one asked for, or the nearest. */
   expiry: string | null;

@@ -42,9 +42,14 @@ switched off: `next.config.ts` redirects their routes, and their code stays in t
   virtual demo credit to buy evaluations at the normal prices. Nobody is charged, and demo accounts
   are labelled and never lead to funded accounts or payouts (`src/lib/checkout/demo.ts`). Sign-ins
   in `STAFF_EMAILS` make test purchases without using credit.
-- `/trade/<account>`: the trading platform for one evaluation account (chart with Buy and Sell, order
-  ticket, positions, open orders you can modify or cancel, order history, fills, rule meters), with
-  the engine running on the server. `/markets` offers the same for the trader's active account.
+- `/trade/<account>`: the options trading platform for one evaluation account: an option chain with
+  Buy and Sell on every strike, the chart and depth, the order ticket (Market, Limit, Stop-loss),
+  today's positions with realised and open P&L, orders you can modify or cancel, trades, and the rule
+  meters, with the engine running on the server. `/markets` (the Trade tab) offers the same for the
+  trader's active account. Directional bets only: buy calls or puts and sell only to close them; no
+  short options, spreads, or calls and puts on the same index together (across accounts too).
+- `/journal`: total P&L, win rate and trades, a P&L calendar by day with weekly totals, and a note
+  for any day.
   Prices come from the firm's shared Zerodha login, so every account holder trades while an owner
   has it connected.
 - Signed-in workspace: My accounts (account cards), Charts and Payouts; Academy, Help and Settings in

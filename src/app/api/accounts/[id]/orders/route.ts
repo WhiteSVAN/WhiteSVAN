@@ -3,7 +3,8 @@ import { z } from "zod";
 import { accountJson, instrumentForToken, newOrderId, orderQuotes } from "@/lib/accounts/api";
 import { tradingNow } from "@/lib/accounts/clock";
 import { changeAccount } from "@/lib/accounts/store";
-import { applyOrder } from "@/lib/accounts/ticks";
+import { listAccounts } from "@/lib/accounts/store";
+import { applyOrder, orderPolicyProblem } from "@/lib/accounts/ticks";
 import { KiteError, quoteKey } from "@/lib/zerodha/kite";
 
 const orderSchema = z.object({
@@ -15,7 +16,7 @@ const orderSchema = z.object({
   triggerPrice: z.number().int().positive().optional(),
 });
 
-/** Place an order on the account against a fresh quote. The engine validates and fills it. */
+/** Place an order on the account against a fresh quote, within the trading policy. The engine validates and fills it. */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const parsed = orderSchema.safeParse(await request.json().catch(() => null));
@@ -24,6 +25,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const now = Date.now();
     const instrument = account.desk.instruments.find((item) => item.token === parsed.data.token) ?? (await instrumentForToken(config, accessToken, parsed.data.token, now));
     if (!instrument) throw new KiteError("That contract isn't in today's instrument list.", 400, "InputException");
+    const others = (await listAccounts(userId)).filter((item) => item.id !== account.id && item.status === "ACTIVE").map((item) => item.desk);
+    const problem = orderPolicyProblem(account.desk, instrument, parsed.data.side, parsed.data.lots, others);
+    if (problem) throw new KiteError(problem, 400, "InputException");
     const quotes = await orderQuotes(config, accessToken, [quoteKey(instrument)]);
     const order = { ...parsed.data, id: newOrderId(now) };
     const changed = await changeAccount(userId, id, (desk) => {

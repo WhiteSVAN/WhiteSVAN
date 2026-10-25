@@ -6,12 +6,13 @@ import { ChevronDown } from "lucide-react";
 import { logout } from "./actions";
 
 const ITEMS = [
+  { href: "/payouts", label: "Payouts" },
   { href: "/academy", label: "Academy" },
   { href: "/help", label: "Help center" },
   { href: "/settings", label: "Settings" },
 ];
 
-/** The account dropdown: Academy, Help, Settings and sign-out behind the user's name. Closes on outside click or Escape. */
+/** The account dropdown: Payouts, Academy, Help, Settings and sign-out behind the user's name. Closes on outside click or Escape. */
 export function AccountMenu({ label }: { label: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

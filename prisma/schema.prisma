@@ -57,6 +57,7 @@ model User {
   evaluationAccounts EvaluationAccount[]
   checkoutOrders     CheckoutOrder[]
   kiteConnections    KiteConnection[]
+  journalNotes       JournalNote[]
 }
 
 // Trader = publishes a record; Client = allocator / firm / reviewer who discovers traders.
@@ -797,4 +798,19 @@ model KiteConnection {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+// The trader's own note on a trading day, shown on the journal's P&L calendar. One per trader and
+// date, across their evaluation accounts.
+model JournalNote {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @db.Date
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
 }

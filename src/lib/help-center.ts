@@ -75,7 +75,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "markets-and-hours",
         question: "What can I trade, and when?",
-        answer: "NIFTY and BANK NIFTY futures and options on NSE, and SENSEX futures and options on BSE. Intraday only: the market opens at 09:15 IST, you close by 15:20, and you can't open new positions in expiring contracts in the last hour of expiry day. Sell options only inside defined-risk spreads.",
+        answer: "NIFTY and BANK NIFTY options on NSE, and SENSEX options on BSE. Intraday only: the market opens at 09:15 IST, you close by 15:20, and you can't open new positions in expiring contracts in the last hour of expiry day. Buy calls or puts and sell only to close them: no short options, spreads or hedges.",
       },
       {
         id: "trading-costs",

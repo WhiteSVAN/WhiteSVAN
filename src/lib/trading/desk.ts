@@ -6,12 +6,12 @@
  */
 import type { EvaluationPlan } from "../prop-firm";
 import { CHARGES_SCHEDULES } from "./charges-schedules";
-import { openAccount, step, type AccountState, type CancelReason, type EngineContext, type EngineEvent, type EngineOutput, type Fill, type OrderType } from "./engine";
+import { netQuantity, openAccount, step, unrealisedPnl, type AccountState, type CancelReason, type EngineContext, type EngineEvent, type EngineOutput, type Fill, type OrderType } from "./engine";
 import type { Instrument, Side } from "./instruments";
 import type { Quote } from "./matching";
-import { formatPaise, type Paise } from "./money";
+import { divRound, formatPaise, type Paise } from "./money";
 import { ruleSetFor } from "./rules";
-import { isWeekday } from "./time";
+import { isWeekday, toIst } from "./time";
 
 /** One tick of slippage on market fills (as in the engine's realistic tests); TRD MD-3 staleness. */
 export const DESK_SETTINGS = { slippageTicks: 1, staleAfterMs: 5_000 } as const;
@@ -60,11 +60,13 @@ export interface Desk {
   notes: DeskNote[];
   /** Every order placed, newest first. Desks stored before the order book existed have none. */
   orderBook?: OrderRecord[];
+  /** Fills per IST trading date, for the journal. Desks stored before it existed start empty. */
+  dayTrades?: Record<string, number>;
 }
 
 export function openDesk(plan: EvaluationPlan, id: string, at: number): Desk {
   const state = openAccount({ id, phase: "EVALUATION", rules: ruleSetFor(plan), at });
-  return { version: 1, state, instruments: [], fills: [], notes: [{ at, tone: "info", text: `Opened a ${plan.label} evaluation account.` }], orderBook: [] };
+  return { version: 1, state, instruments: [], fills: [], notes: [{ at, tone: "info", text: `Opened a ${plan.label} evaluation account.` }], orderBook: [], dayTrades: {} };
 }
 
 /** Quote keys (`exchange:tradingsymbol`) the host must keep fresh: held and ordered contracts. */
@@ -90,14 +92,21 @@ export function deskStep(desk: Desk, event: EngineEvent, quotes: ReadonlyMap<num
   const live = new Set([...state.positions.map((position) => position.instrument.token), ...state.orders.map((order) => order.token)]);
   const symbol = (token: number) => known.get(token)?.tradingSymbol ?? String(token);
   const notes = outputs.flatMap((output) => noteFor(output, symbol, event.kind)).reverse();
+  const fills = outputs.flatMap((output) => (output.kind === "fill" ? [output.fill] : []));
+  const dayTrades = { ...desk.dayTrades };
+  for (const fill of fills) {
+    const date = toIst(fill.at).date;
+    dayTrades[date] = (dayTrades[date] ?? 0) + 1;
+  }
   return {
     desk: {
       version: 1,
       state,
       instruments: [...known.values()].filter((item) => live.has(item.token)),
-      fills: [...outputs.flatMap((output) => (output.kind === "fill" ? [output.fill] : [])).reverse(), ...desk.fills].slice(0, FILLS_KEPT),
+      fills: [...[...fills].reverse(), ...desk.fills].slice(0, FILLS_KEPT),
       notes: [...notes, ...desk.notes].slice(0, NOTES_KEPT),
       orderBook: recordOrders(desk.orderBook ?? [], applied, outputs, known),
+      dayTrades,
     },
     outputs,
   };
@@ -214,4 +223,84 @@ export function noteFor(output: EngineOutput, symbol: (token: number) => string,
     case "passed":
       return [{ at: output.at, tone: "good", text: `Evaluation passed on ${output.date} with ${money(output.profit)} profit.` }];
   }
+}
+
+/** One contract traded today, as a broker's positions screen shows it: open or closed, with its P&L. */
+export interface DayPosition {
+  token: number;
+  tradingSymbol: string;
+  /** Null when the contract has been closed and is no longer on the desk. */
+  lotSize: number | null;
+  /** Open units now: positive long, negative short. */
+  quantity: number;
+  /** Average price of the open units, first in first out; 0 when flat. */
+  averagePrice: Paise;
+  /** Last price; for a closed position, the last fill price. */
+  mark: Paise;
+  buyQuantity: number;
+  buyValue: Paise;
+  sellQuantity: number;
+  sellValue: Paise;
+  /** Gross P&L closed today. */
+  realised: Paise;
+  /** P&L on the open units at the mark. */
+  unrealised: Paise;
+  /** Charges on today's fills. */
+  charges: Paise;
+}
+
+/**
+ * Today's positions: every contract with a fill on `date` (IST) or still open, built from the
+ * desk's recent fills and the engine's open lots. The desk keeps the newest {@link FILLS_KEPT}
+ * fills, so a very busy day can drop its earliest fills from the buy and sell columns.
+ */
+export function dayPositions(desk: Desk, date: string): DayPosition[] {
+  const rows = new Map<number, DayPosition>();
+  const row = (token: number, tradingSymbol: string): DayPosition => {
+    let found = rows.get(token);
+    if (!found) {
+      found = { token, tradingSymbol, lotSize: null, quantity: 0, averagePrice: 0, mark: 0, buyQuantity: 0, buyValue: 0, sellQuantity: 0, sellValue: 0, realised: 0, unrealised: 0, charges: 0 };
+      rows.set(token, found);
+    }
+    return found;
+  };
+  // Oldest first, so a closed position's mark ends on its last fill.
+  for (const fill of [...desk.fills].reverse()) {
+    if (toIst(fill.at).date !== date) continue;
+    const position = row(fill.token, fill.tradingSymbol);
+    if (fill.side === "BUY") {
+      position.buyQuantity += fill.quantity;
+      position.buyValue += fill.price * fill.quantity;
+    } else {
+      position.sellQuantity += fill.quantity;
+      position.sellValue += fill.price * fill.quantity;
+    }
+    position.realised += fill.realised;
+    position.charges += fill.charges.total;
+    position.mark = fill.price;
+  }
+  for (const open of desk.state.positions) {
+    const position = row(open.instrument.token, open.instrument.tradingSymbol);
+    const quantity = netQuantity(open);
+    const cost = open.open.reduce((sum, lot) => sum + lot.price * lot.quantity, 0);
+    position.lotSize = open.instrument.lotSize;
+    position.quantity = quantity;
+    position.averagePrice = quantity === 0 ? 0 : divRound(Math.abs(cost), Math.abs(quantity));
+    position.mark = open.mark;
+    position.unrealised = unrealisedPnl(open);
+  }
+  for (const instrument of desk.instruments) {
+    const position = rows.get(instrument.token);
+    if (position) position.lotSize = instrument.lotSize;
+  }
+  // Open positions first, then closed ones; each by contract.
+  return [...rows.values()].sort((a, b) => Number(b.quantity !== 0) - Number(a.quantity !== 0) || a.tradingSymbol.localeCompare(b.tradingSymbol));
+}
+
+/** Today's P&L across positions: realised and open P&L, charges, and the net of the three. */
+export function dayTotals(positions: readonly DayPosition[]): { realised: Paise; unrealised: Paise; charges: Paise; net: Paise } {
+  const realised = positions.reduce((sum, position) => sum + position.realised, 0);
+  const unrealised = positions.reduce((sum, position) => sum + position.unrealised, 0);
+  const charges = positions.reduce((sum, position) => sum + position.charges, 0);
+  return { realised, unrealised, charges, net: realised + unrealised - charges };
 }

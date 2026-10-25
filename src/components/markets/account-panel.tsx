@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { Desk, OrderRecord } from "@/lib/trading/desk";
-import { positionsView, riskMeters, type EngineOutput, type OrderChanges, type OrderType, type WorkingOrder } from "@/lib/trading/engine";
+import { dayPositions, dayTotals, type Desk, type OrderRecord } from "@/lib/trading/desk";
+import { riskMeters, type EngineOutput, type OrderChanges, type OrderType, type WorkingOrder } from "@/lib/trading/engine";
 import type { Instrument, Side } from "@/lib/trading/instruments";
 import { parseRupees } from "@/lib/trading/money";
+import { toIst } from "@/lib/trading/time";
 import type { KiteContract, MarketQuote } from "@/lib/zerodha/kite";
 import { STATUS_BADGE } from "@/components/markets/account-status";
 
@@ -24,7 +25,8 @@ const price = (paise: number) => priceText.format(paise / 100);
 const rupees = (paise: number) => `₹${price(paise)}`;
 const signed = (paise: number) => `${paise > 0 ? "+" : paise < 0 ? "−" : ""}₹${price(Math.abs(paise))}`;
 const tone = (paise: number) => (paise > 0 ? "text-[var(--primary)]" : paise < 0 ? "text-[var(--danger)]" : "text-[var(--muted)]");
-const ORDER_TYPES: [OrderType, string][] = [["MARKET", "Market"], ["LIMIT", "Limit"], ["SL", "SL"], ["SL-M", "SL-M"]];
+/** The ticket's order types. Working SL-M orders placed before still show, modify and cancel. */
+const ORDER_TYPES: [OrderType, string][] = [["MARKET", "Market"], ["LIMIT", "Limit"], ["SL", "Stop-loss"]];
 const needsLimit = (type: OrderType) => type === "LIMIT" || type === "SL";
 const needsTrigger = (type: OrderType) => type === "SL" || type === "SL-M";
 
@@ -86,10 +88,10 @@ export function AccountMeters({ desk, demo = false }: { desk: Desk; demo?: boole
 }
 
 /**
- * The account's meters and the order ticket for the charted contract. The side is the caller's,
- * so the chart's Buy and Sell buttons can set it.
+ * The account's meters and the order ticket for the selected option (`label` names it). The side
+ * is the caller's, so the chart's and the option chain's Buy and Sell can set it.
  */
-export function AccountTicket({ desk, planLabel, demo = false, contract, quote, side, onSide, onPlace }: { desk: Desk; planLabel: string; demo?: boolean; contract: KiteContract | null; quote: MarketQuote | undefined; side: Side; onSide: (side: Side) => void; onPlace: (order: OrderInput) => Promise<EngineOutput[]> }) {
+export function AccountTicket({ desk, planLabel, demo = false, contract, label, quote, side, onSide, onPlace }: { desk: Desk; planLabel: string; demo?: boolean; contract: KiteContract | null; label: string | null; quote: MarketQuote | undefined; side: Side; onSide: (side: Side) => void; onPlace: (order: OrderInput) => Promise<EngineOutput[]> }) {
   const [type, setType] = useState<OrderType>("MARKET");
   const [lots, setLots] = useState(1);
   const [limitInput, setLimitInput] = useState("");
@@ -158,7 +160,10 @@ export function AccountTicket({ desk, planLabel, demo = false, contract, quote, 
       <div className="border-t border-[var(--border)] pt-4">
         {contract ? (
           <form onSubmit={(event) => { event.preventDefault(); void submit(); }} className="space-y-3">
-            <p className="text-xs text-[var(--muted)]">Lot {contract.lotSize} · {bestBid !== undefined && bestAsk !== undefined ? <>bid <span className="font-mono text-[var(--primary)]">{price(bestBid)}</span> · ask <span className="font-mono text-[var(--danger)]">{price(bestAsk)}</span></> : "waiting for depth"}</p>
+            <div>
+              <p className="font-mono text-sm">{label}</p>
+              <p className="mt-0.5 text-xs text-[var(--muted)]">Lot {contract.lotSize} · {bestBid !== undefined && bestAsk !== undefined ? <>bid <span className="font-mono text-[var(--primary)]">{price(bestBid)}</span> · ask <span className="font-mono text-[var(--danger)]">{price(bestAsk)}</span></> : "waiting for prices"}</p>
+            </div>
             <div className="grid grid-cols-2 gap-2" role="group" aria-label="Side">
               {(["BUY", "SELL"] as const).map((value) => (
                 <button key={value} type="button" aria-pressed={side === value} onClick={() => onSide(value)} className={`min-h-10 rounded-md border text-sm font-medium ${side === value ? (value === "BUY" ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]" : "border-[var(--danger)] bg-[var(--danger)] text-[#2a0f0a]") : "border-[var(--border-strong)] text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
@@ -168,7 +173,7 @@ export function AccountTicket({ desk, planLabel, demo = false, contract, quote, 
             </div>
             <div className="flex flex-wrap rounded-lg border border-[var(--border)] bg-[var(--card-deep)] p-1" role="group" aria-label="Order type">
               {ORDER_TYPES.map(([value, text]) => (
-                <button key={value} type="button" aria-pressed={type === value} onClick={() => setType(value)} className={`min-h-8 flex-1 rounded-md px-2 font-mono text-xs ${type === value ? "bg-[var(--card-raised)] text-[var(--foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`}>{text}</button>
+                <button key={value} type="button" aria-pressed={type === value} onClick={() => setType(value)} className={`min-h-8 flex-1 whitespace-nowrap rounded-md px-2 font-mono text-xs ${type === value ? "bg-[var(--card-raised)] text-[var(--foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`}>{text}</button>
               ))}
             </div>
             <label className="block text-xs text-[var(--muted)]">Lots ({lots * contract.lotSize} units)
@@ -192,16 +197,16 @@ export function AccountTicket({ desk, planLabel, demo = false, contract, quote, 
             <p aria-live="polite" className={`min-h-5 text-xs leading-5 ${result?.tone === "bad" ? "text-[var(--danger)]" : result?.tone === "good" ? "text-[var(--primary)]" : "text-[var(--muted)]"}`}>{result?.text}</p>
           </form>
         ) : (
-          <p className="text-xs leading-6 text-[var(--muted)]">Pick a futures or options contract above to trade it. Indices can be charted but not traded.</p>
+          <p className="text-xs leading-6 text-[var(--muted)]">Pick an option from the chain to trade it.</p>
         )}
       </div>
 
-      <p className="border-t border-[var(--border)] pt-3 text-xs leading-5 text-[var(--muted)]">Simulated fills against the live order book, with slippage and charges. Keep this page open while you hold positions: orders, stops and the 15:20 square-off run while it&apos;s open.</p>
+      <p className="border-t border-[var(--border)] pt-3 text-xs leading-5 text-[var(--muted)]">Simulated fills against the live order book, with slippage and charges. Buy calls or puts; sell only to close. Keep this page open while you hold positions: orders, stops and the 15:20 square-off run while it&apos;s open.</p>
     </aside>
   );
 }
 
-type Tab = "positions" | "orders" | "history" | "fills" | "activity";
+type Tab = "positions" | "orders" | "trades";
 
 const stampText = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 
@@ -286,39 +291,63 @@ function OrderEditor({ order, instrument, maxLots, onModify, onClose }: { order:
   );
 }
 
-/** Positions, open orders (modify or cancel), the order history, fills and activity for the account. */
+/**
+ * The account's book in three tabs: today's positions with their P&L (open and closed, Exit and
+ * Exit all), orders (working ones to modify or cancel, then the history) and trades (fills).
+ */
 export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: Desk; onCancel: (orderId: string) => Promise<void>; onPlace: (order: OrderInput) => Promise<EngineOutput[]>; onModify: (orderId: string, changes: OrderChanges) => Promise<EngineOutput[]> }) {
   const [tab, setTab] = useState<Tab>("positions");
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
-  const positions = positionsView(desk.state);
+  const [exiting, setExiting] = useState(false);
+  const today = desk.state.day?.date ?? toIst(desk.state.clock).date;
+  const positions = dayPositions(desk, today);
+  const totals = dayTotals(positions);
+  const open = positions.filter((position) => position.quantity !== 0);
   const { orders } = desk.state;
   const history = (desk.orderBook ?? []).filter((record) => record.status !== "OPEN");
+  const active = desk.state.status === "ACTIVE";
   const instrumentFor = (token: number) => desk.instruments.find((item) => item.token === token);
   const run = (task: Promise<unknown>) => {
     setError(null);
     task.catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "That didn't go through. Try again."));
   };
-  const close = (token: number, quantity: number) => {
-    const instrument = instrumentFor(token);
-    if (!instrument || quantity === 0) return;
-    run(onPlace({ token, side: quantity > 0 ? "SELL" : "BUY", lots: Math.abs(quantity) / instrument.lotSize, type: "MARKET" }));
+  /** A market order that closes the whole position. */
+  const exitOrder = (token: number, quantity: number): OrderInput | null => {
+    const lotSize = instrumentFor(token)?.lotSize;
+    return lotSize && quantity !== 0 ? { token, side: quantity > 0 ? "SELL" : "BUY", lots: Math.abs(quantity) / lotSize, type: "MARKET" } : null;
+  };
+  const exitAll = async () => {
+    setExiting(true);
+    setError(null);
+    try {
+      // Any short left from before goes first, so no exit leaves a naked short behind.
+      for (const position of [...open].sort((a, b) => a.quantity - b.quantity)) {
+        const order = exitOrder(position.token, position.quantity);
+        if (!order) continue;
+        const rejected = rejectionOf(await onPlace(order));
+        if (rejected) throw new Error(`${position.tradingSymbol}: ${rejected}`);
+      }
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Couldn't exit every position. Try again.");
+    } finally {
+      setExiting(false);
+    }
   };
   const tabs: [Tab, string, number][] = [
-    ["positions", "Positions", positions.length],
+    ["positions", "Positions", open.length],
     ["orders", "Orders", orders.length],
-    ["history", "Order history", history.length],
-    ["fills", "Fills", desk.fills.length],
-    ["activity", "Activity", desk.notes.length],
+    ["trades", "Trades", desk.fills.length],
   ];
   const cell = "px-4 py-2.5";
   const head = `${cell} font-normal text-[var(--muted)]`;
   const action = "rounded border border-[var(--border-strong)] px-2 py-1 font-sans hover:bg-[var(--card-raised)] disabled:opacity-40";
   const sideText = (side: Side) => <span className={side === "BUY" ? "text-[var(--primary)]" : "text-[var(--danger)]"}>{side === "BUY" ? "Buy" : "Sell"}</span>;
+  const average = (value: number, quantity: number) => (quantity > 0 ? price(Math.round(value / quantity)) : "—");
 
   return (
-    <section className="terminal-card overflow-hidden" aria-label="Account activity">
-      <div className="flex gap-1 overflow-x-auto border-b border-[var(--border)] px-3 pt-2" role="tablist" aria-label="Account activity">
+    <section className="terminal-card overflow-hidden" aria-label="Positions, orders and trades">
+      <div className="flex gap-1 overflow-x-auto border-b border-[var(--border)] px-3 pt-2" role="tablist" aria-label="Positions, orders and trades">
         {tabs.map(([value, label, count]) => (
           <button key={value} type="button" role="tab" aria-selected={tab === value} onClick={() => setTab(value)} className={`min-h-10 shrink-0 border-b-2 px-3 text-xs font-medium ${tab === value ? "border-[var(--primary)] text-[var(--foreground)]" : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
             {label} <span className="font-mono text-[var(--faint)]">{count}</span>
@@ -326,77 +355,106 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
         ))}
       </div>
       {error && <p role="alert" className="border-b border-[var(--border)] px-4 py-2 text-xs text-[var(--danger)]">{error}</p>}
-      <div className="max-h-96 overflow-auto" role="tabpanel">
-        {tab === "positions" && (positions.length === 0 ? <p className="p-5 text-xs text-[var(--muted)]">No open positions.</p> : (
-          <table className="w-full min-w-[560px] text-left font-mono text-xs">
-            <thead><tr>{["Contract", "Lots", "Avg", "LTP", "P&L", ""].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
-            <tbody className="divide-y divide-[var(--border)]">
-              {positions.map((position) => (
-                <tr key={position.token}>
-                  <td className={cell}>{position.tradingSymbol}</td>
-                  <td className={`${cell} ${position.quantity > 0 ? "text-[var(--primary)]" : "text-[var(--danger)]"}`}>{position.lots > 0 ? "+" : ""}{position.lots} <span className="text-[var(--faint)]">({position.quantity})</span></td>
-                  <td className={cell}>{price(position.averagePrice)}</td>
-                  <td className={cell}>{price(position.mark)}</td>
-                  <td className={`${cell} ${tone(position.unrealised)}`}>{signed(position.unrealised)}</td>
-                  <td className={`${cell} text-right`}><button type="button" disabled={desk.state.status !== "ACTIVE"} onClick={() => close(position.token, position.quantity)} className={action}>Close</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ))}
-        {tab === "orders" && (orders.length === 0 ? <p className="p-5 text-xs text-[var(--muted)]">No open orders. Limit and stop orders wait here until they fill.</p> : (
-          <table className="w-full min-w-[680px] text-left font-mono text-xs">
-            <thead><tr>{["Placed", "Contract", "Side", "Type", "Lots", "Limit", "Trigger", ""].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
-            <tbody className="divide-y divide-[var(--border)]">
-              {orders.map((order) => editing === order.id ? (
-                <OrderEditor key={order.id} order={order} instrument={instrumentFor(order.token)} maxLots={desk.state.rules.maxLots} onModify={onModify} onClose={() => setEditing(null)} />
-              ) : (
-                <tr key={order.id}>
-                  <td className={cell}>{clockText.format(order.placedAt)}</td>
-                  <td className={cell}>{instrumentFor(order.token)?.tradingSymbol ?? order.token}</td>
-                  <td className={cell}>{sideText(order.side)}</td>
-                  <td className={cell}>{order.type}{order.triggered ? " (triggered)" : ""}</td>
-                  <td className={cell}>{order.lots}{order.filled > 0 ? ` · ${order.filled} filled` : ""}</td>
-                  <td className={cell}>{order.limitPrice !== undefined ? price(order.limitPrice) : "—"}</td>
-                  <td className={cell}>{order.triggerPrice !== undefined ? price(order.triggerPrice) : "—"}</td>
-                  <td className={`${cell} whitespace-nowrap text-right`}>
-                    <button type="button" disabled={desk.state.status !== "ACTIVE"} onClick={() => { setError(null); setEditing(order.id); }} className={`${action} mr-2`}>Modify</button>
-                    <button type="button" onClick={() => run(onCancel(order.id))} className={action}>Cancel</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ))}
-        {tab === "history" && (history.length === 0 ? <p className="p-5 text-xs text-[var(--muted)]">Filled, cancelled and rejected orders show here.</p> : (
-          <table className="w-full min-w-[760px] text-left font-mono text-xs">
-            <thead><tr>{["Time", "Contract", "Side", "Type", "Qty", "Price", "Avg", "Status"].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
-            <tbody className="divide-y divide-[var(--border)]">
-              {history.map((record) => (
-                <tr key={record.id}>
-                  <td className={`${cell} whitespace-nowrap`}>{stampText.format(record.updatedAt)}</td>
-                  <td className={cell}>{record.tradingSymbol}</td>
-                  <td className={cell}>{sideText(record.side)}</td>
-                  <td className={cell}>{record.type}</td>
-                  <td className={cell}>{record.filled}/{record.quantity}</td>
-                  <td className={`${cell} whitespace-nowrap`}>{orderPrice(record)}</td>
-                  <td className={cell}>{record.averagePrice !== null ? price(record.averagePrice) : "—"}</td>
-                  <td className={cell}>
-                    <span className={STATUS_TEXT[record.status][1]}>{STATUS_TEXT[record.status][0]}</span>
-                    {record.reason && <span className="block max-w-56 font-sans text-[11px] leading-4 text-[var(--faint)]">{record.reason}</span>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ))}
-        {tab === "fills" && (desk.fills.length === 0 ? <p className="p-5 text-xs text-[var(--muted)]">No fills yet.</p> : (
+      <div className="max-h-[28rem] overflow-auto" role="tabpanel">
+        {tab === "positions" && (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-[var(--border)] px-4 py-3">
+              <dl className="flex flex-wrap gap-x-6 gap-y-2 text-xs" aria-label="Today's P&L">
+                {[
+                  ["Realised, after charges", totals.realised - totals.charges],
+                  ["Open P&L", totals.unrealised],
+                  ["Day P&L", totals.net],
+                ].map(([label, value]) => (
+                  <div key={label}><dt className="text-[var(--muted)]">{label}</dt><dd className={`mt-0.5 font-mono text-sm ${tone(Number(value))}`}>{signed(Number(value))}</dd></div>
+                ))}
+              </dl>
+              <button type="button" disabled={!active || open.length === 0 || exiting} onClick={() => void exitAll()} className="min-h-9 rounded-md border border-[var(--danger)]/60 px-3 text-xs font-medium text-[var(--danger)] hover:bg-[var(--danger)]/10 disabled:cursor-not-allowed disabled:opacity-40">{exiting ? "Exiting…" : "Exit all"}</button>
+            </div>
+            {positions.length === 0 ? <p className="p-5 text-xs text-[var(--muted)]">No positions today. Buy an option from the chain to open one.</p> : (
+              <table className="w-full min-w-[720px] text-left font-mono text-xs">
+                <thead><tr>{["Contract", "Net qty", "Bought", "Sold", "LTP", "P&L", ""].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {positions.map((position) => {
+                    const pnl = position.realised + position.unrealised;
+                    const lots = position.lotSize ? position.quantity / position.lotSize : null;
+                    const exit = exitOrder(position.token, position.quantity);
+                    return (
+                      <tr key={position.token} className={position.quantity === 0 ? "text-[var(--muted)]" : ""}>
+                        <td className={cell}>{position.tradingSymbol}</td>
+                        <td className={`${cell} ${position.quantity > 0 ? "text-[var(--primary)]" : position.quantity < 0 ? "text-[var(--danger)]" : ""}`}>{position.quantity > 0 ? "+" : ""}{position.quantity}{lots !== null && position.quantity !== 0 ? <span className="text-[var(--faint)]"> ({lots} lot{Math.abs(lots) === 1 ? "" : "s"})</span> : null}</td>
+                        <td className={cell}>{position.buyQuantity > 0 ? `${position.buyQuantity} @ ${average(position.buyValue, position.buyQuantity)}` : "—"}</td>
+                        <td className={cell}>{position.sellQuantity > 0 ? `${position.sellQuantity} @ ${average(position.sellValue, position.sellQuantity)}` : "—"}</td>
+                        <td className={cell}>{price(position.mark)}</td>
+                        <td className={`${cell} ${tone(pnl)}`}>{signed(pnl)}</td>
+                        <td className={`${cell} text-right`}>{exit && <button type="button" disabled={!active} onClick={() => run(onPlace(exit))} className={action}>Exit</button>}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+            {positions.length > 0 && <p className="border-t border-[var(--border)] px-4 py-2.5 text-[11px] leading-5 text-[var(--faint)]">P&amp;L per contract is before charges: what you sold minus what you bought, plus open units at the last price. Charges come off the realised total.</p>}
+          </>
+        )}
+        {tab === "orders" && (
+          <>
+            {orders.length === 0 ? <p className="border-b border-[var(--border)] p-5 text-xs text-[var(--muted)]">No working orders. Limit and stop-loss orders wait here until they fill.</p> : (
+              <table className="w-full min-w-[680px] text-left font-mono text-xs">
+                <caption className="px-4 pb-1 pt-3 text-left font-sans text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Working</caption>
+                <thead><tr>{["Placed", "Contract", "Side", "Type", "Lots", "Limit", "Trigger", ""].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {orders.map((order) => editing === order.id ? (
+                    <OrderEditor key={order.id} order={order} instrument={instrumentFor(order.token)} maxLots={desk.state.rules.maxLots} onModify={onModify} onClose={() => setEditing(null)} />
+                  ) : (
+                    <tr key={order.id}>
+                      <td className={cell}>{clockText.format(order.placedAt)}</td>
+                      <td className={cell}>{instrumentFor(order.token)?.tradingSymbol ?? order.token}</td>
+                      <td className={cell}>{sideText(order.side)}</td>
+                      <td className={cell}>{order.type}{order.triggered ? " (triggered)" : ""}</td>
+                      <td className={cell}>{order.lots}{order.filled > 0 ? ` · ${order.filled} filled` : ""}</td>
+                      <td className={cell}>{order.limitPrice !== undefined ? price(order.limitPrice) : "—"}</td>
+                      <td className={cell}>{order.triggerPrice !== undefined ? price(order.triggerPrice) : "—"}</td>
+                      <td className={`${cell} whitespace-nowrap text-right`}>
+                        <button type="button" disabled={!active} onClick={() => { setError(null); setEditing(order.id); }} className={`${action} mr-2`}>Modify</button>
+                        <button type="button" onClick={() => run(onCancel(order.id))} className={action}>Cancel</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {history.length > 0 && (
+              <table className="w-full min-w-[760px] text-left font-mono text-xs">
+                <caption className="px-4 pb-1 pt-3 text-left font-sans text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">History</caption>
+                <thead><tr>{["Time", "Contract", "Side", "Type", "Qty", "Price", "Avg", "Status"].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {history.map((record) => (
+                    <tr key={record.id}>
+                      <td className={`${cell} whitespace-nowrap`}>{stampText.format(record.updatedAt)}</td>
+                      <td className={cell}>{record.tradingSymbol}</td>
+                      <td className={cell}>{sideText(record.side)}</td>
+                      <td className={cell}>{record.type}</td>
+                      <td className={cell}>{record.filled}/{record.quantity}</td>
+                      <td className={`${cell} whitespace-nowrap`}>{orderPrice(record)}</td>
+                      <td className={cell}>{record.averagePrice !== null ? price(record.averagePrice) : "—"}</td>
+                      <td className={cell}>
+                        <span className={STATUS_TEXT[record.status][1]}>{STATUS_TEXT[record.status][0]}</span>
+                        {record.reason && <span className="block max-w-56 font-sans text-[11px] leading-4 text-[var(--faint)]">{record.reason}</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </>
+        )}
+        {tab === "trades" && (desk.fills.length === 0 ? <p className="p-5 text-xs text-[var(--muted)]">No trades yet.</p> : (
           <table className="w-full min-w-[640px] text-left font-mono text-xs">
             <thead><tr>{["Time", "Contract", "Side", "Qty", "Price", "Realised", "Charges"].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
             <tbody className="divide-y divide-[var(--border)]">
               {desk.fills.map((fill) => (
                 <tr key={fill.id}>
-                  <td className={cell}>{clockText.format(fill.at)}</td>
+                  <td className={`${cell} whitespace-nowrap`}>{stampText.format(fill.at)}</td>
                   <td className={cell}>{fill.tradingSymbol}{fill.reason !== "ORDER" ? <span className="text-[var(--faint)]"> · {fill.reason === "SQUARE_OFF" ? "square-off" : "limit hit"}</span> : null}</td>
                   <td className={cell}>{sideText(fill.side)}</td>
                   <td className={cell}>{fill.quantity}</td>
@@ -408,16 +466,6 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
             </tbody>
           </table>
         ))}
-        {tab === "activity" && (
-          <ol className="divide-y divide-[var(--border)] text-xs">
-            {desk.notes.map((note, index) => (
-              <li key={`${note.at}-${index}`} className="flex gap-4 px-4 py-2.5">
-                <span className="shrink-0 font-mono text-[var(--faint)]">{clockText.format(note.at)}</span>
-                <span className={note.tone === "bad" ? "text-[var(--danger)]" : note.tone === "good" ? "text-[var(--primary)]" : "text-[var(--muted)]"}>{note.text}</span>
-              </li>
-            ))}
-          </ol>
-        )}
       </div>
     </section>
   );

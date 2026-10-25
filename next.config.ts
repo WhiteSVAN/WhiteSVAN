@@ -1,10 +1,11 @@
 import type { NextConfig } from "next";
 
 /**
- * The journal tools (formerly TrustSVAN) and the Zerodha track record are switched off: the site is
- * the prop firm only. Their code stays in the repo; delete these redirects to bring them back.
+ * The old journal tools (formerly TrustSVAN) and the Zerodha track record are switched off: the site
+ * is the prop firm only, and /journal is now the evaluation accounts' own journal. Their code stays
+ * in the repo; delete these redirects to bring them back.
  */
-const JOURNAL_APP = ["journal", "upload", "reports", "analytics", "feed", "communities", "inbox", "network", "invite", "track"];
+const JOURNAL_APP = ["upload", "reports", "analytics", "feed", "communities", "inbox", "network", "invite", "track"];
 const JOURNAL_PUBLIC = ["explore", "p", "examples"];
 
 const nextConfig: NextConfig = {

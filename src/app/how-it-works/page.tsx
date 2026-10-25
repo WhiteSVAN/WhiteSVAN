@@ -12,7 +12,7 @@ const LAST = EVALUATION_PLANS[EVALUATION_PLANS.length - 1];
 
 export const metadata: Metadata = {
   title: "How it works | WhiteSVAN",
-  description: `Pass one evaluation on NIFTY, BANK NIFTY and SENSEX futures and options, get a funded account and keep ${R.contractorSharePercent}% of the profit.`,
+  description: `Pass one evaluation on NIFTY, BANK NIFTY and SENSEX options, get a funded account and keep ${R.contractorSharePercent}% of the profit.`,
 };
 
 const hhmm = (seconds: number) =>
@@ -42,7 +42,7 @@ const DETAILS = [
 ];
 
 const TRADING_DAY = [
-  { time: R.marketOpen, title: "The market opens", body: "Trade NIFTY and BANK NIFTY on NSE and SENSEX on BSE, futures and options. Your loss limits count open and closed P&L all day." },
+  { time: R.marketOpen, title: "The market opens", body: "Trade NIFTY and BANK NIFTY options on NSE and SENSEX options on BSE. Your loss limits count open and closed P&L all day." },
   { time: R.squareOff, title: "Square-off", body: `Anything still open is closed for you and working orders are cancelled. On expiry day, no new positions in expiring contracts after ${hhmm(clockSeconds(R.marketClose) - R.expiryCutoffMinutes * 60)}.` },
   { time: R.marketClose, title: "The day closes", body: "Your closing balance is recorded, the drawdown floor moves up if you closed at a new high, and the pass check runs." },
 ];

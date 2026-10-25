@@ -18,7 +18,7 @@ const RULES = [
 ];
 
 const INDIA = [
-  { icon: ChartCandlestick, title: "NIFTY, BANK NIFTY and SENSEX", text: "Index futures and options on NSE and BSE, sized in exchange lots." },
+  { icon: ChartCandlestick, title: "NIFTY, BANK NIFTY and SENSEX", text: "Index options on NSE and BSE, sized in exchange lots." },
   { icon: IndianRupee, title: "Priced and paid in rupees", text: `One-time fees from ${formatInr(FIRST.fee)}, GST included. Payouts to your Indian bank account.` },
   { icon: ReceiptIndianRupee, title: "Indian costs and hours", text: "Brokerage, STT, exchange charges, the SEBI fee, stamp duty and GST in every fill. Intraday, 09:15–15:30 IST." },
 ];
@@ -28,7 +28,7 @@ const FAQ = [
   ["Are the accounts real money?", `No. Evaluation and funded accounts are simulated. Your payouts are real: you receive ${R.contractorSharePercent}% of the profit you make on your funded account, up to the payout cap for your account size.`],
   ["How often can I get paid?", `Twice a month, once KYC is done. Payouts are capped by account size, from ${formatInr(FIRST.payoutCap)} on a ${FIRST.label} account to ${formatInr(LAST.payoutCap)} on a ${LAST.label} account.`],
   ["Are there monthly or activation fees?", "No. Every evaluation is a one-time fee with GST included. No subscription and no activation fee when you pass."],
-  ["What can I trade?", "NIFTY and BANK NIFTY futures and options on NSE, and SENSEX futures and options on BSE. Intraday only, from 09:15 to 15:20 IST."],
+  ["What can I trade?", "NIFTY and BANK NIFTY options on NSE, and SENSEX options on BSE. Intraday only, from 09:15 to 15:20 IST. Buy calls or puts, and sell only to close."],
   ["When can I start?", DEMO_CHECKOUT ? DEMO_START_ANSWER : "We're launching soon. Create your account now to get early access when evaluations open."],
 ];
 

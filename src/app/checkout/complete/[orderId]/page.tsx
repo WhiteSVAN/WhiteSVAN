@@ -41,7 +41,7 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
     ["Receipt sent to", order.billingEmail],
   ];
   const steps: [string, string][] = [
-    ["Trade the evaluation", "NIFTY, BANK NIFTY and SENSEX futures and options, intraday, on the platform."],
+    ["Trade the evaluation", "NIFTY, BANK NIFTY and SENSEX options, intraday, on the platform."],
     ["Pass", `Hit the ${R.targetPercent}% target in ${R.minimumDays} or more trading days, inside both loss limits.`],
     demo
       ? ["Demo only", "A demo evaluation shows how it works. Passing it doesn't lead to a funded account or a payout."]

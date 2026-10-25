@@ -220,7 +220,7 @@ export function rejectMessage(reason: RejectReason, rules: RuleSet): string {
     case "TRIGGER_ALREADY_CROSSED": return "The market is already through this trigger price.";
     case "EXPIRY_WINDOW": return "No new positions in expiring contracts in the last hour of expiry day.";
     case "LOT_LIMIT": return `This order would take you over your ${rules.maxLots}-lot position limit.`;
-    case "NAKED_SHORT": return "Sell options only inside a defined-risk spread: hold the protective option first.";
+    case "NAKED_SHORT": return "Sell only to close an option you hold: short options aren't allowed.";
     case "UNKNOWN_ORDER": return "This order isn't working any more: it has filled or been cancelled.";
     case "BELOW_FILLED": return "That's no more than has already filled. Cancel the order to stop the rest.";
   }
