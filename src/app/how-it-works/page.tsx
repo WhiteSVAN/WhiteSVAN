@@ -36,7 +36,7 @@ const DETAILS = [
   },
   {
     icon: BadgeIndianRupee,
-    points: ["Request a payout twice a month", `Caps from ${formatInr(FIRST.payoutCap)} to ${formatInr(LAST.payoutCap)} a payout, by account size`, "Profit equal to your max drawdown stays in the account as a buffer"],
+    points: ["Request a payout whenever you have eligible profit", `Caps from ${formatInr(FIRST.payoutCap)} to ${formatInr(LAST.payoutCap)} a payout, by account size`, "Profit equal to your max drawdown stays in the account as a buffer"],
     link: { href: "/funded#calculator", label: "Work out a payout" },
   },
 ];

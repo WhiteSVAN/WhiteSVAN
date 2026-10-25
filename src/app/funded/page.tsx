@@ -15,17 +15,17 @@ const LAST = EVALUATION_PLANS[EVALUATION_PLANS.length - 1];
 
 export const metadata: Metadata = {
   title: "Funded accounts and payouts | WhiteSVAN",
-  description: `How WhiteSVAN funded accounts and payouts work: keep ${R.contractorSharePercent}% of your profit, request a payout twice a month up to ${formatInr(FIRST.payoutCap)}–${formatInr(LAST.payoutCap)}, and work out a payout for any account size.`,
+  description: `How WhiteSVAN funded accounts and payouts work: keep ${R.contractorSharePercent}% of your profit, request payouts when eligible with caps from ${formatInr(FIRST.payoutCap)} to ${formatInr(LAST.payoutCap)}, and work out a payout for any account size.`,
 };
 
 const FACTS: [string, string][] = [
   [`${R.contractorSharePercent}%`, "Profit split"],
-  ["2x a month", "Payouts"],
+  ["On demand", "Payouts"],
   [`${formatInr(FIRST.payoutCap)}–${formatInr(LAST.payoutCap)}`, "Cap per payout"],
 ];
 
 const PAYOUT_RULES = [
-  `Keep ${R.contractorSharePercent}% of the profit on your funded account. Request one payout in each half of the month (the 1st to the 15th, and the 16th to month end), up to the cap for your account size.`,
+  `Keep ${R.contractorSharePercent}% of the profit on your funded account. Request a payout whenever you have eligible profit, up to the cap for your account size.`,
   "Profit equal to your max drawdown stays in the account as a buffer, so after a payout your balance is still a full drawdown above your floor. A payout takes the profit it pays out of your balance: your share and the firm's.",
   "Every request is checked against the rules, then paid in rupees to your verified bank account. Tax is deducted at source where it applies.",
 ];
@@ -45,7 +45,7 @@ export default function FundedPage() {
     <main id="main-content">
       <div className="border-b border-[var(--border)] px-5 pb-16 pt-16 text-center sm:pb-20 sm:pt-24">
         <p className="terminal-label text-[var(--primary)]">Funded accounts</p>
-        <h1 className="mx-auto mt-5 max-w-4xl text-5xl font-medium leading-[1.04] tracking-[-.055em] sm:text-7xl">Get funded.<br /><span className="text-[var(--primary)]">Get paid twice a month.</span></h1>
+        <h1 className="mx-auto mt-5 max-w-4xl text-5xl font-medium leading-[1.04] tracking-[-.055em] sm:text-7xl">Get funded.<br /><span className="text-[var(--primary)]">Payouts on demand.</span></h1>
         <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[var(--muted)] sm:text-base">Pass the evaluation and trade a funded account with the same loss limits and no profit target. Keep {R.contractorSharePercent}% of the profit, paid in rupees to your bank.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link href="/checkout" className="inline-flex min-h-12 items-center gap-3 rounded-full bg-[var(--primary)] px-7 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start your evaluation <ArrowRight size={16} aria-hidden="true" /></Link>

@@ -40,6 +40,17 @@ webhooks race or repeat.
 - Razorpay browser checks: 17/17 passed, including authorized-before-capture, successful capture,
   payment-window dismissal, forged signatures, and concurrent/repeated signed webhooks.
 
+Payout timing changed after this browser run on 25 October 2026: requests are available whenever
+eligible profit is earned, subject to the buffer, per-request cap and verification requirements.
+The earlier run's half-month cycle assertions are obsolete; the counts above remain the historical
+record of that run, rather than verification of the revised payout timing.
+
+The on-demand follow-up passed all 487 automated tests, including a regression for another
+same-day payout while eligible profit remains. The production build and lint passed. Fourteen
+browser checks passed against the compiled local site: seven public pages, funded metadata and
+calculator, signed-in payout eligibility and prerequisites, mobile width, and the share image.
+Results are in `artifacts/claude-continuation/on-demand/results-on-demand.json` (Git-ignored).
+
 Browser runs used synthetic market data, dummy gateway credentials, an intercepted Checkout.js and
 local Kite/Razorpay stand-ins. No live charge or external merchant configuration was tested.
 Local results and screenshots are under the Git-ignored directory

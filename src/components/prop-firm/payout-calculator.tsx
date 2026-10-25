@@ -58,7 +58,7 @@ export function PayoutCalculator() {
                 [`Your ${R.contractorSharePercent}% share`, money(amounts.traderShare)],
                 ["Payout cap on this account", money(rules.payoutCap)],
               ].map(([label, value]) => <div key={label} className="flex items-center justify-between gap-4 px-4 py-3"><dt className="text-[var(--muted)]">{label}</dt><dd className="font-mono">{value}</dd></div>)}
-              <div className="flex items-center justify-between gap-4 bg-[var(--card-raised)] px-4 py-4"><dt className="font-medium">Your payout this cycle</dt><dd className="font-mono text-xl text-[var(--primary)]">{money(amounts.payout)}</dd></div>
+              <div className="flex items-center justify-between gap-4 bg-[var(--card-raised)] px-4 py-4"><dt className="font-medium">Available payout</dt><dd className="font-mono text-xl text-[var(--primary)]">{money(amounts.payout)}</dd></div>
             </dl>
             <p className="mt-4 text-xs leading-6 text-[var(--muted)]">{amounts.payout > 0
               ? `The payout takes ${money(amounts.debit)} of profit off your balance (your share and the firm's)${amounts.withdrawableProfit > amounts.debit ? `, leaving ${money(amounts.withdrawableProfit - amounts.debit)} above the buffer for your next request` : " and leaves the buffer in place"}.`

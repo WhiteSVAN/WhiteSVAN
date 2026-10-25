@@ -3,6 +3,10 @@
 Reviewed 16 October 2026 for the requested prop-first repositioning of WhiteSVAN.
 This file records source evidence and the checks needed for this implementation.
 
+Policy update, 25 October 2026: payout requests are now available whenever eligible profit is earned,
+subject to the buffer, per-request cap and verification requirements. Historical references below
+to half-month scheduling or per-cycle caps describe the earlier policy and are superseded.
+
 ## Product and design
 
 - Keep the existing forest background, lime accents, Space Grotesk and IBM Plex Mono.

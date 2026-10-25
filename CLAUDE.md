@@ -142,8 +142,9 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   accounts (`/dashboard`, account cards with meters), Trade (`/markets`, once Kite is configured) and
   Journal (`/journal`); Payouts, Academy, Help, Settings (name and email only) and sign-out sit in
   the account menu.
-- **Payouts** (`/payouts`): funded-account balance, profit, buffer, split, cap and half-month cycle
-  dates come from [src/lib/trading/payouts.ts](src/lib/trading/payouts.ts). The page shows eligibility
+- **Payouts** (`/payouts`): funded-account balance, profit, buffer, split, cap and eligibility
+  come from [src/lib/trading/payouts.ts](src/lib/trading/payouts.ts). Requests are available whenever
+  eligible profit is earned; there is no fixed calendar schedule or request frequency. The page shows
   prerequisites, including KYC, agreement and bank checks, but cannot submit a request or pay money.
   Those checks remain incomplete until their processing flows are built.
 - **Journal** (`/journal`, [src/lib/journal.ts](src/lib/journal.ts)): basic, on the evaluation and funded
@@ -180,7 +181,8 @@ result. The future engine service (Node on AWS with the market-data feed) hosts 
   GST from **dated schedules**. Add a new row when a rate changes; never edit one fills have used.
   The shipped row is `verified: false` until a real contract note matches it to the paisa.
 - `payouts.ts`: payout quote: 80% of profit above the buffer (= max drawdown), capped per request,
-  one request per half-month, KYC / agreement / bank / hold checks. TDS is not computed here.
+  available whenever eligible profit is earned, with KYC / agreement / bank / hold checks.
+  There is no calendar-cycle restriction. TDS is not computed here.
 - Lot, tick and freeze sizes and expiries come from the contract master (`Instrument` rows). Tests
   use fixture values, not exchange values.
 - The Academy rule practice ([src/lib/academy-practice.ts](src/lib/academy-practice.ts)) runs these

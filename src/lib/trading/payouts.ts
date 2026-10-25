@@ -45,8 +45,6 @@ export interface PayoutChecks {
   bankVerified: boolean;
   /** An open risk or fraud review on the account. */
   onHold: boolean;
-  /** IST date of the last paid or pending request, if any. */
-  lastRequestDate: string | null;
 }
 
 export type PayoutBlock =
@@ -57,7 +55,6 @@ export type PayoutBlock =
   | "AGREEMENT"
   | "BANK"
   | "ON_HOLD"
-  | "CYCLE_USED"
   | "NO_PROFIT_ABOVE_BUFFER";
 
 export interface PayoutQuote extends PayoutAmounts {
@@ -65,28 +62,12 @@ export interface PayoutQuote extends PayoutAmounts {
   blocks: PayoutBlock[];
   /** Balance above the starting balance. */
   profit: Paise;
-  cycle: string;
 }
 
-/** Two payout cycles a month: the 1st to the 15th, and the 16th to month end. */
-export function payoutCycle(date: string): string {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new RangeError(`"${date}" is not a YYYY-MM-DD date.`);
-  return `${date.slice(0, 7)}/${Number(date.slice(8, 10)) <= 15 ? 1 : 2}`;
-}
-
-/** The first and last dates of the payout cycle `date` falls in. */
-export function cycleDates(date: string): { start: string; end: string } {
-  const cycle = payoutCycle(date);
-  const month = cycle.slice(0, 7);
-  if (cycle.endsWith("/1")) return { start: `${month}-01`, end: `${month}-15` };
-  const lastDay = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).getUTCDate();
-  return { start: `${month}-16`, end: `${month}-${String(lastDay).padStart(2, "0")}` };
-}
-
-export function quotePayout(state: AccountState, checks: PayoutChecks, today: string, requested?: Paise): PayoutQuote {
+/** Eligible profit can be requested on demand, subject to the account checks and per-request cap. */
+export function quotePayout(state: AccountState, checks: PayoutChecks, requested?: Paise): PayoutQuote {
   const profit = state.balance - state.rules.startingBalance;
   const amounts = payoutAmounts(state.rules, profit, requested);
-  const cycle = payoutCycle(today);
 
   const blocks: PayoutBlock[] = [];
   if (state.phase !== "FUNDED") blocks.push("NOT_FUNDED");
@@ -96,8 +77,7 @@ export function quotePayout(state: AccountState, checks: PayoutChecks, today: st
   if (!checks.agreementSigned) blocks.push("AGREEMENT");
   if (!checks.bankVerified) blocks.push("BANK");
   if (checks.onHold) blocks.push("ON_HOLD");
-  if (checks.lastRequestDate && payoutCycle(checks.lastRequestDate) === cycle) blocks.push("CYCLE_USED");
   if (amounts.payout <= 0) blocks.push("NO_PROFIT_ABOVE_BUFFER");
 
-  return { eligible: blocks.length === 0, blocks, profit, ...amounts, cycle };
+  return { eligible: blocks.length === 0, blocks, profit, ...amounts };
 }

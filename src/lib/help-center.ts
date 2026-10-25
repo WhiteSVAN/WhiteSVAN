@@ -106,7 +106,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "contractor-pay",
         question: "How do payouts work?",
-        answer: `You keep ${R.contractorSharePercent}% of the profit on your funded account. Request a payout twice a month, up to ${caps} per payout for ${first.label} to ${last.label} accounts. Profit equal to your max drawdown stays in the account as a buffer, and tax is deducted at source where it applies.`,
+        answer: `You keep ${R.contractorSharePercent}% of the profit on your funded account. Request a payout whenever you have eligible profit, up to ${caps} per payout for ${first.label} to ${last.label} accounts. Profit equal to your max drawdown stays in the account as a buffer. Complete KYC, the funded trader agreement and bank verification before your first payout. Tax is deducted at source where it applies.`,
       },
       {
         id: "real-money",

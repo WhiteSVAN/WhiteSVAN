@@ -493,7 +493,7 @@ describe("replay", () => {
 });
 
 describe("funded payouts", () => {
-  const allClear: PayoutChecks = { kycVerified: true, agreementSigned: true, bankVerified: true, onHold: false, lastRequestDate: null };
+  const allClear: PayoutChecks = { kycVerified: true, agreementSigned: true, bankVerified: true, onHold: false };
 
   function fundedWithProfit() {
     const sim = new Sim({ phase: "FUNDED" });
@@ -505,7 +505,7 @@ describe("funded payouts", () => {
   it("pays the split of profit above the buffer, up to the cap", () => {
     const sim = fundedWithProfit();
     expect(sim.state.status).toBe("ACTIVE");
-    const quote = quotePayout(sim.state, allClear, "2026-11-04");
+    const quote = quotePayout(sim.state, allClear);
     expect(quote).toEqual({
       eligible: true,
       blocks: [],
@@ -515,25 +515,32 @@ describe("funded payouts", () => {
       traderShare: r(6_400),
       payout: r(5_000),
       debit: r(6_250),
-      cycle: "2026-11/1",
     });
     sim.send({ kind: "payout", at: ist("2026-11-04 16:00"), debit: quote.debit });
     expect(sim.state.balance).toBe(r(1_05_750));
 
-    const sameCycle = quotePayout(sim.state, { ...allClear, lastRequestDate: "2026-11-04" }, "2026-11-10");
-    expect(sameCycle).toMatchObject({ eligible: false, blocks: ["CYCLE_USED"], withdrawableProfit: r(1_750), payout: r(1_400), debit: r(1_750) });
-    expect(quotePayout(sim.state, { ...allClear, lastRequestDate: "2026-11-04" }, "2026-11-16")).toMatchObject({ eligible: true, cycle: "2026-11/2" });
-    expect(quotePayout(sim.state, allClear, "2026-11-16", r(1_000))).toMatchObject({ payout: r(1_000), debit: r(1_250) });
+    expect(quotePayout(sim.state, allClear, r(1_000))).toMatchObject({ payout: r(1_000), debit: r(1_250) });
+  });
+
+  it("allows another payout the same day while eligible profit remains", () => {
+    const sim = fundedWithProfit();
+    const first = quotePayout(sim.state, allClear);
+    sim.send({ kind: "payout", at: ist("2026-11-04 16:00"), debit: first.debit });
+    const next = quotePayout(sim.state, allClear);
+    expect(next).toMatchObject({ eligible: true, blocks: [], withdrawableProfit: r(1_750), payout: r(1_400), debit: r(1_750) });
+    sim.send({ kind: "payout", at: ist("2026-11-04 16:01"), debit: next.debit });
+    expect(sim.state.balance).toBe(r(1_04_000));
+    expect(quotePayout(sim.state, allClear)).toMatchObject({ eligible: false, blocks: ["NO_PROFIT_ABOVE_BUFFER"], payout: 0 });
   });
 
   it("lists every block and refuses debits beyond the buffer", () => {
     const sim = fundedWithProfit();
-    const blocked = quotePayout(sim.state, { kycVerified: false, agreementSigned: false, bankVerified: false, onHold: true, lastRequestDate: null }, "2026-11-04");
+    const blocked = quotePayout(sim.state, { kycVerified: false, agreementSigned: false, bankVerified: false, onHold: true });
     expect(blocked.blocks).toEqual(["KYC", "AGREEMENT", "BANK", "ON_HOLD"]);
     expect(() => sim.send({ kind: "payout", at: ist("2026-11-04 16:00"), debit: r(8_000) + 1 })).toThrow(/above the buffer/);
     sim.quote("2026-11-04 09:20", FUT, 25_000);
     sim.place("2026-11-04 09:20", { token: FUT.token, side: "BUY" });
-    expect(quotePayout(sim.state, allClear, "2026-11-04").blocks).toEqual(["OPEN_POSITIONS"]);
-    expect(quotePayout(new Sim().state, allClear, "2026-11-04").blocks).toEqual(["NOT_FUNDED", "NO_PROFIT_ABOVE_BUFFER"]);
+    expect(quotePayout(sim.state, allClear).blocks).toEqual(["OPEN_POSITIONS"]);
+    expect(quotePayout(new Sim().state, allClear).blocks).toEqual(["NOT_FUNDED", "NO_PROFIT_ABOVE_BUFFER"]);
   });
 });
