@@ -116,14 +116,14 @@ function Choice<T extends string | number>({ label, value, options, onChange }: 
 
 const selectClass = "mt-1 min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-3 font-mono text-xs text-[var(--foreground)] sm:w-auto";
 
-/** The shared login ended mid-session. Owners get the Kite login (`loginHref`); everyone else waits for them. */
+/** The shared login ended mid-session. Owners get the login link (`loginHref`); everyone else waits for them. */
 function SessionEnded({ message, loginHref }: { message: string; loginHref: string | null }) {
   return (
     <div className="terminal-card px-6 py-12 text-center">
-      <h2 className="text-xl font-medium tracking-tight">{loginHref ? "Connect Zerodha again" : "Live prices are offline"}</h2>
+      <h2 className="text-xl font-medium tracking-tight">{loginHref ? "Connect live prices again" : "Live prices are offline"}</h2>
       <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">{message}</p>
       {/* A route handler redirect, so a plain link rather than a prefetching <Link>. */}
-      {loginHref && <a href={loginHref} className="mt-6 inline-flex min-h-11 items-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Log in with Zerodha</a>}
+      {loginHref && <a href={loginHref} className="mt-6 inline-flex min-h-11 items-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Connect live prices</a>}
     </div>
   );
 }
@@ -176,7 +176,7 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
   // forgotten the shared login).
   const sessionEnded = useCallback((message: string) => {
     setEnded(message);
-    router.replace(withParam(home, "zerodha", canConnect ? "ended" : "offline"));
+    router.replace(withParam(home, "feed", canConnect ? "ended" : "offline"));
   }, [router, home, canConnect]);
   const latestQuotes = useRef<Record<string, MarketQuote>>({});
   const lastPoll = useRef(0);
@@ -200,7 +200,7 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
         if (error instanceof ApiError && error.status === 401) sessionEnded(error.message);
-        else setListError(error instanceof Error ? error.message : "Could not load Zerodha's contract list.");
+        else setListError(error instanceof Error ? error.message : "Could not load the contract list.");
       });
     return () => controller.abort();
   }, [underlying, expiryChoice, reloads, sessionEnded]);
@@ -401,7 +401,7 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
             </p>
           )}
           {!data && !listError && <div className="terminal-card flex h-[420px] items-center justify-center text-sm text-[var(--muted)]">Loading {UNDERLYINGS[underlying].label} contracts…</div>}
-          {data && !instrument && <p className="rounded-lg border border-[var(--border)] p-4 text-sm text-[var(--muted)]">Zerodha&apos;s contract list has no {mode === "future" ? "futures" : "options"} for {UNDERLYINGS[underlying].label} today.</p>}
+          {data && !instrument && <p className="rounded-lg border border-[var(--border)] p-4 text-sm text-[var(--muted)]">The contract list has no {mode === "future" ? "futures" : "options"} for {UNDERLYINGS[underlying].label} today.</p>}
 
           {instrument && (
             <section className="terminal-card overflow-hidden" aria-label={instrument.label}>

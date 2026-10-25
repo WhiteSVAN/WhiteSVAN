@@ -12,15 +12,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </span>
         </Link>
         <div className="terminal-card relative overflow-hidden p-7 sm:p-9">
-          <div className="mb-7 flex items-center justify-between border-b border-[#2d382f] pb-4 font-mono text-[9px] uppercase tracking-wider text-[#819083]">
-            <span className="flex items-center gap-2"><i className="terminal-dot" /> Secure access</span>
-            <span>WhiteSVAN / trader access</span>
-          </div>
           {children}
         </div>
-        <p className="mt-6 text-center font-mono text-[9px] uppercase tracking-wider text-zinc-400">
-          Your trader workspace / private by default
-        </p>
       </div>
     </div>
   );

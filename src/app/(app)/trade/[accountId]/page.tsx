@@ -10,7 +10,7 @@ import { ZerodhaNotice } from "@/components/markets/zerodha-notice";
 import { findAccount } from "@/lib/accounts/store";
 import { requireUser } from "@/lib/auth/dal";
 import { accountNumber } from "@/lib/checkout/billing";
-import { findEvaluationPlan } from "@/lib/prop-firm";
+import { findAccountPlan } from "@/lib/prop-firm";
 import { isKiteOwner, kiteConfig } from "@/lib/zerodha/config";
 import { PRICES_OFFLINE, sharedKiteSession } from "@/lib/zerodha/connection";
 
@@ -20,12 +20,12 @@ export const metadata: Metadata = { title: "Trading platform · WhiteSVAN", robo
  * One evaluation account's trading platform, on the firm's shared Kite login. While the login is
  * down, traders see their account and wait; owners get the Kite login card.
  */
-export default async function TradePage({ params, searchParams }: { params: Promise<{ accountId: string }>; searchParams: Promise<{ zerodha?: string }> }) {
+export default async function TradePage({ params, searchParams }: { params: Promise<{ accountId: string }>; searchParams: Promise<{ feed?: string }> }) {
   const user = await requireUser();
   const { accountId } = await params;
   const account = await findAccount(user.id, accountId);
   if (!account) notFound();
-  const plan = findEvaluationPlan(account.planId);
+  const plan = findAccountPlan(account.planId);
   const planLabel = plan?.label ?? account.planId;
   const config = kiteConfig();
   const owner = isKiteOwner(config, user.email);
@@ -44,7 +44,7 @@ export default async function TradePage({ params, searchParams }: { params: Prom
         </p>
       </div>
 
-      <ZerodhaNotice code={(await searchParams).zerodha} />
+      <ZerodhaNotice code={(await searchParams).feed} />
 
       {session ? (
         <ZerodhaCharts account={{ id: account.id, desk: account.desk, planLabel, demo: account.demo }} canConnect={owner} />
@@ -64,7 +64,7 @@ export default async function TradePage({ params, searchParams }: { params: Prom
         </section>
       )}
 
-      <p className="max-w-3xl text-xs leading-6 text-[var(--muted)]">Evaluation and funded accounts are simulated: fills follow the live order book with slippage and Indian F&amp;O charges, and no order reaches an exchange. Prices from Zerodha through Kite Connect. Charts by TradingView Lightweight Charts.</p>
+      <p className="max-w-3xl text-xs leading-6 text-[var(--muted)]">Evaluation and funded accounts are simulated: fills follow the live order book with slippage and Indian F&amp;O charges, and no order reaches an exchange. Charts by TradingView Lightweight Charts.</p>
     </div>
   );
 }

@@ -5,22 +5,14 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { logout } from "./actions";
 
-const TRADER_ITEMS = [
-  { href: "/analytics", label: "Profile analytics" },
-  { href: "/invite", label: "Invite traders" },
-  { href: "/reports", label: "My briefs" },
+const ITEMS = [
+  { href: "/academy", label: "Academy" },
+  { href: "/help", label: "Help center" },
   { href: "/settings", label: "Settings" },
 ];
 
-const CLIENT_ITEMS = [{ href: "/settings", label: "Settings" }];
-
-/**
- * Account dropdown for the app shell — keeps the top nav to a few primary tabs
- * and tucks the secondary destinations (broker connection, briefs, settings) plus sign-out
- * behind the user's name. Closes on outside click or Escape.
- */
-export function AccountMenu({ label, role }: { label: string; role: "TRADER" | "CLIENT" | null }) {
-  const items = role === "CLIENT" ? CLIENT_ITEMS : TRADER_ITEMS;
+/** The account dropdown: Academy, Help, Settings and sign-out behind the user's name. Closes on outside click or Escape. */
+export function AccountMenu({ label }: { label: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -61,7 +53,7 @@ export function AccountMenu({ label, role }: { label: string; role: "TRADER" | "
           role="menu"
           className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 py-1 shadow-xl shadow-black/40"
         >
-          {items.map((item) => (
+          {ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}

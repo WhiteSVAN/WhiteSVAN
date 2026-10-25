@@ -5,7 +5,7 @@
  */
 import { prisma } from "@/lib/db";
 import { toISODate } from "@/lib/format";
-import { findEvaluationPlan, type EvaluationPlan } from "@/lib/prop-firm";
+import { findAccountPlan, type EvaluationPlan } from "@/lib/prop-firm";
 import { reviewTrackRecord, type TrackReview } from "@/lib/track-record";
 import { toPaise } from "@/lib/trading/money";
 
@@ -27,7 +27,7 @@ export interface TrackSummary {
 }
 
 export async function loadTrackSummary(account: TrackedAccountRef): Promise<TrackSummary | null> {
-  const plan = account.trackPlanId ? findEvaluationPlan(account.trackPlanId) : undefined;
+  const plan = account.trackPlanId ? findAccountPlan(account.trackPlanId) : undefined;
   if (!plan) return null;
   const from = account.trackStart;
   const [daily, batches] = await Promise.all([

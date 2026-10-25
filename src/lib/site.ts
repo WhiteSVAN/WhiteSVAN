@@ -16,7 +16,4 @@ export const PUBLIC_PAGES: readonly { path: string; priority: number }[] = [
 ];
 
 /** Signed-in workspace routes; crawlers are asked to skip them. */
-export const PRIVATE_PATHS = [
-  "/analytics", "/checkout", "/communities", "/dashboard", "/feed", "/inbox", "/invite", "/journal", "/markets",
-  "/network", "/onboarding", "/payouts", "/reports", "/settings", "/trade", "/upload", "/api/",
-] as const;
+export const PRIVATE_PATHS = ["/checkout", "/dashboard", "/markets", "/onboarding", "/payouts", "/settings", "/trade", "/api/"] as const;

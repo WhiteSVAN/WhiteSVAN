@@ -53,7 +53,7 @@ export async function authenticate(
   }
 }
 
-/** Create an account, then sign the new user in: traders go on to checkout, clients to onboarding. */
+/** Create a trader account, then sign them in and go on to checkout (step 2 of 3). */
 export async function signup(
   _prev: AuthFormState,
   formData: FormData,
@@ -62,7 +62,7 @@ export async function signup(
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
-    role: formData.get("role"),
+    role: "TRADER",
   });
   if (!parsed.success) {
     return { errors: parsed.error.flatten().fieldErrors };
@@ -85,11 +85,10 @@ export async function signup(
   logger.info("auth.signup.created", { userId: created.id, email, role });
 
   try {
-    // Creating the account is step 1 of 3, so traders go straight on to checkout (on the size they
-    // picked, if they picked one) unless they were headed elsewhere; clients onboard first.
+    // On to checkout, on the size picked on the storefront if there was one, unless headed elsewhere.
     const plan = findEvaluationPlan(String(formData.get("plan") ?? ""));
     const next = safeNextPath(String(formData.get("next") ?? ""));
-    await signIn("credentials", { email, password, redirectTo: role === "CLIENT" ? "/onboarding" : plan ? `/checkout/${plan.id}` : (next ?? "/checkout") });
+    await signIn("credentials", { email, password, redirectTo: plan ? `/checkout/${plan.id}` : (next ?? "/checkout") });
     return undefined;
   } catch (error) {
     if (error instanceof AuthError) return { message: "Account created — please sign in." };
@@ -106,10 +105,9 @@ async function referrerIdFor(code: string): Promise<string | null> {
 }
 
 /**
- * Start a Google sign-in. The chosen role and referral code ride along in
- * short-lived cookies, which /onboarding/continue applies to a new account
- * before sending the user on to `next` (Google users without a role are asked
- * for one on the onboarding page).
+ * Start a Google sign-in. The role and referral code ride along in short-lived
+ * cookies, which /onboarding/continue applies to a new account before sending
+ * the user on to `next`.
  */
 export async function signInWithGoogle(formData: FormData) {
   const store = await cookies();

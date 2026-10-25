@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, BookOpen, ChartNoAxesCombined, CircleHelp, Wallet } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpen, ChartNoAxesCombined, CircleHelp, ScrollText } from "lucide-react";
 import { AccountMeters } from "@/components/markets/account-panel";
 import { STATUS_BADGE } from "@/components/markets/account-status";
 import { listAccounts } from "@/lib/accounts/store";
@@ -9,7 +9,7 @@ import { accountNumber } from "@/lib/checkout/billing";
 import { checkoutModeFor } from "@/lib/checkout/config";
 import { demoCreditLeft } from "@/lib/checkout/demo";
 import { prisma } from "@/lib/db";
-import { findEvaluationPlan } from "@/lib/prop-firm";
+import { findAccountPlan } from "@/lib/prop-firm";
 import { formatPaise } from "@/lib/trading/money";
 import { WaitlistForm } from "@/app/waitlist-form";
 
@@ -19,7 +19,6 @@ export const metadata: Metadata = { title: "My accounts · WhiteSVAN" };
 
 export default async function DashboardPage() {
   const user = await requireMember();
-  const importedAccountCount = await prisma.tradingAccount.count({ where: { userId: user.id } });
   const accounts = await listAccounts(user.id);
   const mode = checkoutModeFor(user.email);
   const canBuy = mode !== "closed";
@@ -30,8 +29,7 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-5">
         <div>
-          <p className="terminal-label">Trader dashboard</p>
-          <h1 className="mt-2 text-3xl font-medium tracking-[-0.045em] sm:text-4xl">My accounts</h1>
+          <h1 className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">My accounts</h1>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
             {firstName ? `Welcome back, ${firstName}. ` : "Welcome to WhiteSVAN. "}
             {accounts.length > 0 ? `You have ${accounts.length} account${accounts.length === 1 ? "" : "s"}.` : canBuy ? "Pick an account size to start your first evaluation." : "Evaluations are launching soon."}
@@ -53,7 +51,7 @@ export default async function DashboardPage() {
         {accounts.length > 0 ? (
           <ul className="grid gap-4 p-4 sm:p-6 lg:grid-cols-2">
             {accounts.map((account) => {
-              const plan = findEvaluationPlan(account.planId);
+              const plan = findAccountPlan(account.planId);
               const status = STATUS_BADGE[account.status];
               return (
                 <li key={account.id}>
@@ -101,9 +99,9 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         {[
-          { icon: BookOpen, title: "SVAN Academy", text: "Free lessons on the rules, position sizing and risk, built to help you pass.", href: "/academy", action: "Start learning" },
-          { icon: Wallet, title: "Payouts", text: "Profit split, payout caps and the schedule for funded accounts.", href: "/payouts", action: "View payouts" },
-          { icon: CircleHelp, title: "Help center", text: "Answers on evaluations, rules, funded accounts and KYC.", href: "/help", action: "Visit the help center" },
+          { icon: ScrollText, title: "Rules", text: "Every limit, and how it's checked.", href: "/rules", action: "Read the rules" },
+          { icon: BookOpen, title: "SVAN Academy", text: "Free lessons on the rules, position sizing and risk.", href: "/academy", action: "Start learning" },
+          { icon: CircleHelp, title: "Help center", text: "Answers on evaluations, payouts and KYC.", href: "/help", action: "Get help" },
         ].map(({ icon: Icon, title, text, href, action }) => (
           <Link key={href} href={href} className="group rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 transition hover:border-[var(--border-strong)] hover:bg-[var(--card-raised)]">
             <Icon className="h-5 w-5 text-[var(--primary)]" aria-hidden="true" />
@@ -113,14 +111,6 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
-
-      <section className="flex flex-wrap items-center justify-between gap-5 rounded-xl border border-[var(--border)] bg-[var(--card-deep)] px-6 py-5" aria-label="Trading tools">
-        <div>
-          <p className="text-sm font-medium">Trading journal</p>
-          <p className="mt-1 text-xs leading-5 text-[var(--muted)]">{importedAccountCount > 0 ? `${importedAccountCount} imported account${importedAccountCount === 1 ? "" : "s"} in your performance tools. ` : "Import history, review performance and keep your trading record. "}Journal records are separate from WhiteSVAN evaluation accounts.</p>
-        </div>
-        <Link href="/journal" className="inline-flex min-h-10 shrink-0 items-center gap-2 text-sm text-[var(--primary)]">{user.role === "CLIENT" ? "Open research workspace" : "Open journal"} <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
-      </section>
     </div>
   );
 }

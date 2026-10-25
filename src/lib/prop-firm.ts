@@ -1,15 +1,21 @@
 /** WhiteSVAN programme terms (India v1 rulebook). Display data only: not an execution engine. */
+
+/** The three account sizes on sale. */
 export const EVALUATION_PLANS = [
   { id: "1l", label: "₹1L", balance: 100_000, fee: 2_999, lots: 1, payoutCap: 5_000 },
-  { id: "2-5l", label: "₹2.5L", balance: 250_000, fee: 4_999, lots: 2, payoutCap: 12_500 },
   { id: "5l", label: "₹5L", balance: 500_000, fee: 8_999, lots: 4, payoutCap: 25_000 },
   { id: "10l", label: "₹10L", balance: 1_000_000, fee: 14_999, lots: 8, payoutCap: 50_000 },
 ] as const;
 
-export type EvaluationPlan = (typeof EVALUATION_PLANS)[number];
+/** Sizes no longer sold. Accounts already opened on one keep it. */
+const RETIRED_PLANS = [
+  { id: "2-5l", label: "₹2.5L", balance: 250_000, fee: 4_999, lots: 2, payoutCap: 12_500 },
+] as const;
 
-/** The size the pricing cards mark Recommended, and the one checkout opens on. */
-export const RECOMMENDED_PLAN: EvaluationPlan = EVALUATION_PLANS[2];
+export type EvaluationPlan = (typeof EVALUATION_PLANS)[number] | (typeof RETIRED_PLANS)[number];
+
+/** The middle size: the pricing cards mark it Recommended, and checkout opens on it. */
+export const RECOMMENDED_PLAN: EvaluationPlan = EVALUATION_PLANS[1];
 
 export const PROGRAMME_RULES = {
   targetPercent: 6,
@@ -28,8 +34,14 @@ export const PROGRAMME_RULES = {
   version: "India v1",
 } as const;
 
+/** A size on sale. */
 export function findEvaluationPlan(id: string): EvaluationPlan | undefined {
   return EVALUATION_PLANS.find((plan) => plan.id === id);
+}
+
+/** The size an account was opened on, including sizes no longer sold. */
+export function findAccountPlan(id: string): EvaluationPlan | undefined {
+  return findEvaluationPlan(id) ?? RETIRED_PLANS.find((plan) => plan.id === id);
 }
 
 export function planLimits(plan: EvaluationPlan) {
@@ -46,12 +58,12 @@ export function formatInr(value: number): string {
   }).format(value);
 }
 
-/** What happens after a pass, in three steps. */
-export const FUNDED_STEPS: readonly (readonly [title: string, body: string])[] = [
-  ["Pass the evaluation", `Hit the ${PROGRAMME_RULES.targetPercent}% profit target in at least ${PROGRAMME_RULES.minimumDays} trading days, inside the drawdown and daily loss limits.`],
-  ["Complete KYC and sign your agreement", "PAN, Aadhaar through DigiLocker and a bank-account check, then your funded trader agreement: profit split, payout caps, risk limits, confidentiality and non-solicit terms."],
-  ["Trade and get paid", `Keep ${PROGRAMME_RULES.contractorSharePercent}% of the profit, with a payout twice a month up to the cap for your account size. Your funded account stays simulated; your payouts are real.`],
-];
+/** The programme in three steps, wherever the site explains it. */
+export const PROGRAMME_STEPS = [
+  { title: "Pass the evaluation", body: `Hit the ${PROGRAMME_RULES.targetPercent}% profit target in at least ${PROGRAMME_RULES.minimumDays} trading days without touching the daily loss limit or the max drawdown.` },
+  { title: "Get funded", body: "Complete KYC and sign your funded trader agreement. Your funded account is simulated and keeps the same loss limits, with no profit target." },
+  { title: "Get paid", body: `Keep ${PROGRAMME_RULES.contractorSharePercent}% of the profit, paid to your bank twice a month, up to the cap for your account size.` },
+] as const;
 
 export const RULE_SECTIONS = [
   {

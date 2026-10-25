@@ -47,8 +47,12 @@ describe("searchHelp", () => {
   });
 
   it("matches on the topic title", () => {
-    const result = searchHelp(HELP_TOPICS, "academy tips");
-    expect(result.map((t) => t.id)).toEqual(["academy"]);
+    const result = searchHelp(HELP_TOPICS, "payouts deposit");
+    expect(result.map((t) => t.id)).toEqual(["payouts"]);
+  });
+
+  it("keeps to three topics", () => {
+    expect(HELP_TOPICS.map((t) => t.id)).toEqual(["evaluations", "rules", "payouts"]);
   });
 
   it("returns nothing when no article matches", () => {

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, FileText, GraduationCap, NotebookPen } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpen, ClipboardCheck, FileText, GraduationCap } from "lucide-react";
 import { PropHeader } from "@/components/prop-firm/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { LearnPanel } from "@/components/academy/learn-panel";
 import { RuleExercise } from "@/components/academy/rule-exercise";
-import { EVALUATION_PLANS, formatInr, FUNDED_STEPS, PROGRAMME_RULES as R } from "@/lib/prop-firm";
+import { EVALUATION_PLANS, formatInr, PROGRAMME_RULES as R, PROGRAMME_STEPS } from "@/lib/prop-firm";
 
 export const metadata: Metadata = {
   title: "SVAN Academy | WhiteSVAN",
@@ -74,24 +74,15 @@ export default async function AcademyPage({ searchParams }: { searchParams: Prom
               </div>
               <RuleExercise />
             </> : <>
-              <SectionHeading eyebrow="Getting funded" title="From evaluation to funded account." body="Here's exactly what happens after you pass." />
-              <div className="mt-7 grid gap-6 lg:grid-cols-[1.2fr_.8fr]">
-                <ol className="divide-y divide-[var(--border)] rounded-lg border border-[var(--border)] px-5 sm:px-7">
-                  {FUNDED_STEPS.map(([title, body], index) => <li key={title} className="flex gap-4 py-6"><span className="pt-1 font-mono text-xs text-[var(--primary)]">0{index + 1}</span><div><h3 className="font-medium">{title}</h3><p className="mt-2 text-sm leading-7 text-[var(--muted)]">{body}</p></div></li>)}
-                </ol>
-                <aside className="self-start rounded-lg border border-[var(--border-strong)] bg-[var(--card)] p-6">
-                  <NotebookPen className="h-6 w-6 text-[var(--primary)]" aria-hidden="true" />
-                  <h3 className="mt-5 text-xl font-medium">Keep a trading journal.</h3>
-                  <p className="mt-3 text-sm leading-7 text-[var(--muted)]">Log your trades and review your risk in the WhiteSVAN journal while you prepare for your evaluation.</p>
-                  <Link href="/journal" className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm text-[var(--primary)]">Open your journal <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
-                  <p className="mt-4 border-t border-[var(--border)] pt-4 text-xs leading-6 text-[var(--muted)]">Funded accounts are simulated. Payouts follow the rules and caps in your agreement.</p>
-                </aside>
-              </div>
+              <SectionHeading eyebrow="Getting funded" title="From evaluation to funded account." body="What happens after you pass." />
+              <ol className="mt-7 max-w-3xl divide-y divide-[var(--border)] rounded-lg border border-[var(--border)] px-5 sm:px-7">
+                {PROGRAMME_STEPS.map(({ title, body }, index) => <li key={title} className="flex gap-4 py-6"><span className="pt-1 font-mono text-xs text-[var(--primary)]">0{index + 1}</span><div><h3 className="font-medium">{title}</h3><p className="mt-2 text-sm leading-7 text-[var(--muted)]">{body}</p></div></li>)}
+              </ol>
             </>}
           </section>
 
           <section aria-labelledby="start-title" className="mt-12 flex flex-col items-start justify-between gap-6 rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] p-7 sm:flex-row sm:items-center sm:p-9">
-            <div><p className="terminal-label">Ready when you are</p><h2 id="start-title" className="mt-3 text-2xl font-medium tracking-tight">Evaluations from {formatInr(EVALUATION_PLANS[0].fee)}.</h2><p className="mt-2 text-sm text-[var(--muted)]">One-time fee, GST included. No subscription, no activation fee.</p></div>
+            <div><h2 id="start-title" className="text-2xl font-medium tracking-tight">Evaluations from {formatInr(EVALUATION_PLANS[0].fee)}.</h2><p className="mt-2 text-sm text-[var(--muted)]">One-time fee, GST included. No subscription, no activation fee.</p></div>
             <Link href="/checkout" className="inline-flex min-h-12 shrink-0 items-center gap-3 rounded-full bg-[var(--primary)] px-6 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start your evaluation <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </section>
         </div>

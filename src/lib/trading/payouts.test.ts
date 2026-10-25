@@ -31,7 +31,7 @@ describe("payout amounts", () => {
   });
 
   it("states the profit needed for a full payout on every plan", () => {
-    expect(EVALUATION_PLANS.map((plan) => profitForFullPayout(ruleSetFor(plan)))).toEqual([r(10_250), r(25_625), r(51_250), r(1_02_500)]);
+    expect(EVALUATION_PLANS.map((plan) => profitForFullPayout(ruleSetFor(plan)))).toEqual([r(10_250), r(51_250), r(1_02_500)]);
     for (const plan of EVALUATION_PLANS) {
       const rules = ruleSetFor(plan);
       expect(payoutAmounts(rules, profitForFullPayout(rules)).payout).toBe(rules.payoutCap);

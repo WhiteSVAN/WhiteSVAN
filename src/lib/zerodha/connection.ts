@@ -11,8 +11,8 @@ const ROW_ID = "firm";
 /** How long a server instance trusts its last read of the row. */
 const REREAD_MS = 10_000;
 
-/** Why prices stopped, under a "Live prices are offline" or "Connect Zerodha again" heading. */
-export const PRICES_OFFLINE = "Prices return when the firm's Zerodha login reconnects. Kite ends it at 6 AM IST every day.";
+/** Why prices stopped, under a "Live prices are offline" heading. User-facing copy never names the broker. */
+export const PRICES_OFFLINE = "Prices come back when the price feed reconnects.";
 
 // On globalThis so every route in a server process shares one read, however it was bundled.
 const memory = globalThis as unknown as { kiteConnection?: { session: KiteSession | null; readAt: number } };

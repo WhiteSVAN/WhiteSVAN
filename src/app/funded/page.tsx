@@ -5,7 +5,7 @@ import { PayoutCalculator } from "@/components/prop-firm/payout-calculator";
 import { PropHeader } from "@/components/prop-firm/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { HELP_TOPICS } from "@/lib/help-center";
-import { EVALUATION_PLANS, formatInr, FUNDED_STEPS, PROGRAMME_RULES as R } from "@/lib/prop-firm";
+import { EVALUATION_PLANS, formatInr, PROGRAMME_RULES as R, PROGRAMME_STEPS } from "@/lib/prop-firm";
 import { formatPaise } from "@/lib/trading/money";
 import { profitForFullPayout } from "@/lib/trading/payouts";
 import { ruleSetFor } from "@/lib/trading/rules";
@@ -22,17 +22,12 @@ const FACTS: [string, string][] = [
   [`${R.contractorSharePercent}%`, "Profit split"],
   ["2x a month", "Payouts"],
   [`${formatInr(FIRST.payoutCap)}–${formatInr(LAST.payoutCap)}`, "Cap per payout"],
-  ["None", "Profit target"],
 ];
 
 const PAYOUT_RULES = [
-  `You keep ${R.contractorSharePercent}% of the profit on your funded account.`,
-  "Request one payout in each half of the month: the 1st to the 15th, and the 16th to month end.",
-  "Each payout is capped by your account size.",
-  "Profit equal to your max drawdown stays in the account as a buffer, so after a payout your balance is still a full drawdown above your floor.",
-  "A payout takes the profit it pays out of your balance: your share and the firm's.",
-  "Every request is checked against the rules, then paid in rupees to your verified bank account.",
-  "Tax is deducted at source where it applies.",
+  `Keep ${R.contractorSharePercent}% of the profit on your funded account. Request one payout in each half of the month (the 1st to the 15th, and the 16th to month end), up to the cap for your account size.`,
+  "Profit equal to your max drawdown stays in the account as a buffer, so after a payout your balance is still a full drawdown above your floor. A payout takes the profit it pays out of your balance: your share and the firm's.",
+  "Every request is checked against the rules, then paid in rupees to your verified bank account. Tax is deducted at source where it applies.",
 ];
 
 const PAYOUT_TABLE = EVALUATION_PLANS.map((plan) => {
@@ -40,7 +35,7 @@ const PAYOUT_TABLE = EVALUATION_PLANS.map((plan) => {
   return { plan, cap: rules.payoutCap, buffer: rules.maxLoss, full: profitForFullPayout(rules) };
 });
 
-const FAQ_IDS = ["contractor-pay", "live-capital", "payout-certainty", "deposits"];
+const FAQ_IDS = ["live-capital", "payout-certainty", "deposits"];
 const FAQ = FAQ_IDS.flatMap((id) => HELP_TOPICS.flatMap((topic) => topic.articles).filter((article) => article.id === id));
 const rupees = (paise: number) => formatPaise(paise, 0);
 
@@ -48,7 +43,7 @@ export default function FundedPage() {
   return <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
     <PropHeader />
     <main id="main-content">
-      <div className="border-b border-[var(--border)] bg-[radial-gradient(ellipse_at_50%_0%,rgba(186,242,119,.09),transparent_70%)] px-5 pb-16 pt-16 text-center sm:pb-20 sm:pt-24">
+      <div className="border-b border-[var(--border)] px-5 pb-16 pt-16 text-center sm:pb-20 sm:pt-24">
         <p className="terminal-label text-[var(--primary)]">Funded accounts</p>
         <h1 className="mx-auto mt-5 max-w-4xl text-5xl font-medium leading-[1.04] tracking-[-.055em] sm:text-7xl">Get funded.<br /><span className="text-[var(--primary)]">Get paid twice a month.</span></h1>
         <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[var(--muted)] sm:text-base">Pass the evaluation and trade a funded account with the same loss limits and no profit target. Keep {R.contractorSharePercent}% of the profit, paid in rupees to your bank.</p>
@@ -58,8 +53,8 @@ export default function FundedPage() {
         </div>
       </div>
 
-      <dl className="mx-auto grid max-w-7xl grid-cols-2 gap-y-6 border-b border-[var(--border)] px-5 py-10 sm:px-8 lg:grid-cols-4 lg:divide-x lg:divide-[var(--border)]">
-        {FACTS.map(([value, label]) => <div key={label} className="px-2 text-center lg:px-6"><dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">{label}</dt><dd className="mt-2 text-2xl font-medium tracking-tight sm:text-3xl">{value}</dd></div>)}
+      <dl className="mx-auto grid max-w-5xl grid-cols-3 border-b border-[var(--border)] px-5 py-10 sm:px-8 sm:divide-x sm:divide-[var(--border)]">
+        {FACTS.map(([value, label]) => <div key={label} className="px-2 text-center lg:px-6"><dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">{label}</dt><dd className="mt-2 text-base font-medium tracking-tight sm:text-3xl">{value}</dd></div>)}
       </dl>
 
       <section className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-2" aria-labelledby="path-title">
@@ -67,7 +62,7 @@ export default function FundedPage() {
           <p className="terminal-label">After you pass</p>
           <h2 id="path-title" className="mt-4 text-3xl font-medium tracking-[-.04em] sm:text-4xl">From pass to payout.</h2>
           <ol className="mt-8 divide-y divide-[var(--border)] rounded-lg border border-[var(--border)] px-5 sm:px-7">
-            {FUNDED_STEPS.map(([title, body], index) => <li key={title} className="flex gap-4 py-6"><span className="pt-1 font-mono text-xs text-[var(--primary)]">0{index + 1}</span><div><h3 className="font-medium">{title}</h3><p className="mt-2 text-sm leading-7 text-[var(--muted)]">{body}</p></div></li>)}
+            {PROGRAMME_STEPS.map(({ title, body }, index) => <li key={title} className="flex gap-4 py-6"><span className="pt-1 font-mono text-xs text-[var(--primary)]">0{index + 1}</span><div><h3 className="font-medium">{title}</h3><p className="mt-2 text-sm leading-7 text-[var(--muted)]">{body}</p></div></li>)}
           </ol>
         </div>
         <div id="payout-rules" className="scroll-mt-28">

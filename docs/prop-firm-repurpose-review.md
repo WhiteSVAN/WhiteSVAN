@@ -302,3 +302,55 @@ The storefront and pure trading library do not by themselves activate those serv
   keeping their details, the prefilled second order, the starting size on low credit, the account
   cap, the pricing-card and sign-in paths, journal sign-ups, the Google landing route (with and
   without a role), staff test purchases and 375px phone widths.
+
+## Simplified, in threes, 25 Oct 2026 (Claude)
+
+Founder's list: clean up AI slop, the rule of three (three indices, three sizes, three steps), the
+steps as pass, get funded and get paid, fewer steps to paying, no Zerodha on the site, and less
+journal.
+
+- **Three sizes:** ₹1L, ₹5L (Recommended, the checkout default) and ₹10L. ₹2.5L is retired:
+  `findEvaluationPlan` (on sale) no longer finds it, `findAccountPlan` keeps existing ₹2.5L
+  accounts and receipts working.
+- **One three-step story:** `PROGRAMME_STEPS` (pass the evaluation, get funded, get paid) on the
+  landing page, How it works, the funded page and the Academy.
+- **Lists of three:**
+  - the hero rules card, the at-a-glance stats and the Built-for-India points;
+  - the pricing card rows and the plan-page limits;
+  - How it works (three points per step, three moments in the trading day, three questions);
+  - the funded facts and payout rules;
+  - the help center (19 articles in 3 topics) and the Academy (3 lessons);
+  - the storefront nav (How it works, Pricing, Rules) and the workspace tabs (My accounts, Charts,
+    Payouts).
+- **Fewer steps to paying:** checkout no longer asks for a name (it comes from the account), so
+  step 3 is mobile, state, the agreement and Pay.
+- **AI slop removed:**
+  - the landing page's "interactive demo" with an illustrative equity curve and P&L;
+  - the rules card's meter bars at arbitrary widths;
+  - the resources section and duplicate demo lines;
+  - slogan filler ("No surprises", "Ready when you are", "Still deciding?", "Here's exactly…");
+  - terminal-style labels on the auth screens;
+  - the repeated steps section on Evaluations.
+- **No Zerodha or Kite in anything users read:**
+  - charts are "Charts", and errors and notices say "the price feed" or "live prices";
+  - the owner's button says "Connect live prices", and the `?zerodha=` notice is now `?feed=`;
+  - code, env vars and the `/api/zerodha/*` routes keep their names (the callback URL is registered
+    with Kite).
+- **Journal and track record switched off:**
+  - `next.config.ts` redirects their routes to My accounts or home;
+  - the Tools menu, the dashboard journal panel, the footer column, the journal FAQs, the Academy
+    journal prompts, client sign-up and the role picker are gone;
+  - every account is a trader, and a role-less sign-in becomes one in place;
+  - Settings is just name and email.
+- **Gotcha found while testing:** redirecting a page render to a route handler during a client
+  navigation runs the handler twice. `requireMember` therefore sets the trader role in place instead
+  of bouncing through `/onboarding/continue`.
+- **Checks:** 405 unit tests, type-check, lint and build all pass. An end-to-end run against a fresh
+  Postgres passed 31 checks:
+  - the journal redirects, and no Zerodha/Kite/journal/illustrative text on ten public pages;
+  - every three on the storefront;
+  - the funnel without a name field;
+  - the nav, account menu and settings;
+  - a ₹2.5L account still opening;
+  - role-less and Google sign-ins;
+  - 375px phone widths.

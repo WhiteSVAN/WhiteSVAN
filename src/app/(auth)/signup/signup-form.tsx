@@ -3,24 +3,9 @@
 import { useActionState } from "react";
 import { signup } from "../actions";
 import { btnPrimary, FieldError, FormError, inputClass, labelClass } from "@/components/form";
-import { RolePicker } from "@/components/auth/role-picker";
 
-export function SignupForm({
-  initialRole,
-  chooseRole = true,
-  referral,
-  plan,
-  next,
-}: {
-  initialRole: "TRADER" | "CLIENT";
-  /** Show the trader/client picker; otherwise `initialRole` is submitted as-is. */
-  chooseRole?: boolean;
-  referral?: string;
-  /** The evaluation plan picked on the storefront, if any; checkout opens on it. */
-  plan?: string;
-  /** Where a trader goes after signing up, instead of checkout. */
-  next?: string;
-}) {
+/** Name, email and password. `plan` is a size picked on the storefront; `next` replaces checkout as the destination. */
+export function SignupForm({ referral, plan, next }: { referral?: string; plan?: string; next?: string }) {
   const [state, action, pending] = useActionState(signup, undefined);
 
   return (
@@ -30,20 +15,11 @@ export function SignupForm({
       {plan && <input type="hidden" name="plan" value={plan} />}
       {next && <input type="hidden" name="next" value={next} />}
 
-      {chooseRole ? (
-        <>
-          <RolePicker defaultRole={initialRole} />
-          <FieldError messages={state?.errors?.role} />
-        </>
-      ) : (
-        <input type="hidden" name="role" value={initialRole} />
-      )}
-
       <div>
         <label htmlFor="name" className={labelClass}>
           Name
         </label>
-        <input id="name" name="name" type="text" autoComplete="name" required className={inputClass} placeholder="Alex Morgan" />
+        <input id="name" name="name" type="text" autoComplete="name" required className={inputClass} />
         <FieldError messages={state?.errors?.name} />
       </div>
 

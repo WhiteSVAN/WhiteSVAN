@@ -63,10 +63,10 @@ export async function kiteFailure(name: string, error: unknown, context: KiteCon
     return Response.json({ error: "input", message: error.message }, { status: 400, headers: NO_STORE });
   }
   if (error instanceof KiteError && error.status === 429) {
-    return Response.json({ error: "rate_limited", message: "Zerodha is limiting requests. Retrying shortly." }, { status: 429, headers: NO_STORE });
+    return Response.json({ error: "rate_limited", message: "The price feed is busy. Retrying shortly." }, { status: 429, headers: NO_STORE });
   }
   logger.error(`zerodha.${name}.failed`, error instanceof KiteError ? { status: error.status, errorType: error.errorType, error: error.message } : errorFields(error));
-  const message = error instanceof KiteError ? error.message : "Something went wrong loading Zerodha data.";
+  const message = error instanceof KiteError ? error.message : "Something went wrong loading prices.";
   return Response.json({ error: "upstream", message }, { status: 502, headers: NO_STORE });
 }
 

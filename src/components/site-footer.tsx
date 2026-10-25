@@ -6,7 +6,7 @@ import { PROGRAMME_RULES } from "@/lib/prop-firm";
 /** Public Discord invite; the link is hidden until this is set. */
 const DISCORD_URL = process.env.NEXT_PUBLIC_DISCORD_URL;
 
-/** Public pages only — app routes (journal, feed, inbox) need an account. */
+/** Public pages only. */
 const FOOTER_GROUPS = [
   {
     title: "Programme",
@@ -25,13 +25,6 @@ const FOOTER_GROUPS = [
       ...(DISCORD_URL ? [{ href: DISCORD_URL, label: "Discord community" }] : []),
       { href: "/signup", label: "Create an account" },
       { href: "/login", label: "Sign in" },
-    ],
-  },
-  {
-    title: "Trader tools",
-    links: [
-      { href: "/login", label: "Trading journal" },
-      { href: "/explore", label: "Published traders" },
     ],
   },
 ];
@@ -59,7 +52,7 @@ export function SiteFooter() {
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2">
           {FOOTER_GROUPS.map((group) => (
             <div key={group.title}>
               <h2 className="font-mono text-[9px] font-medium uppercase tracking-[0.12em] text-zinc-500">

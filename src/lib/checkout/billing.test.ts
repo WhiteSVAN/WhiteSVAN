@@ -40,8 +40,8 @@ describe("starting size", () => {
     expect(startingPlan(null).id).toBe("5l");
     expect(startingPlan(DEMO_CREDIT * 100).id).toBe("5l");
     expect(startingPlan(8_999_00).id).toBe("5l");
-    expect(startingPlan(8_998_00).id).toBe("2-5l");
-    expect(startingPlan(5_003_00).id).toBe("2-5l");
+    expect(startingPlan(8_998_00).id).toBe("1l");
+    expect(startingPlan(5_003_00).id).toBe("1l");
     expect(startingPlan(2_999_00).id).toBe("1l");
     // Nothing affordable: stay on the recommended size, which checkout shows as short of credit.
     expect(startingPlan(1_000_00).id).toBe("5l");
@@ -70,7 +70,7 @@ describe("checkout mode", () => {
 
 describe("return paths", () => {
   it("keeps paths on this site only", () => {
-    for (const path of ["/trade/ev123", "/checkout/1l", "/markets?zerodha=connected", "/"]) expect(safeNextPath(path)).toBe(path);
+    for (const path of ["/trade/ev123", "/checkout/1l", "/markets?feed=connected", "/"]) expect(safeNextPath(path)).toBe(path);
     for (const path of ["//evil.example", "/\\evil.example", "https://evil.example", "trade/ev123", "/a b", `/${"x".repeat(200)}`, "", null, undefined]) {
       expect(safeNextPath(path)).toBeNull();
     }
