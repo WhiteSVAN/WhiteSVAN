@@ -11,7 +11,7 @@ import { findAccountPlan, type EvaluationPlan } from "@/lib/prop-firm";
 import { openDesk } from "@/lib/trading/desk";
 import { MAX_ACTIVE_ACCOUNTS, planAmount, type Billing } from "./billing";
 import { checkoutAttemptKey, isCheckoutAttemptId } from "./attempt";
-import { createRazorpayOrder, type RazorpayConfig } from "./razorpay";
+import { createRazorpayOrder, razorpayProvider, type RazorpayConfig } from "./razorpay";
 
 export class CheckoutError extends Error {
   constructor(message: string) {
@@ -98,7 +98,7 @@ export async function startRazorpayOrder(input: { config: RazorpayConfig; userId
   const order = await prisma.$transaction(async (tx) => {
     await lockUser(tx, userId);
     await checkLimit(tx, userId);
-    return tx.checkoutOrder.create({ data: { ...billingData(userId, email, plan, billing, now), amount, status: "PENDING", provider: "razorpay" }, select: { id: true } });
+    return tx.checkoutOrder.create({ data: { ...billingData(userId, email, plan, billing, now), amount, status: "PENDING", provider: razorpayProvider(config) }, select: { id: true } });
   });
   try {
     const razorpay = await createRazorpayOrder(config, { amount, receipt: order.id, notes: { order: order.id, plan: plan.id } }, fetchImpl);
@@ -117,6 +117,8 @@ export interface FulfilledOrder {
   planId: string;
   email: string;
   amount: number;
+  /** "razorpay", or "razorpay-test" for an order paid in Razorpay's test mode. */
+  provider: string;
   /** False when an earlier confirmation already opened the account. */
   opened: boolean;
 }
@@ -130,10 +132,10 @@ export interface FulfilledOrder {
 export async function fulfilRazorpayOrder(input: { razorpayOrderId: string; paymentId: string; now: number; amount?: number }): Promise<FulfilledOrder | null> {
   const { razorpayOrderId, paymentId, now } = input;
   return prisma.$transaction(async (tx) => {
-    const rows = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "CheckoutOrder" WHERE "providerOrderId" = ${razorpayOrderId} AND "provider" = 'razorpay' FOR UPDATE`;
+    const rows = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "CheckoutOrder" WHERE "providerOrderId" = ${razorpayOrderId} AND "provider" IN ('razorpay', 'razorpay-test') FOR UPDATE`;
     if (!rows.length) return null;
-    const order = await tx.checkoutOrder.findUniqueOrThrow({ where: { id: rows[0].id }, select: { id: true, userId: true, planId: true, amount: true, status: true, accountId: true, billingEmail: true } });
-    const result = (accountId: string, opened: boolean): FulfilledOrder => ({ orderId: order.id, accountId, userId: order.userId, planId: order.planId, email: order.billingEmail, amount: order.amount, opened });
+    const order = await tx.checkoutOrder.findUniqueOrThrow({ where: { id: rows[0].id }, select: { id: true, userId: true, planId: true, amount: true, provider: true, status: true, accountId: true, billingEmail: true } });
+    const result = (accountId: string, opened: boolean): FulfilledOrder => ({ orderId: order.id, accountId, userId: order.userId, planId: order.planId, email: order.billingEmail, amount: order.amount, provider: order.provider, opened });
     if (order.status === "PAID" && order.accountId) return result(order.accountId, false);
     if (order.status !== "PENDING") return null;
     if (input.amount !== undefined && input.amount !== order.amount) throw new CheckoutError("The payment doesn't match the order amount.");

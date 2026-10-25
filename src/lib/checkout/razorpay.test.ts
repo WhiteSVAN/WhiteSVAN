@@ -9,7 +9,7 @@ describe("razorpay config", () => {
   it("needs both keys, and takes a stand-in API only outside production", () => {
     expect(razorpayConfig({})).toBeNull();
     expect(razorpayConfig({ RAZORPAY_KEY_ID: "rzp_test_key" })).toBeNull();
-    expect(config).toEqual({ keyId: "rzp_test_key", keySecret: "key-secret", webhookSecret: "hook-secret", apiRoot: "https://api.razorpay.com/v1" });
+    expect(config).toEqual({ keyId: "rzp_test_key", keySecret: "key-secret", webhookSecret: "hook-secret", apiRoot: "https://api.razorpay.com/v1", testMode: true });
     const keys = { RAZORPAY_KEY_ID: "k", RAZORPAY_KEY_SECRET: "s", RAZORPAY_API_ROOT: "http://127.0.0.1:4556/v1" };
     expect(razorpayConfig({ ...keys, NODE_ENV: "development" })?.apiRoot).toBe("http://127.0.0.1:4556/v1");
     expect(razorpayConfig({ ...keys, NODE_ENV: "production" })?.apiRoot).toBe("https://api.razorpay.com/v1");

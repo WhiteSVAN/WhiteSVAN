@@ -29,7 +29,7 @@ const FOOTER_GROUPS = [
 ];
 
 const DISCLAIMERS = [
-  "All demo (evaluation) and funded accounts are simulated. Account sizes are virtual balances that set risk limits; they are not deposits, loans or capital given to the trader. Evaluation fees are service fees.",
+  "Demo and funded accounts are simulated. Account sizes are virtual balances that set risk limits; they are not deposits, loans or capital given to the trader. Evaluation fees are service fees.",
   "Nothing on this site is investment advice, a recommendation or a trading signal. WhiteSVAN does not manage client money and does not promise any income, payout or return.",
   "Trading options carries a substantial risk of loss. Simulated results have limitations and do not represent actual trading.",
 ];

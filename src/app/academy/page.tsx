@@ -23,7 +23,7 @@ const SECTIONS = [
 const JOURNEY = [
   { number: "01", title: "Learn", detail: "Contracts, costs, position sizing and every evaluation rule, with worked examples." },
   { number: "02", title: "Practise", detail: "Run the drawdown and daily loss exercise before you trade an evaluation." },
-  { number: "03", title: "Get funded", detail: `Pass the evaluation, complete KYC and start requesting payouts at an ${R.contractorSharePercent}% profit split.` },
+  { number: "03", title: "Get funded", detail: `Pass and your funded account opens. Keep ${R.contractorSharePercent}% of the profit, paid once KYC is done.` },
 ];
 
 export default async function AcademyPage({ searchParams }: { searchParams: Promise<{ tab?: string | string[] }> }) {
@@ -69,8 +69,8 @@ export default async function AcademyPage({ searchParams }: { searchParams: Prom
               <SectionHeading eyebrow="Rule practice" title="Practise the rules before you pay." body="Try the evaluation rules on a sample account: see how the drawdown and the daily loss limit move as your balance changes." />
               <div className="my-7 grid gap-4 md:grid-cols-3">
                 <InfoCard number="A" title="Know the price">See the fee, the account size and every rule before you start. One-time fee, GST included.</InfoCard>
-                <InfoCard number="B" title="Know the result">Every breach comes with a report showing the trade and the rule. Appeal within 7 days.</InfoCard>
-                <InfoCard number="C" title="Know what's next">Pass, complete KYC and sign your funded trader agreement to start earning payouts.</InfoCard>
+                <InfoCard number="B" title="Know the result">If a limit is hit, the platform shows the rule, the date and your equity at the time.</InfoCard>
+                <InfoCard number="C" title="Know what's next">Pass and your funded account opens. Complete KYC and your funded trader agreement before your first payout.</InfoCard>
               </div>
               <RuleExercise />
             </> : <>

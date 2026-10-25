@@ -15,7 +15,7 @@ const LAST = EVALUATION_PLANS[EVALUATION_PLANS.length - 1];
 
 export const metadata: Metadata = {
   title: "Funded accounts and payouts | WhiteSVAN",
-  description: `How WhiteSVAN funded accounts and payouts work: keep ${R.contractorSharePercent}% of your profit, request payouts when eligible with caps from ${formatInr(FIRST.payoutCap)} to ${formatInr(LAST.payoutCap)}, and work out a payout for any account size.`,
+  description: `How WhiteSVAN funded accounts and payouts work: keep ${R.contractorSharePercent}% of your profit, request payouts above the buffer with caps from ${formatInr(FIRST.payoutCap)} to ${formatInr(LAST.payoutCap)}, and work out a payout for any account size.`,
 };
 
 const FACTS: [string, string][] = [
@@ -25,8 +25,8 @@ const FACTS: [string, string][] = [
 ];
 
 const PAYOUT_RULES = [
-  `Keep ${R.contractorSharePercent}% of the profit on your funded account. Request a payout whenever you have eligible profit, up to the cap for your account size.`,
-  "Profit equal to your max drawdown stays in the account as a buffer, so after a payout your balance is still a full drawdown above your floor. A payout takes the profit it pays out of your balance: your share and the firm's.",
+  `Keep ${R.contractorSharePercent}% of the profit on your funded account. Request a payout whenever your profit is above the buffer, up to the cap for your account size.`,
+  "The buffer is profit equal to your max drawdown, and it stays in the account, so after a payout your balance is still a full drawdown above your floor. Each payout comes off your balance together with the firm's share of the same profit.",
   "Every request is checked against the rules, then paid in rupees to your verified bank account. Tax is deducted at source where it applies.",
 ];
 

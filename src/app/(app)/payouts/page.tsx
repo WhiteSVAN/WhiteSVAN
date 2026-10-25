@@ -57,7 +57,7 @@ function PayoutCard({ account }: { account: StoredAccount }) {
               <div key={term}><dt className="text-xs text-[var(--muted)]">{term}</dt><dd className={`mt-1 font-mono text-lg ${tone}`}>{value}</dd></div>
             ))}
           </dl>
-          <p className="mt-6 text-xs leading-6 text-[var(--muted)]">Request a payout whenever you have eligible profit and meet the requirements below, up to your account&apos;s per-request cap. When a payout is paid, the firm&apos;s {100 - state.rules.profitSplitPercent}% share of that profit comes off the balance with it.</p>
+          <p className="mt-6 text-xs leading-6 text-[var(--muted)]">Request a payout whenever your profit is above the buffer and the steps beside are done, up to the cap per payout. Each payout comes off the balance together with the firm&apos;s {100 - state.rules.profitSplitPercent}% share of the same profit.</p>
         </div>
         <div>
           <h3 className="text-sm font-medium">Before you can request a payout</h3>
@@ -85,7 +85,7 @@ export default async function PayoutsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Payouts</h1>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">Request a payout whenever you have eligible profit and meet the payout requirements. Your share comes from profit above the buffer, up to your account&apos;s per-request cap.</p>
+        <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">What each funded account can pay out under the rules: {R.contractorSharePercent}% of the profit above the buffer, up to the cap per payout.</p>
       </div>
 
       {funded.length > 0 ? (
@@ -94,7 +94,7 @@ export default async function PayoutsPage() {
         <section className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--card)] px-6 py-14 text-center" aria-label="No funded accounts">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border-strong)] bg-[var(--card-raised)] text-[var(--primary)]"><Wallet className="h-6 w-6" aria-hidden="true" /></div>
           <h2 className="mt-5 text-xl font-medium tracking-tight">Payouts start with a funded account</h2>
-          <p className="mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">Pass your demo account and your funded account opens. Its payout figures show here: an {R.contractorSharePercent}% profit split, with payouts available when you have eligible profit and meet the requirements, up to your account&apos;s per-request cap.</p>
+          <p className="mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">Pass your demo account and your funded account opens. Its payout figures show here: {R.contractorSharePercent}% of the profit above the buffer, up to the cap for your account size.</p>
           <Link href="/dashboard" className="mt-6 inline-flex min-h-11 items-center gap-3 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">My accounts <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
         </section>
       )}

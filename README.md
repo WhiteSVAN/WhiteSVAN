@@ -50,7 +50,8 @@ Temporal Cloud setup, worker commands and deployment instructions: [docs/tempora
   credit is retired; evaluation accounts are called demo accounts because their trading is simulated.
 - `/trade/<account>`: the options trading platform for an evaluation or funded account: an option chain
   with Buy and Sell on every strike, an index chart first (switch to an option's chart and depth),
-  the order ticket (Market, Limit, Stop-loss),
+  the order ticket (Market, Limit, Stop-loss, and a stop-loss and target on any buy, each cancelling
+  the other), the position's average, stop-loss and target drawn on the chart, fill alerts,
   today's positions with realised and open P&L, orders you can modify or cancel, trades, and the rule
   meters, with the engine running on the server. `/markets` (the Trade tab) offers the same for the
   trader's active account. Directional bets only: buy calls or puts and sell only to close them; no
@@ -102,7 +103,8 @@ npm run lint
 ## Payment activation
 
 Set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` to use Razorpay Checkout. Use test-mode keys
-for gateway tests. Before accepting real payments, configure live-mode keys, enable automatic
+for demos and gateway tests: with a `rzp_test_` key, checkout shows Razorpay's test UPI ID and card,
+orders are recorded as `razorpay-test`, and the confirmation and receipt say no money was charged. Before accepting real payments, configure live-mode keys, enable automatic
 capture in Razorpay Dashboard, and add `<site>/api/razorpay/webhook` for `payment.captured` and
 `order.paid`, with `RAZORPAY_WEBHOOK_SECRET` matching the dashboard webhook secret. The browser's
 signature alone does not mark an order paid: the server also checks captured status, order, INR

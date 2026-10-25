@@ -18,6 +18,7 @@ const dateText = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", da
 function settlement(order: { provider: string; amount: number; providerPaymentId: string | null }): { amount: string; payment: string } {
   switch (order.provider) {
     case "razorpay": return { amount: `${formatPaise(order.amount, 0)} · GST included`, payment: `Razorpay${order.providerPaymentId ? ` · ${order.providerPaymentId}` : ""}` };
+    case "razorpay-test": return { amount: `${formatPaise(order.amount, 0)} · test mode, not charged`, payment: `Razorpay test mode${order.providerPaymentId ? ` · ${order.providerPaymentId}` : ""}` };
     case "test": return { amount: `${formatPaise(order.amount, 0)} · not charged`, payment: "Test purchase" };
     case "demo": return { amount: "None", payment: "Virtual credit, nobody charged" };
     default: return { amount: formatPaise(order.amount, 0), payment: "No payment taken" };

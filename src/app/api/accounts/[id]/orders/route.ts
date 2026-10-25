@@ -4,7 +4,8 @@ import { accountJson, instrumentForToken, newOrderId, orderQuotes } from "@/lib/
 import { tradingNow } from "@/lib/accounts/clock";
 import { changeAccount } from "@/lib/accounts/store";
 import { listAccounts } from "@/lib/accounts/store";
-import { applyOrder, orderPolicyProblem } from "@/lib/accounts/ticks";
+import { applyOrder, expectedPrice, orderPolicyProblem } from "@/lib/accounts/ticks";
+import { exitsProblem } from "@/lib/trading/desk";
 import { KiteError, quoteKey } from "@/lib/zerodha/kite";
 
 const orderSchema = z.object({
@@ -14,9 +15,15 @@ const orderSchema = z.object({
   type: z.enum(["MARKET", "LIMIT", "SL", "SL-M"]),
   limitPrice: z.number().int().positive().optional(),
   triggerPrice: z.number().int().positive().optional(),
+  /** A buy's stop-loss trigger and target, placed as sell orders once it fills. */
+  stopLoss: z.number().int().positive().optional(),
+  target: z.number().int().positive().optional(),
 });
 
-/** Place an order on the account against a fresh quote, within the trading policy. The engine validates and fills it. */
+/**
+ * Place an order on the account against a fresh quote, within the trading policy, with a buy's
+ * stop-loss and target if it has them. The engine validates and fills it.
+ */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const parsed = orderSchema.safeParse(await request.json().catch(() => null));
@@ -29,9 +36,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const problem = orderPolicyProblem(account.desk, instrument, parsed.data.side, parsed.data.lots, others);
     if (problem) throw new KiteError(problem, 400, "InputException");
     const quotes = await orderQuotes(config, accessToken, [quoteKey(instrument)]);
-    const order = { ...parsed.data, id: newOrderId(now) };
+    const { stopLoss, target, ...request } = parsed.data;
+    const exits = { stop: stopLoss, target };
+    const exitProblem = exitsProblem(exits, request.side, expectedPrice(request, quotes.find((quote) => quote.token === instrument.token)?.lastPrice), instrument.tickSize);
+    if (exitProblem) throw new KiteError(exitProblem, 400, "InputException");
+    const order = { ...request, id: newOrderId(now) };
     const changed = await changeAccount(userId, id, (desk) => {
-      const result = applyOrder(desk, instrument, order, quotes, tradingNow());
+      const result = applyOrder(desk, instrument, order, quotes, tradingNow(), exits);
       return { desk: result.desk, result: result.outputs };
     });
     return { outputs: changed?.result ?? [], desk: changed?.account.desk ?? account.desk };

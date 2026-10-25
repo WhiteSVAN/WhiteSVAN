@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { findEvaluationPlan } from "../prop-firm";
-import { dayPositions, dayTotals, deskQuoteKeys, deskStep, openDesk, type Desk } from "./desk";
+import { chartLines, dayPositions, dayTotals, deskQuoteKeys, deskStep, exitRole, exitsProblem, openDesk, type Desk, type Exits } from "./desk";
 import { riskMeters, type EngineEvent } from "./engine";
 import type { Instrument } from "./instruments";
 import type { Quote } from "./matching";
@@ -161,5 +161,142 @@ describe("day positions and trade counts", () => {
     expect(totals.net).toBe(meters.todayNet + meters.unrealised);
     expect(totals.realised - totals.charges).toBe(meters.todayNet);
     expect(totals.unrealised).toBe(meters.unrealised);
+  });
+});
+
+describe("stop-loss and target", () => {
+  const plan = findEvaluationPlan("5l")!;
+  const day = "2026-11-02";
+  const at = (time: string) => ist(`${day} ${time}`);
+  const quote = (time: string, last: number) => optionQuote(CALL.token, `${day} ${time}`, last);
+  const working = (desk: Desk) => desk.state.orders.map((order) => [order.id, order.type, order.side, order.quantity, order.triggerPrice ?? order.limitPrice]);
+  const status = (desk: Desk) => Object.fromEntries(desk.orderBook!.map((record) => [record.id, record.reason ? `${record.status}: ${record.reason}` : record.status]));
+
+  /** A market buy of calls around ₹120, with a stop-loss and target. */
+  function bought(lots = 1, exits: Exits = { stop: r(100), target: r(150) }) {
+    const quotes = new Map<number, Quote>();
+    let desk = openDesk(plan, "desk-b", at("09:00"));
+    desk = drive(desk, quotes, { kind: "quote", at: at("09:30"), quote: quote("09:30", 120) }).desk;
+    desk = deskStep(desk, { kind: "place", at: at("09:30"), order: { id: "E1", token: CALL.token, side: "BUY", lots, type: "MARKET" } }, quotes, CALL, exits).desk;
+    return { quotes, desk };
+  }
+
+  it("places both exits for the filled lots as soon as the buy fills", () => {
+    const { desk } = bought(2);
+    expect(working(desk)).toEqual([["E1-SL", "SL-M", "SELL", 150, r(100)], ["E1-TP", "LIMIT", "SELL", 150, r(150)]]);
+    expect(desk.brackets).toEqual([{ entryId: "E1", token: CALL.token, stop: r(100), target: r(150), status: "ACTIVE", stopOrderId: "E1-SL", targetOrderId: "E1-TP" }]);
+    expect(desk.notes[0].text).toBe("Working a stop-loss at ₹100.00 and a target at ₹150.00 for 2 lots of NIFTY-25000-CE-TEST.");
+    expect([exitRole("E1-SL"), exitRole("E1-TP"), exitRole("E1")]).toEqual(["stop", "target", null]);
+    expect(riskMeters(desk.state).lotsInUse).toBe(2);
+  });
+
+  it("cancels the target when the stop-loss fills", () => {
+    const { quotes, desk: opened } = bought();
+    let desk = opened;
+    desk = drive(desk, quotes, { kind: "quote", at: at("10:00"), quote: quote("10:00", 99) }).desk;
+    expect(desk.state.positions).toEqual([]);
+    expect(desk.state.orders).toEqual([]);
+    expect(desk.brackets).toBeUndefined();
+    expect(status(desk)).toEqual({ E1: "COMPLETE", "E1-SL": "COMPLETE", "E1-TP": "CANCELLED: Stop-loss hit" });
+    expect(desk.fills[0]).toMatchObject({ side: "SELL", quantity: 75, orderId: "E1-SL" });
+    expect(desk.notes[0].text).toBe("Target on NIFTY-25000-CE-TEST cancelled: stop-loss hit.");
+  });
+
+  it("cancels the stop-loss when the target fills, at the target", () => {
+    const { quotes, desk: opened } = bought();
+    let desk = opened;
+    desk = drive(desk, quotes, { kind: "quote", at: at("10:00"), quote: quote("10:00", 152) }).desk;
+    expect(desk.state.positions).toEqual([]);
+    expect(status(desk)).toEqual({ E1: "COMPLETE", "E1-SL": "CANCELLED: Target hit", "E1-TP": "COMPLETE" });
+    expect(desk.fills[0]).toMatchObject({ side: "SELL", quantity: 75, price: r(150), orderId: "E1-TP" });
+  });
+
+  it("cancels both when the position is closed by hand", () => {
+    const { quotes, desk: opened } = bought();
+    let desk = opened;
+    desk = drive(desk, quotes, { kind: "quote", at: at("10:00"), quote: quote("10:00", 125) }).desk;
+    desk = drive(desk, quotes, { kind: "place", at: at("10:00"), order: { id: "X1", token: CALL.token, side: "SELL", lots: 1, type: "MARKET" } }, CALL).desk;
+    expect(desk.state.orders).toEqual([]);
+    expect(desk.brackets).toBeUndefined();
+    expect(status(desk)).toMatchObject({ X1: "COMPLETE", "E1-SL": "CANCELLED: Position closed", "E1-TP": "CANCELLED: Position closed" });
+  });
+
+  it("trims both exits to what's left when part of the position is sold", () => {
+    const { quotes, desk: opened } = bought(2);
+    let desk = opened;
+    desk = drive(desk, quotes, { kind: "quote", at: at("10:00"), quote: quote("10:00", 125) }).desk;
+    desk = drive(desk, quotes, { kind: "place", at: at("10:00"), order: { id: "X1", token: CALL.token, side: "SELL", lots: 1, type: "MARKET" } }, CALL).desk;
+    expect(working(desk)).toEqual([["E1-SL", "SL-M", "SELL", 75, r(100)], ["E1-TP", "LIMIT", "SELL", 75, r(150)]]);
+    desk = drive(desk, quotes, { kind: "quote", at: at("10:30"), quote: quote("10:30", 98) }).desk;
+    expect(desk.state.positions).toEqual([]);
+    expect(desk.fills[0]).toMatchObject({ quantity: 75, orderId: "E1-SL" });
+    expect(status(desk)["E1-TP"]).toBe("CANCELLED: Stop-loss hit");
+  });
+
+  it("waits for a limit buy to fill, and forgets the exits of a buy cancelled unfilled", () => {
+    const quotes = new Map<number, Quote>();
+    let desk = openDesk(plan, "desk-b", at("09:00"));
+    desk = drive(desk, quotes, { kind: "quote", at: at("09:30"), quote: quote("09:30", 120) }).desk;
+    desk = deskStep(desk, { kind: "place", at: at("09:30"), order: { id: "L1", token: CALL.token, side: "BUY", lots: 1, type: "LIMIT", limitPrice: r(110) } }, quotes, CALL, { stop: r(100), target: r(140) }).desk;
+    desk = deskStep(desk, { kind: "place", at: at("09:30"), order: { id: "L2", token: CALL.token, side: "BUY", lots: 1, type: "LIMIT", limitPrice: r(105) } }, quotes, CALL, { stop: r(95) }).desk;
+    expect(desk.brackets?.map((bracket) => [bracket.entryId, bracket.status])).toEqual([["L1", "WAITING"], ["L2", "WAITING"]]);
+    desk = drive(desk, quotes, { kind: "cancel", at: at("09:40"), orderId: "L2" }).desk;
+    expect(desk.brackets?.map((bracket) => bracket.entryId)).toEqual(["L1"]);
+    desk = drive(desk, quotes, { kind: "quote", at: at("09:45"), quote: quote("09:45", 108) }).desk;
+    expect(working(desk)).toEqual([["L1-SL", "SL-M", "SELL", 75, r(100)], ["L1-TP", "LIMIT", "SELL", 75, r(140)]]);
+    expect(desk.fills[0]).toMatchObject({ side: "BUY", price: r(110), orderId: "L1" });
+  });
+
+  it("says when the market has already passed the stop-loss, and still works the target", () => {
+    const quotes = new Map<number, Quote>();
+    let desk = openDesk(plan, "desk-b", at("09:00"));
+    desk = drive(desk, quotes, { kind: "quote", at: at("09:30"), quote: quote("09:30", 140) }).desk;
+    desk = deskStep(desk, { kind: "place", at: at("09:30"), order: { id: "L1", token: CALL.token, side: "BUY", lots: 1, type: "LIMIT", limitPrice: r(130) } }, quotes, CALL, { stop: r(120), target: r(160) }).desk;
+    desk = drive(desk, quotes, { kind: "quote", at: at("09:45"), quote: quote("09:45", 115) }).desk;
+    expect(working(desk)).toEqual([["L1-TP", "LIMIT", "SELL", 75, r(160)]]);
+    expect(desk.notes.map((note) => note.text)).toContain("Stop-loss not placed: The market is already through this trigger price.");
+    expect(desk.notes.some((note) => note.text.startsWith("Order rejected"))).toBe(false);
+    expect(desk.brackets?.[0]).toMatchObject({ status: "ACTIVE", targetOrderId: "L1-TP" });
+    expect(desk.brackets?.[0].stopOrderId).toBeUndefined();
+  });
+
+  it("goes with everything else at the 15:20 square-off", () => {
+    const { quotes, desk: opened } = bought();
+    let desk = opened;
+    desk = drive(desk, quotes, { kind: "clock", at: at("15:21") }).desk;
+    expect(desk.state.positions).toEqual([]);
+    expect(desk.brackets).toBeUndefined();
+    expect(status(desk)).toMatchObject({ "E1-SL": "CANCELLED: 15:20 square-off", "E1-TP": "CANCELLED: 15:20 square-off" });
+  });
+
+  it("survives a JSON round trip with exits working", () => {
+    const { desk, quotes } = bought();
+    const stored: Desk = JSON.parse(JSON.stringify(desk));
+    const next = { kind: "quote", at: at("10:00"), quote: quote("10:00", 99) } as const;
+    expect(drive(stored, new Map(quotes), next).desk).toEqual(drive(desk, new Map(quotes), next).desk);
+  });
+
+  it("marks the average price, the stop-loss and the target on the chart", () => {
+    const { desk, quotes } = bought(2);
+    expect(chartLines(desk, CALL.token)).toEqual([
+      { price: r(120.10), title: "Avg +150", tone: "average" },
+      { price: r(100), title: "SL", tone: "stop" },
+      { price: r(150), title: "TP", tone: "target" },
+    ]);
+    expect(chartLines(desk, PUT.token)).toEqual([]);
+    const quoted = drive(desk, quotes, { kind: "quote", at: at("09:31"), quote: quote("09:31", 121) }).desk;
+    const limit = deskStep(quoted, { kind: "place", at: at("09:31"), order: { id: "L9", token: CALL.token, side: "SELL", lots: 1, type: "LIMIT", limitPrice: r(160) } }, quotes, CALL).desk;
+    expect(chartLines(limit, CALL.token).at(-1)).toEqual({ price: r(160), title: "Sell LIMIT", tone: "order" });
+  });
+
+  it("checks a stop-loss and target against the buy's price and tick", () => {
+    expect(exitsProblem({}, "BUY", r(120), 5)).toBeNull();
+    expect(exitsProblem({ stop: r(100), target: r(150) }, "BUY", r(120), 5)).toBeNull();
+    expect(exitsProblem({ target: r(150) }, "BUY", undefined, 5)).toBeNull();
+    expect(exitsProblem({ stop: r(100) }, "SELL", r(120), 5)).toBe("A stop-loss and target go with a buy.");
+    expect(exitsProblem({ stop: r(100.03) }, "BUY", r(120), 5)).toBe("Use prices in multiples of ₹0.05.");
+    expect(exitsProblem({ stop: r(130), target: r(125) }, "BUY", undefined, 5)).toBe("Set the stop-loss below the target.");
+    expect(exitsProblem({ stop: r(120) }, "BUY", r(120), 5)).toBe("Set the stop-loss below ₹120.00.");
+    expect(exitsProblem({ target: r(119.95) }, "BUY", r(120), 5)).toBe("Set the target above ₹120.00.");
   });
 });

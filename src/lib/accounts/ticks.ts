@@ -3,7 +3,7 @@
  * poll fetches one batch of quotes, which becomes the engine's books for the account's contracts,
  * followed by a clock event that runs the 15:20 square-off and the 15:30 day close.
  */
-import { deskQuoteKeys, deskStep, type Desk } from "@/lib/trading/desk";
+import { deskQuoteKeys, deskStep, type Desk, type Exits } from "@/lib/trading/desk";
 import { netQuantity, type EngineOutput, type OrderChanges, type OrderRequest } from "@/lib/trading/engine";
 import { isOption, type Instrument, type Side } from "@/lib/trading/instruments";
 import type { Quote } from "@/lib/trading/matching";
@@ -79,11 +79,17 @@ export function applyTick(desk: Desk, quotes: readonly MarketQuote[], now: numbe
   return deskStep(next, { kind: "clock", at: now }, books).desk;
 }
 
-export function applyOrder(desk: Desk, instrument: Instrument, order: OrderRequest, quotes: readonly MarketQuote[], now: number): { desk: Desk; outputs: EngineOutput[] } {
+/** An order against a fresh quote for its contract, with a buy's stop-loss and target if it has them. */
+export function applyOrder(desk: Desk, instrument: Instrument, order: OrderRequest, quotes: readonly MarketQuote[], now: number, exits?: Exits): { desk: Desk; outputs: EngineOutput[] } {
   const books = engineBooks(quotes);
   const quote = books.get(instrument.token);
   const marked = quote ? deskStep(desk, { kind: "quote", at: now, quote }, books, instrument).desk : desk;
-  return deskStep(marked, { kind: "place", at: now, order }, books, instrument);
+  return deskStep(marked, { kind: "place", at: now, order }, books, instrument, exits);
+}
+
+/** Where an order is expected to fill, for checking its stop-loss and target: the last price, the limit or the trigger. */
+export function expectedPrice(order: Pick<OrderRequest, "type" | "limitPrice" | "triggerPrice">, lastPrice: number | undefined): number | undefined {
+  return order.type === "MARKET" ? lastPrice : order.type === "LIMIT" ? order.limitPrice : order.triggerPrice;
 }
 
 /** New terms for a working order against a fresh quote for its contract. */

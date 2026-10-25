@@ -31,12 +31,12 @@ const DETAILS = [
   },
   {
     icon: ShieldCheck,
-    points: ["KYC: PAN, Aadhaar through DigiLocker and a bank account check", "Your agreement sets the split, payout caps and limits", "Same loss limits, no profit target"],
+    points: ["Opens the moment you pass, on the same account size", "Same loss limits, no profit target", `${R.contractorSharePercent}% of the profit is yours`],
     link: { href: "/rules#desk", label: "Funded account rules" },
   },
   {
     icon: BadgeIndianRupee,
-    points: ["Request a payout whenever you have eligible profit", `Caps from ${formatInr(FIRST.payoutCap)} to ${formatInr(LAST.payoutCap)} a payout, by account size`, "Profit equal to your max drawdown stays in the account as a buffer"],
+    points: ["Profit equal to your max drawdown stays in the account as a buffer; request the rest whenever you like", `Caps from ${formatInr(FIRST.payoutCap)} to ${formatInr(LAST.payoutCap)} a payout, by account size`, "KYC (PAN, Aadhaar through DigiLocker) and a bank check before your first payout"],
     link: { href: "/funded#calculator", label: "Work out a payout" },
   },
 ];

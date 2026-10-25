@@ -9,8 +9,9 @@
  * The chart keeps TradingView's attribution logo, which meets the licence's link requirement.
  */
 import { useEffect, useRef, useState } from "react";
-import type { CandlestickData, HistogramData, IChartApi, ISeriesApi, LineData, UTCTimestamp } from "lightweight-charts";
+import type { AutoscaleInfo, CandlestickData, HistogramData, IChartApi, ISeriesApi, LineData, UTCTimestamp } from "lightweight-charts";
 import { chartSeconds, type Candle, type Interval } from "@/lib/market-data/candles";
+import type { ChartLine } from "@/lib/trading/desk";
 
 const UP = "#baf277";
 const DOWN = "#f2907e";
@@ -18,6 +19,9 @@ const GRID = "rgba(40, 50, 43, 0.55)";
 const BORDER = "#28322b";
 /** Bars in view when a chart loads; scroll or pinch for the rest. */
 const VISIBLE_BARS = 140;
+const LINE_COLOURS: Record<ChartLine["tone"], string> = { average: "#d8c899", stop: DOWN, target: UP, order: "#99a59c" };
+/** Lightweight Charts' LineStyle.Dashed; the library loads lazily, so its enum isn't at hand. */
+const DASHED = 2;
 
 const priceText = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const countText = new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 2 });
@@ -66,9 +70,11 @@ export interface PriceChartProps {
   derivative: boolean;
   /** Accessible name, such as "NIFTY 26 OCT FUT, 5-minute candles". */
   label: string;
+  /** Prices to mark across the chart: a position's average, its stop-loss and target, working orders. */
+  lines?: readonly ChartLine[];
 }
 
-export function PriceChart({ candles, live, interval, minMove, derivative, label }: PriceChartProps) {
+export function PriceChart({ candles, live, interval, minMove, derivative, label, lines = [] }: PriceChartProps) {
   const container = useRef<HTMLDivElement>(null);
   const [handles, setHandles] = useState<Handles | null>(null);
   const [hovered, setHovered] = useState<Legend | null>(null);
@@ -150,6 +156,26 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
     }
   }, [handles, live]);
 
+  // Compared by value: the lines are rebuilt on every poll, but only redrawn when they change.
+  const linesKey = JSON.stringify(lines);
+  useEffect(() => {
+    if (!handles) return;
+    const marked = JSON.parse(linesKey) as ChartLine[];
+    const prices = marked.map((line) => line.price / 100);
+    const drawn = marked.map((line, index) => handles.candles.createPriceLine({ price: prices[index], color: LINE_COLOURS[line.tone], lineWidth: 1, lineStyle: DASHED, axisLabelVisible: true, title: line.title }));
+    // The price scale stretches to keep every line in view, so a far stop-loss or target still shows.
+    handles.candles.applyOptions({
+      autoscaleInfoProvider: (original: () => AutoscaleInfo | null) => {
+        const info = original();
+        if (!info?.priceRange || prices.length === 0) return info;
+        return { ...info, priceRange: { minValue: Math.min(info.priceRange.minValue, ...prices), maxValue: Math.max(info.priceRange.maxValue, ...prices) } };
+      },
+    });
+    return () => {
+      for (const line of drawn) handles.candles.removePriceLine(line);
+    };
+  }, [handles, linesKey]);
+
   useEffect(() => {
     if (!handles) return;
     handles.chart.applyOptions({ timeScale: { timeVisible: interval !== "day" } });
@@ -168,7 +194,7 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
 
   return (
     <figure className="relative m-0">
-      <div ref={container} role="img" aria-label={`${label} candlestick chart`} className={`w-full ${derivative ? "h-[380px] sm:h-[500px]" : "h-[320px] sm:h-[420px]"}`} />
+      <div ref={container} role="img" aria-label={`${label} candlestick chart`} data-lines={lines.map((line) => `${line.title} ${(line.price / 100).toFixed(2)}`).join("; ") || undefined} className={`w-full ${derivative ? "h-[380px] sm:h-[500px]" : "h-[320px] sm:h-[420px]"}`} />
       {legend && (
         <figcaption className="pointer-events-none absolute left-2 top-2 flex max-w-[calc(100%-6rem)] flex-wrap gap-x-3 gap-y-1 rounded bg-[#0b0f0d]/80 px-2 py-1 font-mono text-[10px] text-[var(--muted)] sm:text-[11px]">
           {(["open", "high", "low", "close"] as const).map((field) => (

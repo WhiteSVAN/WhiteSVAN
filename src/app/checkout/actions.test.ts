@@ -73,7 +73,7 @@ describe("razorpay checkout", () => {
     mocks.startRazorpay.mockResolvedValue({ orderId: "order", razorpayOrderId: "order_RZP123", amount: 8_999_00 });
     mocks.order.mockResolvedValue({ providerOrderId: "order_RZP123", amount: 8_999_00 });
     mocks.fetchPayment.mockResolvedValue({ id: "pay_ABC123", order_id: "order_RZP123", amount: 8_999_00, currency: "INR", status: "captured", captured: true });
-    mocks.fulfil.mockResolvedValue({ orderId: "order", accountId: "account", userId: "owner", planId: "5l", email: "owner@example.test", amount: 8_999_00, opened: true });
+    mocks.fulfil.mockResolvedValue({ orderId: "order", accountId: "account", userId: "owner", planId: "5l", email: "owner@example.test", amount: 8_999_00, provider: "razorpay-test", opened: true });
   });
   afterEach(() => vi.unstubAllEnvs());
   const signature = createHmac("sha256", "key-secret").update("order_RZP123|pay_ABC123").digest("hex");
@@ -98,14 +98,14 @@ describe("razorpay checkout", () => {
     expect(mocks.fulfil).not.toHaveBeenCalled();
     expect(mocks.fetchPayment).not.toHaveBeenCalled();
     await expect(confirmPayment({ orderId: "order", paymentId: "pay_ABC123", signature })).rejects.toThrow("REDIRECT:/checkout/complete/order");
-    expect(mocks.order).toHaveBeenCalledWith(expect.objectContaining({ where: { id: "order", userId: "owner", provider: "razorpay" } }));
+    expect(mocks.order).toHaveBeenCalledWith(expect.objectContaining({ where: { id: "order", userId: "owner", provider: { in: ["razorpay", "razorpay-test"] } } }));
     expect(mocks.fetchPayment).toHaveBeenCalledWith(expect.objectContaining({ keyId: "rzp_test_key" }), "pay_ABC123");
     expect(mocks.fulfil).toHaveBeenCalledWith(expect.objectContaining({ razorpayOrderId: "order_RZP123", paymentId: "pay_ABC123", amount: 8_999_00 }));
-    expect(mocks.email).toHaveBeenCalledWith("owner@example.test", expect.objectContaining({ payment: { kind: "paid", amount: 8_999_00, paymentId: "pay_ABC123" } }));
+    expect(mocks.email).toHaveBeenCalledWith("owner@example.test", expect.objectContaining({ payment: { kind: "paid", amount: 8_999_00, paymentId: "pay_ABC123", test: true } }));
   });
 
   it("sends one receipt when the webhook opened the account first", async () => {
-    mocks.fulfil.mockResolvedValue({ orderId: "order", accountId: "account", userId: "owner", planId: "5l", email: "owner@example.test", amount: 8_999_00, opened: false });
+    mocks.fulfil.mockResolvedValue({ orderId: "order", accountId: "account", userId: "owner", planId: "5l", email: "owner@example.test", amount: 8_999_00, provider: "razorpay-test", opened: false });
     await expect(confirmPayment({ orderId: "order", paymentId: "pay_ABC123", signature })).rejects.toThrow("REDIRECT:/checkout/complete/order");
     expect(mocks.email).not.toHaveBeenCalled();
   });
