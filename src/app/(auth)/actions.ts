@@ -85,10 +85,10 @@ export async function signup(
   logger.info("auth.signup.created", { userId: created.id, email, role });
 
   try {
-    // On to checkout, on the size picked on the storefront if there was one, unless headed elsewhere.
+    // On to `next` when headed somewhere, otherwise checkout, on the size picked on the storefront if any.
     const plan = findEvaluationPlan(String(formData.get("plan") ?? ""));
     const next = safeNextPath(String(formData.get("next") ?? ""));
-    await signIn("credentials", { email, password, redirectTo: plan ? `/checkout/${plan.id}` : (next ?? "/checkout") });
+    await signIn("credentials", { email, password, redirectTo: next ?? (plan ? `/checkout/${plan.id}` : "/checkout") });
     return undefined;
   } catch (error) {
     if (error instanceof AuthError) return { message: "Account created — please sign in." };
@@ -115,6 +115,9 @@ export async function signInWithGoogle(formData: FormData) {
   const role = String(formData.get("role") ?? "");
   const ref = String(formData.get("ref") ?? "");
   const next = safeNextPath(String(formData.get("next") ?? ""));
+  // Every OAuth attempt replaces prior context, including when nothing was chosen.
+  store.delete(SIGNUP_ROLE_COOKIE);
+  store.delete(SIGNUP_REF_COOKIE);
   if (role === "TRADER" || role === "CLIENT") store.set(SIGNUP_ROLE_COOKIE, role, opts);
   if (ref) store.set(SIGNUP_REF_COOKIE, ref.slice(0, 16), opts);
   await signIn("google", { redirectTo: next ? `/onboarding/continue?${new URLSearchParams({ next })}` : "/onboarding/continue" });

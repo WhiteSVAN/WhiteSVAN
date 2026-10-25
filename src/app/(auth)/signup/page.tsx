@@ -17,7 +17,7 @@ export default async function SignupPage({
   const referral = sp.ref?.slice(0, 16);
   const plan = sp.plan ? findEvaluationPlan(sp.plan) : undefined;
   const next = safeNextPath(sp.next) ?? undefined;
-  const continueTo = plan ? `/checkout/${plan.id}` : next;
+  const continueTo = next ?? (plan ? `/checkout/${plan.id}` : undefined);
 
   return (
     <div>
