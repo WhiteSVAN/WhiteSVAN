@@ -9,6 +9,7 @@ const JOURNAL_APP = ["upload", "reports", "analytics", "feed", "communities", "i
 const JOURNAL_PUBLIC = ["explore", "p", "examples"];
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["@temporalio/client"],
   // Next.js blocks cross-origin development resources by default. Do not use a
   // wildcard: preview hosts must be explicitly configured, and this does not
   // change production CORS or authentication behavior.

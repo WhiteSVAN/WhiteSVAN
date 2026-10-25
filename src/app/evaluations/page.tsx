@@ -4,7 +4,6 @@ import { ArrowRight } from "lucide-react";
 import { AccountSelector } from "@/components/prop-firm/account-selector";
 import { PropHeader } from "@/components/prop-firm/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { DEMO_CHECKOUT, DEMO_START_ANSWER } from "@/lib/checkout/demo";
 import { EVALUATION_PLANS, formatInr, PROGRAMME_RULES as R } from "@/lib/prop-firm";
 
 const FIRST = EVALUATION_PLANS[0];
@@ -23,7 +22,7 @@ const CHANGES: [string, string, string][] = [
 ];
 
 const FAQ: [string, string][] = [
-  ["When can I start?", DEMO_CHECKOUT ? DEMO_START_ANSWER : "We're launching soon. Create your account now to get early access when evaluations open."],
+  ["When can I start?", "Now. Create your account, choose a size and check out on one screen: your demo account opens straight away."],
   ["Is the account balance real money?", `No. Evaluation and funded accounts are simulated. Your payouts are real: ${R.contractorSharePercent}% of the profit on your funded account, up to the cap for your account size.`],
   ["What happens if I break a rule?", "Your evaluation ends and you get a breach report showing the trade and the rule. Think it was wrong? Appeal within 7 days. You can start a new evaluation whenever you're ready."],
 ];

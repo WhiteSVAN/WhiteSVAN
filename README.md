@@ -1,12 +1,14 @@
 # WhiteSVAN
 
-WhiteSVAN is an India-first prop trading firm for NIFTY, BANK NIFTY and SENSEX futures and options.
+WhiteSVAN is an India-first prop trading firm for NIFTY, BANK NIFTY and SENSEX options.
 Traders learn with SVAN Academy, take a one-time-fee simulated evaluation (₹1L, ₹5L or ₹10L, 6%
 profit target, 4% end-of-day drawdown, 2% daily loss limit), and those who pass get a simulated
-funded account with an 80% profit split, paid twice a month in rupees.
+funded account with an 80% profit split under half-month payout rules.
 
-The site is launching soon: pricing, rules, the help center and free Academy lessons are live, and
-evaluations can be bought in demo mode on virtual credit; payments and payouts are not built yet.
+Pricing, rules, the help center and free Academy lessons are available. Checkout opens evaluations
+free of charge when Razorpay keys are absent, or uses Razorpay Standard Checkout when configured.
+Passing an evaluation opens one simulated funded account. Payout figures are shown, but KYC,
+agreements, bank verification and payout processing are not built yet.
 The trading core (simulated orders and fills, Indian F&O charges, the rule engine, risk meters and
 payout quotes) is in `src/lib/trading` as tested, deterministic TypeScript. All evaluation and funded accounts are
 simulated. Nothing on the site is investment advice, and public pages keep the past-performance
@@ -25,25 +27,29 @@ switched off: `next.config.ts` redirects their routes, and their code stays in t
 - OpenAI by default, Anthropic via `AI_PROVIDER=anthropic` (journal briefs)
 - Vercel: production from `main` at https://white-svan.vercel.app
 
+Temporal Cloud setup, worker commands and deployment instructions: [docs/temporal.md](docs/temporal.md).
+
 ## Prop-firm site
 
 - `/`: landing page (hero, how it works, pricing with an Evaluation / Funded toggle, rules, built for
-  India, free resources, FAQ, early-access signup).
+  India, free resources and FAQ).
 - `/evaluations` and `/evaluations/[plan]` (`1l`, `5l`, `10l`): plans, what changes when you pass
   and plan detail.
 - `/how-it-works`: every step from choosing an account to a payout, and the IST trading day.
 - `/funded`: funded accounts, payout rules, caps by account size and a payout calculator.
 - `/rules`: full rule table and sections. `/help`: searchable help center. `/academy`: free lessons,
   rule practice and "getting funded".
-- Buying takes three steps: create your account, choose the size, pay. "Get funded" goes to
+- Buying takes three steps: create your account, choose the size, check out. "Get funded" goes to
   `/checkout` (signed out: sign-up first, with no size to pick), which opens on the recommended size;
   the size and payment share one screen, then `/checkout/complete/<order>` → "Start trading" →
-  `/trade/<account>`. Pricing cards open checkout on their own size. No payment gateway is live, so checkout runs in demo mode: every user has ₹50,000 of
-  virtual demo credit to buy evaluations at the normal prices. Nobody is charged, and demo accounts
-  are labelled and never lead to funded accounts or payouts (`src/lib/checkout/demo.ts`). Sign-ins
-  in `STAFF_EMAILS` make test purchases without using credit.
-- `/trade/<account>`: the options trading platform for one evaluation account: an option chain with
-  Buy and Sell on every strike, the chart and depth, the order ticket (Market, Limit, Stop-loss),
+  `/trade/<account>`. Pricing cards open checkout on their own size. Without both Razorpay keys,
+  checkout records provider `free`, amount ₹0 and no payment taken. With keys, it creates a pending
+  Razorpay order and opens the account only after the server verifies capture or receives a signed
+  captured webhook. Sign-ins in `STAFF_EMAILS` always make uncharged test purchases. Virtual demo
+  credit is retired; evaluation accounts are called demo accounts because their trading is simulated.
+- `/trade/<account>`: the options trading platform for an evaluation or funded account: an option chain
+  with Buy and Sell on every strike, an index chart first (switch to an option's chart and depth),
+  the order ticket (Market, Limit, Stop-loss),
   today's positions with realised and open P&L, orders you can modify or cancel, trades, and the rule
   meters, with the engine running on the server. `/markets` (the Trade tab) offers the same for the
   trader's active account. Directional bets only: buy calls or puts and sell only to close them; no
@@ -52,9 +58,13 @@ switched off: `next.config.ts` redirects their routes, and their code stays in t
   for any day.
   Prices come from the firm's shared Zerodha login, so every account holder trades while an owner
   has it connected.
-- Signed-in workspace: My accounts (account cards), Charts and Payouts; Academy, Help and Settings in
-  the account menu.
-- `/markets` (the Charts tab): charts, live quotes and depth from the firm's Zerodha account
+- My accounts shows evaluation and funded account cards. Passing an evaluation opens its funded
+  account once, in the same database transaction; trader and staff notifications follow.
+  `/payouts` shows each funded account's buffer, profit split, cap, cycle and prerequisites, without
+  submitting a request or transferring money.
+- Signed-in workspace: My accounts, Trade (when live prices are configured) and Journal; Payouts,
+  Academy, Help and Settings in the account menu.
+- `/markets` (the Trade tab): charts, live quotes and depth from the firm's Zerodha account
   through Kite Connect, for every signed-in user. A `KITE_OWNER_EMAILS` sign-in logs in to Kite once
   a day (Kite ends the login at 6 AM IST) and everyone reads through that login. Set
   `KITE_API_KEY`, `KITE_API_SECRET` and `KITE_OWNER_EMAILS`, and register
@@ -87,6 +97,17 @@ npm run lint
 
 `npm run build` runs `prisma migrate deploy`; for a local build check use
 `npx prisma generate && npx next build`.
+
+## Payment activation
+
+Set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` to use Razorpay Checkout. Use test-mode keys
+for gateway tests. Before accepting real payments, configure live-mode keys, enable automatic
+capture in Razorpay Dashboard, and add `<site>/api/razorpay/webhook` for `payment.captured` and
+`order.paid`, with `RAZORPAY_WEBHOOK_SECRET` matching the dashboard webhook secret. The browser's
+signature alone does not mark an order paid: the server also checks captured status, order, INR
+currency and amount. A signed captured webhook completes an order even if its browser never returns.
+The local stand-ins and integration tests do not verify real payment capture, settlement or refunds.
+GST invoices, refund processing, KYC and actual payouts remain separate work.
 
 Demo after seeding: `/p/demo`, login `demo@trustsvan.local` / `demo1234`. The seed also
 creates additional public profiles for the trader directory.

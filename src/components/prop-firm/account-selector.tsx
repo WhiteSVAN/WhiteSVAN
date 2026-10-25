@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Check, CircleHelp, Layers3, Target } from "lucide-react";
-import { DEMO_CHECKOUT, DEMO_CREDIT } from "@/lib/checkout/demo";
 import { EVALUATION_PLANS, formatInr, planLimits, PROGRAMME_RULES, RECOMMENDED_PLAN } from "@/lib/prop-firm";
 
 /** Pricing: the three account sizes, as an evaluation (fee and limits) or funded (split and payouts). */
@@ -60,7 +59,7 @@ export function AccountSelector() {
         </div>
 
         <div className="mt-7 flex flex-col items-center justify-between gap-4 rounded-xl border border-[var(--border)] px-5 py-4 sm:flex-row">
-          <p className="text-xs leading-6 text-[var(--muted)]">{DEMO_CHECKOUT ? `Demo open: pay with ${formatInr(DEMO_CREDIT)} of virtual credit. Nobody is charged.` : "Launching soon. Rules and prices can change before launch."}</p>
+          <p className="text-xs leading-6 text-[var(--muted)]">One-time fee, GST included. No subscription and no activation fee.</p>
           <Link href="/rules" className="inline-flex shrink-0 items-center gap-2 text-xs font-medium text-[var(--primary)]"><CircleHelp size={14} aria-hidden="true" /> Read the full rules <ArrowRight size={14} aria-hidden="true" /></Link>
         </div>
       </div>

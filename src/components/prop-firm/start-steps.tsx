@@ -1,9 +1,9 @@
 import { Check } from "lucide-react";
 
-const STEPS = ["Create account", "Choose size", "Pay"] as const;
+const STEPS = ["Create account", "Choose size", "Check out"] as const;
 
 /**
- * The three steps from a visitor to a paid evaluation: sign-up is the first and checkout holds the
+ * The three steps from a visitor to an evaluation: sign-up is the first and checkout holds the
  * other two. `done` counts the steps already complete.
  */
 export function StartSteps({ done }: { done: 0 | 1 }) {

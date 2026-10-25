@@ -74,6 +74,15 @@ export function payoutCycle(date: string): string {
   return `${date.slice(0, 7)}/${Number(date.slice(8, 10)) <= 15 ? 1 : 2}`;
 }
 
+/** The first and last dates of the payout cycle `date` falls in. */
+export function cycleDates(date: string): { start: string; end: string } {
+  const cycle = payoutCycle(date);
+  const month = cycle.slice(0, 7);
+  if (cycle.endsWith("/1")) return { start: `${month}-01`, end: `${month}-15` };
+  const lastDay = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).getUTCDate();
+  return { start: `${month}-16`, end: `${month}-${String(lastDay).padStart(2, "0")}` };
+}
+
 export function quotePayout(state: AccountState, checks: PayoutChecks, today: string, requested?: Paise): PayoutQuote {
   const profit = state.balance - state.rules.startingBalance;
   const amounts = payoutAmounts(state.rules, profit, requested);

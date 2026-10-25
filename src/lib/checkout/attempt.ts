@@ -4,7 +4,7 @@ export function isCheckoutAttemptId(value: unknown): value is string {
 }
 
 /** Namespaced by authenticated owner and provider; never shared between users or payment modes. */
-export function checkoutAttemptKey(userId: string, mode: "test" | "demo", attemptId: string): string {
+export function checkoutAttemptKey(userId: string, mode: "test" | "free", attemptId: string): string {
   if (!isCheckoutAttemptId(attemptId)) throw new Error("Invalid checkout attempt.");
   return `checkout:${mode}:${userId}:${attemptId.toLowerCase()}`;
 }

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { googleEnabled } from "@/auth";
 import { AuthDivider, GoogleButton } from "@/components/auth/google-button";
 import { StartSteps } from "@/components/prop-firm/start-steps";
-import { DEMO_CHECKOUT, DEMO_CREDIT } from "@/lib/checkout/demo";
 import { findEvaluationPlan, formatInr } from "@/lib/prop-firm";
 import { safeNextPath } from "@/lib/safe-path";
 import { SignupForm } from "./signup-form";
@@ -22,10 +21,8 @@ export default async function SignupPage({
   return (
     <div>
       <h1 className="text-lg font-semibold text-zinc-100">Create your account</h1>
-      <p className="mt-1 text-sm text-zinc-500">
-        {DEMO_CHECKOUT ? `New accounts get ${formatInr(DEMO_CREDIT)} of demo credit to pay with.` : "Evaluations open at launch."}
-      </p>
-      {DEMO_CHECKOUT && <div className="mt-5"><StartSteps done={0} /></div>}
+      <p className="mt-1 text-sm text-zinc-500">Three steps to your demo account. No size to pick yet.</p>
+      <div className="mt-5"><StartSteps done={0} /></div>
 
       {plan && (
         <div className="mt-5 rounded-lg border border-[#3a493d] bg-[#141c16] px-4 py-3">

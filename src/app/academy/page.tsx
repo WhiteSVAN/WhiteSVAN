@@ -46,7 +46,7 @@ export default async function AcademyPage({ searchParams }: { searchParams: Prom
                 <Link href="/academy?tab=learn#academy-content" className="inline-flex min-h-11 items-center gap-3 rounded-md bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start learning <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
                 <Link href="/evaluations" className="inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--border-strong)] px-4 text-sm hover:bg-[var(--card-raised)]">See evaluations <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
               </div>
-              <p className="mt-4 text-xs leading-6 text-[var(--muted)]">Free lessons and the rule exercise are open now. The full Academy launches with evaluations.</p>
+              <p className="mt-4 text-xs leading-6 text-[var(--muted)]">Free lessons and the rule exercise, open to everyone. No account needed.</p>
             </div>
             <ol className="terminal-card divide-y divide-[var(--border)] px-5 sm:px-7" aria-label="Your path to a funded account">
               {JOURNEY.map((step) => <li key={step.number} className="flex gap-5 py-6">

@@ -22,9 +22,13 @@ export function OrderSummary({ plan, mode }: { plan: EvaluationPlan; mode: Check
       <p id="summary-title" className="terminal-label">Order summary</p>
       <div className="mt-5 flex items-baseline justify-between gap-4" aria-live="polite">
         <p className="text-lg font-medium">{plan.label} evaluation</p>
-        <p className="text-3xl font-medium tracking-[-.04em]">{formatInr(plan.fee)}</p>
+        {mode === "free" ? (
+          <p className="text-3xl font-medium tracking-[-.04em]"><s className="mr-2 text-lg font-normal text-[var(--muted)]"><span className="sr-only">Fee </span>{formatInr(plan.fee)}</s>{formatInr(0)}</p>
+        ) : (
+          <p className="text-3xl font-medium tracking-[-.04em]">{formatInr(plan.fee)}</p>
+        )}
       </div>
-      <p className="mt-1 text-right text-xs text-[var(--muted)]">{mode === "demo" ? "Paid with demo credit · nobody is charged" : "One-time · GST included"}</p>
+      <p className="mt-1 text-right text-xs text-[var(--muted)]">{mode === "free" ? "No payment taken" : mode === "test" ? "Test purchase · not charged" : "One-time · GST included"}</p>
       <dl className="mt-6 divide-y divide-[var(--border)] border-y border-[var(--border)] text-xs">
         {summary.map(([term, value]) => <div key={term} className="flex justify-between gap-4 py-3"><dt className="text-[var(--muted)]">{term}</dt><dd className={term === "Activation fee" ? "text-[var(--primary)]" : ""}>{value}</dd></div>)}
       </dl>

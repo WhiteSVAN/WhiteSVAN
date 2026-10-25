@@ -1,0 +1,14 @@
+**
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.temporal.json
+!src/
+!src/lib/
+!src/lib/temporal/
+!src/lib/temporal/*.ts
+src/lib/temporal/*.test.ts
+!scripts/
+!scripts/temporal/
+!scripts/temporal/*.ts
+scripts/temporal/test.ts

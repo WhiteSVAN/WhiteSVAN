@@ -27,7 +27,7 @@ model User {
   role            UserRole? // chosen at signup (or onboarding for OAuth sign-ins)
   referralCode    String?   @unique // trader invite code: /signup?ref=CODE
   referredById    String?
-  // Paise of virtual demo credit spent on demo evaluations; the allowance is in src/lib/checkout/demo.ts.
+  // Legacy: paise of virtual credit spent while checkout ran in demo mode (24-25 Oct 2026). Unused.
   demoCreditSpent Int       @default(0)
   createdAt       DateTime  @default(now())
 
@@ -575,7 +575,7 @@ enum ReportStatus {
   PUBLISHED
 }
 
-// Beta waitlist captured from the landing page.
+// Legacy: the pre-launch list from the landing page. Nothing writes to it now.
 model WaitlistEntry {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -727,13 +727,18 @@ model EvaluationAccount {
   desk      Json
   // Bumped on every engine write; writes are conditional on it (optimistic locking).
   version   Int              @default(0)
-  // Bought with virtual demo credit: never leads to a funded account or a payout.
+  // Legacy: bought with virtual credit while checkout ran in demo mode. Unused; those accounts
+  // carry on like any other.
   demo      Boolean          @default(false)
+  // A funded account: the evaluation it was opened from when that passed (one each).
+  fromAccountId String?      @unique
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  order CheckoutOrder?
+  user   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order  CheckoutOrder?
+  from   EvaluationAccount? @relation("FundedFrom", fields: [fromAccountId], references: [id], onDelete: SetNull)
+  funded EvaluationAccount? @relation("FundedFrom")
 
   @@index([userId])
 }

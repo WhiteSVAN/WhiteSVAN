@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
 import { requireUser } from "@/lib/auth/dal";
-import { DEMO_CHECKOUT } from "@/lib/checkout/demo";
 import { kiteConfig } from "@/lib/zerodha/config";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { AccountMenu } from "./account-menu";
@@ -22,7 +21,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-full bg-[var(--background)] text-[var(--foreground)]">
-      {DEMO_CHECKOUT && <p className="border-b border-[var(--border)] bg-[#172216] px-4 py-2 text-center text-[11px] text-[#c7d7bd]">Demo mode: evaluations are bought with virtual credit.</p>}
       <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:px-8 md:flex-row md:items-center md:gap-8">
           <Link href="/dashboard" className="self-start text-xl font-semibold text-zinc-100 md:self-auto">

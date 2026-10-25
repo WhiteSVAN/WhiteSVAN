@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
-import { DEMO_CHECKOUT } from "@/lib/checkout/demo";
 import { PROGRAMME_RULES } from "@/lib/prop-firm";
 
 /** Public Discord invite; the link is hidden until this is set. */
@@ -30,10 +29,7 @@ const FOOTER_GROUPS = [
 ];
 
 const DISCLAIMERS = [
-  DEMO_CHECKOUT
-    ? "WhiteSVAN is launching soon. Until payments open, evaluations are demo accounts bought with virtual credit: nobody is charged, demo accounts don't lead to funded accounts or payouts, and rules and prices may change before launch."
-    : "WhiteSVAN is launching soon. Evaluations are not yet available to buy, and rules and prices may change before launch.",
-  "All evaluation and funded accounts are simulated. Account sizes are virtual balances that set risk limits; they are not deposits, loans or capital given to the trader. Evaluation fees are service fees.",
+  "All demo (evaluation) and funded accounts are simulated. Account sizes are virtual balances that set risk limits; they are not deposits, loans or capital given to the trader. Evaluation fees are service fees.",
   "Nothing on this site is investment advice, a recommendation or a trading signal. WhiteSVAN does not manage client money and does not promise any income, payout or return.",
   "Trading options carries a substantial risk of loss. Simulated results have limitations and do not represent actual trading.",
 ];

@@ -1,5 +1,4 @@
 /** Public help-centre content. Rule figures come from the rulebook in prop-firm.ts. */
-import { DEMO_CHECKOUT, DEMO_CREDIT, DEMO_START_ANSWER } from "./checkout/demo";
 import { EVALUATION_PLANS, PROGRAMME_RULES, formatInr, planLimits } from "./prop-firm";
 
 export type HelpArticle = { id: string; question: string; answer: string };
@@ -23,17 +22,17 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "how-to-start",
         question: "How do I start an evaluation?",
-        answer: `In three steps: create your account, choose your account size (${first.label} to ${last.label}) and pay ${DEMO_CHECKOUT ? `with your ${formatInr(DEMO_CREDIT)} of demo credit` : "the one-time fee"}. You don't need to pick a size to create your account: you choose it at checkout, on the same screen as paying. Your evaluation account opens as soon as you pay.`,
+        answer: `In three steps: create your account, choose your account size (${first.label} to ${last.label}) and check out. You don't need to pick a size to create your account: you choose it at checkout, on the same screen as paying. Your demo account, the evaluation, opens as soon as you check out.`,
       },
       {
         id: "buy-today",
         question: "When can I start?",
-        answer: DEMO_CHECKOUT ? DEMO_START_ANSWER : "We're launching soon. Create your account now to get early access, and we'll email you when evaluations open.",
+        answer: "Now. Create your account, choose a size and check out on one screen: your demo account opens straight away.",
       },
       {
         id: "who-can-join",
         question: "Who can join?",
-        answer: "Traders resident in India. After you pass, you complete KYC with your PAN, Aadhaar (through DigiLocker) and bank account before your funded account starts.",
+        answer: "Traders resident in India. Before your first payout from a funded account, you complete KYC with your PAN, Aadhaar (through DigiLocker) and bank account.",
       },
       {
         id: "account-sizes",
@@ -102,7 +101,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "after-passing",
         question: "What happens after I pass?",
-        answer: "Complete KYC and sign your funded trader agreement. You'll get your funded account within 5 working days of completing KYC.",
+        answer: "Your funded account opens as soon as you pass: the same size and loss limits, with no profit target. Your payout figures show on the Payouts page. Before your first payout, complete KYC and sign your funded trader agreement.",
       },
       {
         id: "contractor-pay",
@@ -112,7 +111,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "real-money",
         question: "Is the account balance real money?",
-        answer: "No. Evaluation and funded accounts are simulated. The account size sets your limits and your payout cap; your payouts are real.",
+        answer: "No. Demo (evaluation) and funded accounts are simulated. The account size sets your limits and your payout cap; your payouts are real.",
       },
       {
         id: "live-capital",

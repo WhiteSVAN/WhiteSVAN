@@ -23,8 +23,15 @@ describe("HELP_TOPICS", () => {
 
   it("gives the three steps to an evaluation, with no size needed to sign up", () => {
     const answer = HELP_TOPICS.flatMap((t) => t.articles).find((a) => a.id === "how-to-start")?.answer ?? "";
-    expect(answer).toMatch(/^In three steps: create your account, choose your account size \(₹1L to ₹10L\) and pay/);
+    expect(answer).toMatch(/^In three steps: create your account, choose your account size \(₹1L to ₹10L\) and check out/);
     expect(answer).toContain("You don't need to pick a size to create your account");
+  });
+
+  it("opens the funded account on a pass, with KYC before the first payout", () => {
+    const answer = HELP_TOPICS.flatMap((t) => t.articles).find((a) => a.id === "after-passing")?.answer ?? "";
+    expect(answer).toContain("Your funded account opens as soon as you pass");
+    expect(answer).toContain("Before your first payout, complete KYC");
+    expect(allAnswers).not.toMatch(/launching soon|early access|demo credit|virtual credit/i);
   });
 
   it("never promises returns", () => {

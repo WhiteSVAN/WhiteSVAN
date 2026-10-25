@@ -18,12 +18,21 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:seed": "tsx scripts/seed-demo.ts",
-    "db:set-password": "tsx scripts/set-password.ts"
+    "db:set-password": "tsx scripts/set-password.ts",
+    "temporal:check": "tsx scripts/temporal/check.ts",
+    "temporal:smoke": "tsx scripts/temporal/check.ts --smoke",
+    "temporal:worker": "tsx scripts/temporal/worker.ts",
+    "temporal:build": "tsc -p tsconfig.temporal.json && node build/temporal/scripts/temporal/build.js",
+    "temporal:start": "node build/temporal/scripts/temporal/worker.js",
+    "temporal:test": "npm run temporal:build && tsx scripts/temporal/test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "@temporalio/client": "1.24.0",
+    "@temporalio/worker": "1.24.0",
+    "@temporalio/workflow": "1.24.0",
     "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^3.0.3",
     "date-fns": "^4.4.0",
@@ -41,6 +50,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@temporalio/testing": "1.24.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/papaparse": "^5.5.2",
