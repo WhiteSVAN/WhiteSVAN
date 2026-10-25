@@ -66,18 +66,20 @@ export async function checkout(_previous: CheckoutState | undefined, formData: F
   if (mode === "razorpay") {
     const config = razorpayConfig();
     if (!config) return { message: "Payments are unavailable right now. Try again in a minute.", values };
+    let started: Awaited<ReturnType<typeof startRazorpayOrder>>;
     try {
-      const started = await startRazorpayOrder({ config, userId, email: user.email, plan, billing: parsed.data, now });
-      logger.info("checkout.razorpay_order", { userId, planId: plan.id, orderId: started.orderId });
-      return {
-        values,
-        payment: { ...started, keyId: config.keyId, description: `${plan.label} evaluation`, prefill: { name: parsed.data.name, email: user.email, contact: parsed.data.phone } },
-      };
+      started = await startRazorpayOrder({ config, userId, email: user.email, plan, billing: parsed.data, now, attemptId });
     } catch (error) {
       if (error instanceof CheckoutError) return { message: error.message, values };
       logger.error("checkout.razorpay_order_failed", { userId, planId: plan.id, error: error instanceof Error ? error.message : String(error) });
       return { message: "Payments are unavailable right now. Try again in a minute.", values };
     }
+    if (started.accountId) redirect(`/checkout/complete/${started.orderId}`);
+    logger.info("checkout.razorpay_order", { userId, planId: plan.id, orderId: started.orderId });
+    return {
+      values,
+      payment: { ...started, keyId: config.keyId, description: `${plan.label} evaluation`, prefill: { name: parsed.data.name, email: user.email, contact: parsed.data.phone } },
+    };
   }
 
   let order: { orderId: string; accountId: string };

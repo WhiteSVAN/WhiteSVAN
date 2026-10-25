@@ -169,6 +169,10 @@ describe("stop-loss and target", () => {
   const day = "2026-11-02";
   const at = (time: string) => ist(`${day} ${time}`);
   const quote = (time: string, last: number) => optionQuote(CALL.token, `${day} ${time}`, last);
+  const quoteWithAskQuantity = (time: string, last: number, askQuantity: number) => ({
+    ...quote(time, last),
+    asks: [{ price: r(last) + 5, quantity: askQuantity }],
+  });
   const working = (desk: Desk) => desk.state.orders.map((order) => [order.id, order.type, order.side, order.quantity, order.triggerPrice ?? order.limitPrice]);
   const status = (desk: Desk) => Object.fromEntries(desk.orderBook!.map((record) => [record.id, record.reason ? `${record.status}: ${record.reason}` : record.status]));
 
@@ -188,6 +192,35 @@ describe("stop-loss and target", () => {
     expect(desk.notes[0].text).toBe("Working a stop-loss at ₹100.00 and a target at ₹150.00 for 2 lots of NIFTY-25000-CE-TEST.");
     expect([exitRole("E1-SL"), exitRole("E1-TP"), exitRole("E1")]).toEqual(["stop", "target", null]);
     expect(riskMeters(desk.state).lotsInUse).toBe(2);
+  });
+
+  it("protects a partial entry immediately and grows exits as the remaining entry fills", () => {
+    const quotes = new Map<number, Quote>();
+    let desk = openDesk(plan, "desk-partial", at("09:00"));
+    desk = drive(desk, quotes, { kind: "quote", at: at("09:30"), quote: quoteWithAskQuantity("09:30", 120, CALL.lotSize) }).desk;
+    desk = deskStep(desk, { kind: "place", at: at("09:30"), order: { id: "E1", token: CALL.token, side: "BUY", lots: 2, type: "MARKET" } }, quotes, CALL, { stop: r(100), target: r(150) }).desk;
+
+    expect(desk.state.orders.find((order) => order.id === "E1")).toMatchObject({ quantity: CALL.lotSize * 2, filled: CALL.lotSize });
+    expect(working(desk)).toEqual([["E1", "MARKET", "BUY", 150, undefined], ["E1-SL", "SL-M", "SELL", 75, r(100)], ["E1-TP", "LIMIT", "SELL", 75, r(150)]]);
+    expect(desk.brackets?.[0]).toMatchObject({ status: "ACTIVE", stopOrderId: "E1-SL", targetOrderId: "E1-TP" });
+
+    desk = drive(desk, quotes, { kind: "quote", at: at("09:45"), quote: quoteWithAskQuantity("09:45", 121, CALL.lotSize) }).desk;
+    expect(desk.orderBook?.find((record) => record.id === "E1")).toMatchObject({ quantity: CALL.lotSize * 2, filled: CALL.lotSize * 2, status: "COMPLETE" });
+    expect(working(desk)).toEqual([["E1-SL", "SL-M", "SELL", 150, r(100)], ["E1-TP", "LIMIT", "SELL", 150, r(150)]]);
+  });
+
+  it("cancels an entry remainder when a partial position's exit triggers", () => {
+    const quotes = new Map<number, Quote>();
+    let desk = openDesk(plan, "desk-remainder", at("09:00"));
+    desk = drive(desk, quotes, { kind: "quote", at: at("09:30"), quote: quoteWithAskQuantity("09:30", 120, CALL.lotSize) }).desk;
+    desk = deskStep(desk, { kind: "place", at: at("09:30"), order: { id: "E1", token: CALL.token, side: "BUY", lots: 2, type: "MARKET" } }, quotes, CALL, { stop: r(100), target: r(150) }).desk;
+
+    desk = drive(desk, quotes, { kind: "quote", at: at("10:00"), quote: quoteWithAskQuantity("10:00", 99, 0) }).desk;
+    expect(desk.state.positions).toEqual([]);
+    expect(desk.state.orders).toEqual([]);
+    expect(desk.brackets).toBeUndefined();
+    expect(status(desk)).toMatchObject({ E1: "CANCELLED: Cancelled by you", "E1-SL": "COMPLETE", "E1-TP": "CANCELLED: Stop-loss hit" });
+    expect(desk.fills[0]).toMatchObject({ side: "SELL", quantity: CALL.lotSize, orderId: "E1-SL" });
   });
 
   it("cancels the target when the stop-loss fills", () => {

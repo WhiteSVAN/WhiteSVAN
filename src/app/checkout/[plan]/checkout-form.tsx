@@ -65,14 +65,15 @@ export function CheckoutForm({ action, email, defaults, mode, testMode = false, 
   const [state, submit, pending] = useActionState(action, undefined);
   const [confirming, startConfirming] = useTransition();
   const [notice, setNotice] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
   const [planId, setPlanId] = useState(initialPlan);
-  const [attempt] = useState(attemptId);
+  const [attempt, setAttempt] = useState(attemptId);
   const opened = useRef<string | null>(null);
   const plan = findEvaluationPlan(planId) ?? RECOMMENDED_PLAN;
   const total = formatInr(plan.fee);
   // A refused checkout comes back with what was sent, so nothing has to be typed twice.
   const values = state?.values ?? defaults;
-  const busy = pending || confirming;
+  const busy = pending || confirming || paying;
 
   // Start loading Checkout.js with the page, so the payment window opens without a wait.
   useEffect(() => {
@@ -84,6 +85,7 @@ export function CheckoutForm({ action, email, defaults, mode, testMode = false, 
     const payment: PaymentRequest | undefined = state?.payment;
     if (!payment || opened.current === payment.orderId) return;
     opened.current = payment.orderId;
+    setPaying(true);
     loadRazorpay()
       .then((Razorpay) => {
         setNotice(null);
@@ -99,24 +101,37 @@ export function CheckoutForm({ action, email, defaults, mode, testMode = false, 
           theme: { color: "#baf277" },
           handler: (response: RazorpaySuccess) => {
             startConfirming(async () => {
+              setPaying(false);
+              opened.current = null;
               const result = await confirmPayment({ orderId: payment.orderId, paymentId: response.razorpay_payment_id, signature: response.razorpay_signature });
               if (result?.message) setNotice(result.message);
             });
           },
-          modal: { ondismiss: () => setNotice("Payment window closed. Check My accounts for confirmation before trying again.") },
+          modal: { ondismiss: () => {
+            setPaying(false);
+            opened.current = null;
+            setNotice("Payment window closed. Check My accounts for confirmation before retrying this checkout.");
+          } },
         });
         checkout.on("payment.failed", (response) => setNotice(response.error?.description ? `${response.error.description} Try again, or use another method.` : "The payment didn't go through. Try again, or use another method."));
         checkout.open();
       })
-      .catch((error: unknown) => setNotice(error instanceof Error ? error.message : "Couldn't open the payment window. Try again."));
+      .catch((error: unknown) => {
+        setPaying(false);
+        opened.current = null;
+        setNotice(error instanceof Error ? error.message : "Couldn't open the payment window. Try again.");
+      });
   }, [state]);
 
   const choose = (id: string) => {
+    // Changing the intended purchase after starting payment is a new attempt.
+    // Validation failures and retries of the same size keep their original key.
+    if (state?.payment && id !== planId) setAttempt(crypto.randomUUID());
     setPlanId(id);
     window.history.replaceState(null, "", `/checkout/${id}`);
   };
 
-  const button = confirming ? "Confirming your payment…" : pending ? (mode === "razorpay" ? "Opening payment…" : "Opening your account…") : mode === "test" ? `Complete test purchase · ${total}` : mode === "razorpay" ? `Pay ${total}` : "Start evaluation";
+  const button = confirming ? "Confirming your payment…" : paying ? "Payment window open…" : pending ? (mode === "razorpay" ? "Opening payment…" : "Opening your account…") : mode === "test" ? `Complete test purchase · ${total}` : mode === "razorpay" ? `Pay ${total}` : "Start evaluation";
 
   return (
     <div className="mt-8 grid min-w-0 grid-cols-1 items-start gap-8 lg:grid-cols-[1.15fr_.85fr] lg:gap-12">

@@ -2,8 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { accountJson, instrumentForToken, newOrderId, orderQuotes } from "@/lib/accounts/api";
 import { tradingNow } from "@/lib/accounts/clock";
-import { changeAccount } from "@/lib/accounts/store";
-import { listAccounts } from "@/lib/accounts/store";
+import { changeAccountForOrder } from "@/lib/accounts/store";
 import { applyOrder, expectedPrice, orderPolicyProblem } from "@/lib/accounts/ticks";
 import { exitsProblem } from "@/lib/trading/desk";
 import { KiteError, quoteKey } from "@/lib/zerodha/kite";
@@ -32,17 +31,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const now = Date.now();
     const instrument = account.desk.instruments.find((item) => item.token === parsed.data.token) ?? (await instrumentForToken(config, accessToken, parsed.data.token, now));
     if (!instrument) throw new KiteError("That contract isn't in today's instrument list.", 400, "InputException");
-    const others = (await listAccounts(userId)).filter((item) => item.id !== account.id && item.status === "ACTIVE").map((item) => item.desk);
-    const problem = orderPolicyProblem(account.desk, instrument, parsed.data.side, parsed.data.lots, others);
-    if (problem) throw new KiteError(problem, 400, "InputException");
     const quotes = await orderQuotes(config, accessToken, [quoteKey(instrument)]);
     const { stopLoss, target, ...request } = parsed.data;
     const exits = { stop: stopLoss, target };
     const exitProblem = exitsProblem(exits, request.side, expectedPrice(request, quotes.find((quote) => quote.token === instrument.token)?.lastPrice), instrument.tickSize);
     if (exitProblem) throw new KiteError(exitProblem, 400, "InputException");
     const order = { ...request, id: newOrderId(now) };
-    const changed = await changeAccount(userId, id, (desk) => {
-      const result = applyOrder(desk, instrument, order, quotes, tradingNow(), exits);
+    const changed = await changeAccountForOrder(userId, id, (latest, others) => {
+      const problem = orderPolicyProblem(latest.desk, instrument, parsed.data.side, parsed.data.lots, others.map((item) => item.desk));
+      if (problem) throw new KiteError(problem, 400, "InputException");
+      const result = applyOrder(latest.desk, instrument, order, quotes, tradingNow(), exits);
       return { desk: result.desk, result: result.outputs };
     });
     return { outputs: changed?.result ?? [], desk: changed?.account.desk ?? account.desk };

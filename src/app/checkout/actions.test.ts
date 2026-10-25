@@ -81,6 +81,14 @@ describe("razorpay checkout", () => {
   it("creates the order and hands it to the browser to pay, opening no account yet", async () => {
     const result = await checkout(undefined, submission({ plan: "5l" }));
     expect(result?.payment).toEqual({ orderId: "order", razorpayOrderId: "order_RZP123", amount: 8_999_00, keyId: "rzp_test_key", description: "₹5L evaluation", prefill: { name: "Integration Trader", email: "owner@example.test", contact: "+919876543210" } });
+    expect(mocks.startRazorpay).toHaveBeenCalledWith(expect.objectContaining({ userId: "owner", attemptId: attempt }));
+    expect(mocks.purchase).not.toHaveBeenCalled();
+    expect(mocks.email).not.toHaveBeenCalled();
+  });
+
+  it("returns an already fulfilled retry to its completion page without opening another payment", async () => {
+    mocks.startRazorpay.mockResolvedValue({ orderId: "order", razorpayOrderId: "order_RZP123", amount: 8_999_00, accountId: "account" });
+    await expect(checkout(undefined, submission({ plan: "5l" }))).rejects.toThrow("REDIRECT:/checkout/complete/order");
     expect(mocks.purchase).not.toHaveBeenCalled();
     expect(mocks.email).not.toHaveBeenCalled();
   });
