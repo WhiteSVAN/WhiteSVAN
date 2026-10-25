@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 const CHANGES: [string, string, string][] = [
   ["Profit target", `${R.targetPercent}%`, "None"],
   ["Profit split", "—", `${R.contractorSharePercent}%`],
-  ["Payouts", "—", "Twice a month, up to your cap"],
+  ["Payouts", "—", "When eligible, up to your cap"],
 ];
 
 const FAQ: [string, string][] = [

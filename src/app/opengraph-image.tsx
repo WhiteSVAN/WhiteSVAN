@@ -18,7 +18,7 @@ const STATS: [string, string][] = [
   [`${FIRST.label}–${LAST.label}`, "Account sizes"],
   [`${R.contractorSharePercent}%`, "Profit split"],
   [`${R.targetPercent}%`, "Profit target"],
-  ["2x a month", "Payouts"],
+  ["On demand", "Payouts"],
 ];
 
 /** Storefront share card; every route without its own card uses it. */

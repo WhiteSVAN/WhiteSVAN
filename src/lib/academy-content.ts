@@ -77,12 +77,12 @@ export const ACADEMY_LESSONS: AcademyLesson[] = [
     summary: "What you need to pass, what passing gets you and how payouts work.",
     reading: [
       `The evaluation is a simulated account with fixed rules: a ${R.targetPercent}% profit target over at least ${R.minimumDays} trading days, a ${R.dailyLossPercent}% daily loss limit and a ${R.maximumLossPercent}% max drawdown that trails your highest end-of-day balance until it reaches your starting balance. When you pass, your best day can be no more than ${R.consistencyPercent}% of your total profit. Every fill includes Indian trading costs, so plan your size after costs, not before.`,
-      `Passing leads to KYC and your funded trader agreement. The funded account is also simulated and keeps the same loss limits. You keep ${R.contractorSharePercent}% of the profit and can request a payout twice a month, up to the cap for your account size. Each request is checked against the rules, so a breach or a request above the cap is not paid.`,
+      `Passing leads to KYC and your funded trader agreement. The funded account is also simulated and keeps the same loss limits. You keep ${R.contractorSharePercent}% of the profit and can request a payout whenever you have eligible profit, up to the cap for your account size. Each request is checked against the rules, so a breach or a request above the cap is not paid.`,
     ],
     checklist: [
       "Write down the profit target, daily loss limit and max drawdown for your account size.",
       "Size every trade so one bad day stays inside the daily loss limit.",
-      "Read the payout rules before you start: split, cap, buffer and schedule.",
+      "Read the payout rules before you start: split, cap, buffer and eligibility.",
     ],
     reviewPrompt:
       "Write your evaluation plan: your account size, your daily stop, the most you will risk on one trade, and what you will do after a losing day.",

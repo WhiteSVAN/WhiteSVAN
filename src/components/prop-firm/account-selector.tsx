@@ -26,7 +26,7 @@ export function AccountSelector() {
           </div>
         </div>
 
-        <p className="mt-5 min-h-10 text-center text-xs leading-6 text-[var(--muted)]" aria-live="polite">{isEvaluation ? `One-time fee · GST included · Pass in as few as ${PROGRAMME_RULES.minimumDays} trading days` : `After you pass and complete KYC · ${PROGRAMME_RULES.contractorSharePercent}% profit split · Payouts twice a month`}</p>
+        <p className="mt-5 min-h-10 text-center text-xs leading-6 text-[var(--muted)]" aria-live="polite">{isEvaluation ? `One-time fee · GST included · Pass in as few as ${PROGRAMME_RULES.minimumDays} trading days` : `After you pass and complete KYC · ${PROGRAMME_RULES.contractorSharePercent}% profit split · Payouts on demand`}</p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {EVALUATION_PLANS.map((plan) => {
@@ -50,7 +50,7 @@ export function AccountSelector() {
                 </> : <>
                   <Rule label="Profit split" value={`${PROGRAMME_RULES.contractorSharePercent}%`} />
                   <Rule label="Payout cap" value={formatInr(plan.payoutCap)} />
-                  <Rule label="Payouts" value="Twice a month" />
+                  <Rule label="Payouts" value="On demand" />
                 </>}
               </dl>
               <div className="mt-auto border-t border-[var(--border)] bg-[var(--card-deep)] px-6 py-4"><p className="flex items-center gap-2 text-[11px] text-[var(--muted)]"><Check size={13} className="text-[var(--primary)]" aria-hidden="true" /> NIFTY · BANK NIFTY · SENSEX</p></div>

@@ -3,7 +3,8 @@
 WhiteSVAN is an India-first prop trading firm for NIFTY, BANK NIFTY and SENSEX options.
 Traders learn with SVAN Academy, take a one-time-fee simulated evaluation (₹1L, ₹5L or ₹10L, 6%
 profit target, 4% end-of-day drawdown, 2% daily loss limit), and those who pass get a simulated
-funded account with an 80% profit split under half-month payout rules.
+funded account with an 80% profit split. Payouts can be requested whenever eligible profit is earned,
+subject to the buffer, per-request cap and verification requirements.
 
 Pricing, rules, the help center and free Academy lessons are available. Checkout opens evaluations
 free of charge when Razorpay keys are absent, or uses Razorpay Standard Checkout when configured.
@@ -60,7 +61,7 @@ Temporal Cloud setup, worker commands and deployment instructions: [docs/tempora
   has it connected.
 - My accounts shows evaluation and funded account cards. Passing an evaluation opens its funded
   account once, in the same database transaction; trader and staff notifications follow.
-  `/payouts` shows each funded account's buffer, profit split, cap, cycle and prerequisites, without
+  `/payouts` shows each funded account's buffer, profit split, cap and eligibility prerequisites, without
   submitting a request or transferring money.
 - Signed-in workspace: My accounts, Trade (when live prices are configured) and Journal; Payouts,
   Academy, Help and Settings in the account menu.
