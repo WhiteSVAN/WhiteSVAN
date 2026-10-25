@@ -5,6 +5,7 @@ import { dayPositions, dayTotals, type Desk, type OrderRecord } from "@/lib/trad
 import { riskMeters, type EngineOutput, type OrderChanges, type OrderType, type WorkingOrder } from "@/lib/trading/engine";
 import type { Instrument, Side } from "@/lib/trading/instruments";
 import { parseRupees } from "@/lib/trading/money";
+import { payoutAmounts } from "@/lib/trading/payouts";
 import { toIst } from "@/lib/trading/time";
 import type { KiteContract, MarketQuote } from "@/lib/zerodha/kite";
 import { STATUS_BADGE } from "@/components/markets/account-status";
@@ -54,13 +55,21 @@ export function Meter({ label, value, detail, used, danger = false }: { label: s
   );
 }
 
-/** The account's balance and rule meters, shared by the platform and the dashboard. A `demo` account never moves to funded. */
-export function AccountMeters({ desk, demo = false }: { desk: Desk; demo?: boolean }) {
+/** "Demo account" while it's an evaluation, "Funded account" once funded. */
+export const accountKind = (desk: Desk) => (desk.state.phase === "FUNDED" ? "Funded account" : "Demo account");
+
+/**
+ * The account's balance and rule meters, shared by the platform and the dashboard. A demo account
+ * (the evaluation) tracks the profit target; a funded account tracks what it can pay out.
+ */
+export function AccountMeters({ desk, wide = false }: { desk: Desk; wide?: boolean }) {
   const meters = riskMeters(desk.state);
   const { rules } = desk.state;
+  const funded = desk.state.phase === "FUNDED";
+  const payout = funded ? payoutAmounts(rules, Math.max(0, meters.balance - rules.startingBalance)) : null;
   return (
     <>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+      <dl className={`grid grid-cols-2 gap-x-4 gap-y-3 text-xs ${wide ? "sm:grid-cols-4" : ""}`}>
         {[
           ["Balance", rupees(meters.balance), ""],
           ["Equity", rupees(meters.equity), ""],
@@ -70,10 +79,14 @@ export function AccountMeters({ desk, demo = false }: { desk: Desk; demo?: boole
           <div key={term}><dt className="text-[var(--muted)]">{term}</dt><dd className={`mt-0.5 font-mono text-sm ${className}`}>{value}</dd></div>
         ))}
       </dl>
-      <div className="space-y-3">
+      <div className={wide ? "grid gap-4 sm:grid-cols-3" : "space-y-3"}>
         <Meter label="Daily loss" value={`${rupees(meters.dailyLossUsed)} / ${rupees(meters.dailyLossLimit)}`} detail={`${rupees(meters.dailyLossLeft)} left today, counting open P&L`} used={meters.dailyLossUsed / meters.dailyLossLimit} danger />
         <Meter label="Max drawdown" value={`${rupees(Math.max(0, meters.roomToFloor))} room`} detail={`Floor ${rupees(meters.maxLossFloor)}`} used={1 - Math.max(0, meters.roomToFloor) / rules.maxLoss} danger />
-        <Meter label="Profit target" value={`${rupees(Math.max(0, meters.profit))} / ${rupees(meters.profitTarget)}`} detail={`${meters.tradingDays} of ${meters.minTradingDays} trading days · ${meters.lotsInUse} of ${meters.maxLots} lots in use`} used={meters.profit / meters.profitTarget} />
+        {payout ? (
+          <Meter label="Payout" value={`${rupees(payout.payout)} / ${rupees(rules.payoutCap)}`} detail={`${rules.profitSplitPercent}% of profit above the ${rupees(payout.buffer)} buffer · ${meters.lotsInUse} of ${meters.maxLots} lots in use`} used={payout.payout / rules.payoutCap} />
+        ) : (
+          <Meter label="Profit target" value={`${rupees(Math.max(0, meters.profit))} / ${rupees(meters.profitTarget)}`} detail={`${meters.tradingDays} of ${meters.minTradingDays} trading days · ${meters.lotsInUse} of ${meters.maxLots} lots in use`} used={meters.profit / meters.profitTarget} />
+        )}
       </div>
       {desk.state.breach && (
         <p role="alert" className="rounded-md border border-[var(--danger)]/40 p-3 text-xs leading-5 text-[var(--danger)]">
@@ -81,17 +94,17 @@ export function AccountMeters({ desk, demo = false }: { desk: Desk; demo?: boole
         </p>
       )}
       {desk.state.status === "PASSED" && (
-        <p role="status" className="rounded-md border border-[var(--primary)]/40 p-3 text-xs leading-5 text-[var(--primary)]">Passed on {desk.state.passedOn}. {demo ? "This was a demo evaluation, so it doesn't move to a funded account." : "Next: KYC and your funded trader agreement."}</p>
+        <p role="status" className="rounded-md border border-[var(--primary)]/40 p-3 text-xs leading-5 text-[var(--primary)]">Passed on {desk.state.passedOn}. Your funded account is open in My accounts.</p>
       )}
     </>
   );
 }
 
 /**
- * The account's meters and the order ticket for the selected option (`label` names it). The side
- * is the caller's, so the chart's and the option chain's Buy and Sell can set it.
+ * The order ticket for the selected option (`label` names it), under the account's name and
+ * status. The side is the caller's, so the option chain's Buy and Sell can set it.
  */
-export function AccountTicket({ desk, planLabel, demo = false, contract, label, quote, side, onSide, onPlace }: { desk: Desk; planLabel: string; demo?: boolean; contract: KiteContract | null; label: string | null; quote: MarketQuote | undefined; side: Side; onSide: (side: Side) => void; onPlace: (order: OrderInput) => Promise<EngineOutput[]> }) {
+export function AccountTicket({ desk, planLabel, contract, label, quote, side, onSide, onPlace }: { desk: Desk; planLabel: string; contract: KiteContract | null; label: string | null; quote: MarketQuote | undefined; side: Side; onSide: (side: Side) => void; onPlace: (order: OrderInput) => Promise<EngineOutput[]> }) {
   const [type, setType] = useState<OrderType>("MARKET");
   const [lots, setLots] = useState(1);
   const [limitInput, setLimitInput] = useState("");
@@ -149,13 +162,11 @@ export function AccountTicket({ desk, planLabel, demo = false, contract, label, 
     <aside id="order-ticket" className="terminal-card flex scroll-mt-24 flex-col gap-5 p-5" aria-label="Account and order ticket">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="terminal-label">{demo ? "Demo evaluation" : "Evaluation account"}</p>
+          <p className="terminal-label">{accountKind(desk)}</p>
           <p className="mt-1 text-sm font-medium">{planLabel} · {rules.maxLots} lot{rules.maxLots === 1 ? "" : "s"}</p>
         </div>
         <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${status.className}`}>{status.text}</span>
       </div>
-
-      <AccountMeters desk={desk} demo={demo} />
 
       <div className="border-t border-[var(--border)] pt-4">
         {contract ? (

@@ -6,7 +6,8 @@ import { prisma } from "@/lib/db";
 import { findEvaluationPlan } from "@/lib/prop-firm";
 import { openDesk } from "@/lib/trading/desk";
 import { MAX_ACTIVE_ACCOUNTS, planAmount, type Billing } from "./billing";
-import { CheckoutError, completePurchase } from "./orders";
+import { CheckoutError, completePurchase, fulfilRazorpayOrder, startRazorpayOrder } from "./orders";
+import type { RazorpayConfig } from "./razorpay";
 
 const localDb = (() => {
   try { const url = new URL(process.env.DATABASE_URL ?? ""); return url.hostname === "127.0.0.1" && url.pathname === "/whitesvan_preview"; }
@@ -19,19 +20,22 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
   const plan = findEvaluationPlan("1l")!;
   const now = Date.UTC(2026, 9, 24, 4);
   const billing: Billing = { name: "Checkout integration", phone: "+919876543210", state: "Telangana", terms: "on" };
+  const razorpay: RazorpayConfig = { keyId: "rzp_test_key", keySecret: "key-secret", webhookSecret: null, apiRoot: "https://razorpay.invalid/v1" };
+  /** Razorpay's order API, answering with a fresh order id for whatever amount was asked. */
+  const razorpayApi = (async (_url: string, init?: RequestInit) => Response.json({ id: `order_${randomUUID().replace(/-/g, "").slice(0, 14)}`, amount: JSON.parse(String(init?.body)).amount, currency: "INR", status: "created" })) as unknown as typeof fetch;
 
   async function makeUser() {
     const user = await prisma.user.create({ data: { email: `checkout-${randomUUID()}@example.test`, role: "TRADER" } });
     userIds.push(user.id);
     return user;
   }
-  function request(user: { id: string; email: string | null }, mode: "test" | "demo" = "demo", attemptId = randomUUID()) {
+  function request(user: { id: string; email: string | null }, mode: "test" | "free" = "free", attemptId = randomUUID()) {
     return { mode, userId: user.id, email: user.email!, plan, billing, now, attemptId };
   }
   async function seedActive(userId: string, count: number) {
     for (let index = 0; index < count; index++) {
       const id = `fixture-${randomUUID()}`;
-      await prisma.evaluationAccount.create({ data: { id, userId, planId: plan.id, demo: true, desk: openDesk(plan, id, now) as unknown as Prisma.InputJsonValue } });
+      await prisma.evaluationAccount.create({ data: { id, userId, planId: plan.id, desk: openDesk(plan, id, now) as unknown as Prisma.InputJsonValue } });
     }
   }
 
@@ -40,21 +44,20 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
     await prisma.$disconnect();
   });
 
-  it.each(["test", "demo"] as const)("serializes concurrent %s purchases before checking the active-account cap", async (mode) => {
+  it.each(["test", "free"] as const)("serializes concurrent %s purchases before checking the active-account cap", async (mode) => {
     const user = await makeUser();
     await seedActive(user.id, MAX_ACTIVE_ACCOUNTS - 1);
     const results = await Promise.allSettled(Array.from({ length: 4 }, () => completePurchase(request(user, mode))));
     expect(results.filter(result => result.status === "fulfilled")).toHaveLength(1);
     for (const result of results) if (result.status === "rejected") {
       expect(result.reason).toBeInstanceOf(CheckoutError);
-      expect(result.reason.message).toContain("active evaluation accounts");
+      expect(result.reason.message).toContain("active accounts");
     }
     expect(await prisma.evaluationAccount.count({ where: { userId: user.id, status: "ACTIVE" } })).toBe(MAX_ACTIVE_ACCOUNTS);
     expect(await prisma.checkoutOrder.count({ where: { userId: user.id } })).toBe(1);
-    expect((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).demoCreditSpent).toBe(mode === "demo" ? planAmount(plan) : 0);
   });
 
-  it.each(["test", "demo"] as const)("deduplicates concurrent and later retries of one %s checkout attempt", async (mode) => {
+  it.each(["test", "free"] as const)("deduplicates concurrent and later retries of one %s checkout attempt", async (mode) => {
     const user = await makeUser();
     const input = request(user, mode);
     const results = await Promise.all(Array.from({ length: 4 }, () => completePurchase(input)));
@@ -63,9 +66,10 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
     expect(await prisma.checkoutOrder.count({ where: { userId: user.id } })).toBe(1);
     expect(await prisma.evaluationAccount.count({ where: { userId: user.id } })).toBe(1);
     const account = await prisma.evaluationAccount.findUniqueOrThrow({ where: { id: results[0].accountId } });
-    expect(account.demo).toBe(mode === "demo");
     expect(account.phase).toBe("EVALUATION");
-    expect((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).demoCreditSpent).toBe(mode === "demo" ? planAmount(plan) : 0);
+    const order = await prisma.checkoutOrder.findUniqueOrThrow({ where: { id: results[0].orderId } });
+    // A free start records nothing charged; a test purchase records the price it didn't charge.
+    expect({ provider: order.provider, amount: order.amount, status: order.status }).toEqual({ provider: mode, amount: mode === "free" ? 0 : planAmount(plan), status: "PAID" });
   });
 
   it("allows different attempt keys to represent intentional separate purchases", async () => {
@@ -74,15 +78,56 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
     const second = await completePurchase(request(user));
     expect(first.orderId).not.toBe(second.orderId);
     expect(await prisma.checkoutOrder.count({ where: { userId: user.id } })).toBe(2);
-    expect((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).demoCreditSpent).toBe(2 * planAmount(plan));
   });
 
   it("scopes attempt keys to the authenticated owner", async () => {
     const firstUser = await makeUser();
     const secondUser = await makeUser();
     const key = randomUUID();
-    const first = await completePurchase(request(firstUser, "demo", key));
-    const second = await completePurchase(request(secondUser, "demo", key));
+    const first = await completePurchase(request(firstUser, "free", key));
+    const second = await completePurchase(request(secondUser, "free", key));
     expect(first.orderId).not.toBe(second.orderId);
+  });
+
+  it("holds a Razorpay order as pending, then opens one account however many confirmations arrive", async () => {
+    const user = await makeUser();
+    const started = await startRazorpayOrder({ config: razorpay, userId: user.id, email: user.email!, plan, billing, now }, razorpayApi);
+    const pending = await prisma.checkoutOrder.findUniqueOrThrow({ where: { id: started.orderId } });
+    expect(pending).toMatchObject({ status: "PENDING", provider: "razorpay", amount: planAmount(plan), providerOrderId: started.razorpayOrderId, accountId: null, paidAt: null });
+    expect(await prisma.evaluationAccount.count({ where: { userId: user.id } })).toBe(0);
+
+    // The browser's handler and the webhook, at once and again later.
+    const confirm = () => fulfilRazorpayOrder({ razorpayOrderId: started.razorpayOrderId, paymentId: "pay_INTEGRATION1", now, amount: planAmount(plan) });
+    const results = await Promise.all([confirm(), confirm(), confirm()]);
+    expect(results.filter(result => result?.opened)).toHaveLength(1);
+    expect(new Set(results.map(result => result?.accountId)).size).toBe(1);
+    expect((await confirm())?.opened).toBe(false);
+    expect(await prisma.evaluationAccount.count({ where: { userId: user.id } })).toBe(1);
+    expect(await prisma.checkoutOrder.findUniqueOrThrow({ where: { id: started.orderId } })).toMatchObject({ status: "PAID", providerPaymentId: "pay_INTEGRATION1", accountId: results[0]!.accountId });
+  });
+
+  it("refuses a payment for another amount, and orders it doesn't know", async () => {
+    const user = await makeUser();
+    const started = await startRazorpayOrder({ config: razorpay, userId: user.id, email: user.email!, plan, billing, now }, razorpayApi);
+    await expect(fulfilRazorpayOrder({ razorpayOrderId: started.razorpayOrderId, paymentId: "pay_INTEGRATION2", now, amount: 100 })).rejects.toBeInstanceOf(CheckoutError);
+    expect(await prisma.checkoutOrder.findUniqueOrThrow({ where: { id: started.orderId } })).toMatchObject({ status: "PENDING", accountId: null });
+    expect(await fulfilRazorpayOrder({ razorpayOrderId: "order_UNKNOWN0000", paymentId: "pay_INTEGRATION3", now })).toBeNull();
+  });
+
+  it("checks the account limit before taking money, and opens a paid order's account past it", async () => {
+    const user = await makeUser();
+    await seedActive(user.id, MAX_ACTIVE_ACCOUNTS - 1);
+    const started = await startRazorpayOrder({ config: razorpay, userId: user.id, email: user.email!, plan, billing, now }, razorpayApi);
+    await seedActive(user.id, 1);
+    await expect(startRazorpayOrder({ config: razorpay, userId: user.id, email: user.email!, plan, billing, now }, razorpayApi)).rejects.toThrow("active accounts");
+    expect((await fulfilRazorpayOrder({ razorpayOrderId: started.razorpayOrderId, paymentId: "pay_INTEGRATION4", now }))?.opened).toBe(true);
+    expect(await prisma.evaluationAccount.count({ where: { userId: user.id, status: "ACTIVE" } })).toBe(MAX_ACTIVE_ACCOUNTS + 1);
+  });
+
+  it("marks the order failed when Razorpay won't create it", async () => {
+    const user = await makeUser();
+    const down = (async () => Response.json({ error: { description: "Server error" } }, { status: 500 })) as unknown as typeof fetch;
+    await expect(startRazorpayOrder({ config: razorpay, userId: user.id, email: user.email!, plan, billing, now }, down)).rejects.toThrow("Razorpay refused the order");
+    expect(await prisma.checkoutOrder.findFirstOrThrow({ where: { userId: user.id } })).toMatchObject({ status: "FAILED", providerOrderId: null });
   });
 });

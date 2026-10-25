@@ -61,7 +61,7 @@ export function formatInr(value: number): string {
 /** The programme in three steps, wherever the site explains it. */
 export const PROGRAMME_STEPS = [
   { title: "Pass the evaluation", body: `Hit the ${PROGRAMME_RULES.targetPercent}% profit target in at least ${PROGRAMME_RULES.minimumDays} trading days without touching the daily loss limit or the max drawdown.` },
-  { title: "Get funded", body: "Complete KYC and sign your funded trader agreement. Your funded account is simulated and keeps the same loss limits, with no profit target." },
+  { title: "Get funded", body: "Your funded account opens as soon as you pass. It's simulated, like your demo account, and keeps the same loss limits, with no profit target." },
   { title: "Get paid", body: `Keep ${PROGRAMME_RULES.contractorSharePercent}% of the profit, paid to your bank twice a month, up to the cap for your account size.` },
 ] as const;
 
@@ -100,7 +100,7 @@ export const RULE_SECTIONS = [
     id: "desk",
     label: "Funded accounts & payouts",
     title: "Get funded and get paid.",
-    description: "Pass, complete KYC (PAN, Aadhaar and bank verification) and sign your funded trader agreement. You keep 80% of the profit on your funded account. Request a payout twice a month, up to the cap for your account size; profit equal to your maximum drawdown stays in the account as a buffer. Funded accounts are simulated and keep the same loss limits.",
+    description: "Pass and your funded account opens, on the same size and loss limits with no profit target. You keep 80% of its profit. Request a payout twice a month, up to the cap for your account size; profit equal to your maximum drawdown stays in the account as a buffer. Before your first payout, complete KYC (PAN, Aadhaar and bank verification) and sign your funded trader agreement. Funded accounts are simulated.",
   },
   {
     id: "appeals",

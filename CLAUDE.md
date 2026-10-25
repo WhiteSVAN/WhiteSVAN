@@ -2,12 +2,13 @@
 
 # WhiteSVAN (formerly TrustSVAN)
 
-WhiteSVAN is an India-first **prop trading firm** for NIFTY, BANK NIFTY and SENSEX futures and
+WhiteSVAN is an India-first **prop trading firm** for NIFTY, BANK NIFTY and SENSEX
 options, modelled on MFFU, Tradeify and Topstep. Traders learn with **SVAN Academy**, pay a one-time
 fee for a **simulated evaluation**, and those who pass get a **simulated funded account** with an
 80% profit split, paid out in rupees. The public site (`/`, `/evaluations`, `/rules`, `/help`,
-`/academy`) is the storefront. It is **launching soon**: no payment gateway yet, so checkout runs in
-demo mode (below).
+`/academy`) is the storefront. Checkout uses Razorpay when configured and opens evaluations free
+of charge otherwise. Funded-account provisioning and payout quotes are built; KYC and actual
+payout processing are not.
 
 The original product, a trader-verification **journal** (imports, metrics, research profiles, AI
 briefs, discovery network), and the Zerodha **track record** are **switched off** (25 Oct 2026):
@@ -66,29 +67,36 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   [src/lib/academy-content.ts](src/lib/academy-content.ts)). `sitemap.ts`, `robots.ts` and the
   storefront `opengraph-image.tsx` read the public origin from [src/lib/site.ts](src/lib/site.ts).
 - **Buying an evaluation: three steps** (founder's rule of three, 25 Oct 2026): create an account,
-  choose the size, pay. "Get funded" and "Start your evaluation" go to `/checkout`. Signed out,
+  choose the size, check out. "Get funded" and "Start your evaluation" go to `/checkout`. Signed out,
   that's sign-up first (`/signup?next=/checkout`), which asks for no size, and sign-up sends
   traders straight on to checkout (or to `?next=`). `/checkout` opens `/checkout/<plan>` on
-  `startingPlan` (`RECOMMENDED_PLAN`, ₹5L, or the largest size the demo credit covers); a pricing
+  `RECOMMENDED_PLAN` (₹5L); a pricing
   card opens its own size (signed out: `/signup?plan=<id>`). Checkout is one screen: step 2 picks
   the size in place (the address follows; the form posts `plan`), step 3 is mobile, state (filled
-  in from the last order), the agreement and Pay; the name comes from the account →
+  in from the last order), the agreement and checkout; the name comes from the account →
   `/checkout/complete/<order>` → "Start trading" → `/trade/<account>`. `StartSteps` shows the
   steps on sign-up and checkout. Every account is a trader: sign-up has no client option, Google
   sign-ups land on `/onboarding/continue` (trader role, then `next`), and `requireMember` makes
   any role-less user a trader in place. Keep new step lists to three. Traders don't need a journal profile for any of this (`requireMember` in
-  [src/lib/auth/dal.ts](src/lib/auth/dal.ts)). No payment gateway is signed (Razorpay or Cashfree).
-  Until one is, checkout runs in **demo mode** (founder's decision, 24 Oct 2026, for demos):
-  - Every user has ₹50,000 of virtual demo credit (`DEMO_CREDIT` in
-    [src/lib/checkout/demo.ts](src/lib/checkout/demo.ts); `User.demoCreditSpent` in paise).
-  - Evaluations are bought at the normal prices with it. The order has provider `"demo"`, and the
-    credit is spent in the same transaction, conditional on enough being left.
-  - The account is marked `EvaluationAccount.demo`, shows a Demo label, and never leads to a funded
-    account or a payout.
-  - The sign-ins in `STAFF_EMAILS` still make **test purchases** (provider `"test"`, no credit used).
-  - `DEMO_CHECKOUT = false` closes checkout to the public again ("opens at launch", with the launch
-    list). The storefront copy follows the flag, so it's a code change, not an env var.
-  - A gateway adds a live mode in [src/lib/checkout/config.ts](src/lib/checkout/config.ts).
+  [src/lib/auth/dal.ts](src/lib/auth/dal.ts)). Mode comes from
+  [src/lib/checkout/config.ts](src/lib/checkout/config.ts):
+  - Without both Razorpay keys, checkout opens a simulated evaluation free of charge: provider
+    `"free"`, amount ₹0, and no screen or email claims a payment was taken. Virtual credit is retired.
+  - With keys, [razorpay.ts](src/lib/checkout/razorpay.ts) creates a Razorpay order. Our order stays
+    `PENDING` until the browser's signed response is checked against the payment API (matching
+    order, amount, INR and captured status), or a signed `payment.captured` / `order.paid` webhook
+    arrives. The row is locked so concurrent confirmations open one account. Authorized but
+    uncaptured payments remain pending. Staff sign-ins in `STAFF_EMAILS` always use provider
+    `"test"`: the normal fee is recorded without a charge, even with Razorpay configured.
+  - Free/test attempts use a stable, owner-scoped key so retries reuse the same order. New
+    purchases check the active-account cap before payment; an already-paid order still opens its
+    account if that cap has since been reached. Passing an evaluation opens its funded account
+    regardless of whether it began free, as a staff test or through Razorpay. All trading is simulated.
+  **Payment activation:** configure `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, automatic capture in
+  Razorpay Dashboard, and `<site>/api/razorpay/webhook` for `payment.captured` and `order.paid`, with
+  its own `RAZORPAY_WEBHOOK_SECRET`. Test-mode keys do not take real money; real payments require
+  live-mode keys and a configured merchant account. Local stand-in tests do not establish that
+  real capture, settlement or refunds work. Never claim a real payment was tested without evidence.
 - **Track record** (`/track`, [src/lib/track-record.ts](src/lib/track-record.ts), switched off with
   the journal): the second route in. Traders trade NIFTY, BANK NIFTY and SENSEX F&O in their own Zerodha account, upload Console
   tradebooks, and the programme rules judge each day's closed result (no intraday prices, so limits
@@ -102,13 +110,20 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   access needs Zerodha's approval), a staff shortlist and the copy engine.
 - Accounts: `EvaluationAccount` stores the engine host snapshot (`desk` JSON, written with
   optimistic locking on `version`) and `CheckoutOrder` the purchase
-  ([src/lib/accounts/store.ts](src/lib/accounts/store.ts)). At most `maximumAccounts` active.
+  ([src/lib/accounts/store.ts](src/lib/accounts/store.ts)). The write that passes an evaluation
+  creates its same-size `FUNDED` account in one transaction, with a unique `fromAccountId` back
+  to the evaluation. The funded account starts afresh with no profit target and the plan's current
+  rules. Trader and staff emails follow; My accounts lists both phases with the appropriate meters.
 - The trading platform `/trade/<account>` (and `/markets`, the Trade tab, for the trader's active
   account; `?account=` picks one) is **options only**: NIFTY / BANK NIFTY / SENSEX tabs, an expiry,
-  and an option chain of 13 strikes around the money (calls left, puts right, ATM marked, B and S
-  on every option). The selected option is charted with its depth, and the ticket takes Market,
-  Limit and Stop-loss orders. The engine runs on the server: each poll (`/api/accounts/<id>/tick`,
-  up to `MAX_TICK_KEYS` = 40 contracts in one Kite call, with full depth only for the charted
+  and an option chain of up to 11 strikes around the money (calls left, puts right, ATM marked, B and S
+  on every option). The chart starts on the index; picking an option's price charts that option
+  with its depth, and the chart selector switches back to the index. B and S select the option
+  on the ticket without changing the chart. Index charts have no depth, volume or OI panes and
+  cannot be traded. On desktop, the large chart sits beside the chain and ticket, with rule meters
+  below. The ticket takes Market, Limit and Stop-loss orders. The engine runs on the server:
+  each poll (`/api/accounts/<id>/tick`,
+  up to `MAX_TICK_KEYS` = 40 contracts in one Kite call, with full depth only for the selected
   option and the account's own; `screenQuotes`) feeds the account. Orders go to
   `/api/accounts/<id>/orders`, and modify (PATCH) and cancel (DELETE) to `/orders/<orderId>`.
   **Order policy** (`orderPolicyProblem` in [src/lib/accounts/ticks.ts](src/lib/accounts/ticks.ts),
@@ -127,15 +142,19 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   accounts (`/dashboard`, account cards with meters), Trade (`/markets`, once Kite is configured) and
   Journal (`/journal`); Payouts, Academy, Help, Settings (name and email only) and sign-out sit in
   the account menu.
-- **Journal** (`/journal`, [src/lib/journal.ts](src/lib/journal.ts)): basic, on the evaluation
+- **Payouts** (`/payouts`): funded-account balance, profit, buffer, split, cap and half-month cycle
+  dates come from [src/lib/trading/payouts.ts](src/lib/trading/payouts.ts). The page shows eligibility
+  prerequisites, including KYC, agreement and bank checks, but cannot submit a request or pay money.
+  Those checks remain incomplete until their processing flows are built.
+- **Journal** (`/journal`, [src/lib/journal.ts](src/lib/journal.ts)): basic, on the evaluation and funded
   accounts' own trades. Net P&L, win rate (by day) and trades; a Monday-to-Friday P&L calendar with
   weekly totals; and the selected day's trades and note. Daily P&L comes from the engine's closed
   days (`state.days`) plus today so far; trade counts from `Desk.dayTrades` (fills per IST date,
   counted by `deskStep`); `settledDesk` closes a day nobody closed, for display only. Notes are
   `JournalNote` rows (one per trader and date, across accounts; saved by `saveDayNote`).
-  The launch list ([src/app/waitlist-form.tsx](src/app/waitlist-form.tsx)) writes `WaitlistEntry`.
-- **Not built yet:** a payment gateway, GST invoices and refunds, the always-on engine service with a
-  licensed market-data feed, KYC, payout processing and the copy engine. The spec is the Notion page
+- **Not built yet:** GST invoices and refunds, the always-on engine service with a
+  licensed market-data feed, KYC, funded agreements, bank verification, payout processing and the
+  copy engine. The spec is the Notion page
   "Platform Technical Requirements (TRD v1)". Never imply a real payment or a payout has happened.
 
 ## Trading core (src/lib/trading)
@@ -171,9 +190,9 @@ result. The future engine service (Node on AWS with the market-data feed) hosts 
 
 `/markets` (signed-in, the **Trade** tab; the UI never names Zerodha) shows NIFTY, BANK NIFTY and
 SENSEX options for every signed-in user, from the firm's Zerodha account through Kite Connect: the
-option chain, candles from 1 minute to 1 day, volume and open-interest panes, live quotes and
-five-level depth. The index price only places the money line; index and futures aren't shown or
-traded.
+option chain, candles from 1 minute to 1 day, live quotes and option depth. The index is charted
+first and sets the chain's money line; an option's chart adds volume, open interest and five-level
+depth. Only options are traded; index charts are for reference and futures are not offered.
 
 - **Shared with every signed-in user (founder's decision, 24 Oct 2026).** A `KITE_OWNER_EMAILS`
   sign-in logs in to Kite. The day's access token is stored, sealed, in the `KiteConnection` row,
@@ -271,10 +290,13 @@ Prisma schema: [prisma/schema.prisma](prisma/schema.prisma). Two groups:
 - **Domain**: `TraderProfile` (profile identity, unique `slug` -> `/p/[slug]`, private by default),
   `TradingAccount`, `Trade` (raw source rows kept in `raw` Json), `DailyPnl`
   (per-account/day rollup, rebuilt from loaded trades, `@@unique([accountId, tradeDate])`),
-  `Report` (`metrics` + `aiReport` JSON, `DRAFT`/`PUBLISHED`), `WaitlistEntry` (launch list).
-  `EvaluationAccount` (the engine snapshot in `desk`, `version` for optimistic locking, `demo` for
-  accounts bought with demo credit) and `CheckoutOrder` (amount in paise, provider `test`, `demo`
-  or a gateway, billing, GST place of supply). `User.demoCreditSpent` tracks demo credit.
+  `Report` (`metrics` + `aiReport` JSON, `DRAFT`/`PUBLISHED`), and legacy `WaitlistEntry` rows (the
+  public launch-list form is removed). `EvaluationAccount` holds the engine snapshot in `desk`,
+  optimistic-lock `version`, phase and a unique `fromAccountId` for a funded account's evaluation.
+  `demo` and `User.demoCreditSpent` remain legacy fields; virtual credit is no longer spent and
+  old demo accounts continue under the current account flow. `CheckoutOrder` stores amount in
+  paise, provider `free`, `test`, `razorpay` (or legacy `demo`), billing, GST place of supply and
+  unique provider order/payment references.
   `JournalNote` (a trader's note on a date, `@@unique([userId, date])`). There are no payout
   tables yet (see the TRD's data model).
 
@@ -299,8 +321,12 @@ npm run lint
 `AUTH_SECRET` (`npx auth secret`), optional Google sign-in, AI provider config (`AI_PROVIDER`,
 `OPENAI_*`, `ANTHROPIC_*`), optional `NEXT_PUBLIC_DISCORD_URL` and `NEXT_PUBLIC_SITE_URL` (read
 at build time; the site URL defaults to https://white-svan.vercel.app), optional Zerodha charts
-(`KITE_API_KEY`, `KITE_API_SECRET`, `KITE_OWNER_EMAILS`; see above), `STAFF_EMAILS` (test purchases
-at checkout), and `RESEND_API_KEY` + `EMAIL_FROM` (real emails; otherwise they're logged).
+(`KITE_API_KEY`, `KITE_API_SECRET`, `KITE_OWNER_EMAILS`; see above), `STAFF_EMAILS` (uncharged test
+purchases and funded-account notices), `RAZORPAY_KEY_ID` + `RAZORPAY_KEY_SECRET` (Razorpay checkout),
+`RAZORPAY_WEBHOOK_SECRET` (captured webhooks), and `RESEND_API_KEY` + `EMAIL_FROM` (real emails;
+otherwise they're logged). `RAZORPAY_API_ROOT` can point at a stand-in outside production only.
+Optional Temporal worker settings and commands are documented in [docs/temporal.md](docs/temporal.md);
+the current business flows do not depend on that worker.
 Migrations use `DATABASE_URL_UNPOOLED` when set (Neon's direct URL), so a pooler can't hold the
 migration lock across deploys.
 `prisma.config.ts` loads `.env` via `dotenv`.
@@ -353,26 +379,29 @@ metadata gates access without exposing private evidence files.
 
 - ✅ **Prop-firm storefront (Oct 2026)**: landing in the MFFU/Tradeify/Topstep pattern, pricing with
   an Evaluation / Funded toggle, plan pages, rules, searchable help center, Academy (free lessons and
-  rule practice), launch list, plan-aware trader sign-up, prop-only workspace (journal switched off
+  rule practice), plan-aware trader sign-up, prop-only workspace (journal switched off
   25 Oct 2026). Handoff notes: [docs/prop-firm-repurpose-review.md](docs/prop-firm-repurpose-review.md).
 - ✅ **Trading core (Oct 2026)**: `src/lib/trading` (paise money, charges from dated schedules,
   order matching, positions, rule engine, risk meters, payout quote, deterministic replay), with the
   Academy rule practice running on it. Covers the pure-logic parts of stories S3-01, S3-02, S4-06,
   S5-02 and PAY-2; still open there: a contract-note match for the charges, the contract-master
   service and data feed, and hosting the engine live.
-- ✅ **Zerodha charts (Oct 2026)**: `/markets` on the firm's Kite Connect login (index, futures
-  and options; candles, volume, OI, live quotes, depth) with a source-agnostic chart component.
+- ✅ **Zerodha charts (Oct 2026)**: `/markets` on the firm's Kite Connect login (index-first chart,
+  selectable option charts, candles, option volume/OI and depth) with a source-agnostic chart component.
   Shared with every signed-in user since 24 Oct 2026.
 - ✅ **Checkout, accounts and the trading platform (Oct 2026)**: three-step buying (account, size,
-  pay) to `/trade/<account>`, demo evaluations on ₹50,000 of virtual credit (staff: test purchases) until a gateway is signed, stored evaluation
-  accounts on the server-side engine, My accounts cards. Every account holder trades on the shared
-  Kite login.
+  checkout) to `/trade/<account>`, free evaluation starts when keys are absent, configured Razorpay
+  checkout with server capture verification and captured webhooks, and staff test purchases.
+  Evaluation passes atomically open funded accounts; My accounts and Payouts show the account
+  phases, rule meters and payout quotes. Every account holder trades on the shared Kite login.
+  This records implemented behavior, not a claim that real payments or payouts were tested.
 - ✅ **Options-only OMS and journal (Oct 2026)**: the option chain, directional order policy
   (buy to open, sell to close, no shorts, spreads or hedges across accounts), day positions with
   realised and open P&L, Exit all, and the basic journal with the P&L calendar and day notes.
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine
-  service with Redis and a replay provider, checkout (UPI/cards via an Indian gateway), evaluation
-  provisioning with live risk meters, KYC, payouts with TDS, then the optional copy desk.
+  service with Redis and a replay provider, real merchant activation and payment reconciliation,
+  GST invoices/refunds, KYC and funded agreements, bank verification, payouts with TDS, then the
+  optional copy desk.
 - ⏸ **Journal (formerly TrustSVAN), M1–M6 and trust features** (switched off 25 Oct 2026): NextAuth app shell; `/upload` source
   history bridge with `DailyPnl` rebuild; metrics dashboard (now `/journal`) with Research ⇄ Trader
   views; AI reports with live compliance; public `/p/[slug]` profiles with evidence locker and Proof

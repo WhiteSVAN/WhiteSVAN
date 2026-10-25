@@ -10,9 +10,9 @@ describe("checkout attempt keys", () => {
     for (const value of [null, undefined, "", "replay", `${key}suffix`, "x".repeat(10_000), 12, {}]) expect(isCheckoutAttemptId(value)).toBe(false);
   });
   it("scopes keys by owner and provider and canonicalizes UUID case", () => {
-    expect(checkoutAttemptKey("owner", "demo", key)).toBe(checkoutAttemptKey("owner", "demo", key.toUpperCase()));
-    expect(checkoutAttemptKey("other", "demo", key)).not.toBe(checkoutAttemptKey("owner", "demo", key));
-    expect(checkoutAttemptKey("owner", "test", key)).not.toBe(checkoutAttemptKey("owner", "demo", key));
-    expect(() => checkoutAttemptKey("owner", "demo", "bad")).toThrow("Invalid checkout attempt.");
+    expect(checkoutAttemptKey("owner", "free", key)).toBe(checkoutAttemptKey("owner", "free", key.toUpperCase()));
+    expect(checkoutAttemptKey("other", "free", key)).not.toBe(checkoutAttemptKey("owner", "free", key));
+    expect(checkoutAttemptKey("owner", "test", key)).not.toBe(checkoutAttemptKey("owner", "free", key));
+    expect(() => checkoutAttemptKey("owner", "free", "bad")).toThrow("Invalid checkout attempt.");
   });
 });

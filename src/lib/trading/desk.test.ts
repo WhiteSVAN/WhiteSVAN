@@ -27,7 +27,14 @@ describe("test desk host", () => {
     const desk = openDesk(plan, "desk-1", ist("2026-11-02 09:00"));
     expect(desk.state).toMatchObject({ status: "ACTIVE", phase: "EVALUATION", balance: r(1_00_000) });
     expect(desk.instruments).toEqual([]);
-    expect(desk.notes[0].text).toBe("Opened a ₹1L evaluation account.");
+    expect(desk.notes[0].text).toBe("Opened a ₹1L demo account.");
+  });
+
+  it("opens a funded account on the same rules", () => {
+    const desk = openDesk(plan, "desk-f", ist("2026-11-02 09:00"), "FUNDED");
+    expect(desk.state).toMatchObject({ status: "ACTIVE", phase: "FUNDED", balance: r(1_00_000) });
+    expect(desk.state.rules).toEqual(openDesk(plan, "desk-e", ist("2026-11-02 09:00")).state.rules);
+    expect(desk.notes[0].text).toBe("Opened a ₹1L funded account.");
   });
 
   it("trades a round trip, logs fills and notes newest first, and forgets the contract once flat", () => {

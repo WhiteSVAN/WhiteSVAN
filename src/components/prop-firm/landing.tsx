@@ -3,8 +3,6 @@ import { ArrowRight, ArrowUpRight, BadgeIndianRupee, ChartCandlestick, Check, Ch
 import { PropHeader } from "./site-header";
 import { AccountSelector } from "./account-selector";
 import { SiteFooter } from "@/components/site-footer";
-import { WaitlistForm } from "@/app/waitlist-form";
-import { DEMO_CHECKOUT, DEMO_CREDIT, DEMO_START_ANSWER } from "@/lib/checkout/demo";
 import { EVALUATION_PLANS, formatInr, PROGRAMME_RULES as R, PROGRAMME_STEPS } from "@/lib/prop-firm";
 
 const FIRST = EVALUATION_PLANS[0];
@@ -25,11 +23,11 @@ const INDIA = [
 
 const FAQ = [
   ["How does the evaluation work?", `Hit a ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days without breaching the ${R.dailyLossPercent}% daily loss limit or the ${R.maximumLossPercent}% end-of-day trailing drawdown. When you pass, your best day can be no more than ${R.consistencyPercent}% of your total profit.`],
-  ["Are the accounts real money?", `No. Evaluation and funded accounts are simulated. Your payouts are real: you receive ${R.contractorSharePercent}% of the profit you make on your funded account, up to the payout cap for your account size.`],
+  ["Are the accounts real money?", `No. Your demo account (the evaluation) and your funded account are simulated. Your payouts are real: you receive ${R.contractorSharePercent}% of the profit you make on your funded account, up to the payout cap for your account size.`],
   ["How often can I get paid?", `Twice a month, once KYC is done. Payouts are capped by account size, from ${formatInr(FIRST.payoutCap)} on a ${FIRST.label} account to ${formatInr(LAST.payoutCap)} on a ${LAST.label} account.`],
   ["Are there monthly or activation fees?", "No. Every evaluation is a one-time fee with GST included. No subscription and no activation fee when you pass."],
   ["What can I trade?", "NIFTY and BANK NIFTY options on NSE, and SENSEX options on BSE. Intraday only, from 09:15 to 15:20 IST. Buy calls or puts, and sell only to close."],
-  ["When can I start?", DEMO_CHECKOUT ? DEMO_START_ANSWER : "We're launching soon. Create your account now to get early access when evaluations open."],
+  ["When can I start?", "Now. Create your account, choose a size and check out on one screen: your demo account opens straight away."],
 ];
 
 export function PropLanding() {
@@ -70,7 +68,7 @@ export function PropLanding() {
         </div>
       </section>
       <section id="faq" className="mx-auto max-w-4xl px-5 py-20 sm:px-8 sm:py-24"><div className="mb-10 text-center"><p className="terminal-label">FAQ</p><h2 className="prop-heading mt-4">Questions</h2></div><div className="divide-y divide-[var(--border)] border-y border-[var(--border)]">{FAQ.map(([q, a]) => <details key={q} className="group py-1"><summary className="flex list-none items-center justify-between gap-5 py-6 text-sm font-medium sm:text-base">{q}<ChevronDown size={17} className="shrink-0 text-[#9db687] transition-transform group-open:rotate-180" /></summary><p className="max-w-3xl pb-6 pr-6 text-sm leading-7 text-[var(--muted)]">{a}</p></details>)}</div><p className="mt-6 text-center text-xs text-[var(--muted)]">More answers in the <Link href="/help" className="text-[var(--primary)]">help center</Link>.</p></section>
-      <section className="px-5 pb-20 sm:px-8"><div className="prop-final relative mx-auto max-w-7xl overflow-hidden rounded-2xl border border-[#486337] bg-[#192613] px-6 py-16 text-center sm:py-20"><h2 className="prop-heading relative">Ready to get funded?</h2><p className="relative mx-auto mt-5 max-w-lg text-sm leading-7 text-[#aabd9a]">Create your account, choose your account size and pay. Then you&apos;re trading.</p><Link href="/checkout" className="prop-button relative mt-8">Start your evaluation <ArrowUpRight size={17} /></Link>{DEMO_CHECKOUT ? <p className="relative mx-auto mt-8 max-w-md border-t border-[#36492b] pt-8 text-xs leading-6 text-[#aabd9a]">Demo open: new accounts get {formatInr(DEMO_CREDIT)} of virtual credit to pay with. Nobody is charged.</p> : <div className="relative mx-auto mt-10 flex max-w-md flex-col items-center gap-3 border-t border-[#36492b] pt-8"><p className="text-xs text-[#aabd9a]">Launching soon. Get early access when evaluations open.</p><WaitlistForm cta="Get early access" /></div>}</div></section>
+      <section className="px-5 pb-20 sm:px-8"><div className="prop-final relative mx-auto max-w-7xl overflow-hidden rounded-2xl border border-[#486337] bg-[#192613] px-6 py-16 text-center sm:py-20"><h2 className="prop-heading relative">Ready to get funded?</h2><p className="relative mx-auto mt-5 max-w-lg text-sm leading-7 text-[#aabd9a]">Create your account, choose your account size and check out. Then you&apos;re trading.</p><Link href="/checkout" className="prop-button relative mt-8">Start your evaluation <ArrowUpRight size={17} /></Link><p className="relative mx-auto mt-8 max-w-md border-t border-[#36492b] pt-8 text-xs leading-6 text-[#aabd9a]">One-time fee from {formatInr(FIRST.fee)}, GST included. No subscription and no activation fee.</p></div></section>
     </main>
     <SiteFooter />
   </div>;

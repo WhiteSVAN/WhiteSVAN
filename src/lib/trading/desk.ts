@@ -6,7 +6,7 @@
  */
 import type { EvaluationPlan } from "../prop-firm";
 import { CHARGES_SCHEDULES } from "./charges-schedules";
-import { netQuantity, openAccount, step, unrealisedPnl, type AccountState, type CancelReason, type EngineContext, type EngineEvent, type EngineOutput, type Fill, type OrderType } from "./engine";
+import { netQuantity, openAccount, step, unrealisedPnl, type AccountPhase, type AccountState, type CancelReason, type EngineContext, type EngineEvent, type EngineOutput, type Fill, type OrderType } from "./engine";
 import type { Instrument, Side } from "./instruments";
 import type { Quote } from "./matching";
 import { divRound, formatPaise, type Paise } from "./money";
@@ -64,9 +64,11 @@ export interface Desk {
   dayTrades?: Record<string, number>;
 }
 
-export function openDesk(plan: EvaluationPlan, id: string, at: number): Desk {
-  const state = openAccount({ id, phase: "EVALUATION", rules: ruleSetFor(plan), at });
-  return { version: 1, state, instruments: [], fills: [], notes: [{ at, tone: "info", text: `Opened a ${plan.label} evaluation account.` }], orderBook: [], dayTrades: {} };
+/** A new account on the plan's rules: a demo account (the evaluation), or the funded account a pass opens. */
+export function openDesk(plan: EvaluationPlan, id: string, at: number, phase: AccountPhase = "EVALUATION"): Desk {
+  const state = openAccount({ id, phase, rules: ruleSetFor(plan), at });
+  const text = phase === "FUNDED" ? `Opened a ${plan.label} funded account.` : `Opened a ${plan.label} demo account.`;
+  return { version: 1, state, instruments: [], fills: [], notes: [{ at, tone: "info", text }], orderBook: [], dayTrades: {} };
 }
 
 /** Quote keys (`exchange:tradingsymbol`) the host must keep fresh: held and ordered contracts. */

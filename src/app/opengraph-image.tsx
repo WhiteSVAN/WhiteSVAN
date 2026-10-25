@@ -48,7 +48,7 @@ export default function Image() {
               </div>
               <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: 1 }}>WhiteSVAN</div>
             </div>
-            <div style={{ display: "flex", fontSize: 18, letterSpacing: 3, color: MUTED, textTransform: "uppercase" }}>Launching soon</div>
+            <div style={{ display: "flex", fontSize: 18, letterSpacing: 3, color: MUTED, textTransform: "uppercase" }}>India&apos;s options prop firm</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div style={{ display: "flex", flexDirection: "column", fontSize: 64, fontWeight: 700, lineHeight: 1.05, letterSpacing: -1.5 }}>

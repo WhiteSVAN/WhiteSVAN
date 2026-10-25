@@ -1,32 +1,113 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CircleHelp, Wallet } from "lucide-react";
+import { ArrowRight, Check, CircleHelp, Circle, Wallet } from "lucide-react";
+import { STATUS_BADGE } from "@/components/markets/account-status";
+import { tradingNow } from "@/lib/accounts/clock";
+import { loadAccounts, type StoredAccount } from "@/lib/accounts/store";
 import { requireMember } from "@/lib/auth/dal";
-import { PROGRAMME_RULES as R } from "@/lib/prop-firm";
+import { accountNumber } from "@/lib/checkout/billing";
+import { findAccountPlan, PROGRAMME_RULES as R } from "@/lib/prop-firm";
+import { formatPaise } from "@/lib/trading/money";
+import { cycleDates, quotePayout, type PayoutBlock, type PayoutChecks } from "@/lib/trading/payouts";
+import { toIst } from "@/lib/trading/time";
 
 export const metadata: Metadata = { title: "Payouts · WhiteSVAN" };
 
+/** KYC, the funded trader agreement and bank verification aren't on the platform yet, and no request has been made. */
+const CHECKS: PayoutChecks = { kycVerified: false, agreementSigned: false, bankVerified: false, onHold: false, lastRequestDate: null };
+
+const dayText = new Intl.DateTimeFormat("en-IN", { timeZone: "UTC", day: "numeric", month: "short" });
+const day = (date: string) => dayText.format(new Date(`${date}T00:00:00Z`));
+const signed = (paise: number) => `${paise < 0 ? "−" : ""}${formatPaise(Math.abs(paise), 2)}`;
+
+/** One funded account's payout figures from the rules, and what stands before a request. */
+function PayoutCard({ account, today }: { account: StoredAccount; today: string }) {
+  const { state } = account.desk;
+  const plan = findAccountPlan(account.planId);
+  const quote = quotePayout(state, CHECKS, today);
+  const cycle = cycleDates(today);
+  const status = STATUS_BADGE[account.status];
+  const blocked = (block: PayoutBlock) => quote.blocks.includes(block);
+  const figures: [string, string, string][] = [
+    ["Balance", formatPaise(state.balance, 2), ""],
+    ["Profit", signed(quote.profit), quote.profit > 0 ? "text-[var(--primary)]" : quote.profit < 0 ? "text-[var(--danger)]" : ""],
+    ["Buffer, stays in the account", formatPaise(quote.buffer, 2), ""],
+    ["Profit above the buffer", formatPaise(quote.withdrawableProfit, 2), ""],
+    [`Your ${R.contractorSharePercent}% share`, formatPaise(quote.traderShare, 2), ""],
+    [`Payout now, up to ${formatPaise(state.rules.payoutCap, 0)}`, formatPaise(quote.payout, 2), quote.payout > 0 ? "text-[var(--primary)]" : ""],
+  ];
+  const steps: [string, boolean][] = [
+    [`Profit above the ${formatPaise(quote.buffer, 0)} buffer`, !blocked("NO_PROFIT_ABOVE_BUFFER")],
+    ["No open positions or orders", !blocked("OPEN_POSITIONS")],
+    ["Account active, no breach", !blocked("ACCOUNT_CLOSED")],
+    ["KYC: PAN and Aadhaar", !blocked("KYC")],
+    ["Funded trader agreement signed", !blocked("AGREEMENT")],
+    ["Bank account verified", !blocked("BANK")],
+  ];
+
+  return (
+    <article className="rounded-2xl border border-[var(--border)] bg-[var(--card)]" aria-label={`${plan?.label ?? account.planId} funded account payouts`}>
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] px-6 py-5">
+        <div>
+          <h2 className="text-base font-medium">{plan?.label ?? account.planId} funded account</h2>
+          <p className="mt-1 font-mono text-[11px] text-[var(--muted)]">{accountNumber(account.id, account.planId)}</p>
+        </div>
+        <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${status.className}`}>{status.text}</span>
+      </div>
+      <div className="grid gap-8 p-6 lg:grid-cols-[1.4fr_1fr]">
+        <div>
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+            {figures.map(([term, value, tone]) => (
+              <div key={term}><dt className="text-xs text-[var(--muted)]">{term}</dt><dd className={`mt-1 font-mono text-lg ${tone}`}>{value}</dd></div>
+            ))}
+          </dl>
+          <p className="mt-6 text-xs leading-6 text-[var(--muted)]">This cycle runs {day(cycle.start)} to {day(cycle.end)}: one payout request per cycle, twice a month. When a payout is paid, the firm&apos;s {100 - R.contractorSharePercent}% share of that profit comes off the balance with it.</p>
+        </div>
+        <div>
+          <h3 className="text-sm font-medium">Before you can request a payout</h3>
+          <ul className="mt-3 space-y-2.5 text-sm">
+            {steps.map(([text, done]) => (
+              <li key={text} className={`flex items-center gap-2.5 ${done ? "" : "text-[var(--muted)]"}`}>
+                {done ? <Check className="h-4 w-4 shrink-0 text-[var(--primary)]" aria-hidden="true" /> : <Circle className="h-4 w-4 shrink-0 text-[var(--faint)]" aria-hidden="true" />}
+                {text}<span className="sr-only">{done ? " (done)" : " (to do)"}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-xs leading-6 text-[var(--muted)]">We email you to complete KYC, the agreement and your bank details. Requests open once they&apos;re done.</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default async function PayoutsPage() {
-  await requireMember();
+  const user = await requireMember();
+  const now = tradingNow();
+  const funded = (await loadAccounts(user.id, now)).filter((account) => account.phase === "FUNDED");
+  const today = toIst(now).date;
 
   return (
     <div className="space-y-8">
       <div>
-        <p className="terminal-label">Payouts</p>
-        <h1 className="mt-2 text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Payouts</h1>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">Request payouts from your funded account and track every payment here.</p>
+        <h1 className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Payouts</h1>
+        <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">What each funded account can pay out under the rules: {R.contractorSharePercent}% of the profit above the buffer, up to the cap for its size, once each half-month.</p>
       </div>
 
+      {funded.length > 0 ? (
+        funded.map((account) => <PayoutCard key={account.id} account={account} today={today} />)
+      ) : (
+        <section className="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--card)] px-6 py-14 text-center" aria-label="No funded accounts">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border-strong)] bg-[var(--card-raised)] text-[var(--primary)]"><Wallet className="h-6 w-6" aria-hidden="true" /></div>
+          <h2 className="mt-5 text-xl font-medium tracking-tight">Payouts start with a funded account</h2>
+          <p className="mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">Pass your demo account and your funded account opens. Its payout figures show here: an {R.contractorSharePercent}% profit split, twice a month, up to the cap for your account size.</p>
+          <Link href="/dashboard" className="mt-6 inline-flex min-h-11 items-center gap-3 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">My accounts <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+        </section>
+      )}
+
       <section className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)]" aria-labelledby="payout-history-title">
-        <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-6 py-5">
+        <div className="flex items-center justify-between gap-3 px-6 py-5">
           <h2 id="payout-history-title" className="text-base font-medium">Payout history</h2>
           <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--muted)]">No payouts yet</span>
-        </div>
-        <div className="flex min-h-[330px] flex-col items-center justify-center px-6 py-14 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border-strong)] bg-[var(--card-raised)] text-[var(--primary)]"><Wallet className="h-6 w-6" aria-hidden="true" /></div>
-          <h3 className="mt-5 text-xl font-medium tracking-tight">Payouts start with a funded account</h3>
-          <p className="mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">Pass an evaluation and complete KYC, then request a payout twice a month at an {R.contractorSharePercent}% profit split, up to the cap for your account size.</p>
-          <Link href="/checkout" className="mt-6 inline-flex min-h-11 items-center gap-3 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start an evaluation <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
         </div>
       </section>
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EVALUATION_PLANS, findEvaluationPlan } from "../prop-firm";
-import { payoutAmounts, payoutCycle, profitForFullPayout } from "./payouts";
+import { cycleDates, payoutAmounts, payoutCycle, profitForFullPayout } from "./payouts";
 import { ruleSetFor } from "./rules";
 
 const oneLakh = ruleSetFor(findEvaluationPlan("1l")!);
@@ -46,5 +46,13 @@ describe("payout cycles", () => {
     expect(payoutCycle("2026-11-16")).toBe("2026-11/2");
     expect(payoutCycle("2026-02-28")).toBe("2026-02/2");
     expect(() => payoutCycle("16/11/2026")).toThrow();
+  });
+
+  it("gives each cycle's first and last dates, month ends and leap years included", () => {
+    expect(cycleDates("2026-11-03")).toEqual({ start: "2026-11-01", end: "2026-11-15" });
+    expect(cycleDates("2026-11-16")).toEqual({ start: "2026-11-16", end: "2026-11-30" });
+    expect(cycleDates("2026-10-31")).toEqual({ start: "2026-10-16", end: "2026-10-31" });
+    expect(cycleDates("2028-02-20")).toEqual({ start: "2028-02-16", end: "2028-02-29" });
+    expect(cycleDates("2027-02-16")).toEqual({ start: "2027-02-16", end: "2027-02-28" });
   });
 });

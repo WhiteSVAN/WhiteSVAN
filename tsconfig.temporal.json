@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "rootDir": ".",
+    "outDir": "build/temporal",
+    "noEmit": false,
+    "incremental": false,
+    "plugins": []
+  },
+  "include": ["src/lib/temporal/**/*.ts", "scripts/temporal/**/*.ts"],
+  "exclude": ["node_modules", "**/*.test.ts", "scripts/temporal/test.ts"]
+}
