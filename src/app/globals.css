@@ -1,63 +1,64 @@
 @import "tailwindcss";
 
 /*
- * Theme tokens: the White theme, then the Dark theme, both in the Manus style (warm paper or
- * graphite surfaces, ink buttons, serif headlines). Every screen reads these names, so a touch-up
+ * Theme tokens: the White theme, then the Black theme, both in the Manus style (paper white or
+ * near-black surfaces, ink buttons, serif headlines). Every screen reads these names, so a touch-up
  * here (or in Manus Studio) changes the whole site; docs/theme.md lists what each one paints.
  * The head script in layout.tsx sets data-theme before the first paint (src/lib/theme.ts).
+ * Every text colour keeps 4.5:1 contrast or better on every surface of its theme.
  */
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
   /* Surfaces */
-  --background: #f8f8f7;
+  --background: #f7f7f5;
   --card: #ffffff;
-  --card-raised: #f1f1ef;
-  --card-deep: #fafaf9;
+  --card-raised: #f0efec;
+  --card-deep: #fbfbfa;
   --input: #ffffff;
   /* Text */
-  --foreground: #1a1a19;
-  --muted: #5e5e5b;
-  --faint: #6f6e6b;
+  --foreground: #131312;
+  --muted: #57564f;
+  --faint: #6b6a64;
   /* Lines */
-  --border: #e6e6e3;
-  --border-strong: #d2d2cd;
+  --border: #e6e5e1;
+  --border-strong: #d3d2cc;
   /* Main buttons: ink on paper */
-  --ink: #1a1a19;
-  --ink-hover: #3a3a37;
+  --ink: #131312;
+  --ink-hover: #2e2e2b;
   --ink-foreground: #ffffff;
   /* Brand accent: links, highlights, gains and buys */
-  --primary: #2f7d32;
-  --primary-hover: #276b2a;
+  --primary: #1f6f3b;
+  --primary-hover: #185c30;
   --primary-foreground: #ffffff;
   /* States: warnings, losses and sells */
-  --warning: #92650a;
-  --danger: #c4372f;
+  --warning: #8a5d06;
+  --danger: #b8322a;
   --danger-foreground: #ffffff;
   /* Charts */
-  --chart-up: #2f9e44;
-  --chart-down: #e03131;
-  --chart-grid: rgba(26, 26, 25, 0.06);
+  --chart-up: #23894a;
+  --chart-down: #d63a30;
+  --chart-grid: rgba(19, 19, 18, 0.06);
   --chart-mark: #b07d12;
   /* Depth */
-  --shadow-card: 0 1px 2px rgba(26, 26, 25, 0.04), 0 12px 32px -14px rgba(26, 26, 25, 0.12);
+  --shadow-card: 0 1px 2px rgba(19, 19, 18, 0.04), 0 14px 36px -16px rgba(19, 19, 18, 0.14);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --background: #141414;
-  --card: #1b1b1b;
-  --card-raised: #242424;
-  --card-deep: #111111;
-  --input: #111111;
-  --foreground: #ededeb;
-  --muted: #a3a3a0;
-  --faint: #868683;
-  --border: #2a2a2a;
-  --border-strong: #3b3b3b;
-  --ink: #f2f2f0;
+  --background: #0a0a0b;
+  --card: #121214;
+  --card-raised: #1a1a1d;
+  --card-deep: #070708;
+  --input: #0d0d0f;
+  --foreground: #f1f0ec;
+  --muted: #a3a29d;
+  --faint: #86857f;
+  --border: #232326;
+  --border-strong: #36363b;
+  --ink: #f4f3ef;
   --ink-hover: #ffffff;
-  --ink-foreground: #141414;
+  --ink-foreground: #0a0a0b;
   --primary: #baf277;
   --primary-hover: #cdf995;
   --primary-foreground: #17200e;
@@ -66,16 +67,16 @@
   --danger-foreground: #2a0f0a;
   --chart-up: #baf277;
   --chart-down: #f2907e;
-  --chart-grid: rgba(255, 255, 255, 0.05);
+  --chart-grid: rgba(255, 255, 255, 0.045);
   --chart-mark: #d8c899;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 48px -18px rgba(0, 0, 0, 0.65);
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.02), 0 1px 2px rgba(0, 0, 0, 0.4), 0 20px 50px -20px rgba(0, 0, 0, 0.8);
 }
 
 :root {
-  /* Type: serif headlines, the device's UI font for text, mono for prices. */
-  --font-display: var(--font-libre-baskerville), "Libre Baskerville", Georgia, "Times New Roman", serif;
-  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  --font-terminal-mono: var(--font-ibm-plex-mono), "SFMono-Regular", ui-monospace, monospace;
+  /* Type: Newsreader headlines, Geist text, Geist Mono prices (layout.tsx loads all three). */
+  --font-display: var(--font-newsreader), "Newsreader", Georgia, "Times New Roman", serif;
+  --font-ui: var(--font-geist), "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-terminal-mono: var(--font-geist-mono), "Geist Mono", "SFMono-Regular", ui-monospace, monospace;
   --ease-terminal: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -102,18 +103,23 @@ body {
   color: var(--foreground);
   font-family: var(--font-ui);
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Page titles are serif everywhere, like Manus; `.display` does the same for section titles. */
+/* Page titles are serif everywhere, like Manus; `.display` does the same for section titles and big figures. */
 h1,
 .display {
   font-family: var(--font-display);
   font-weight: 400;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  font-optical-sizing: auto;
+  font-variant-numeric: lining-nums;
 }
 
-h1 { line-height: 1.12; }
+h1 { line-height: 1.06; text-wrap: balance; }
+h2, h3 { text-wrap: balance; }
 
 button,
 input,
@@ -154,7 +160,8 @@ input[type="radio"] { accent-color: var(--primary); }
 
 .font-sans { font-family: var(--font-ui) !important; }
 .font-serif { font-family: var(--font-display) !important; }
-.font-mono { font-family: var(--font-terminal-mono) !important; }
+.font-mono { font-family: var(--font-terminal-mono) !important; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.tabular-figures { font-variant-numeric: tabular-nums lining-nums; }
 
 /* The theme toggle shows the icon for the theme you'd switch to. */
 :root[data-theme="dark"] .theme-when-light,
@@ -195,8 +202,10 @@ input[type="radio"] { accent-color: var(--primary); }
 
 .terminal-label {
   font-family: var(--font-ui);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   line-height: 1.5;
   color: var(--muted);
 }
@@ -339,18 +348,41 @@ button[type="submit"][class*="bg-zinc-900"] {
   padding: 0 24px;
   font-size: 14px;
   font-weight: 500;
+  letter-spacing: -0.005em;
 }
 .prop-button { background: var(--ink); color: var(--ink-foreground); border: 1px solid var(--ink); }
 .prop-button:hover { background: var(--ink-hover); border-color: var(--ink-hover); }
 .prop-button-outline { border: 1px solid var(--border-strong); background: var(--card); color: var(--foreground); }
 .prop-button-outline:hover { background: var(--card-raised); }
-.prop-heading { font-family: var(--font-display); font-size: clamp(2rem, 3.4vw, 3rem); font-weight: 400; line-height: 1.15; letter-spacing: -0.02em; }
-.prop-hero { background: var(--background); }
+.prop-heading { font-family: var(--font-display); font-optical-sizing: auto; font-size: clamp(2.1rem, 3.6vw, 3.25rem); font-weight: 400; line-height: 1.08; letter-spacing: -0.025em; }
+/* A faint accent glow and hairline grid behind the hero and the closing call to action. */
+.prop-hero,
+.prop-final {
+  background:
+    radial-gradient(56rem 28rem at 88% -12%, color-mix(in srgb, var(--primary) 9%, transparent), transparent 70%),
+    var(--background);
+}
+.prop-texture { position: relative; isolation: isolate; }
+.prop-texture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--foreground) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--foreground) 5%, transparent) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 80% 70% at 70% 0%, #000 0%, transparent 75%);
+}
 .prop-accounts { background: var(--card-deep); }
-.prop-step:hover { border-color: var(--border-strong); transform: translateY(-3px); transition: transform 200ms ease, border-color 200ms ease; }
-.prop-final { background: var(--card); box-shadow: var(--shadow-card); }
+.prop-step { transition: transform 200ms var(--ease-terminal), border-color 200ms var(--ease-terminal); }
+.prop-step:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.prop-final { box-shadow: var(--shadow-card); }
+/* Phones keep the buy button in the sticky header; the theme switch moves to the footer. */
 @media (max-width: 639px) {
-  .prop-header-cta { display: none; }
+  .prop-header-cta { min-height: 38px; padding: 0 14px; font-size: 13px; gap: 6px; }
+  .prop-header-theme { display: none; }
 }
 
 /* Every app control gets the same intentional motion and focus treatment. */

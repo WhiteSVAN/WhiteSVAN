@@ -41,9 +41,9 @@ export function PropHeader() {
           {LINKS.map(([href, label]) => <Link key={href} href={href} className="hover:text-[var(--foreground)]">{label}</Link>)}
           {DISCORD_URL && <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--foreground)]">Discord</a>}
         </nav>
-        <div className="ml-auto flex items-center gap-3 md:ml-3">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3 md:ml-3">
           <Link href={account.href} className="hidden px-2 text-sm text-[var(--foreground)] sm:block">{account.label}</Link>
-          <ThemeToggle />
+          <ThemeToggle className="prop-header-theme" />
           <Link href="/checkout" className="prop-button prop-header-cta min-h-10 px-4 text-sm">Get funded <ArrowUpRight size={15} /></Link>
           <button type="button" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} aria-controls="prop-mobile-nav" onClick={() => setOpen(!open)} className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] md:hidden">{open ? <X size={18} /> : <Menu size={18} />}</button>
         </div>

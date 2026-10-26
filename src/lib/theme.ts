@@ -1,5 +1,5 @@
 /**
- * Site themes: White and Dark, in the Manus style (see docs/theme.md). Every colour is a token in
+ * Site themes: White and Black, in the Manus style (see docs/theme.md). Every colour is a token in
  * src/app/globals.css; this module only knows the theme names, the visitor's saved choice and the
  * script that applies it before the first paint. Runs in the browser and on the server.
  */
@@ -13,7 +13,7 @@ export const DEFAULT_THEME: ThemeChoice = "system";
 
 export const THEME_STORAGE_KEY = "whitesvan-theme";
 
-export const THEME_LABELS: Record<ThemeChoice, string> = { system: "System", light: "White", dark: "Dark" };
+export const THEME_LABELS: Record<ThemeChoice, string> = { system: "System", light: "White", dark: "Black" };
 
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 

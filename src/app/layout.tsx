@@ -1,22 +1,32 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { IBM_Plex_Mono, Libre_Baskerville } from "next/font/google";
+import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import { EVALUATION_PLANS, PROGRAMME_RULES } from "@/lib/prop-firm";
 import { SITE_URL } from "@/lib/site";
 import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
-/** Headlines, in the Manus style; body text uses the device's own UI font (globals.css). */
-const libreBaskerville = Libre_Baskerville({
-  subsets: ["latin"],
-  variable: "--font-libre-baskerville",
+/*
+ * Type (docs/theme.md): Newsreader for headlines and big figures, Geist for text, Geist Mono for
+ * prices. All three are variable and carry the rupee sign (₹), which is in the latin-ext subset,
+ * so both subsets load. Newsreader's optical-size axis keeps big headlines fine and small ones sturdy.
+ */
+const newsreader = Newsreader({
+  subsets: ["latin", "latin-ext"],
+  axes: ["opsz"],
+  variable: "--font-newsreader",
   display: "swap",
 });
 
-const ibmPlexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-ibm-plex-mono",
+const geist = Geist({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-geist",
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-geist-mono",
   display: "swap",
 });
 
@@ -41,7 +51,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${libreBaskerville.variable} ${ibmPlexMono.variable} h-full antialiased`}
+      className={`${newsreader.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />

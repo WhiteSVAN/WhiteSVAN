@@ -7,7 +7,7 @@ import { chooseTheme, currentTheme, DEFAULT_THEME, onThemeChange, savedThemeChoi
 const subscribe = (changed: () => void) => onThemeChange(changed);
 
 /**
- * One button between the White and Dark themes, for headers. The icon comes from CSS on
+ * One button between the White and Black themes, for headers. The icon comes from CSS on
  * `data-theme` (`.theme-when-*` in globals.css), so it's right before the page hydrates.
  */
 export function ThemeToggle({ className = "" }: { className?: string }) {
@@ -15,8 +15,8 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     <button
       type="button"
       onClick={() => chooseTheme(currentTheme() === "dark" ? "light" : "dark")}
-      aria-label="Switch between the white and dark themes"
-      title="White or dark theme"
+      aria-label="Switch between the white and black themes"
+      title="White or black theme"
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-[var(--muted)] hover:border-[var(--border-strong)] hover:text-[var(--foreground)] ${className}`}
     >
       <Moon size={16} strokeWidth={1.75} className="theme-when-light" aria-hidden="true" />
@@ -27,7 +27,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
 
 const ICONS = { system: Monitor, light: Sun, dark: Moon } as const;
 
-/** System, White or Dark: the full choice, for the footer and the account menu. */
+/** System, White or Black: the full choice, for the footer and the account menu. */
 export function ThemePicker({ className = "" }: { className?: string }) {
   const choice = useSyncExternalStore<ThemeChoice>(subscribe, savedThemeChoice, () => DEFAULT_THEME);
   return (

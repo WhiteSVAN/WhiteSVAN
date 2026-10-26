@@ -35,12 +35,12 @@ export function AccountSelector() {
             return <article key={plan.id} className={`relative flex flex-col overflow-hidden rounded-2xl border bg-[var(--card)] shadow-[var(--shadow-card)] ${recommended ? "border-[var(--foreground)]" : "border-[var(--border)]"}`}>
               <div className={`h-1 ${recommended ? "bg-[var(--ink)]" : "bg-[var(--border)]"}`} />
               <div className="px-6 pb-6 pt-6">
-                <div className="flex h-6 items-center justify-between gap-2"><p className="text-xs text-[var(--muted)]">{isEvaluation ? "Evaluation" : "Funded account"}</p>{recommended && <span className="rounded-full bg-[var(--ink)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--ink-foreground)]">Recommended</span>}</div>
-                <h3 className="display mt-4 text-[2.8rem] leading-none">{plan.label}</h3>
+                <div className="flex h-6 items-center justify-between gap-2"><p className="text-xs text-[var(--muted)]">{isEvaluation ? "Evaluation" : "Funded account"}</p>{recommended && <span className="rounded-full bg-[var(--ink)] px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--ink-foreground)]">Recommended</span>}</div>
+                <h3 className="display mt-4 text-[3rem] leading-none">{plan.label}</h3>
                 <p className="mt-2 text-xs text-[var(--muted)]">Account size</p>
-                <div className="mt-7 flex items-baseline gap-1.5"><span className="text-3xl font-semibold tracking-tight">{isEvaluation ? formatInr(plan.fee) : `${PROGRAMME_RULES.contractorSharePercent}%`}</span><span className="text-xs text-[var(--muted)]">{isEvaluation ? "one-time" : "profit split"}</span></div>
+                <div className="mt-7 flex items-baseline gap-1.5"><span className="tabular-figures text-3xl font-semibold tracking-[-0.03em]">{isEvaluation ? formatInr(plan.fee) : `${PROGRAMME_RULES.contractorSharePercent}%`}</span><span className="text-xs text-[var(--muted)]">{isEvaluation ? "one-time" : "profit split"}</span></div>
                 <p className="mt-2 text-[11px] leading-5 text-[var(--muted)]">{isEvaluation ? "GST included" : `Up to ${formatInr(plan.payoutCap)} per payout`}</p>
-                <Link href={isEvaluation ? `/checkout/${plan.id}` : "/funded"} className={`mt-6 flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium ${recommended ? "bg-[var(--ink)] text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]" : "border border-[var(--border-strong)] bg-[var(--card)] hover:bg-[var(--card-raised)]"}`}>{isEvaluation ? "Start evaluation" : "See how payouts work"}<ArrowRight size={15} aria-hidden="true" /></Link>
+                <Link href={`/checkout/${plan.id}`} className={`mt-6 flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium ${recommended ? "bg-[var(--ink)] text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]" : "border border-[var(--border-strong)] bg-[var(--card)] hover:bg-[var(--card-raised)]"}`}>{isEvaluation ? "Start evaluation" : `Start the ${plan.label} evaluation`}<ArrowRight size={15} aria-hidden="true" /></Link>
               </div>
               <dl className="mx-6 border-t border-[var(--border)] py-2 text-xs">
                 {isEvaluation ? <>
@@ -59,7 +59,7 @@ export function AccountSelector() {
         </div>
 
         <div className="mt-7 flex flex-col items-center justify-between gap-4 rounded-xl border border-[var(--border)] px-5 py-4 sm:flex-row">
-          <p className="text-sm leading-6 text-[var(--muted)]">One-time fee, GST included. No subscription and no activation fee.</p>
+          <p className="text-sm leading-6 text-[var(--muted)]">One-time fee, GST included. No subscription and no activation fee. <Link href="/funded" className="font-medium text-[var(--foreground)] underline-offset-4 hover:underline">How payouts work</Link></p>
           <Link href="/rules" className="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-[var(--primary)]"><CircleHelp size={14} aria-hidden="true" /> Read the rules <ArrowRight size={14} aria-hidden="true" /></Link>
         </div>
       </div>
@@ -68,5 +68,5 @@ export function AccountSelector() {
 }
 
 function Rule({ label, value }: { label: string; value: string }) {
-  return <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] py-3.5 last:border-0"><dt className="text-[var(--muted)]">{label}</dt><dd className="text-right font-medium">{value}</dd></div>;
+  return <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] py-3.5 last:border-0"><dt className="text-[var(--muted)]">{label}</dt><dd className="tabular-figures text-right font-medium">{value}</dd></div>;
 }
