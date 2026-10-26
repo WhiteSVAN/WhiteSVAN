@@ -1,7 +1,10 @@
-/** Public help-centre content. Rule figures come from the rulebook in prop-firm.ts. */
+/**
+ * Public help-centre content. Rule figures come from the rulebook in prop-firm.ts; answers about a
+ * rule stay short and link to where /rules explains it in full.
+ */
 import { EVALUATION_PLANS, PROGRAMME_RULES, formatInr, planLimits } from "./prop-firm";
 
-export type HelpArticle = { id: string; question: string; answer: string };
+export type HelpArticle = { id: string; question: string; answer: string; link?: { href: string; label: string } };
 export type HelpTopic = { id: string; title: string; summary: string; articles: HelpArticle[] };
 
 const R = PROGRAMME_RULES;
@@ -22,12 +25,12 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "how-to-start",
         question: "How do I start an evaluation?",
-        answer: `In three steps: create your account, choose your account size (${first.label} to ${last.label}) and check out. You don't pick a size to create your account: you choose it at checkout, on the same screen as paying. Your demo account opens as soon as you check out.`,
+        answer: `On one screen, in three steps: create your account (with Google, or an email and password), choose your account size (${first.label} to ${last.label}) and check out. Your demo account opens on the trading platform straight away.`,
       },
       {
         id: "buy-today",
         question: "When can I start?",
-        answer: "Now. Create your account, choose a size and check out on one screen: your demo account opens straight away.",
+        answer: "Now. Pick a size and check out on one screen, account included: your demo account opens straight away.",
       },
       {
         id: "who-can-join",
@@ -42,7 +45,8 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "how-to-pass",
         question: "How do I pass?",
-        answer: `Hit the ${R.targetPercent}% profit target in at least ${R.minimumDays} trading days without hitting the daily loss limit or the max drawdown. When you pass, your best day can be no more than ${R.consistencyPercent}% of your total profit; if it is, keep trading until it isn't.`,
+        answer: `Hit the ${R.targetPercent}% profit target on at least ${R.minimumDays} trading days, without touching either loss limit, with no single day over ${R.consistencyPercent}% of your profit.`,
+        link: { href: "/rules#evaluation", label: "The rules to pass" },
       },
       {
         id: "rule-breach",
@@ -52,7 +56,8 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "how-many-accounts",
         question: "How many accounts can I have?",
-        answer: `Up to ${R.maximumAccounts} demo or funded accounts at once. Hedging across accounts, copying another trader and sharing logins are not allowed.`,
+        answer: `Up to ${R.maximumAccounts} demo or funded accounts at once, all your own.`,
+        link: { href: "/rules#conduct", label: "Fair play" },
       },
     ],
   },
@@ -64,27 +69,32 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "maximum-loss",
         question: "How does the max drawdown work?",
-        answer: `It's ${R.maximumLossPercent}% of your starting balance. It trails your highest end-of-day balance until it reaches your starting balance, then locks. On a ${first.label} account your floor starts at ${formatInr(first.balance - firstLimits.maximumLoss)} and locks at ${formatInr(first.balance)}.`,
+        answer: `It's ${R.maximumLossPercent}% of your starting balance, trailing your highest end-of-day balance until it reaches the starting balance. On a ${first.label} account your floor starts at ${formatInr(first.balance - firstLimits.maximumLoss)} and locks at ${formatInr(first.balance)}.`,
+        link: { href: "/rules#drawdown", label: "Max drawdown, with an example" },
       },
       {
         id: "daily-loss",
         question: "What's the daily loss limit?",
         answer: `${R.dailyLossPercent}% of your starting balance (${formatInr(firstLimits.dailyLoss)} on a ${first.label} account), counting open and closed P&L for the day.`,
+        link: { href: "/rules#daily-loss", label: "Daily loss limit" },
       },
       {
         id: "markets-and-hours",
         question: "What can I trade, and when?",
-        answer: "NIFTY and BANK NIFTY options on NSE, and SENSEX options on BSE. Intraday only: the market opens at 09:15 IST, you close by 15:20, and you can't open new positions in expiring contracts in the last hour of expiry day. Buy calls or puts and sell only to close them: no short options, spreads or hedges.",
+        answer: `NIFTY, BANK NIFTY and SENSEX options, from ${R.marketOpen} to ${R.squareOff} IST. Buy a call or a put, and sell only to close it.`,
+        link: { href: "/rules#markets", label: "Products and hours" },
       },
       {
         id: "trading-costs",
         question: "Are trading costs included?",
-        answer: "Yes. Every fill includes brokerage, STT, exchange charges, the SEBI fee, stamp duty and GST, with realistic fills at the bid or ask.",
+        answer: "Yes. Every fill includes brokerage, STT, exchange charges, the SEBI fee, stamp duty and GST.",
+        link: { href: "/rules#costs", label: "Costs" },
       },
       {
         id: "lots",
         question: "Why are positions limited in lots?",
         answer: "Index contracts trade in exchange lots, and the exchanges change lot sizes from time to time. Your limit is a number of lots, checked against the current lot sizes.",
+        link: { href: "/rules#products", label: "Position limits" },
       },
       {
         id: "tips",
@@ -106,7 +116,8 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "contractor-pay",
         question: "How do payouts work?",
-        answer: `You keep ${R.contractorSharePercent}% of the profit on your funded account. Profit equal to your max drawdown stays in the account as a buffer, and you can request a payout whenever your profit is above it, up to ${caps} per payout for ${first.label} to ${last.label} accounts. Complete KYC, the funded trader agreement and bank verification before your first payout. Tax is deducted at source where it applies.`,
+        answer: `You keep ${R.contractorSharePercent}% of the profit on your funded account. Request a payout whenever your profit is above the buffer, up to ${caps} per payout for ${first.label} to ${last.label} accounts.`,
+        link: { href: "/rules#desk", label: "The payout rules" },
       },
       {
         id: "real-money",

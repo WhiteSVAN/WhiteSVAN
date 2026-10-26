@@ -10,7 +10,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-zinc-100">Reset your password</h1>
+      <h1 className="text-3xl">Reset your password</h1>
       <p className="mt-1 text-sm text-zinc-500">
         Enter your email and we&apos;ll send you a link to set a new password.
       </p>

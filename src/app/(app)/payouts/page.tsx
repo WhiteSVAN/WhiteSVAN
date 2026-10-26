@@ -95,7 +95,7 @@ export default async function PayoutsPage() {
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--border-strong)] bg-[var(--card-raised)] text-[var(--primary)]"><Wallet className="h-6 w-6" aria-hidden="true" /></div>
           <h2 className="mt-5 text-xl font-medium tracking-tight">Payouts start with a funded account</h2>
           <p className="mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">Pass your demo account and your funded account opens. Its payout figures show here: {R.contractorSharePercent}% of the profit above the buffer, up to the cap for your account size.</p>
-          <Link href="/dashboard" className="mt-6 inline-flex min-h-11 items-center gap-3 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">My accounts <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+          <Link href="/dashboard" className="mt-6 inline-flex min-h-11 items-center gap-3 rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]">My accounts <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
         </section>
       )}
 

@@ -32,6 +32,12 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
 > call or a put and sell only to close it: no index or futures trading, no short options, no
 > spreads, and no calls and puts on the same index together, in one account or across a trader's
 > accounts. A basic journal only: total P&L, a P&L calendar and notes on days.
+>
+> Founder direction (26 Oct 2026): **White and Dark themes in the Manus style** (replacing the
+> forest/lime grading; the founder will touch them up in Manus Studio, so every colour stays a
+> token: see Themes below). **Rules live only in the rules section**, written so new and
+> experienced traders both understand them. **Signing up and buying take as few clicks as
+> possible.**
 
 ## Programme boundaries (load-bearing)
 
@@ -53,35 +59,50 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
 - [src/lib/prop-firm.ts](src/lib/prop-firm.ts): the single source of programme numbers and rule text.
   `EVALUATION_PLANS` (the three sizes on sale, ₹1L, ₹5L and ₹10L: fee, lots, payout cap;
   `RECOMMENDED_PLAN` is ₹5L), `PROGRAMME_RULES` (6% target, 4% end-of-day drawdown, 2% daily loss,
-  5 days, 50% consistency, 80% split, 3 accounts), `PROGRAMME_STEPS` (pass, get funded, get paid)
-  and `RULE_SECTIONS` (anchors such as `#desk`). ₹2.5L is retired: `findEvaluationPlan` (on sale)
+  5 days, 50% consistency, 80% split, 3 accounts), `PROGRAMME_STEPS` (pass, get funded, get paid),
+  `RULE_GROUPS` (the rulebook: four groups of three rules, each with a `figure` and a `plain`
+  sentence for a given size and the `exact` rule; anchors such as `#evaluation`, `#drawdown` and
+  `#desk` stay stable for older links) and `rulesInBrief`. ₹2.5L is retired: `findEvaluationPlan` (on sale)
   no longer finds it, `findAccountPlan` (labels and rules of existing accounts) still does. Pages,
   the help center and Academy lessons derive figures from here.
-- [src/components/prop-firm/](src/components/prop-firm/): `PropHeader` (announcement bar, nav, and an
-  optional Discord link when `NEXT_PUBLIC_DISCORD_URL` is set), `PropLanding`, `AccountSelector`
-  (Evaluation / Funded toggle) and `HelpCenter` (client-side search).
+- [src/components/prop-firm/](src/components/prop-firm/): `PropHeader` (nav, the theme toggle, and
+  an optional Discord link when `NEXT_PUBLIC_DISCORD_URL` is set), `PropLanding`, `AccountSelector`
+  (Evaluation / Funded toggle), `RuleBook` (/rules, with the size switch) and `HelpCenter`
+  (client-side search).
+- **Rules live on `/rules` only.** Other pages show at most the headline figures (pricing cards,
+  plan pages, the landing's rules at a glance, checkout's order summary) and link to the rulebook;
+  help answers about a rule are one or two sentences with a `link` to its section. Add or change a
+  rule in `RULE_GROUPS`, not on a page.
 - Routes: `/`, `/evaluations`, `/evaluations/[plan]` (plan ids `1l`, `5l`, `10l`),
   `/how-it-works`, `/funded` (funded accounts, payout rules and the payout calculator; the signed-in
   `/payouts` is a different page), `/rules`, `/help` (content and search in
   [src/lib/help-center.ts](src/lib/help-center.ts)), `/academy` (lessons in
   [src/lib/academy-content.ts](src/lib/academy-content.ts)). `sitemap.ts`, `robots.ts` and the
   storefront `opengraph-image.tsx` read the public origin from [src/lib/site.ts](src/lib/site.ts).
-- **Buying an evaluation: three steps** (founder's rule of three, 25 Oct 2026): create an account,
-  choose the size, check out. "Get funded" and "Start your evaluation" go to `/checkout`. Signed out,
-  that's sign-up first (`/signup?next=/checkout`), which asks for no size, and sign-up sends
-  traders straight on to checkout (or to `?next=`). `/checkout` opens `/checkout/<plan>` on
-  `RECOMMENDED_PLAN` (₹5L); a pricing
-  card opens its own size (signed out: `/signup?plan=<id>`). Checkout is one screen: step 2 picks
-  the size in place (the address follows; the form posts `plan`), step 3 is mobile, state (filled
-  in from the last order), the agreement and checkout; the name comes from the account →
-  `/checkout/complete/<order>` → "Start trading" → `/trade/<account>`. `StartSteps` shows the
-  steps on sign-up and checkout. Every account is a trader: sign-up has no client option, Google
-  sign-ups land on `/onboarding/continue` (trader role, then `next`), and `requireMember` makes
-  any role-less user a trader in place. Keep new step lists to three. Traders don't need a journal profile for any of this (`requireMember` in
+- **Buying an evaluation: three steps on one screen** (founder's rule of three, 25 Oct 2026; fewest
+  clicks, 26 Oct 2026): your account, your size, check out. "Get funded" and "Start your evaluation"
+  go to `/checkout`, which opens `/checkout/<plan>` on `RECOMMENDED_PLAN` (₹5L) signed in or not; a
+  pricing card opens its own size. Signed out, step 1 is on the same screen: Google, or an email
+  and a password that the same submission uses to create the account or sign in to an existing one
+  (`joinWithPassword` in [src/lib/auth/join.ts](src/lib/auth/join.ts); the session cookie is set
+  on that response, so the action uses the returned id). Step 2 picks the size in place (the
+  address follows; the form posts `plan`). Step 3 asks for nothing on a free start or a staff test
+  purchase, and for a mobile number and state (the GST place of supply, filled in from the last
+  paid order) on a Razorpay checkout. Pressing the button accepts the rules (no tick box;
+  `acceptedTermsAt` is the press). Success lands on `/trade/<account>?opened=<order>`, which
+  welcomes the account (how it was settled comes from
+  [settlement.ts](src/lib/checkout/settlement.ts)); `/checkout/complete/<order>` is the receipt.
+  Account fields are uncontrolled, so typing before hydration survives. `/signup` (email and
+  password only) remains for links that just create an account, and the login page's "New here?"
+  goes back to the checkout a trader came from. Every account is a trader: sign-up has no client
+  option, Google sign-ups land on `/onboarding/continue` (trader role, then `next`), and
+  `requireMember` makes any role-less user a trader in place. Keep new step lists to three.
+  Traders don't need a journal profile for any of this (`requireMember` in
   [src/lib/auth/dal.ts](src/lib/auth/dal.ts)). Mode comes from
   [src/lib/checkout/config.ts](src/lib/checkout/config.ts):
   - Without both Razorpay keys, checkout opens a simulated evaluation free of charge: provider
-    `"free"`, amount ₹0, and no screen or email claims a payment was taken. Virtual credit is retired.
+    `"free"`, amount ₹0, no billing details, and no screen or email claims a payment was taken.
+    Virtual credit is retired.
   - With keys, [razorpay.ts](src/lib/checkout/razorpay.ts) creates a Razorpay order. Our order stays
     `PENDING` until the browser's signed response is checked against the payment API (matching
     order, amount, INR and captured status), or a signed `payment.captured` / `order.paid` webhook
@@ -91,8 +112,8 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   - **Razorpay test mode for demos** (founder, 25 Oct 2026: Razorpay "just for demo purposes" until
     real payments and payout APIs come later). Test keys (`rzp_test_…`) set `testMode`: orders are
     recorded with provider `"razorpay-test"`, checkout shows Razorpay's test UPI ID and card
-    (`TEST_PAYMENT`), and the confirmation page and receipt say "test mode, not charged". Live keys
-    record `"razorpay"`.
+    (`TEST_PAYMENT`), and the welcome, the receipt page and the email say no money was charged.
+    Live keys record `"razorpay"`. The payment window takes the theme's accent colour.
   - Free/test attempts use a stable, owner-scoped key so retries reuse the same order. New
     purchases check the active-account cap before payment; an already-paid order still opens its
     account if that cap has since been reached. Passing an evaluation opens its funded account
@@ -170,6 +191,23 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   licensed market-data feed, KYC, funded agreements, bank verification, payout processing and the
   copy engine. The spec is the Notion page
   "Platform Technical Requirements (TRD v1)". Never imply a real payment or a payout has happened.
+
+## Themes (White and Dark, Manus style)
+
+- Every colour is a token in [src/app/globals.css](src/app/globals.css): a White block (the
+  default) and a Dark block, listed with what each paints in [docs/theme.md](docs/theme.md).
+  Components colour with `var(--token)` only; never put a hex value in a component, since it
+  shows the same in both themes. The founder touches tokens up in Manus Studio, so keep the names.
+- Main buttons and selected tabs are ink (`--ink`, `.prop-button`); the green accent (`--primary`)
+  is for links, gains, Buy and the logo; `--danger` for losses, Sell and errors.
+- Page titles (`h1`) and `.display` use Libre Baskerville; text uses the device's UI font; prices
+  use IBM Plex Mono (`font-mono`).
+- [src/lib/theme.ts](src/lib/theme.ts): `DEFAULT_THEME` (`"system"` follows the device), the saved
+  choice (`localStorage`), `chooseTheme`, `onThemeChange`, and `THEME_SCRIPT`, which the root layout
+  runs in `<head>` to set `data-theme` before the first paint (hence `suppressHydrationWarning` on
+  `<html>`). `ThemeToggle` (headers) and `ThemePicker` (footer, account menu) are in
+  [src/components/theme-toggle.tsx](src/components/theme-toggle.tsx). The price chart reads its
+  colours from the `--chart-*` tokens and repaints when `data-theme` changes.
 
 ## Trading core (src/lib/trading)
 
@@ -310,7 +348,8 @@ Prisma schema: [prisma/schema.prisma](prisma/schema.prisma). Two groups:
   optimistic-lock `version`, phase and a unique `fromAccountId` for a funded account's evaluation.
   `demo` and `User.demoCreditSpent` remain legacy fields; virtual credit is no longer spent and
   old demo accounts continue under the current account flow. `CheckoutOrder` stores amount in
-  paise, provider `free`, `test`, `razorpay`, `razorpay-test` (or legacy `demo`), billing, GST place of supply and
+  paise, provider `free`, `test`, `razorpay`, `razorpay-test` (or legacy `demo`), billing (name,
+  mobile and state, the GST place of supply; nullable, since only paid orders ask for them) and
   unique provider order/payment references.
   `JournalNote` (a trader's note on a date, `@@unique([userId, date])`). There are no payout
   tables yet (see the TRD's data model).
@@ -366,6 +405,7 @@ production deploy.
   files.
 - **Next.js 16 is not your trained Next.js**: per [AGENTS.md](AGENTS.md), read
   `node_modules/next/dist/docs/` before writing routes, handlers, or config.
+- **Colours come from the theme tokens** (see Themes). Don't hard-code a colour in a component.
 - **Programme figures come from `src/lib/prop-firm.ts`.** Don't hard-code a fee, limit or split in a
   page; don't hard-code exchange lot sizes, tax rates or expiry days (they change; use a dated
   contract master when the simulator exists).
@@ -413,6 +453,11 @@ metadata gates access without exposing private evidence files.
 - ✅ **Options-only OMS and journal (Oct 2026)**: the option chain, directional order policy
   (buy to open, sell to close, no shorts, spreads or hedges across accounts), day positions with
   realised and open P&L, Exit all, and the basic journal with the P&L calendar and day notes.
+- ✅ **Themes, rulebook and one-screen checkout (26 Oct 2026)**: White and Dark themes in the Manus
+  style on tokens (docs/theme.md), the rulebook on /rules in plain and exact words with amounts by
+  size, other pages linking to it, and checkout creating the account in the same submission, asking
+  for billing only on a paid order and landing on the platform (landing to trading: two clicks and
+  two fields on a free start).
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine
   service with Redis and a replay provider, real merchant activation and payment reconciliation,
   GST invoices/refunds, KYC and funded agreements, bank verification, payouts with TDS, then the

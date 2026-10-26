@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
+import { ThemePicker } from "@/components/theme-toggle";
 import { logout } from "./actions";
 
 const ITEMS = [
@@ -12,7 +13,7 @@ const ITEMS = [
   { href: "/settings", label: "Settings" },
 ];
 
-/** The account dropdown: Payouts, Academy, Help, Settings and sign-out behind the user's name. Closes on outside click or Escape. */
+/** The account dropdown: Payouts, Academy, Help, Settings, the theme and sign-out behind the user's name. Closes on outside click or Escape. */
 export function AccountMenu({ label }: { label: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -40,7 +41,7 @@ export function AccountMenu({ label }: { label: string }) {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex min-h-9 items-center gap-1.5 rounded-md border border-zinc-700 bg-[#111713] px-3 py-1 text-zinc-300 transition hover:border-zinc-400 hover:text-white"
+        className="flex min-h-9 items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--card)] px-3 py-1 text-sm text-[var(--foreground)] transition hover:border-[var(--border-strong)]"
       >
         <span className="max-w-[10rem] truncate">{label}</span>
         <ChevronDown
@@ -52,7 +53,7 @@ export function AccountMenu({ label }: { label: string }) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900 py-1 shadow-xl shadow-black/40"
+          className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] py-1 shadow-xl"
         >
           {ITEMS.map((item) => (
             <Link
@@ -60,17 +61,21 @@ export function AccountMenu({ label }: { label: string }) {
               href={item.href}
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="block px-3 py-2.5 text-xs text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              className="block px-3 py-2.5 text-sm text-[var(--foreground)] hover:bg-[var(--card-raised)]"
             >
               {item.label}
             </Link>
           ))}
-          <div className="my-1 border-t border-zinc-800" />
+          <div className="my-1 border-t border-[var(--border)] px-3 pb-2 pt-3">
+            <p className="mb-2 text-xs text-[var(--muted)]">Theme</p>
+            <ThemePicker />
+          </div>
+          <div className="my-1 border-t border-[var(--border)]" />
           <form action={logout}>
             <button
               type="submit"
               role="menuitem"
-              className="block w-full px-3 py-2.5 text-left text-xs text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              className="block w-full px-3 py-2.5 text-left text-sm text-[var(--foreground)] hover:bg-[var(--card-raised)]"
             >
               Sign out
             </button>

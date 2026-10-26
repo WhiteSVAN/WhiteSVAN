@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpen } from "lucide-react";
+import { ArrowLeft, BookOpen, CircleCheck, X } from "lucide-react";
 import { AccountMeters } from "@/components/markets/account-panel";
 import { STATUS_BADGE } from "@/components/markets/account-status";
 import { ConnectZerodha } from "@/components/markets/connect-zerodha";
@@ -10,6 +10,8 @@ import { ZerodhaNotice } from "@/components/markets/zerodha-notice";
 import { findAccount } from "@/lib/accounts/store";
 import { requireUser } from "@/lib/auth/dal";
 import { accountNumber } from "@/lib/checkout/billing";
+import { settlement } from "@/lib/checkout/settlement";
+import { prisma } from "@/lib/db";
 import { findAccountPlan } from "@/lib/prop-firm";
 import { isKiteOwner, kiteConfig } from "@/lib/zerodha/config";
 import { PRICES_OFFLINE, sharedKiteSession } from "@/lib/zerodha/connection";
@@ -19,12 +21,17 @@ export const metadata: Metadata = { title: "Trading platform · WhiteSVAN", robo
 /**
  * One account's trading platform (a demo account, or a funded one), on the firm's shared Kite
  * login. While the login is down, traders see their account and wait; owners get the Kite login card.
+ * Checkout lands here with `?opened=<order>`, which shows the welcome.
  */
-export default async function TradePage({ params, searchParams }: { params: Promise<{ accountId: string }>; searchParams: Promise<{ feed?: string }> }) {
+export default async function TradePage({ params, searchParams }: { params: Promise<{ accountId: string }>; searchParams: Promise<{ feed?: string; opened?: string }> }) {
   const user = await requireUser();
   const { accountId } = await params;
+  const { feed, opened } = await searchParams;
   const account = await findAccount(user.id, accountId);
   if (!account) notFound();
+  const order = opened
+    ? await prisma.checkoutOrder.findFirst({ where: { id: opened, userId: user.id, accountId: account.id, status: "PAID" }, select: { id: true, provider: true, amount: true, providerPaymentId: true } })
+    : null;
   const plan = findAccountPlan(account.planId);
   const planLabel = plan?.label ?? account.planId;
   const config = kiteConfig();
@@ -43,7 +50,24 @@ export default async function TradePage({ params, searchParams }: { params: Prom
         </p>
       </div>
 
-      <ZerodhaNotice code={(await searchParams).feed} />
+      {order && (
+        <section role="status" className="terminal-card flex flex-wrap items-start justify-between gap-4 p-5">
+          <div className="flex gap-3">
+            <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-[var(--primary)]" aria-hidden="true" />
+            <div>
+              <p className="font-semibold">Your {planLabel} demo account is open.</p>
+              <p className="mt-1 text-sm text-[var(--muted)]">{settlement(order).summary} Trade it whenever you like, inside the rules.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 text-sm">
+            <Link href={`/checkout/complete/${order.id}`} className="font-medium hover:text-[var(--primary)]">Receipt</Link>
+            <Link href="/rules" className="font-medium hover:text-[var(--primary)]">The rules</Link>
+            <Link href={`/trade/${account.id}`} aria-label="Dismiss" className="text-[var(--muted)] hover:text-[var(--foreground)]"><X className="h-4 w-4" aria-hidden="true" /></Link>
+          </div>
+        </section>
+      )}
+
+      <ZerodhaNotice code={feed} />
 
       {session ? (
         <ZerodhaCharts account={{ id: account.id, desk: account.desk, planLabel }} canConnect={owner} />

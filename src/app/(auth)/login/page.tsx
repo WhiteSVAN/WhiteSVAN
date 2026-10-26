@@ -27,8 +27,8 @@ export default async function LoginPage({
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-zinc-100">Sign in</h1>
-      <p className="mt-1 text-sm text-zinc-500">Welcome back.</p>
+      <h1 className="text-3xl">Sign in</h1>
+      <p className="mt-2 text-sm text-[var(--muted)]">Welcome back.</p>
 
       <LoginForm initialMessage={initialMessage} notice={notice} next={next} />
 
@@ -39,9 +39,10 @@ export default async function LoginPage({
         </>
       )}
 
-      <p className="mt-6 text-center text-sm text-zinc-500">
+      <p className="mt-6 text-center text-sm text-[var(--muted)]">
         New here?{" "}
-        <Link href={plan ? `/signup?plan=${plan}` : next ? `/signup?${new URLSearchParams({ next })}` : "/signup"} className="font-medium text-zinc-200 hover:text-zinc-100">
+        {/* Checkout creates the account itself, so a trader on their way there goes straight back. */}
+        <Link href={plan ? `/checkout/${plan}` : next ? `/signup?${new URLSearchParams({ next })}` : "/signup"} className="font-medium text-[var(--foreground)] underline-offset-4 hover:underline">
           Create an account
         </Link>
       </p>

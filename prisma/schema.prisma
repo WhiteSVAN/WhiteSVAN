@@ -767,11 +767,12 @@ model CheckoutOrder {
   providerOrderId   String?     @unique
   providerPaymentId String?     @unique
   accountId         String?     @unique
-  billingName       String
+  // The account's name, if it has one.
+  billingName       String?
   billingEmail      String
+  // Paid orders only: the mobile sent to Razorpay, and the state as the GST place of supply.
   billingPhone      String?
-  // Place of supply for GST.
-  billingState      String
+  billingState      String?
   acceptedTermsAt   DateTime
   paidAt            DateTime?
   createdAt         DateTime    @default(now())

@@ -29,7 +29,7 @@ export function LoginForm({
       {next && <input type="hidden" name="next" value={next} />}
       {notice && (
         <div
-          className="rounded-lg border border-zinc-700 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-200"
+          className="rounded-xl border border-[var(--border)] bg-[var(--card-deep)] px-3.5 py-2.5 text-sm"
           role="status"
         >
           {notice}
@@ -60,7 +60,7 @@ export function LoginForm({
           </label>
           <Link
             href="/forgot"
-            className="text-xs font-medium text-zinc-200 hover:text-zinc-100"
+            className="text-xs font-medium text-[var(--muted)] hover:text-[var(--foreground)]"
           >
             Forgot password?
           </Link>

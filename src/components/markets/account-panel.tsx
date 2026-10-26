@@ -204,7 +204,7 @@ export function AccountTicket({ desk, planLabel, contract, label, quote, side, o
             </div>
             <div className="grid grid-cols-2 gap-2" role="group" aria-label="Side">
               {(["BUY", "SELL"] as const).map((value) => (
-                <button key={value} type="button" aria-pressed={side === value} onClick={() => onSide(value)} className={`min-h-10 rounded-md border text-sm font-medium ${side === value ? (value === "BUY" ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]" : "border-[var(--danger)] bg-[var(--danger)] text-[#2a0f0a]") : "border-[var(--border-strong)] text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
+                <button key={value} type="button" aria-pressed={side === value} onClick={() => onSide(value)} className={`min-h-10 rounded-md border text-sm font-medium ${side === value ? (value === "BUY" ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]" : "border-[var(--danger)] bg-[var(--danger)] text-[var(--danger-foreground)]") : "border-[var(--border-strong)] text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
                   {value === "BUY" ? "Buy" : "Sell"}
                 </button>
               ))}
@@ -252,7 +252,7 @@ export function AccountTicket({ desk, planLabel, contract, label, quote, side, o
                 )}
               </fieldset>
             )}
-            <button type="submit" disabled={!ready} className={`min-h-11 w-full rounded-lg text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${side === "BUY" ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]" : "bg-[var(--danger)] text-[#2a0f0a] hover:opacity-90"}`}>
+            <button type="submit" disabled={!ready} className={`min-h-11 w-full rounded-lg text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${side === "BUY" ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]" : "bg-[var(--danger)] text-[var(--danger-foreground)] hover:opacity-90"}`}>
               {pending ? "Placing…" : action}
             </button>
             <p aria-live="polite" className={`min-h-5 text-xs leading-5 ${result?.tone === "bad" ? "text-[var(--danger)]" : result?.tone === "good" ? "text-[var(--primary)]" : "text-[var(--muted)]"}`}>{result?.text}</p>
@@ -343,7 +343,7 @@ function OrderEditor({ order, instrument, maxLots, onModify, onClose }: { order:
               <input inputMode="decimal" value={triggerInput} onChange={(event) => setTriggerInput(event.target.value)} className={input} />
             </label>
           )}
-          <button type="submit" disabled={pending || Boolean(problem)} className="min-h-9 rounded-md bg-[var(--primary)] px-4 font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50">{pending ? "Saving…" : "Save"}</button>
+          <button type="submit" disabled={pending || Boolean(problem)} className="min-h-9 rounded-md bg-[var(--ink)] px-4 font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)] disabled:cursor-not-allowed disabled:opacity-50">{pending ? "Saving…" : "Save"}</button>
           <button type="button" onClick={onClose} className="min-h-9 rounded-md border border-[var(--border-strong)] px-3 hover:bg-[var(--card-deep)]">Back</button>
           {(message ?? problem) && <p role="alert" className="w-full text-[var(--danger)]">{message ?? problem}</p>}
         </form>

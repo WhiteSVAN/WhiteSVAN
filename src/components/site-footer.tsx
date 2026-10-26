@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
+import { ThemePicker } from "@/components/theme-toggle";
 import { PROGRAMME_RULES } from "@/lib/prop-firm";
 
 /** Public Discord invite; the link is hidden until this is set. */
@@ -36,13 +37,13 @@ const DISCLAIMERS = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-[var(--border)] bg-[#090d0b]">
+    <footer className="border-t border-[var(--border)] bg-[var(--card-deep)]">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-8 sm:py-16 lg:grid-cols-[1.1fr_1.4fr]">
         <div>
-          <Link href="/" className="text-xl font-semibold text-zinc-100">
+          <Link href="/" className="text-xl">
             <SvanLogo />
           </Link>
-          <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400">
+          <p className="mt-4 max-w-md text-sm leading-6 text-[var(--muted)]">
             The prop firm for NIFTY, BANK NIFTY and SENSEX traders. Pass one evaluation, get funded
             and keep {PROGRAMME_RULES.contractorSharePercent}% of your profits.
           </p>
@@ -51,7 +52,7 @@ export function SiteFooter() {
         <div className="grid gap-6 sm:grid-cols-2">
           {FOOTER_GROUPS.map((group) => (
             <div key={group.title}>
-              <h2 className="font-mono text-[9px] font-medium uppercase tracking-[0.12em] text-zinc-500">
+              <h2 className="text-sm font-medium text-[var(--foreground)]">
                 {group.title}
               </h2>
               <ul className="mt-3 space-y-2">
@@ -59,7 +60,7 @@ export function SiteFooter() {
                   <li key={`${group.title}-${link.href}-${link.label}`}>
                     <Link
                       href={link.href}
-                      className="text-xs text-zinc-400 transition hover:text-zinc-200"
+                      className="text-sm text-[var(--muted)] transition hover:text-[var(--foreground)]"
                     >
                       {link.label}
                     </Link>
@@ -72,17 +73,17 @@ export function SiteFooter() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-8">
-        <div className="space-y-2 border-t border-[var(--border)] pt-6 text-[11px] leading-5 text-zinc-500">
+        <div className="space-y-2 border-t border-[var(--border)] pt-6 text-xs leading-5 text-[var(--muted)]">
           {DISCLAIMERS.map((text) => (
             <p key={text}>{text}</p>
           ))}
         </div>
       </div>
 
-      <div className="border-t border-zinc-800">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 font-mono text-[9px] uppercase tracking-wider text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <span>Copyright 2026 WhiteSVAN. All rights reserved.</span>
-          <span>Past performance does not guarantee future results.</span>
+      <div className="border-t border-[var(--border)]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 text-xs text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <span>Copyright 2026 WhiteSVAN. All rights reserved. Past performance does not guarantee future results.</span>
+          <ThemePicker />
         </div>
       </div>
     </footer>

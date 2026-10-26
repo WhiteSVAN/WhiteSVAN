@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { requireUser } from "@/lib/auth/dal";
 import { kiteConfig } from "@/lib/zerodha/config";
 import { WorkspaceNav } from "@/components/workspace-nav";
@@ -23,11 +24,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-full bg-[var(--background)] text-[var(--foreground)]">
       <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:px-8 md:flex-row md:items-center md:gap-8">
-          <Link href="/dashboard" className="self-start text-xl font-semibold text-zinc-100 md:self-auto">
+          <Link href="/dashboard" className="self-start text-xl md:self-auto">
             <SvanLogo />
           </Link>
           <div className="flex w-full min-w-0 items-center gap-4 md:flex-1">
             <WorkspaceNav items={nav} />
+            <ThemeToggle className="h-9 w-9" />
             <AccountMenu label={user.name ?? user.email ?? "Account"} />
           </div>
         </div>

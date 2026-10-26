@@ -7,7 +7,7 @@ export function ConnectZerodha({ next }: { next: string }) {
       <h2 id="connect-title" className="text-2xl font-medium tracking-tight">Connect live prices</h2>
       <p className="mt-3 max-w-lg text-sm leading-7 text-[var(--muted)]">Log in to the firm&apos;s broker account to turn on charts, live prices and depth for every signed-in user. The connection ends at 6 AM IST each day.</p>
       {/* A route handler redirect, so a plain link rather than a prefetching <Link>. */}
-      <a href={`/api/zerodha/login?${new URLSearchParams({ next })}`} className="mt-6 inline-flex min-h-11 items-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Connect live prices</a>
+      <a href={`/api/zerodha/login?${new URLSearchParams({ next })}`} className="mt-6 inline-flex min-h-11 items-center rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]">Connect live prices</a>
     </section>
   );
 }

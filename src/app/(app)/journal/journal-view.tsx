@@ -197,7 +197,7 @@ export function JournalView({ accounts, notes: savedNotes, today }: { accounts: 
             <textarea id="day-note" value={draft} onChange={(event) => { setDraft(event.target.value); setStatus(null); }} maxLength={NOTE_MAX_LENGTH} rows={6} placeholder="What did you trade, why, and what would you do differently?" className="block w-full rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-3 py-2 text-sm leading-6 text-[var(--foreground)] placeholder:text-[var(--faint)] focus:border-[var(--primary)] focus:outline-none" />
             <div className="flex items-center justify-between gap-3">
               <p aria-live="polite" className={`text-xs ${status?.tone === "bad" ? "text-[var(--danger)]" : "text-[var(--primary)]"}`}>{status?.text}</p>
-              <button type="submit" disabled={saving || !dirty} className="min-h-9 rounded-md bg-[var(--primary)] px-4 text-xs font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Saving…" : "Save note"}</button>
+              <button type="submit" disabled={saving || !dirty} className="min-h-9 rounded-md bg-[var(--ink)] px-4 text-xs font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)] disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Saving…" : "Save note"}</button>
             </div>
           </form>
 

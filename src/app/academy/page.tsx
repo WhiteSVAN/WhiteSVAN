@@ -32,7 +32,7 @@ export default async function AcademyPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="min-h-full flex-1 bg-[var(--background)] text-[var(--foreground)]">
-      <a href="#academy-main" className="fixed -top-20 left-5 z-50 rounded bg-[var(--primary)] px-4 py-3 text-sm text-[var(--primary-foreground)] focus:top-3">Skip to content</a>
+      <a href="#academy-main" className="fixed -top-20 left-5 z-50 rounded bg-[var(--ink)] px-4 py-3 text-sm text-[var(--ink-foreground)] focus:top-3">Skip to content</a>
       <PropHeader />
 
       <main id="academy-main">
@@ -43,7 +43,7 @@ export default async function AcademyPage({ searchParams }: { searchParams: Prom
               <h1 className="mt-5 max-w-3xl text-4xl font-medium leading-[1.05] tracking-[-0.05em] sm:text-6xl">Learn the rules.<br /><span className="text-[var(--primary)]">Pass the evaluation.</span></h1>
               <p className="mt-6 max-w-xl text-sm leading-7 text-[var(--muted)]">Free lessons on NIFTY, BANK NIFTY and SENSEX options, position sizing and every evaluation rule, built to get you funded.</p>
               <div className="mt-7 flex flex-wrap gap-3">
-                <Link href="/academy?tab=learn#academy-content" className="inline-flex min-h-11 items-center gap-3 rounded-md bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start learning <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+                <Link href="/academy?tab=learn#academy-content" className="inline-flex min-h-11 items-center gap-3 rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]">Start learning <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
                 <Link href="/evaluations" className="inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--border-strong)] px-4 text-sm hover:bg-[var(--card-raised)]">See evaluations <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
               </div>
               <p className="mt-4 text-xs leading-6 text-[var(--muted)]">Free lessons and the rule exercise, open to everyone. No account needed.</p>
@@ -83,7 +83,7 @@ export default async function AcademyPage({ searchParams }: { searchParams: Prom
 
           <section aria-labelledby="start-title" className="mt-12 flex flex-col items-start justify-between gap-6 rounded-2xl border border-[var(--border-strong)] bg-[var(--card)] p-7 sm:flex-row sm:items-center sm:p-9">
             <div><h2 id="start-title" className="text-2xl font-medium tracking-tight">Evaluations from {formatInr(EVALUATION_PLANS[0].fee)}.</h2><p className="mt-2 text-sm text-[var(--muted)]">One-time fee, GST included. No subscription, no activation fee.</p></div>
-            <Link href="/checkout" className="inline-flex min-h-12 shrink-0 items-center gap-3 rounded-full bg-[var(--primary)] px-6 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start your evaluation <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            <Link href="/checkout" className="inline-flex min-h-12 shrink-0 items-center gap-3 rounded-full bg-[var(--ink)] px-6 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]">Start your evaluation <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </section>
         </div>
       </main>

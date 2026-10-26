@@ -10,7 +10,7 @@ export default async function ResetPasswordPage({
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-zinc-100">Set a new password</h1>
+      <h1 className="text-3xl">Set a new password</h1>
 
       {token ? (
         <>

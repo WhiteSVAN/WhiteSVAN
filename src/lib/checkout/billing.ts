@@ -1,6 +1,8 @@
 /**
  * Checkout details for an evaluation purchase. Shared by the checkout form and its Server Action.
- * The state is the GST place of supply on the invoice; fees are GST-inclusive.
+ * Only a paid checkout asks for them: the mobile number goes to Razorpay and the state is the GST
+ * place of supply on the invoice (fees are GST-inclusive). A free start or a staff test purchase
+ * takes no payment, so it asks for nothing. Pressing the checkout button accepts the rules.
  */
 import { z } from "zod";
 import { PROGRAMME_RULES, type EvaluationPlan } from "@/lib/prop-firm";
@@ -16,7 +18,6 @@ export const INDIAN_STATES = [
 export const MAX_ACTIVE_ACCOUNTS = PROGRAMME_RULES.maximumAccounts;
 
 export const billingSchema = z.object({
-  name: z.string().trim().min(2, { error: "Enter your full name." }).max(100, { error: "Use at most 100 characters." }),
   phone: z
     .string()
     .trim()
@@ -24,13 +25,20 @@ export const billingSchema = z.object({
     .pipe(z.string().regex(/^(?:\+?91)?[6-9]\d{9}$/, { error: "Enter a 10-digit Indian mobile number." }))
     .transform((value) => `+91${value.slice(-10)}`),
   state: z.enum(INDIAN_STATES, { error: "Choose your state." }),
-  terms: z.literal("on", { error: "Accept the rules and terms to continue." }),
 });
 
-export type Billing = z.infer<typeof billingSchema>;
+/** What an order records: the account's name, and for a paid order the mobile and state. */
+export interface Billing {
+  name: string | null;
+  phone: string | null;
+  state: string | null;
+}
 
 /** The amount charged for a plan, in paise, GST included. */
 export const planAmount = (plan: EvaluationPlan) => plan.fee * 100;
 
 /** A short, readable account number for screens and support: WSV-1L-4F2A9C. */
 export const accountNumber = (id: string, planId: string) => `WSV-${planId.replace(/-/g, "").toUpperCase()}-${id.slice(-6).toUpperCase()}`;
+
+/** Where a completed checkout lands: the new account's trading platform, which welcomes it. */
+export const openedPath = (accountId: string, orderId: string) => `/trade/${accountId}?${new URLSearchParams({ opened: orderId })}`;

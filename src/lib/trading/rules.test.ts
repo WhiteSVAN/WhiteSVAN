@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EVALUATION_PLANS, PROGRAMME_RULES, RULE_SECTIONS, findEvaluationPlan, planLimits } from "../prop-firm";
+import { EVALUATION_PLANS, EXPIRY_CUTOFF, PROGRAMME_RULES, RULE_GROUPS, findEvaluationPlan, planLimits } from "../prop-firm";
 import { limitBreaches, maxLossFloor, reviewPass, ruleSetFor } from "./rules";
 
 const rules = ruleSetFor(findEvaluationPlan("1l")!);
@@ -28,9 +28,11 @@ describe("rule sets", () => {
 
   it("use the IST session times the rulebook publishes", () => {
     expect(rules.session).toEqual({ open: 9 * 3600 + 15 * 60, squareOff: 15 * 3600 + 20 * 60, close: 15 * 3600 + 30 * 60, expiryCutoff: 14 * 3600 + 30 * 60 });
-    const hours = RULE_SECTIONS.find((section) => section.id === "sessions")!.description;
+    const hours = RULE_GROUPS.flatMap((group) => group.rules).find((rule) => rule.id === "sessions")!.exact;
     for (const time of [PROGRAMME_RULES.marketOpen, PROGRAMME_RULES.squareOff, PROGRAMME_RULES.marketClose]) expect(hours).toContain(time);
     expect(hours).toContain(`last ${PROGRAMME_RULES.expiryCutoffMinutes} minutes`);
+    expect(EXPIRY_CUTOFF).toBe("14:30");
+    expect(hours).toContain(EXPIRY_CUTOFF);
   });
 });
 

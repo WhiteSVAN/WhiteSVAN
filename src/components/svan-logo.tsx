@@ -1,4 +1,4 @@
-/** Compact terminal lockup adapted from the Manus proof-terminal concept. */
+/** The WhiteSVAN wordmark: three bars and the name, in the theme's ink and accent. */
 export function SvanLogo({ className }: { className?: string }) {
   return (
     <span
@@ -9,9 +9,9 @@ export function SvanLogo({ className }: { className?: string }) {
         <i />
         <i />
       </span>
-      <span className="tracking-[-0.04em] text-[#f0f3ec]">
+      <span className="tracking-[-0.04em] text-[var(--foreground)]">
         <span className="font-semibold">White</span>
-        <span className="font-normal text-[#baf277]">SVAN</span>
+        <span className="font-normal text-[var(--primary)]">SVAN</span>
       </span>
     </span>
   );
