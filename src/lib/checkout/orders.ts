@@ -10,7 +10,7 @@ import { prisma } from "@/lib/db";
 import { newAccountId } from "@/lib/accounts/store";
 import { findAccountPlan, type EvaluationPlan } from "@/lib/prop-firm";
 import { openDesk } from "@/lib/trading/desk";
-import { MAX_ACTIVE_ACCOUNTS, planAmount, type Billing } from "./billing";
+import { planAmount, type Billing } from "./billing";
 import { checkoutAttemptKey, isCheckoutAttemptId } from "./attempt";
 import { createRazorpayOrder, razorpayProvider, type RazorpayConfig } from "./razorpay";
 
@@ -23,25 +23,19 @@ export class CheckoutError extends Error {
 
 type Tx = Prisma.TransactionClient;
 
-export async function activeAccountCount(userId: string): Promise<number> {
-  return prisma.evaluationAccount.count({ where: { userId, status: "ACTIVE" } });
-}
-
 /** The mobile and state from the user's last paid order, to fill in their next one. */
 export async function lastBilling(userId: string): Promise<{ phone: string | null; state: string | null } | null> {
   const order = await prisma.checkoutOrder.findFirst({ where: { userId, billingState: { not: null } }, orderBy: { createdAt: "desc" }, select: { billingPhone: true, billingState: true } });
   return order && { phone: order.billingPhone, state: order.billingState };
 }
 
-/** Lock the user before counting accounts, so purchases at once can't both slip under the limit. */
+/**
+ * Lock the user, so the same checkout submitted twice at once opens one account. Evaluations have
+ * no limit (prop-firm.ts): only funded accounts do, and that's checked when a pass opens one.
+ */
 async function lockUser(tx: Tx, userId: string): Promise<void> {
   const owners = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
   if (!owners.length) throw new CheckoutError("Sign in again to complete checkout.");
-}
-
-async function checkLimit(tx: Tx, userId: string): Promise<void> {
-  const active = await tx.evaluationAccount.count({ where: { userId, status: "ACTIVE" } });
-  if (active >= MAX_ACTIVE_ACCOUNTS) throw new CheckoutError(`You can hold up to ${MAX_ACTIVE_ACCOUNTS} active accounts at a time.`);
 }
 
 async function openEvaluation(tx: Tx, userId: string, plan: EvaluationPlan, now: number): Promise<string> {
@@ -78,7 +72,6 @@ export async function completePurchase(input: { mode: "test" | "free"; userId: s
       }
       return { orderId: existing.id, accountId: existing.accountId };
     }
-    await checkLimit(tx, userId);
     const accountId = await openEvaluation(tx, userId, plan, now);
     const order = await tx.checkoutOrder.create({
       data: { ...billingData(userId, email, plan, billing, now), amount: mode === "free" ? 0 : planAmount(plan), status: "PAID", provider: mode, providerOrderId, accountId, paidAt: new Date(now) },
@@ -90,8 +83,8 @@ export async function completePurchase(input: { mode: "test" | "free"; userId: s
 
 /**
  * A Razorpay order for the plan's fee: our order row (PENDING) and Razorpay's order for it, which
- * the browser opens Checkout.js on. The account limit is checked here, before any money is taken;
- * the account itself opens when the payment is confirmed (`fulfilRazorpayOrder`).
+ * the browser opens Checkout.js on. The account opens when the payment is confirmed
+ * (`fulfilRazorpayOrder`).
  */
 export async function startRazorpayOrder(input: { config: RazorpayConfig; userId: string; email: string; plan: EvaluationPlan; billing: Billing; now: number; attemptId: string }, fetchImpl?: typeof fetch): Promise<{ orderId: string; razorpayOrderId: string; amount: number; accountId?: string }> {
   const { config, userId, email, plan, billing, now, attemptId } = input;
@@ -111,7 +104,6 @@ export async function startRazorpayOrder(input: { config: RazorpayConfig; userId
       if (!existing.providerOrderId) throw new CheckoutError("This payment is still being prepared. Wait a moment and retry this checkout; don't start another payment.");
       return { order: existing, created: false };
     }
-    await checkLimit(tx, userId);
     const order = await tx.checkoutOrder.create({ data: { ...billingData(userId, email, plan, billing, now), id, amount, status: "PENDING", provider } });
     return { order, created: true };
   });
@@ -145,8 +137,7 @@ export interface FulfilledOrder {
 /**
  * Open the account for a paid Razorpay order, once. The browser's handler and the webhook can both
  * arrive, in either order: the order row is locked, so the first opens the account and the second
- * gets the same answer. A paid order opens its account even if the trader has since reached the
- * account limit. Null when no open order matches.
+ * gets the same answer. Null when no open order matches.
  */
 export async function fulfilRazorpayOrder(input: { razorpayOrderId: string; paymentId: string; now: number; amount?: number }): Promise<FulfilledOrder | null> {
   const { razorpayOrderId, paymentId, now } = input;

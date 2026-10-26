@@ -20,7 +20,7 @@ describe("rule sets", () => {
         maxLots: plan.lots,
         payoutCap: L(plan.payoutCap),
         profitSplitPercent: 80,
-        minTradingDays: 5,
+        minTradingDays: 2,
         consistencyPercent: 50,
       });
     }
@@ -67,9 +67,10 @@ describe("limit breaches", () => {
 describe("pass review", () => {
   const days = (...nets: number[]) => nets.map((net, index) => ({ date: `2026-11-${String(index + 2).padStart(2, "0")}`, net: L(net) }));
 
-  it("passes with the target, five trading days and a best day at half the profit", () => {
-    const review = reviewPass(rules, L(1_06_000), days(3_000, 750, 750, 750, 750));
+  it("passes with the target, two trading days and a best day at half the profit", () => {
+    const review = reviewPass(rules, L(1_06_000), days(3_000, 3_000));
     expect(review).toMatchObject({ passed: true, targetMet: true, daysMet: true, consistencyMet: true, bestDay: L(3_000), bestDayAllowed: L(3_000) });
+    expect(reviewPass(rules, L(1_06_000), days(3_000, 750, 750, 750, 750)).passed).toBe(true);
   });
 
   it("holds the pass while the best day is over half the profit", () => {
@@ -82,7 +83,7 @@ describe("pass review", () => {
   });
 
   it("needs the minimum trading days and the full target", () => {
-    expect(reviewPass(rules, L(1_06_000), days(1_500, 1_500, 1_500, 1_500)).passed).toBe(false);
+    expect(reviewPass(rules, L(1_06_000), days(6_000))).toMatchObject({ daysMet: false, passed: false });
     expect(reviewPass(rules, L(1_06_000) - 1, days(1_200, 1_200, 1_200, 1_200, 1_200)).targetMet).toBe(false);
   });
 

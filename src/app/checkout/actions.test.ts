@@ -115,6 +115,16 @@ describe("razorpay checkout", () => {
     expect(mocks.startRazorpay).not.toHaveBeenCalled();
   });
 
+  it("keeps a form that created the account signed in on every later answer", async () => {
+    // The first submission created the account (its page still shows the account fields); this
+    // retry arrives with the session, so the answer names the account for the form to show.
+    const refused = await checkout(undefined, submission({ phone: "123" }));
+    expect(refused?.account).toEqual({ email: "owner@example.test" });
+    const paying = await checkout(undefined, submission({ plan: "5l" }));
+    expect(paying).toMatchObject({ account: { email: "owner@example.test" }, payment: { orderId: "order" } });
+    expect(mocks.join).not.toHaveBeenCalled();
+  });
+
   it("returns an already fulfilled retry to its account without opening another payment", async () => {
     mocks.startRazorpay.mockResolvedValue({ orderId: "order", razorpayOrderId: "order_RZP123", amount: 8_999_00, accountId: "account" });
     await expect(checkout(undefined, submission({ plan: "5l" }))).rejects.toThrow("REDIRECT:/trade/account?opened=order");

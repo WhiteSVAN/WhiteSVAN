@@ -5,7 +5,7 @@
  * takes no payment, so it asks for nothing. Pressing the checkout button accepts the rules.
  */
 import { z } from "zod";
-import { PROGRAMME_RULES, type EvaluationPlan } from "@/lib/prop-firm";
+import type { EvaluationPlan } from "@/lib/prop-firm";
 
 export const INDIAN_STATES = [
   "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh", "Chhattisgarh",
@@ -14,8 +14,6 @@ export const INDIAN_STATES = [
   "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura",
   "Uttar Pradesh", "Uttarakhand", "West Bengal",
 ] as const;
-
-export const MAX_ACTIVE_ACCOUNTS = PROGRAMME_RULES.maximumAccounts;
 
 export const billingSchema = z.object({
   phone: z

@@ -69,9 +69,10 @@ export const accountKind = (desk: Desk) => (desk.state.phase === "FUNDED" ? "Fun
 
 /**
  * The account's balance and rule meters, shared by the platform and the dashboard. A demo account
- * (the evaluation) tracks the profit target; a funded account tracks what it can pay out.
+ * (the evaluation) tracks the profit target; a funded account tracks what it can pay out. A passed
+ * evaluation says what comes next (`passNote`): My accounts says it about its own funded account.
  */
-export function AccountMeters({ desk, wide = false }: { desk: Desk; wide?: boolean }) {
+export function AccountMeters({ desk, wide = false, passNote = "Find your funded account in My accounts." }: { desk: Desk; wide?: boolean; passNote?: string | null }) {
   const meters = riskMeters(desk.state);
   const { rules } = desk.state;
   const funded = desk.state.phase === "FUNDED";
@@ -103,7 +104,7 @@ export function AccountMeters({ desk, wide = false }: { desk: Desk; wide?: boole
         </p>
       )}
       {desk.state.status === "PASSED" && (
-        <p role="status" className="rounded-md border border-[var(--primary)]/40 p-3 text-xs leading-5 text-[var(--primary)]">Passed on {desk.state.passedOn}. Your funded account is open in My accounts.</p>
+        <p role="status" className="rounded-md border border-[var(--primary)]/40 p-3 text-xs leading-5 text-[var(--primary)]">Passed on {desk.state.passedOn}.{passNote && ` ${passNote}`}</p>
       )}
     </>
   );

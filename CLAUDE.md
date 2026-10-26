@@ -38,6 +38,13 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
 > token: see Themes below). **Rules live only in the rules section**, written so new and
 > experienced traders both understand them. **Signing up and buying take as few clicks as
 > possible.**
+>
+> Founder direction (26 Oct 2026, later): **a landing page laid out like Topstep's** (the founder's
+> favourite of the three), not as minimal: our content stays, in a centred hero, stat cards and big
+> panels. **No risk rules on the landing page**, as at Topstep, MFFU and Tradeify (pricing cards keep
+> their figures). **2 trading days minimum** to pass (was 5). **Accounts like Tradeify:** no limit
+> on evaluations, up to 5 funded accounts open at once per person and household, and a pass beyond
+> that waits to be activated (was 3 accounts of any kind).
 
 ## Programme boundaries (load-bearing)
 
@@ -59,18 +66,21 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
 - [src/lib/prop-firm.ts](src/lib/prop-firm.ts): the single source of programme numbers and rule text.
   `EVALUATION_PLANS` (the three sizes on sale, ₹1L, ₹5L and ₹10L: fee, lots, payout cap;
   `RECOMMENDED_PLAN` is ₹5L), `PROGRAMME_RULES` (6% target, 4% end-of-day drawdown, 2% daily loss,
-  5 days, 50% consistency, 80% split, 3 accounts), `PROGRAMME_STEPS` (pass, get funded, get paid),
+  2 days, 50% consistency, 80% split, 5 funded accounts), `PROGRAMME_STEPS` (pass, get funded, get paid),
   `RULE_GROUPS` (the rulebook: four groups of three rules, each with a `figure` and a `plain`
   sentence for a given size and the `exact` rule; anchors such as `#evaluation`, `#drawdown` and
   `#desk` stay stable for older links) and `rulesInBrief`. ₹2.5L is retired: `findEvaluationPlan` (on sale)
   no longer finds it, `findAccountPlan` (labels and rules of existing accounts) still does. Pages,
   the help center and Academy lessons derive figures from here.
 - [src/components/prop-firm/](src/components/prop-firm/): `PropHeader` (nav, the theme toggle, and
-  an optional Discord link when `NEXT_PUBLIC_DISCORD_URL` is set), `PropLanding`, `AccountSelector`
+  an optional Discord link when `NEXT_PUBLIC_DISCORD_URL` is set), `PropLanding` (laid out like
+  Topstep's: a centred hero with the programme's terms as stat cards, the three steps in one big
+  panel, pricing, built for India, FAQ and a closing call to action), `AccountSelector`
   (Evaluation / Funded toggle), `RuleBook` (/rules, with the size switch) and `HelpCenter`
   (client-side search).
 - **Rules live on `/rules` only.** Other pages show at most the headline figures (pricing cards,
-  plan pages, the landing's rules at a glance, checkout's order summary) and link to the rulebook;
+  plan pages, checkout's order summary) and link to the rulebook; the landing page shows no risk
+  limits outside its pricing cards;
   help answers about a rule are one or two sentences with a `link` to its section. Add or change a
   rule in `RULE_GROUPS`, not on a page.
 - Routes: `/`, `/evaluations`, `/evaluations/[plan]` (plan ids `1l`, `5l`, `10l`),
@@ -114,10 +124,10 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
     recorded with provider `"razorpay-test"`, checkout shows Razorpay's test UPI ID and card
     (`TEST_PAYMENT`), and the welcome, the receipt page and the email say no money was charged.
     Live keys record `"razorpay"`. The payment window takes the theme's accent colour.
-  - Free/test attempts use a stable, owner-scoped key so retries reuse the same order. New
-    purchases check the active-account cap before payment; an already-paid order still opens its
-    account if that cap has since been reached. Passing an evaluation opens its funded account
-    regardless of whether it began free, as a staff test or through Razorpay. All trading is simulated.
+  - Free/test attempts use a stable, owner-scoped key so retries reuse the same order. Purchases
+    have no account limit: evaluations are unlimited, and the funded limit applies when a pass opens
+    one (Accounts, below). Passing an evaluation opens its funded account regardless of whether it
+    began free, as a staff test or through Razorpay. All trading is simulated.
   **Payment activation:** configure `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, automatic capture in
   Razorpay Dashboard, and `<site>/api/razorpay/webhook` for `payment.captured` and `order.paid`, with
   its own `RAZORPAY_WEBHOOK_SECRET`. Test-mode keys do not take real money; real payments require
@@ -138,8 +148,12 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   optimistic locking on `version`) and `CheckoutOrder` the purchase
   ([src/lib/accounts/store.ts](src/lib/accounts/store.ts)). The write that passes an evaluation
   creates its same-size `FUNDED` account in one transaction, with a unique `fromAccountId` back
-  to the evaluation. The funded account starts afresh with no profit target and the plan's current
-  rules. Trader and staff emails follow; My accounts lists both phases with the appropriate meters.
+  to the evaluation, unless the trader already has `maximumFundedAccounts` (5) funded accounts open
+  (counted under a per-trader advisory lock, so two passes can't both take the last place). Then
+  the pass waits (`waitingPasses`): My accounts says so, and offers "Activate funded account"
+  (`activateFundedAccount`) once one of them ends; the trader gets a "you passed" email that says
+  it waits. The funded account starts afresh with no profit target and the plan's current rules.
+  Trader and staff emails follow; My accounts lists both phases with the appropriate meters.
 - The trading platform `/trade/<account>` (and `/markets`, the Trade tab, for the trader's active
   account; `?account=` picks one) is **options only**: NIFTY / BANK NIFTY / SENSEX tabs, an expiry,
   and an option chain of up to 11 strikes around the money (calls left, puts right, ATM marked, B and S
@@ -219,7 +233,7 @@ result. The future engine service (Node on AWS with the market-data feed) hosts 
 - `rules.ts`: `ruleSetFor(plan)` builds the rulebook in paise from `prop-firm.ts`; an account keeps
   the copy it was opened with. Touching a limit counts as hitting it (daily loss on balance plus open
   P&L vs the day's opening balance; max drawdown floor trails the highest end-of-day balance and
-  locks at the starting balance). Pass = target + 5 days + best day ≤ 50% of profit, checked at the
+  locks at the starting balance). Pass = target + 2 days + best day ≤ 50% of profit, checked at the
   day's close.
 - `engine.ts`: `openAccount`, `step(state, event, context)`, `replay`, `riskMeters`. Market, limit,
   SL and SL-M orders fill against five-level depth with slippage; validation covers hours
@@ -458,6 +472,11 @@ metadata gates access without exposing private evidence files.
   size, other pages linking to it, and checkout creating the account in the same submission, asking
   for billing only on a paid order and landing on the platform (landing to trading: two clicks and
   two fields on a free start).
+- ✅ **Topstep-style landing and Tradeify-style accounts (26 Oct 2026)**: the landing page in a
+  centred hero, stat cards and big panels with no risk rules; a 2-day minimum; unlimited
+  evaluations, up to 5 funded accounts open at once and waiting passes with activation; and
+  payment-flow wording fixes from a site review (checkout stays signed in after a refused or
+  closed payment, the consent line, receipts that don't claim an email went out).
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine
   service with Redis and a replay provider, real merchant activation and payment reconciliation,
   GST invoices/refunds, KYC and funded agreements, bank verification, payouts with TDS, then the

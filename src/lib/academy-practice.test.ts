@@ -8,7 +8,7 @@ const run = (id: string, plan = oneLakh) => reviewPracticeWeek(plan, scenarioAmo
 const r = (rupees: number) => rupees * 100;
 
 describe("rule practice", () => {
-  it("passes the steady run once the target, five days and consistency are met", () => {
+  it("passes the steady run once the target, the minimum days and consistency are met", () => {
     const review = run("steady");
     expect(review).toMatchObject({ status: "PASSED", decidedOn: 6, profit: r(6_300), bestDay: r(1_500), tradingDays: 6 });
     expect(review.rows.map((row) => row.floor)).toEqual([r(96_000), r(97_200), r(98_700), r(98_700), r(99_500), r(1_00_000)]);
@@ -41,7 +41,7 @@ describe("rule practice", () => {
   });
 
   it("reports what is left on a short record", () => {
-    expect(reviewPracticeWeek(oneLakh, [r(1_000), r(500)])).toMatchObject({ status: "ACTIVE", targetLeft: r(4_500), daysLeft: 3 });
+    expect(reviewPracticeWeek(oneLakh, [r(1_000)])).toMatchObject({ status: "ACTIVE", targetLeft: r(5_000), daysLeft: 1 });
     expect(reviewPracticeWeek(oneLakh, [])).toMatchObject({ status: "ACTIVE", rows: [], profit: 0, profitForConsistency: 0 });
   });
 

@@ -33,7 +33,7 @@ export default async function CheckoutCompletePage({ params }: { params: Promise
     ["Amount", settled.amount],
     ["Payment", settled.payment],
     ["Date", order.paidAt ? `${dateText.format(order.paidAt)} IST` : "—"],
-    ["Receipt sent to", order.billingEmail],
+    ["Email", order.billingEmail],
   ];
 
   return (

@@ -90,6 +90,18 @@ export async function sendStaffFundedNotice(to: string[], account: { traderEmail
   })));
 }
 
+/** A pass while the trader already has the most funded accounts open: the funded account waits for a free place. */
+export async function sendPassedWaitingEmail(to: string, account: { planLabel: string; planId: string; evaluationId: string; maximum: number }): Promise<void> {
+  await sendEmail({
+    to,
+    subject: `You passed your ${account.planLabel} evaluation`,
+    text:
+      `You passed your ${account.planLabel} evaluation (${accountNumber(account.evaluationId, account.planId)}).\n\n` +
+      `You already have ${account.maximum} funded accounts open, the most at a time, so this funded account waits. Activate it from My accounts once one of them ends:\n${SITE_URL}/dashboard\n\n` +
+      `Funded accounts are simulated. Payouts follow the rules: ${SITE_URL}/rules#desk`,
+  });
+}
+
 export async function sendFundedAccountEmail(to: string, account: { planLabel: string; planId: string; accountId: string }): Promise<void> {
   await sendEmail({
     to,

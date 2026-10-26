@@ -5,7 +5,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
 import { findEvaluationPlan } from "@/lib/prop-firm";
 import { openDesk } from "@/lib/trading/desk";
-import { MAX_ACTIVE_ACCOUNTS, planAmount, type Billing } from "./billing";
+import { planAmount, type Billing } from "./billing";
 import { CheckoutError, completePurchase, fulfilRazorpayOrder, lastBilling, startRazorpayOrder } from "./orders";
 import type { RazorpayConfig } from "./razorpay";
 
@@ -44,17 +44,13 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
     await prisma.$disconnect();
   });
 
-  it.each(["test", "free"] as const)("serializes concurrent %s purchases before checking the active-account cap", async (mode) => {
+  it.each(["test", "free"] as const)("opens an evaluation for every %s purchase, however many accounts the trader holds", async (mode) => {
     const user = await makeUser();
-    await seedActive(user.id, MAX_ACTIVE_ACCOUNTS - 1);
-    const results = await Promise.allSettled(Array.from({ length: 4 }, () => completePurchase(request(user, mode))));
-    expect(results.filter(result => result.status === "fulfilled")).toHaveLength(1);
-    for (const result of results) if (result.status === "rejected") {
-      expect(result.reason).toBeInstanceOf(CheckoutError);
-      expect(result.reason.message).toContain("active accounts");
-    }
-    expect(await prisma.evaluationAccount.count({ where: { userId: user.id, status: "ACTIVE" } })).toBe(MAX_ACTIVE_ACCOUNTS);
-    expect(await prisma.checkoutOrder.count({ where: { userId: user.id } })).toBe(1);
+    await seedActive(user.id, 6);
+    const results = await Promise.all(Array.from({ length: 4 }, () => completePurchase(request(user, mode))));
+    expect(new Set(results.map((result) => result.accountId)).size).toBe(4);
+    expect(await prisma.evaluationAccount.count({ where: { userId: user.id, status: "ACTIVE" } })).toBe(10);
+    expect(await prisma.checkoutOrder.count({ where: { userId: user.id } })).toBe(4);
   });
 
   it.each(["test", "free"] as const)("deduplicates concurrent and later retries of one %s checkout attempt", async (mode) => {
@@ -144,14 +140,12 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
     expect(await fulfilRazorpayOrder({ razorpayOrderId: "order_UNKNOWN0000", paymentId: "pay_INTEGRATION3", now })).toBeNull();
   });
 
-  it("checks the account limit before taking money, and opens a paid order's account past it", async () => {
+  it("takes a Razorpay payment however many accounts the trader holds", async () => {
     const user = await makeUser();
-    await seedActive(user.id, MAX_ACTIVE_ACCOUNTS - 1);
+    await seedActive(user.id, 6);
     const started = await startRazorpayOrder({ config: razorpay, attemptId: randomUUID(), userId: user.id, email: user.email!, plan, billing, now }, razorpayApi);
-    await seedActive(user.id, 1);
-    await expect(startRazorpayOrder({ config: razorpay, attemptId: randomUUID(), userId: user.id, email: user.email!, plan, billing, now }, razorpayApi)).rejects.toThrow("active accounts");
     expect((await fulfilRazorpayOrder({ razorpayOrderId: started.razorpayOrderId, paymentId: "pay_INTEGRATION4", now }))?.opened).toBe(true);
-    expect(await prisma.evaluationAccount.count({ where: { userId: user.id, status: "ACTIVE" } })).toBe(MAX_ACTIVE_ACCOUNTS + 1);
+    expect(await prisma.evaluationAccount.count({ where: { userId: user.id, status: "ACTIVE" } })).toBe(7);
   });
 
   it("marks the order failed when Razorpay won't create it", async () => {

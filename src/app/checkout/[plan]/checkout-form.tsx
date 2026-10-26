@@ -118,7 +118,7 @@ export function CheckoutForm({ action, account, google, referral, defaults, mode
           modal: { ondismiss: () => {
             setPaying(false);
             opened.current = null;
-            setNotice("Payment window closed. Check My accounts for confirmation before retrying this checkout.");
+            setNotice("Payment window closed. If you completed the payment, your account opens in My accounts within a few minutes. If not, you can try again.");
           } },
         });
         checkout.on("payment.failed", (response) => setNotice(response.error?.description ? `${response.error.description} Try again, or use another method.` : "The payment didn't go through. Try again, or use another method."));
@@ -140,7 +140,7 @@ export function CheckoutForm({ action, account, google, referral, defaults, mode
   };
 
   const button = confirming ? "Confirming your payment…" : paying ? "Payment window open…" : pending ? (paid ? "Opening payment…" : "Opening your account…") : mode === "test" ? `Complete test purchase · ${total}` : paid ? `Pay ${total}` : "Start evaluation";
-  const consent = `${signedIn ? "" : "you create your account and "}agree to the evaluation rules`;
+  const consent = signedIn ? "you agree to the evaluation rules" : "you create your account and agree to the evaluation rules";
 
   return (
     <div className="mt-8 grid min-w-0 grid-cols-1 items-start gap-8 lg:grid-cols-[1.15fr_.85fr] lg:gap-12">
@@ -149,7 +149,7 @@ export function CheckoutForm({ action, account, google, referral, defaults, mode
         <fieldset disabled={busy} className="min-w-0">
           <legend className={legend}>1. Your account</legend>
           {signedIn ? (
-            <p className="mt-3 text-sm text-[var(--muted)]">Signed in as <span className="break-all font-medium text-[var(--foreground)]">{signedIn.email}</span>. Your receipt goes here.</p>
+            <p className="mt-3 text-sm text-[var(--muted)]">Signed in as <span className="break-all font-medium text-[var(--foreground)]">{signedIn.email}</span>.</p>
           ) : (
             <>
               {google && (

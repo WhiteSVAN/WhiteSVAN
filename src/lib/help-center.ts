@@ -56,7 +56,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       {
         id: "how-many-accounts",
         question: "How many accounts can I have?",
-        answer: `Up to ${R.maximumAccounts} demo or funded accounts at once, all your own.`,
+        answer: `As many evaluations as you like, and up to ${R.maximumFundedAccounts} funded accounts at once, all your own. Pass with ${R.maximumFundedAccounts} already open and the new one waits in My accounts until one ends.`,
         link: { href: "/rules#conduct", label: "Fair play" },
       },
     ],

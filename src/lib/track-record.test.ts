@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { findEvaluationPlan } from "./prop-firm";
 import { isProgrammeContract, reviewTrackRecord } from "./track-record";
 
-// ₹1L plan: ₹6,000 target, ₹4,000 max loss, ₹2,000 daily loss, 5 days, 50% consistency.
+// ₹1L plan: ₹6,000 target, ₹4,000 max loss, ₹2,000 daily loss, 2 days, 50% consistency.
 const plan = findEvaluationPlan("1l")!;
 const day = (date: string, rupees: number) => ({ date, net: rupees * 100 });
 const PASSING = [
@@ -57,7 +57,7 @@ describe("reviewTrackRecord", () => {
 
   it("starts at the plan's balance with nothing synced", () => {
     const review = reviewTrackRecord(plan, []);
-    expect(review).toMatchObject({ status: "ACTIVE", balance: 10_000_000, floor: 9_600_000, targetLeft: 600_000, daysLeft: 5 });
+    expect(review).toMatchObject({ status: "ACTIVE", balance: 10_000_000, floor: 9_600_000, targetLeft: 600_000, daysLeft: 2 });
   });
 });
 
