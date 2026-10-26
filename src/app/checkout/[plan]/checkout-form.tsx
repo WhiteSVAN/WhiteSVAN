@@ -55,7 +55,7 @@ function loadRazorpay(): Promise<RazorpayConstructor> {
 
 /** The theme's accent, for Razorpay's payment window. */
 function accentColour(): string {
-  return getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#2f7d32";
+  return getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#1f6f3b";
 }
 
 function Errors({ messages }: { messages?: string[] }) {

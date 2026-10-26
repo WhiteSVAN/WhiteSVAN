@@ -192,16 +192,16 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   copy engine. The spec is the Notion page
   "Platform Technical Requirements (TRD v1)". Never imply a real payment or a payout has happened.
 
-## Themes (White and Dark, Manus style)
+## Themes (White and Black, Manus style)
 
 - Every colour is a token in [src/app/globals.css](src/app/globals.css): a White block (the
-  default) and a Dark block, listed with what each paints in [docs/theme.md](docs/theme.md).
+  default) and a Black block (`data-theme="dark"`), listed with what each paints in [docs/theme.md](docs/theme.md).
   Components colour with `var(--token)` only; never put a hex value in a component, since it
   shows the same in both themes. The founder touches tokens up in Manus Studio, so keep the names.
 - Main buttons and selected tabs are ink (`--ink`, `.prop-button`); the green accent (`--primary`)
   is for links, gains, Buy and the logo; `--danger` for losses, Sell and errors.
-- Page titles (`h1`) and `.display` use Libre Baskerville; text uses the device's UI font; prices
-  use IBM Plex Mono (`font-mono`).
+- Page titles (`h1`) and `.display` use Newsreader; text uses Geist; prices use Geist Mono
+  (`font-mono`, tabular digits). Load fonts with the `latin-ext` subset, which carries ₹.
 - [src/lib/theme.ts](src/lib/theme.ts): `DEFAULT_THEME` (`"system"` follows the device), the saved
   choice (`localStorage`), `chooseTheme`, `onThemeChange`, and `THEME_SCRIPT`, which the root layout
   runs in `<head>` to set `data-theme` before the first paint (hence `suppressHydrationWarning` on
