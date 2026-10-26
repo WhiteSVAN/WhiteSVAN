@@ -77,7 +77,7 @@ describe("the rulebook", () => {
 
   it("sums up in three lines", () => {
     expect(rulesInBrief(findEvaluationPlan("10l")!)).toEqual([
-      { title: "Pass", text: "Make ₹60,000 in at least 5 trading days, with no single day over half of it." },
+      { title: "Pass", text: "Make ₹60,000 in at least 2 trading days, with no single day over half of it." },
       { title: "Keep your account", text: "Don't lose ₹20,000 in a day, or fall ₹40,000 below your highest closing balance." },
       { title: "Get paid", text: "Keep 80% of the profit above a ₹40,000 buffer, up to ₹50,000 a payout." },
     ]);

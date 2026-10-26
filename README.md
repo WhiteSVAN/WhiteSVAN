@@ -32,8 +32,9 @@ Temporal Cloud setup, worker commands and deployment instructions: [docs/tempora
 
 ## Prop-firm site
 
-- `/`: landing page (hero, how it works, pricing with an Evaluation / Funded toggle, the rules at a
-  glance, built for India and FAQ).
+- `/`: landing page laid out like Topstep's (a centred hero with stat cards, how it works, pricing
+  with an Evaluation / Funded toggle, built for India and FAQ). No risk rules outside the pricing
+  cards: they're on `/rules`.
 - `/evaluations` and `/evaluations/[plan]` (`1l`, `5l`, `10l`): pricing and plan detail.
 - `/how-it-works`: the three steps to a payout and the three steps to start.
 - `/funded`: funded accounts, caps and buffers by account size and a payout calculator.

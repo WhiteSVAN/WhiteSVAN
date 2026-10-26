@@ -4,19 +4,25 @@ import { ArrowRight, ArrowUpRight, BookOpen, CircleHelp, ScrollText } from "luci
 import { AccountMeters } from "@/components/markets/account-panel";
 import { STATUS_BADGE } from "@/components/markets/account-status";
 import { tradingNow } from "@/lib/accounts/clock";
-import { loadAccounts } from "@/lib/accounts/store";
+import { loadAccounts, waitingPasses } from "@/lib/accounts/store";
 import { requireMember } from "@/lib/auth/dal";
 import { accountNumber } from "@/lib/checkout/billing";
-import { findAccountPlan } from "@/lib/prop-firm";
+import { findAccountPlan, PROGRAMME_RULES } from "@/lib/prop-firm";
+import { activateFunded } from "./activate-funded";
 
 const openedText = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric" });
 
 export const metadata: Metadata = { title: "My accounts · WhiteSVAN" };
 
-/** The trader's demo accounts (evaluations) and the funded accounts their passes opened. */
+/**
+ * The trader's demo accounts (evaluations) and the funded accounts their passes opened. A pass made
+ * while the trader had the most funded accounts open waits here, and activates once one ends.
+ */
 export default async function DashboardPage() {
   const user = await requireMember();
   const accounts = await loadAccounts(user.id, tradingNow());
+  const waiting = waitingPasses(accounts);
+  const fundedFull = accounts.filter((account) => account.phase === "FUNDED" && account.status === "ACTIVE").length >= PROGRAMME_RULES.maximumFundedAccounts;
   const firstName = (user.name ?? user.profile?.displayName)?.trim().split(/\s+/)[0];
 
   return (
@@ -45,6 +51,8 @@ export default async function DashboardPage() {
               const plan = findAccountPlan(account.planId);
               const status = STATUS_BADGE[account.status];
               const name = `${plan?.label ?? account.planId} ${account.phase === "FUNDED" ? "funded account" : "demo account"}`;
+              const activatable = waiting.has(account.id) && !fundedFull;
+              const primary = "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]";
               return (
                 <li key={account.id}>
                   <article className="flex h-full flex-col gap-5 rounded-xl border border-[var(--border)] bg-[var(--card-deep)] p-5" aria-label={name}>
@@ -55,9 +63,22 @@ export default async function DashboardPage() {
                       </div>
                       <span className={`shrink-0 rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${status.className}`}>{status.text}</span>
                     </div>
-                    <AccountMeters desk={account.desk} />
+                    <AccountMeters
+                      desk={account.desk}
+                      passNote={!waiting.has(account.id) ? null : activatable ? "Your funded account is ready to activate." : `Your funded account is waiting: you have ${PROGRAMME_RULES.maximumFundedAccounts} open, the most at a time. Activate it here once one of them ends.`}
+                    />
                     <div className="mt-auto flex flex-wrap gap-2">
-                      <Link href={`/trade/${account.id}`} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]">{account.status === "ACTIVE" ? "Start trading" : "Open account"} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+                      {activatable ? (
+                        <>
+                          <form action={activateFunded} className="flex flex-1">
+                            <input type="hidden" name="account" value={account.id} />
+                            <button type="submit" className={primary}>Activate funded account <ArrowRight className="h-4 w-4" aria-hidden="true" /></button>
+                          </form>
+                          <Link href={`/trade/${account.id}`} className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--border-strong)] px-5 text-sm hover:bg-[var(--card-raised)]">Open account</Link>
+                        </>
+                      ) : (
+                        <Link href={`/trade/${account.id}`} className={primary}>{account.status === "ACTIVE" ? "Start trading" : "Open account"} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+                      )}
                       {account.phase === "FUNDED" && <Link href="/payouts" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[var(--border-strong)] px-5 text-sm hover:bg-[var(--card-raised)]">Payouts</Link>}
                     </div>
                   </article>

@@ -2,15 +2,16 @@
  * Demo (evaluation) and funded accounts in Postgres (server only). The engine's host snapshot is
  * stored whole in `desk`; every change is a read, a pure engine step and a write conditional on
  * `version`, so a platform poll and an order arriving together never overwrite each other. The
- * write that passes an evaluation opens its funded account in the same transaction.
+ * write that passes an evaluation opens its funded account in the same transaction, unless the
+ * trader already has the most funded accounts open: then the pass waits to be activated.
  */
 import { randomBytes } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { staffEmails } from "@/lib/checkout/config";
-import { sendFundedAccountEmail, sendStaffFundedNotice } from "@/lib/email";
+import { sendFundedAccountEmail, sendPassedWaitingEmail, sendStaffFundedNotice } from "@/lib/email";
 import { logger } from "@/lib/logger";
-import { findAccountPlan } from "@/lib/prop-firm";
+import { findAccountPlan, PROGRAMME_RULES } from "@/lib/prop-firm";
 import { deskStep, openDesk, type Desk } from "@/lib/trading/desk";
 
 export interface StoredAccount {
@@ -51,10 +52,22 @@ export class AccountBusyError extends Error {
   }
 }
 
-/** The funded account a passed evaluation opens: the same size, on the plan's current rules. */
-async function openFundedAccount(tx: Prisma.TransactionClient, evaluation: StoredAccount, at: number): Promise<string> {
+/** Serializes the trader's funded-account openings, so two passes at once can't both take the last place. */
+async function lockFunding(tx: Prisma.TransactionClient, userId: string): Promise<void> {
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`funded-accounts:${userId}`}, 0))`;
+}
+
+/**
+ * The funded account a passed evaluation opens: the same size, on the plan's current rules. Null
+ * while the trader already has the most funded accounts open (prop-firm.ts): the pass then waits in
+ * My accounts until one of them ends and the trader activates it (`activateFundedAccount`).
+ */
+async function openFundedAccount(tx: Prisma.TransactionClient, evaluation: StoredAccount, at: number): Promise<string | null> {
   const plan = findAccountPlan(evaluation.planId);
   if (!plan) throw new Error(`No plan "${evaluation.planId}" for a funded account.`);
+  await lockFunding(tx, evaluation.userId);
+  const open = await tx.evaluationAccount.count({ where: { userId: evaluation.userId, phase: "FUNDED", status: "ACTIVE" } });
+  if (open >= PROGRAMME_RULES.maximumFundedAccounts) return null;
   const id = newAccountId(at);
   await tx.evaluationAccount.create({
     data: { id, userId: evaluation.userId, planId: plan.id, phase: "FUNDED", fromAccountId: evaluation.id, desk: openDesk(plan, id, at, "FUNDED") as unknown as Prisma.InputJsonValue },
@@ -62,15 +75,25 @@ async function openFundedAccount(tx: Prisma.TransactionClient, evaluation: Store
   return id;
 }
 
-/** The trader's "you passed" email, and a note to staff to start KYC and the agreement. */
-async function announceFunded(evaluation: StoredAccount, fundedId: string): Promise<void> {
-  const user = await prisma.user.findUnique({ where: { id: evaluation.userId }, select: { email: true } });
-  if (!user?.email) return;
-  const planLabel = findAccountPlan(evaluation.planId)?.label ?? evaluation.planId;
-  await Promise.all([
-    sendFundedAccountEmail(user.email, { planLabel, accountId: fundedId, planId: evaluation.planId }),
-    sendStaffFundedNotice(staffEmails(), { traderEmail: user.email, planLabel, planId: evaluation.planId, evaluationId: evaluation.id, accountId: fundedId }),
-  ]);
+/**
+ * After a pass: the trader's "you passed" email and a note to staff to start KYC and the agreement,
+ * or, when the funded account waits for a free place, the trader's note that it does. Best effort.
+ */
+async function announcePass(evaluation: StoredAccount, fundedId: string | null): Promise<void> {
+  logger.info(fundedId ? "accounts.funded" : "accounts.funded_waiting", { userId: evaluation.userId, evaluationId: evaluation.id, fundedId });
+  try {
+    const user = await prisma.user.findUnique({ where: { id: evaluation.userId }, select: { email: true } });
+    if (!user?.email) return;
+    const planLabel = findAccountPlan(evaluation.planId)?.label ?? evaluation.planId;
+    await (fundedId
+      ? Promise.all([
+          sendFundedAccountEmail(user.email, { planLabel, accountId: fundedId, planId: evaluation.planId }),
+          sendStaffFundedNotice(staffEmails(), { traderEmail: user.email, planLabel, planId: evaluation.planId, evaluationId: evaluation.id, accountId: fundedId }),
+        ])
+      : sendPassedWaitingEmail(user.email, { planLabel, planId: evaluation.planId, evaluationId: evaluation.id, maximum: PROGRAMME_RULES.maximumFundedAccounts }));
+  } catch (error) {
+    logger.warn("accounts.funded_email_failed", { evaluationId: evaluation.id, fundedId, error: error instanceof Error ? error.message : String(error) });
+  }
 }
 
 /**
@@ -93,12 +116,7 @@ export async function changeAccount<T>(userId: string, id: string, change: (desk
         })
       : { saved: (await prisma.evaluationAccount.updateMany({ where, data })).count, fundedId: null };
     if (saved !== 1) continue;
-    if (fundedId) {
-      logger.info("accounts.funded", { userId, evaluationId: id, fundedId });
-      await announceFunded(account, fundedId).catch((error: unknown) => {
-        logger.warn("accounts.funded_email_failed", { fundedId, error: error instanceof Error ? error.message : String(error) });
-      });
-    }
+    if (passes) await announcePass(account, fundedId);
     return { account: { ...account, desk, status: desk.state.status, version: account.version + 1 }, result };
   }
   throw new AccountBusyError();
@@ -142,20 +160,42 @@ export async function changeAccountForOrder<T>(
         kind: "saved" as const,
         account: { ...account, desk, status: desk.state.status, version: account.version + 1 },
         result,
+        passes,
         fundedId,
       };
     });
     if (outcome.kind === "missing") return null;
     if (outcome.kind === "retry") continue;
-    if (outcome.fundedId) {
-      logger.info("accounts.funded", { userId, evaluationId: id, fundedId: outcome.fundedId });
-      await announceFunded(outcome.account, outcome.fundedId).catch((error: unknown) => {
-        logger.warn("accounts.funded_email_failed", { fundedId: outcome.fundedId, error: error instanceof Error ? error.message : String(error) });
-      });
-    }
+    if (outcome.passes) await announcePass(outcome.account, outcome.fundedId);
     return { account: outcome.account, result: outcome.result };
   }
   throw new AccountBusyError();
+}
+
+/** Passed evaluations whose funded account hasn't opened yet, because the trader had the most open. */
+export function waitingPasses(accounts: readonly StoredAccount[]): Set<string> {
+  const opened = new Set(accounts.flatMap((account) => (account.fromAccountId ? [account.fromAccountId] : [])));
+  return new Set(accounts.filter((account) => account.phase === "EVALUATION" && account.status === "PASSED" && !opened.has(account.id)).map((account) => account.id));
+}
+
+/**
+ * Open the funded account a pass was waiting on, once the trader has a free place. The trader's
+ * funding lock makes a double press open one account. Null when the account isn't this trader's
+ * passed evaluation; "full" while they still have the most funded accounts open.
+ */
+export async function activateFundedAccount(userId: string, evaluationId: string, now: number): Promise<{ fundedId: string } | "full" | null> {
+  const evaluation = await findAccount(userId, evaluationId);
+  if (!evaluation || evaluation.phase !== "EVALUATION" || evaluation.status !== "PASSED") return null;
+  const outcome = await prisma.$transaction(async (tx) => {
+    await lockFunding(tx, userId);
+    const opened = await tx.evaluationAccount.findFirst({ where: { userId, fromAccountId: evaluationId }, select: { id: true } });
+    if (opened) return { fundedId: opened.id, created: false };
+    const fundedId = await openFundedAccount(tx, evaluation, now);
+    return fundedId ? { fundedId, created: true } : null;
+  });
+  if (!outcome) return "full";
+  if (outcome.created) await announcePass(evaluation, outcome.fundedId);
+  return { fundedId: outcome.fundedId };
 }
 
 /** Whether the trading day the desk has open is one `now` closes (the platform was shut before 15:30). */

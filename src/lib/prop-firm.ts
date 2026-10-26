@@ -21,10 +21,11 @@ export const PROGRAMME_RULES = {
   targetPercent: 6,
   maximumLossPercent: 4,
   dailyLossPercent: 2,
-  minimumDays: 5,
+  minimumDays: 2,
   consistencyPercent: 50,
   contractorSharePercent: 80,
-  maximumAccounts: 3,
+  /** Funded accounts open at once, per person and household. Evaluations have no limit; a pass beyond this waits. */
+  maximumFundedAccounts: 5,
   /** IST session times: market open, automatic square-off, market close. */
   marketOpen: "09:15",
   squareOff: "15:20",
@@ -153,9 +154,9 @@ export const RULE_GROUPS: readonly RuleGroup[] = [
       {
         id: "conduct",
         label: "Fair play",
-        figure: () => `${PROGRAMME_RULES.maximumAccounts} accounts`,
-        plain: () => `Trade only your own accounts, up to ${PROGRAMME_RULES.maximumAccounts} at a time, on your own decisions.`,
-        exact: `Up to ${PROGRAMME_RULES.maximumAccounts} active demo or funded accounts per trader. Not allowed: hedging across your accounts, copying another trader, sharing a login, trading someone else's account, or exploiting delayed prices or news. Every payout request is checked for these.`,
+        figure: () => `${PROGRAMME_RULES.maximumFundedAccounts} funded`,
+        plain: () => `Trade only your own accounts, on your own decisions. Hold as many evaluations as you like, and up to ${PROGRAMME_RULES.maximumFundedAccounts} funded accounts at a time.`,
+        exact: `Evaluations have no limit. Up to ${PROGRAMME_RULES.maximumFundedAccounts} funded accounts can be open at once, per person and household; a pass beyond that waits in My accounts until one of them ends. Not allowed: hedging across your accounts, copying another trader, sharing a login, trading someone else's account, or exploiting delayed prices or news. Every payout request is checked for these.`,
       },
     ],
   },
@@ -169,7 +170,7 @@ export const RULE_GROUPS: readonly RuleGroup[] = [
         label: "Profit split",
         figure: () => `${PROGRAMME_RULES.contractorSharePercent}%`,
         plain: () => `Keep ${PROGRAMME_RULES.contractorSharePercent}% of the profit on your funded account.`,
-        exact: `Your funded account opens when you pass, on the same size and loss limits, with no profit target. You keep ${PROGRAMME_RULES.contractorSharePercent}% of the profit you withdraw and the firm keeps ${100 - PROGRAMME_RULES.contractorSharePercent}%. Tax is deducted at source where it applies.`,
+        exact: `Your funded account opens when you pass, on the same size and loss limits, with no profit target (with ${PROGRAMME_RULES.maximumFundedAccounts} already open, it waits until one ends). You keep ${PROGRAMME_RULES.contractorSharePercent}% of the profit you withdraw and the firm keeps ${100 - PROGRAMME_RULES.contractorSharePercent}%. Tax is deducted at source where it applies.`,
       },
       {
         id: "payouts",

@@ -48,8 +48,8 @@ export function AccountSelector() {
                   <Rule label="Max drawdown" value={`${formatInr(limits.maximumLoss)} EOD`} />
                   <Rule label="Max position" value={`${plan.lots} ${plan.lots === 1 ? "lot" : "lots"}`} />
                 </> : <>
-                  <Rule label="Profit split" value={`${PROGRAMME_RULES.contractorSharePercent}%`} />
-                  <Rule label="Payout cap" value={formatInr(plan.payoutCap)} />
+                  <Rule label="Profit target" value="None" />
+                  <Rule label="Payout buffer" value={formatInr(limits.maximumLoss)} />
                   <Rule label="Payouts" value="On demand" />
                 </>}
               </dl>
@@ -59,7 +59,7 @@ export function AccountSelector() {
         </div>
 
         <div className="mt-7 flex flex-col items-center justify-between gap-4 rounded-xl border border-[var(--border)] px-5 py-4 sm:flex-row">
-          <p className="text-sm leading-6 text-[var(--muted)]">One-time fee, GST included. No subscription and no activation fee. <Link href="/funded" className="font-medium text-[var(--foreground)] underline-offset-4 hover:underline">How payouts work</Link></p>
+          <p className="text-sm leading-6 text-[var(--muted)]">Every size has the same rules; the size sets the amounts. <Link href="/funded" className="font-medium text-[var(--foreground)] underline-offset-4 hover:underline">How payouts work</Link></p>
           <Link href="/rules" className="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-[var(--primary)]"><CircleHelp size={14} aria-hidden="true" /> Read the rules <ArrowRight size={14} aria-hidden="true" /></Link>
         </div>
       </div>

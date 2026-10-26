@@ -38,7 +38,7 @@ export interface CheckoutState {
   message?: string;
   values?: CheckoutValues;
   payment?: PaymentRequest;
-  /** Set once this checkout has created the account or signed in to it: the form is signed in from then on. */
+  /** The signed-in account, once there is one: the form shows it instead of the account fields from then on. */
   account?: { email: string };
 }
 
@@ -70,6 +70,8 @@ export async function checkout(_previous: CheckoutState | undefined, formData: F
   }
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
   if (!user?.email) return { message: "Add an email address to your account to check out.", values, account };
+  // Signed in by an earlier submission of this form, the page still shows the account fields.
+  account ??= { email: user.email };
   const mode = checkoutModeFor(user.email);
   const now = tradingNow();
 

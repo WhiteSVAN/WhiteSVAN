@@ -355,9 +355,9 @@ button[type="submit"][class*="bg-zinc-900"] {
 .prop-button-outline { border: 1px solid var(--border-strong); background: var(--card); color: var(--foreground); }
 .prop-button-outline:hover { background: var(--card-raised); }
 .prop-heading { font-family: var(--font-display); font-optical-sizing: auto; font-size: clamp(2.1rem, 3.6vw, 3.25rem); font-weight: 400; line-height: 1.08; letter-spacing: -0.025em; }
-/* A faint accent glow and hairline grid behind the hero and the closing call to action. */
+/* A faint accent glow and hairline grid behind the hero and the landing's big panels. */
 .prop-hero,
-.prop-final {
+.prop-panel {
   background:
     radial-gradient(56rem 28rem at 88% -12%, color-mix(in srgb, var(--primary) 9%, transparent), transparent 70%),
     var(--background);
@@ -376,9 +376,7 @@ button[type="submit"][class*="bg-zinc-900"] {
   mask-image: radial-gradient(ellipse 80% 70% at 70% 0%, #000 0%, transparent 75%);
 }
 .prop-accounts { background: var(--card-deep); }
-.prop-step { transition: transform 200ms var(--ease-terminal), border-color 200ms var(--ease-terminal); }
-.prop-step:hover { border-color: var(--border-strong); transform: translateY(-2px); }
-.prop-final { box-shadow: var(--shadow-card); }
+.prop-panel { box-shadow: var(--shadow-card); }
 /* Phones keep the buy button in the sticky header; the theme switch moves to the footer. */
 @media (max-width: 639px) {
   .prop-header-cta { min-height: 38px; padding: 0 14px; font-size: 13px; gap: 6px; }

@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { afterAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
-import { findEvaluationPlan } from "@/lib/prop-firm";
+import { findEvaluationPlan, PROGRAMME_RULES } from "@/lib/prop-firm";
 import { deskStep, openDesk, type Desk } from "@/lib/trading/desk";
 import type { EngineEvent } from "@/lib/trading/engine";
 import type { Instrument } from "@/lib/trading/instruments";
@@ -11,7 +11,7 @@ import type { Quote } from "@/lib/trading/matching";
 import { ist } from "@/lib/trading/time";
 import { contractInstrument, type MarketQuote } from "@/lib/zerodha/kite";
 import { applyOrder, orderPolicyProblem } from "./ticks";
-import { changeAccount, changeAccountForOrder, loadAccounts } from "./store";
+import { activateFundedAccount, changeAccount, changeAccountForOrder, loadAccounts, waitingPasses } from "./store";
 
 const localDb = (() => {
   try { const url = new URL(process.env.DATABASE_URL ?? ""); return url.hostname === "127.0.0.1" && url.pathname === "/whitesvan_preview"; }
@@ -68,6 +68,13 @@ describe.skipIf(!localDb)("account store (PostgreSQL integration)", () => {
     await prisma.$disconnect();
   });
 
+  /** Open funded accounts for the trader, as earlier passes would have. */
+  async function seedFunded(userId: string, count: number): Promise<string[]> {
+    const ids = Array.from({ length: count }, () => `ev-funded-${randomUUID()}`);
+    await prisma.evaluationAccount.createMany({ data: ids.map((id) => ({ id, userId, planId: plan.id, phase: "FUNDED" as const, desk: openDesk(plan, id, ist("2026-10-01 09:00"), "FUNDED") as unknown as Prisma.InputJsonValue })) });
+    return ids;
+  }
+
   it("closes a day nobody closed when the accounts load, and the pass opens one funded account", async () => {
     const { userId, evaluationId } = await traderWithPassingDay();
     const before = await prisma.evaluationAccount.findUniqueOrThrow({ where: { id: evaluationId } });
@@ -94,6 +101,49 @@ describe.skipIf(!localDb)("account store (PostgreSQL integration)", () => {
     await Promise.all([changeAccount(userId, evaluationId, close), changeAccount(userId, evaluationId, close)]);
     expect((await prisma.evaluationAccount.findUniqueOrThrow({ where: { id: evaluationId } })).status).toBe("PASSED");
     expect(await prisma.evaluationAccount.count({ where: { userId, phase: "FUNDED", fromAccountId: evaluationId } })).toBe(1);
+  });
+
+  it("holds a pass while the most funded accounts are open, and activates it once one ends", async () => {
+    const { userId, evaluationId } = await traderWithPassingDay();
+    const funded = await seedFunded(userId, PROGRAMME_RULES.maximumFundedAccounts);
+
+    const accounts = await loadAccounts(userId, ist("2026-11-09 09:00"));
+    expect(accounts.find((account) => account.id === evaluationId)).toMatchObject({ status: "PASSED" });
+    expect(await prisma.evaluationAccount.count({ where: { fromAccountId: evaluationId } })).toBe(0);
+    expect([...waitingPasses(accounts)]).toEqual([evaluationId]);
+    expect(await activateFundedAccount(userId, evaluationId, ist("2026-11-09 10:00"))).toBe("full");
+
+    // One funded account ends: the pass can take its place, once, however often it's pressed.
+    await prisma.evaluationAccount.update({ where: { id: funded[0] }, data: { status: "FAILED" } });
+    const results = await Promise.all([1, 2, 3].map(() => activateFundedAccount(userId, evaluationId, ist("2026-11-09 10:00"))));
+    const opened = await prisma.evaluationAccount.findMany({ where: { fromAccountId: evaluationId } });
+    expect(opened).toHaveLength(1);
+    expect(opened[0]).toMatchObject({ userId, phase: "FUNDED", status: "ACTIVE", planId: plan.id });
+    expect(results).toEqual([1, 2, 3].map(() => ({ fundedId: opened[0].id })));
+    expect(waitingPasses(await loadAccounts(userId, ist("2026-11-09 10:00"))).size).toBe(0);
+  });
+
+  it("gives the last funded place to one of two passes at once; the other waits", async () => {
+    const user = await prisma.user.create({ data: { email: `store-${randomUUID()}@example.test`, role: "TRADER" } });
+    userIds.push(user.id);
+    await seedFunded(user.id, PROGRAMME_RULES.maximumFundedAccounts - 1);
+    const ids = [`ev-store-${randomUUID()}`, `ev-store-${randomUUID()}`];
+    await prisma.evaluationAccount.createMany({ data: ids.map((id) => ({ id, userId: user.id, planId: plan.id, desk: passingDesk(id) as unknown as Prisma.InputJsonValue })) });
+    const close = (desk: Desk) => ({ desk: deskStep(desk, { kind: "clock", at: ist("2026-11-06 15:35") }, new Map()).desk, result: null });
+    await Promise.all(ids.map((id) => changeAccount(user.id, id, close)));
+
+    expect(await prisma.evaluationAccount.count({ where: { userId: user.id, phase: "EVALUATION", status: "PASSED" } })).toBe(2);
+    expect(await prisma.evaluationAccount.count({ where: { userId: user.id, phase: "FUNDED", status: "ACTIVE" } })).toBe(PROGRAMME_RULES.maximumFundedAccounts);
+    expect(waitingPasses(await loadAccounts(user.id, ist("2026-11-09 09:00"))).size).toBe(1);
+  });
+
+  it("activates only the trader's own passed evaluations", async () => {
+    const { userId, evaluationId } = await traderWithPassingDay();
+    expect(await activateFundedAccount(userId, evaluationId, ist("2026-11-06 11:00"))).toBeNull();
+    const stranger = await prisma.user.create({ data: { email: `store-${randomUUID()}@example.test`, role: "TRADER" } });
+    userIds.push(stranger.id);
+    await loadAccounts(userId, ist("2026-11-09 09:00"));
+    expect(await activateFundedAccount(stranger.id, evaluationId, ist("2026-11-09 10:00"))).toBeNull();
   });
 
   it("leaves a day still trading alone", async () => {
