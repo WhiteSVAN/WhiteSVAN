@@ -32,22 +32,29 @@ Temporal Cloud setup, worker commands and deployment instructions: [docs/tempora
 
 ## Prop-firm site
 
-- `/`: landing page (hero, how it works, pricing with an Evaluation / Funded toggle, rules, built for
-  India, free resources and FAQ).
-- `/evaluations` and `/evaluations/[plan]` (`1l`, `5l`, `10l`): plans, what changes when you pass
-  and plan detail.
-- `/how-it-works`: every step from choosing an account to a payout, and the IST trading day.
-- `/funded`: funded accounts, payout rules, caps by account size and a payout calculator.
-- `/rules`: full rule table and sections. `/help`: searchable help center. `/academy`: free lessons,
-  rule practice and "getting funded".
-- Buying takes three steps: create your account, choose the size, check out. "Get funded" goes to
-  `/checkout` (signed out: sign-up first, with no size to pick), which opens on the recommended size;
-  the size and payment share one screen, then `/checkout/complete/<order>` → "Start trading" →
-  `/trade/<account>`. Pricing cards open checkout on their own size. Without both Razorpay keys,
-  checkout records provider `free`, amount ₹0 and no payment taken. With keys, it creates a pending
+- `/`: landing page (hero, how it works, pricing with an Evaluation / Funded toggle, the rules at a
+  glance, built for India and FAQ).
+- `/evaluations` and `/evaluations/[plan]` (`1l`, `5l`, `10l`): pricing and plan detail.
+- `/how-it-works`: the three steps to a payout and the three steps to start.
+- `/funded`: funded accounts, caps and buffers by account size and a payout calculator.
+- `/rules`: the rulebook, the one place every rule is written: the rules in one minute, then four
+  groups of three (to pass, to keep your account, to get paid, on the platform), each rule in plain
+  words with the amounts for the chosen size and then exactly, and every size side by side. Other
+  pages link here instead of repeating rules. `/help`: searchable help center. `/academy`: free
+  lessons, rule practice and "getting funded".
+- Buying is three steps on one screen: your account, your size, check out. "Get funded" goes to
+  `/checkout`, which opens on the recommended size, signed in or not. Signed out, the same submission
+  creates the account from an email and a password (or signs in to an existing one; Google works
+  too), then opens the evaluation and lands on `/trade/<account>` with a welcome; the receipt is at
+  `/checkout/complete/<order>`. Pressing the button accepts the rules. Without both Razorpay keys,
+  checkout asks for nothing more and records provider `free`, amount ₹0 and no payment taken. With
+  keys, it also asks for a mobile number and state (the GST place of supply), creates a pending
   Razorpay order and opens the account only after the server verifies capture or receives a signed
   captured webhook. Sign-ins in `STAFF_EMAILS` always make uncharged test purchases. Virtual demo
   credit is retired; evaluation accounts are called demo accounts because their trading is simulated.
+- Themes: White and Dark, in the Manus style, following the device until a visitor picks one (the
+  header toggle, the footer and the account menu). Every colour is a token in
+  `src/app/globals.css`; [docs/theme.md](docs/theme.md) lists them for touch-ups.
 - `/trade/<account>`: the options trading platform for an evaluation or funded account: an option chain
   with Buy and Sell on every strike, an index chart first (switch to an option's chart and depth),
   the order ticket (Market, Limit, Stop-loss, and a stop-loss and target on any buy, each cancelling

@@ -14,10 +14,10 @@ export default function HelpPage() {
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <PropHeader />
       <main id="main-content">
-        <section className="border-b border-[var(--border)] bg-[radial-gradient(ellipse_at_50%_0%,rgba(186,242,119,.09),transparent_70%)] px-5 pb-20 pt-16 text-center sm:px-8 sm:pt-24">
-          <p className="terminal-label flex items-center justify-center gap-2 text-[var(--primary)]"><LifeBuoy size={14} aria-hidden="true" /> Help center</p>
-          <h1 className="mx-auto mt-5 max-w-3xl text-5xl font-medium leading-[1.05] tracking-[-.055em] sm:text-6xl">How can we help?</h1>
-          <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-[var(--muted)] sm:text-base">Answers on evaluations, rules and payouts.</p>
+        <section className="border-b border-[var(--border)] px-5 pb-20 pt-16 text-center sm:px-8 sm:pt-24">
+          <p className="terminal-label flex items-center justify-center gap-2"><LifeBuoy size={14} aria-hidden="true" /> Help center</p>
+          <h1 className="mx-auto mt-4 max-w-3xl text-5xl sm:text-6xl">How can we help?</h1>
+          <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[var(--muted)]">Answers on evaluations, rules and payouts.</p>
           <HelpCenter />
         </section>
       </main>

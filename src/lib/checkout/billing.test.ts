@@ -4,7 +4,7 @@ import { safeNextPath } from "@/lib/safe-path";
 import { accountNumber, billingSchema, planAmount } from "./billing";
 import { checkoutModeFor, staffEmails } from "./config";
 
-const valid = { name: "Aditya Nalluri", phone: "98765 43210", state: "Telangana", terms: "on" };
+const valid = { phone: "98765 43210", state: "Telangana" };
 
 describe("checkout details", () => {
   it("accepts an Indian mobile in common formats and stores it with +91", () => {
@@ -14,7 +14,7 @@ describe("checkout details", () => {
     }
   });
 
-  it("rejects bad numbers, unknown states, short names and unticked terms", () => {
+  it("rejects bad numbers and unknown states", () => {
     const errors = (input: Record<string, unknown>) => {
       const parsed = billingSchema.safeParse(input);
       return parsed.success ? {} : parsed.error.flatten().fieldErrors;
@@ -22,8 +22,8 @@ describe("checkout details", () => {
     expect(errors({ ...valid, phone: "58765 43210" }).phone).toEqual(["Enter a 10-digit Indian mobile number."]);
     expect(errors({ ...valid, phone: "98765" }).phone).toBeDefined();
     expect(errors({ ...valid, state: "Narnia" }).state).toEqual(["Choose your state."]);
-    expect(errors({ ...valid, name: "A" }).name).toEqual(["Enter your full name."]);
-    expect(errors({ ...valid, terms: null }).terms).toEqual(["Accept the rules and terms to continue."]);
+    expect(errors({ phone: "98765 43210" }).state).toEqual(["Choose your state."]);
+    expect(errors(valid)).toEqual({});
   });
 
   it("charges the plan's GST-inclusive fee in paise and numbers accounts readably", () => {

@@ -29,7 +29,7 @@ export default async function DashboardPage() {
             {accounts.length > 0 ? `You have ${accounts.length} account${accounts.length === 1 ? "" : "s"}.` : "Pick an account size to start your first evaluation."}
           </p>
         </div>
-        <Link href="/checkout" className="inline-flex min-h-11 items-center gap-3 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] transition hover:bg-[var(--primary-hover)]">
+        <Link href="/checkout" className="inline-flex min-h-11 items-center gap-3 rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] transition hover:bg-[var(--ink-hover)]">
           Start an evaluation <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>
@@ -57,7 +57,7 @@ export default async function DashboardPage() {
                     </div>
                     <AccountMeters desk={account.desk} />
                     <div className="mt-auto flex flex-wrap gap-2">
-                      <Link href={`/trade/${account.id}`} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">{account.status === "ACTIVE" ? "Start trading" : "Open account"} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+                      <Link href={`/trade/${account.id}`} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]">{account.status === "ACTIVE" ? "Start trading" : "Open account"} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
                       {account.phase === "FUNDED" && <Link href="/payouts" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[var(--border-strong)] px-5 text-sm hover:bg-[var(--card-raised)]">Payouts</Link>}
                     </div>
                   </article>
@@ -69,7 +69,7 @@ export default async function DashboardPage() {
           <div className="flex min-h-[260px] flex-col items-center justify-center px-6 py-14 text-center">
             <h3 className="text-xl font-medium tracking-tight">No accounts yet</h3>
             <p className="mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">Choose a size and check out, on one screen. Your demo account opens straight away; pass it and your funded account opens.</p>
-            <Link href="/checkout" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start an evaluation <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            <Link href="/checkout" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]">Start an evaluation <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </div>
         )}
       </section>

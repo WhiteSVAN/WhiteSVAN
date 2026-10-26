@@ -12,19 +12,59 @@ import { useEffect, useRef, useState } from "react";
 import type { AutoscaleInfo, CandlestickData, HistogramData, IChartApi, ISeriesApi, LineData, UTCTimestamp } from "lightweight-charts";
 import { chartSeconds, type Candle, type Interval } from "@/lib/market-data/candles";
 import type { ChartLine } from "@/lib/trading/desk";
+import { onThemeChange } from "@/lib/theme";
 
-const UP = "#baf277";
-const DOWN = "#f2907e";
-const GRID = "rgba(40, 50, 43, 0.55)";
-const BORDER = "#28322b";
 /** Bars in view when a chart loads; scroll or pinch for the rest. */
 const VISIBLE_BARS = 140;
-const LINE_COLOURS: Record<ChartLine["tone"], string> = { average: "#d8c899", stop: DOWN, target: UP, order: "#99a59c" };
 /** Lightweight Charts' LineStyle.Dashed; the library loads lazily, so its enum isn't at hand. */
 const DASHED = 2;
 
 const priceText = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const countText = new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 2 });
+
+/** The chart's colours, from the theme tokens in globals.css; read again when the theme changes. */
+interface Palette {
+  up: string;
+  down: string;
+  upVolume: string;
+  downVolume: string;
+  grid: string;
+  border: string;
+  crosshair: string;
+  label: string;
+  text: string;
+  mark: string;
+  lines: Record<ChartLine["tone"], string>;
+}
+
+/** A hex token at the given opacity; any other colour as it is. */
+function withAlpha(colour: string, alpha: number): string {
+  const hex = /^#([0-9a-f]{6})$/i.exec(colour)?.[1];
+  if (!hex) return colour;
+  const [r, g, b] = [0, 2, 4].map((at) => parseInt(hex.slice(at, at + 2), 16));
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function readPalette(): Palette {
+  const style = getComputedStyle(document.documentElement);
+  const token = (name: string) => style.getPropertyValue(name).trim();
+  const up = token("--chart-up");
+  const down = token("--chart-down");
+  const mark = token("--chart-mark");
+  return {
+    up,
+    down,
+    upVolume: withAlpha(up, 0.42),
+    downVolume: withAlpha(down, 0.42),
+    grid: token("--chart-grid"),
+    border: token("--border"),
+    crosshair: token("--border-strong"),
+    label: token("--card-raised"),
+    text: token("--muted"),
+    mark,
+    lines: { average: mark, stop: down, target: up, order: token("--muted") },
+  };
+}
 
 const time = (at: number) => chartSeconds(at) as UTCTimestamp;
 const toBar = (candle: Candle): CandlestickData<UTCTimestamp> => ({
@@ -34,10 +74,10 @@ const toBar = (candle: Candle): CandlestickData<UTCTimestamp> => ({
   low: candle.low / 100,
   close: candle.close / 100,
 });
-const toVolume = (candle: Candle): HistogramData<UTCTimestamp> => ({
+const toVolume = (palette: Palette) => (candle: Candle): HistogramData<UTCTimestamp> => ({
   time: time(candle.at),
   value: candle.volume,
-  color: candle.close >= candle.open ? "rgba(186, 242, 119, 0.42)" : "rgba(242, 144, 126, 0.42)",
+  color: candle.close >= candle.open ? palette.upVolume : palette.downVolume,
 });
 const toOi = (candle: Candle): LineData<UTCTimestamp>[] => (candle.oi === null ? [] : [{ time: time(candle.at), value: candle.oi }]);
 
@@ -78,6 +118,7 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
   const container = useRef<HTMLDivElement>(null);
   const [handles, setHandles] = useState<Handles | null>(null);
   const [hovered, setHovered] = useState<Legend | null>(null);
+  const [palette, setPalette] = useState<Palette | null>(null);
 
   useEffect(() => {
     let created: Handles | null = null;
@@ -90,35 +131,21 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
         autoSize: true,
         layout: {
           background: { type: lib.ColorType.Solid, color: "transparent" },
-          textColor: "#99a59c",
           fontFamily: mono || "ui-monospace, monospace",
           fontSize: 11,
           attributionLogo: true,
-          panes: { separatorColor: BORDER, separatorHoverColor: "rgba(186, 242, 119, 0.08)" },
         },
-        grid: { vertLines: { color: GRID }, horzLines: { color: GRID } },
-        rightPriceScale: { borderColor: BORDER },
-        timeScale: { borderColor: BORDER, rightOffset: 4, timeVisible: true, secondsVisible: false },
-        crosshair: {
-          mode: lib.CrosshairMode.Normal,
-          vertLine: { color: "#3a493d", labelBackgroundColor: "#172018" },
-          horzLine: { color: "#3a493d", labelBackgroundColor: "#172018" },
-        },
+        timeScale: { rightOffset: 4, timeVisible: true, secondsVisible: false },
+        crosshair: { mode: lib.CrosshairMode.Normal },
         localization: { locale: "en-IN" },
       });
       const count = { type: "custom" as const, minMove: 1, formatter: (value: number) => countText.format(value) };
       const candleSeries = chart.addSeries(lib.CandlestickSeries, {
-        upColor: UP,
-        downColor: DOWN,
-        borderUpColor: UP,
-        borderDownColor: DOWN,
-        wickUpColor: UP,
-        wickDownColor: DOWN,
         priceFormat: { type: "custom", minMove: 0.01, formatter: (value: number) => priceText.format(value) },
       });
       const volume = derivative ? chart.addSeries(lib.HistogramSeries, { priceFormat: count, priceLineVisible: false, lastValueVisible: false }, 1) : null;
       volume?.priceScale().applyOptions({ scaleMargins: { top: 0.15, bottom: 0 } });
-      const oi = derivative ? chart.addSeries(lib.LineSeries, { color: "#d8c899", lineWidth: 1, priceFormat: count, priceLineVisible: false }, 2) : null;
+      const oi = derivative ? chart.addSeries(lib.LineSeries, { lineWidth: 1, priceFormat: count, priceLineVisible: false }, 2) : null;
       chart.panes().forEach((pane, index) => pane.setStretchFactor(index === 0 ? 1 : 0.24));
 
       chart.subscribeCrosshairMove((param) => {
@@ -130,39 +157,57 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
       });
       created = { chart, candles: candleSeries, volume, oi };
       setHandles(created);
+      setPalette(readPalette());
     });
+    // The white and dark themes have their own chart colours.
+    const stop = onThemeChange(() => setPalette(readPalette()));
     return () => {
       disposed = true;
+      stop();
       created?.chart.remove();
     };
   }, [derivative]);
 
   useEffect(() => {
-    if (!handles) return;
-    handles.candles.setData(candles.map(toBar));
-    handles.volume?.setData(candles.map(toVolume));
-    handles.oi?.setData(candles.flatMap(toOi));
-    if (candles.length > 0) handles.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, candles.length - VISIBLE_BARS), to: candles.length + 3 });
-  }, [handles, candles]);
+    if (!handles || !palette) return;
+    const crosshairLine = { color: palette.crosshair, labelBackgroundColor: palette.label };
+    handles.chart.applyOptions({
+      layout: { textColor: palette.text, panes: { separatorColor: palette.border, separatorHoverColor: palette.grid } },
+      grid: { vertLines: { color: palette.grid }, horzLines: { color: palette.grid } },
+      rightPriceScale: { borderColor: palette.border },
+      timeScale: { borderColor: palette.border },
+      crosshair: { vertLine: crosshairLine, horzLine: crosshairLine },
+    });
+    handles.candles.applyOptions({ upColor: palette.up, downColor: palette.down, borderUpColor: palette.up, borderDownColor: palette.down, wickUpColor: palette.up, wickDownColor: palette.down });
+    handles.oi?.applyOptions({ color: palette.mark });
+  }, [handles, palette]);
 
   useEffect(() => {
-    if (!handles || !live) return;
+    if (!handles || !palette) return;
+    handles.candles.setData(candles.map(toBar));
+    handles.volume?.setData(candles.map(toVolume(palette)));
+    handles.oi?.setData(candles.flatMap(toOi));
+    if (candles.length > 0) handles.chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, candles.length - VISIBLE_BARS), to: candles.length + 3 });
+  }, [handles, palette, candles]);
+
+  useEffect(() => {
+    if (!handles || !palette || !live) return;
     try {
       handles.candles.update(toBar(live));
-      handles.volume?.update(toVolume(live));
+      handles.volume?.update(toVolume(palette)(live));
       for (const point of toOi(live)) handles.oi?.update(point);
     } catch {
       // A tick older than the newest bar (a stale poll after switching charts); the next one catches up.
     }
-  }, [handles, live]);
+  }, [handles, palette, live]);
 
   // Compared by value: the lines are rebuilt on every poll, but only redrawn when they change.
   const linesKey = JSON.stringify(lines);
   useEffect(() => {
-    if (!handles) return;
+    if (!handles || !palette) return;
     const marked = JSON.parse(linesKey) as ChartLine[];
     const prices = marked.map((line) => line.price / 100);
-    const drawn = marked.map((line, index) => handles.candles.createPriceLine({ price: prices[index], color: LINE_COLOURS[line.tone], lineWidth: 1, lineStyle: DASHED, axisLabelVisible: true, title: line.title }));
+    const drawn = marked.map((line, index) => handles.candles.createPriceLine({ price: prices[index], color: palette.lines[line.tone], lineWidth: 1, lineStyle: DASHED, axisLabelVisible: true, title: line.title }));
     // The price scale stretches to keep every line in view, so a far stop-loss or target still shows.
     handles.candles.applyOptions({
       autoscaleInfoProvider: (original: () => AutoscaleInfo | null) => {
@@ -174,7 +219,7 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
     return () => {
       for (const line of drawn) handles.candles.removePriceLine(line);
     };
-  }, [handles, linesKey]);
+  }, [handles, palette, linesKey]);
 
   useEffect(() => {
     if (!handles) return;
@@ -196,12 +241,12 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
     <figure className="relative m-0">
       <div ref={container} role="img" aria-label={`${label} candlestick chart`} data-lines={lines.map((line) => `${line.title} ${(line.price / 100).toFixed(2)}`).join("; ") || undefined} className={`w-full ${derivative ? "h-[380px] sm:h-[500px]" : "h-[320px] sm:h-[420px]"}`} />
       {legend && (
-        <figcaption className="pointer-events-none absolute left-2 top-2 flex max-w-[calc(100%-6rem)] flex-wrap gap-x-3 gap-y-1 rounded bg-[#0b0f0d]/80 px-2 py-1 font-mono text-[10px] text-[var(--muted)] sm:text-[11px]">
+        <figcaption className="pointer-events-none absolute left-2 top-2 flex max-w-[calc(100%-6rem)] flex-wrap gap-x-3 gap-y-1 rounded bg-[var(--card)]/80 px-2 py-1 font-mono text-[10px] text-[var(--muted)] sm:text-[11px]">
           {(["open", "high", "low", "close"] as const).map((field) => (
             <span key={field}>{field[0].toUpperCase()} <span className={legend.close >= legend.open ? "text-[var(--primary)]" : "text-[var(--danger)]"}>{priceText.format(legend[field])}</span></span>
           ))}
           {legend.volume !== null && legend.volume > 0 && <span>Vol <span className="text-[var(--foreground)]">{countText.format(legend.volume)}</span></span>}
-          {derivative && legend.oi !== null && <span>OI <span className="text-[#d8c899]">{countText.format(legend.oi)}</span></span>}
+          {derivative && legend.oi !== null && <span>OI <span className="text-[var(--chart-mark)]">{countText.format(legend.oi)}</span></span>}
         </figcaption>
       )}
     </figure>

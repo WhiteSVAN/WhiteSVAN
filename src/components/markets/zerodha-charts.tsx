@@ -104,7 +104,7 @@ function Choice<T extends string | number>({ label, value, options, onChange }: 
   return (
     <div role="group" aria-label={label} className="flex flex-wrap rounded-lg border border-[var(--border)] bg-[var(--card-deep)] p-1">
       {options.map(([option, text]) => (
-        <button key={String(option)} type="button" aria-pressed={option === value} onClick={() => onChange(option)} className={`min-h-9 rounded-md px-3 font-mono text-xs transition ${option === value ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
+        <button key={String(option)} type="button" aria-pressed={option === value} onClick={() => onChange(option)} className={`min-h-9 rounded-md px-3 font-mono text-xs transition ${option === value ? "bg-[var(--ink)] text-[var(--ink-foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
           {text}
         </button>
       ))}
@@ -121,7 +121,7 @@ function SessionEnded({ message, loginHref }: { message: string; loginHref: stri
       <h2 className="text-xl font-medium tracking-tight">{loginHref ? "Connect live prices again" : "Live prices are offline"}</h2>
       <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">{message}</p>
       {/* A route handler redirect, so a plain link rather than a prefetching <Link>. */}
-      {loginHref && <a href={loginHref} className="mt-6 inline-flex min-h-11 items-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Connect live prices</a>}
+      {loginHref && <a href={loginHref} className="mt-6 inline-flex min-h-11 items-center rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]">Connect live prices</a>}
     </div>
   );
 }
@@ -133,7 +133,7 @@ function OpenEvaluation() {
       <p className="terminal-label">Order ticket</p>
       <h2 className="text-lg font-medium tracking-tight">Start an evaluation to place orders</h2>
       <p className="text-sm leading-6 text-[var(--muted)]">Your demo account trades these options on live prices, with this ticket, positions and a full order book.</p>
-      <Link id="open-evaluation" href="/checkout" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--primary)] px-5 text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">Start an evaluation</Link>
+      <Link id="open-evaluation" href="/checkout" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]">Start an evaluation</Link>
     </aside>
   );
 }
@@ -156,7 +156,7 @@ function ChainCell({ contract, quote, side, itm, selected, onSelect, onTrade }: 
     <td className={`px-0.5 py-1 ${itm ? "bg-[var(--card-raised)]" : ""}`}>
       <span className={`flex gap-0.5 ${side === "CE" ? "justify-end" : ""}`}>
         <button type="button" onClick={() => onTrade("BUY")} aria-label={`Buy ${label}`} className="min-h-8 min-w-7 rounded bg-[var(--primary)] px-1.5 text-xs font-medium text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]">B</button>
-        <button type="button" onClick={() => onTrade("SELL")} aria-label={`Sell ${label}`} className="min-h-8 min-w-7 rounded bg-[var(--danger)] px-1.5 text-xs font-medium text-[#2a0f0a] hover:opacity-90">S</button>
+        <button type="button" onClick={() => onTrade("SELL")} aria-label={`Sell ${label}`} className="min-h-8 min-w-7 rounded bg-[var(--danger)] px-1.5 text-xs font-medium text-[var(--danger-foreground)] hover:opacity-90">S</button>
       </span>
     </td>
   );
@@ -494,7 +494,7 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
               <div className="relative px-1 pt-2 sm:px-2">
                 <PriceChart key={chartsOption ? "option" : "index"} candles={candles ?? NO_CANDLES} live={liveCandle} interval={barInterval} minMove={chartsOption ? contract.tickSize / 100 : 0.05} derivative={chartsOption} label={`${chartTitle}, ${intervalName} candles`} lines={chartsOption && desk ? chartLines(desk, contract.token) : undefined} />
                 {!candles && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[#0b0f0d]/60 text-sm text-[var(--muted)]">
+                  <div className="absolute inset-0 flex items-center justify-center bg-[var(--background)]/60 text-sm text-[var(--muted)]">
                     {failed ? (
                       <span role="alert" className="flex flex-col items-center gap-3 px-6 text-center text-[var(--danger)]">
                         {failed}

@@ -1,21 +1,80 @@
 @import "tailwindcss";
 
-:root {
-  --background: #0b0f0d;
-  --foreground: #f0f3ec;
-  --card: #111713;
-  --card-raised: #172018;
-  --card-deep: #0e1410;
+/*
+ * Theme tokens: the White theme, then the Dark theme, both in the Manus style (warm paper or
+ * graphite surfaces, ink buttons, serif headlines). Every screen reads these names, so a touch-up
+ * here (or in Manus Studio) changes the whole site; docs/theme.md lists what each one paints.
+ * The head script in layout.tsx sets data-theme before the first paint (src/lib/theme.ts).
+ */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  /* Surfaces */
+  --background: #f8f8f7;
+  --card: #ffffff;
+  --card-raised: #f1f1ef;
+  --card-deep: #fafaf9;
+  --input: #ffffff;
+  /* Text */
+  --foreground: #1a1a19;
+  --muted: #5e5e5b;
+  --faint: #6f6e6b;
+  /* Lines */
+  --border: #e6e6e3;
+  --border-strong: #d2d2cd;
+  /* Main buttons: ink on paper */
+  --ink: #1a1a19;
+  --ink-hover: #3a3a37;
+  --ink-foreground: #ffffff;
+  /* Brand accent: links, highlights, gains and buys */
+  --primary: #2f7d32;
+  --primary-hover: #276b2a;
+  --primary-foreground: #ffffff;
+  /* States: warnings, losses and sells */
+  --warning: #92650a;
+  --danger: #c4372f;
+  --danger-foreground: #ffffff;
+  /* Charts */
+  --chart-up: #2f9e44;
+  --chart-down: #e03131;
+  --chart-grid: rgba(26, 26, 25, 0.06);
+  --chart-mark: #b07d12;
+  /* Depth */
+  --shadow-card: 0 1px 2px rgba(26, 26, 25, 0.04), 0 12px 32px -14px rgba(26, 26, 25, 0.12);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #141414;
+  --card: #1b1b1b;
+  --card-raised: #242424;
+  --card-deep: #111111;
+  --input: #111111;
+  --foreground: #ededeb;
+  --muted: #a3a3a0;
+  --faint: #868683;
+  --border: #2a2a2a;
+  --border-strong: #3b3b3b;
+  --ink: #f2f2f0;
+  --ink-hover: #ffffff;
+  --ink-foreground: #141414;
   --primary: #baf277;
   --primary-hover: #cdf995;
   --primary-foreground: #17200e;
-  --muted: #99a59c;
-  --faint: #758079;
-  --border: #28322b;
-  --border-strong: #3a493d;
-  --warning: #d8c899;
+  --warning: #e1c47e;
   --danger: #f2907e;
-  --font-terminal-sans: var(--font-space-grotesk), "Helvetica Neue", Arial, sans-serif;
+  --danger-foreground: #2a0f0a;
+  --chart-up: #baf277;
+  --chart-down: #f2907e;
+  --chart-grid: rgba(255, 255, 255, 0.05);
+  --chart-mark: #d8c899;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 48px -18px rgba(0, 0, 0, 0.65);
+}
+
+:root {
+  /* Type: serif headlines, the device's UI font for text, mono for prices. */
+  --font-display: var(--font-libre-baskerville), "Libre Baskerville", Georgia, "Times New Roman", serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   --font-terminal-mono: var(--font-ibm-plex-mono), "SFMono-Regular", ui-monospace, monospace;
   --ease-terminal: cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -23,9 +82,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-terminal-sans);
+  --font-sans: var(--font-ui);
   --font-mono: var(--font-terminal-mono);
-  --font-serif: var(--font-terminal-sans);
+  --font-serif: var(--font-display);
 }
 
 * { box-sizing: border-box; }
@@ -41,22 +100,20 @@ body {
   min-width: 320px;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-terminal-sans);
+  font-family: var(--font-ui);
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
-  text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at 72% -10%, rgba(186, 242, 119, 0.055), transparent 35rem),
-    linear-gradient(180deg, #0b0f0d 0%, #090d0b 48%, #070a08 100%);
+/* Page titles are serif everywhere, like Manus; `.display` does the same for section titles. */
+h1,
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
 }
+
+h1 { line-height: 1.12; }
 
 button,
 input,
@@ -87,10 +144,6 @@ summary:focus-visible {
   outline-offset: 3px;
 }
 
-input,
-select,
-textarea { color-scheme: dark; }
-
 input[type="checkbox"],
 input[type="radio"] { accent-color: var(--primary); }
 
@@ -99,10 +152,13 @@ input[type="radio"] { accent-color: var(--primary); }
   color: var(--primary-foreground);
 }
 
-.font-serif,
-.font-sans { font-family: var(--font-terminal-sans) !important; }
-
+.font-sans { font-family: var(--font-ui) !important; }
+.font-serif { font-family: var(--font-display) !important; }
 .font-mono { font-family: var(--font-terminal-mono) !important; }
+
+/* The theme toggle shows the icon for the theme you'd switch to. */
+:root[data-theme="dark"] .theme-when-light,
+:root:not([data-theme="dark"]) .theme-when-dark { display: none; }
 
 /* Brand mark shared by public, auth, and app shells. */
 .brand-bars {
@@ -119,44 +175,30 @@ input[type="radio"] { accent-color: var(--primary); }
   display: block;
   width: 6px;
   height: 18px;
+  border-radius: 1px;
   background: var(--primary);
-  box-shadow: 0 0 18px rgba(186, 242, 119, 0.12);
 }
 
 .brand-bars i:first-child { height: 12px; opacity: 0.55; }
 .brand-bars i:nth-child(2) { height: 23px; }
 .brand-bars i:last-child { height: 16px; opacity: 0.75; }
 
-/* Manus terminal primitives used by the landing and carried across the app. */
+/* Shared surfaces, carried across the storefront and the app. */
 .terminal-grid { position: relative; }
 
-.terminal-grid::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(67, 86, 68, 0.13) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(67, 86, 68, 0.13) 1px, transparent 1px);
-  background-size: 88px 88px;
-  mask-image: radial-gradient(ellipse at 65% 5%, black, transparent 72%);
-}
-
 .terminal-card {
-  border: 1px solid var(--border-strong);
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(23, 32, 24, 0.98), rgba(14, 20, 16, 0.98));
-  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.35), 0 0 0 5px rgba(186, 242, 119, 0.018);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-card);
 }
 
 .terminal-label {
-  font-family: var(--font-terminal-mono);
-  font-size: 0.625rem;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 500;
   line-height: 1.5;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #a5b497;
+  color: var(--muted);
 }
 
 .terminal-dot {
@@ -165,10 +207,7 @@ input[type="radio"] { accent-color: var(--primary); }
   height: 5px;
   border-radius: 999px;
   background: var(--primary);
-  box-shadow: 0 0 10px rgba(186, 242, 119, 0.35);
 }
-
-.terminal-divider { border-color: var(--border) !important; }
 
 .proof-chart-line {
   fill: none;
@@ -176,34 +215,32 @@ input[type="radio"] { accent-color: var(--primary); }
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
-  filter: drop-shadow(0 0 5px rgba(186, 242, 119, 0.15));
 }
 
-.proof-chart-area { fill: url(#proof-area); }
-.proof-ambient { background: radial-gradient(ellipse, rgba(130, 151, 79, 0.12), transparent 66%); }
+.proof-ambient { background: radial-gradient(ellipse, color-mix(in srgb, var(--primary) 10%, transparent), transparent 66%); }
 
-/* Re-theme the original Tailwind-only surfaces without changing data behavior. */
+/* Re-theme the original Tailwind-only surfaces (auth, forms, menus) onto the tokens. */
 .bg-white { background-color: var(--card) !important; }
 .bg-zinc-50 { background-color: var(--card-deep) !important; }
 .bg-zinc-100,
-.bg-zinc-200 { background-color: var(--primary) !important; }
+.bg-zinc-200 { background-color: var(--ink) !important; }
 
 .bg-zinc-900,
 .bg-zinc-900\/70,
 .bg-zinc-900\/80,
-.bg-zinc-900\/40 { background-color: rgba(17, 23, 19, 0.9) !important; }
+.bg-zinc-900\/40 { background-color: var(--card) !important; }
 
 .bg-zinc-950,
 .bg-zinc-950\/90,
 .bg-zinc-950\/80,
 .bg-zinc-950\/70,
-.bg-zinc-950\/40 { background-color: rgba(11, 15, 13, 0.94) !important; }
+.bg-zinc-950\/40 { background-color: var(--background) !important; }
 
 .bg-neutral-900,
-.bg-neutral-950\/70 { background-color: rgba(27, 36, 30, 0.74) !important; }
-.bg-white\/5 { background-color: rgba(186, 242, 119, 0.05) !important; }
+.bg-neutral-950\/70 { background-color: var(--card-raised) !important; }
+.bg-white\/5 { background-color: color-mix(in srgb, var(--primary) 5%, transparent) !important; }
 .bg-zinc-300\/5,
-.bg-zinc-300\/10 { background-color: rgba(186, 242, 119, 0.08) !important; }
+.bg-zinc-300\/10 { background-color: color-mix(in srgb, var(--primary) 8%, transparent) !important; }
 
 .border-zinc-100,
 .border-zinc-200,
@@ -218,7 +255,7 @@ input[type="radio"] { accent-color: var(--primary); }
 .border-zinc-500,
 .border-zinc-500\/30,
 .border-zinc-500\/40,
-.border-zinc-500\/50 { border-color: rgba(186, 242, 119, 0.35) !important; }
+.border-zinc-500\/50 { border-color: var(--border-strong) !important; }
 
 .divide-zinc-100 > :not([hidden]) ~ :not([hidden]),
 .divide-zinc-800 > :not([hidden]) ~ :not([hidden]) { border-color: var(--border) !important; }
@@ -226,35 +263,35 @@ input[type="radio"] { accent-color: var(--primary); }
 .text-white,
 .text-zinc-950,
 .text-zinc-900,
-.text-zinc-100 { color: var(--foreground) !important; }
+.text-zinc-100,
 .text-zinc-800,
 .text-zinc-700,
-.text-zinc-200 { color: #dce5da !important; }
+.text-zinc-200,
+.text-zinc-300 { color: var(--foreground) !important; }
 .text-zinc-600,
 .text-zinc-500,
 .text-zinc-400 { color: var(--muted) !important; }
-.text-zinc-300 { color: #c5cec4 !important; }
 
 .text-emerald-300,
 .text-emerald-400 { color: var(--primary) !important; }
-.bg-emerald-400\/10 { background-color: rgba(186, 242, 119, 0.08) !important; }
+.bg-emerald-400\/10 { background-color: color-mix(in srgb, var(--primary) 8%, transparent) !important; }
 .bg-emerald-500 { background-color: var(--primary) !important; }
-.border-emerald-400\/30 { border-color: rgba(186, 242, 119, 0.3) !important; }
+.border-emerald-400\/30 { border-color: color-mix(in srgb, var(--primary) 30%, transparent) !important; }
 
 .text-amber-300,
 .text-orange-300 { color: var(--warning) !important; }
 .bg-amber-400\/10,
-.bg-orange-400\/10 { background-color: rgba(216, 200, 153, 0.08) !important; }
+.bg-orange-400\/10 { background-color: color-mix(in srgb, var(--warning) 8%, transparent) !important; }
 .bg-amber-500 { background-color: var(--warning) !important; }
 .border-amber-400\/30,
-.border-orange-400\/30 { border-color: rgba(216, 200, 153, 0.3) !important; }
+.border-orange-400\/30 { border-color: color-mix(in srgb, var(--warning) 30%, transparent) !important; }
 
 .text-red-300,
 .text-red-400,
 .text-rose-400 { color: var(--danger) !important; }
-.bg-red-400\/10 { background-color: rgba(242, 144, 126, 0.08) !important; }
+.bg-red-400\/10 { background-color: color-mix(in srgb, var(--danger) 8%, transparent) !important; }
 .bg-red-500 { background-color: var(--danger) !important; }
-.border-red-400\/30 { border-color: rgba(242, 144, 126, 0.3) !important; }
+.border-red-400\/30 { border-color: color-mix(in srgb, var(--danger) 30%, transparent) !important; }
 
 .bg-zinc-100.text-zinc-950,
 .bg-zinc-200.text-zinc-950,
@@ -263,36 +300,34 @@ input[type="radio"] { accent-color: var(--primary); }
 a[class*="bg-zinc-100"],
 button[class*="bg-zinc-100"],
 a[class*="bg-zinc-200"],
-button[class*="bg-zinc-200"] { color: var(--primary-foreground) !important; }
+button[class*="bg-zinc-200"] { color: var(--ink-foreground) !important; }
 
 button[type="submit"][class*="bg-zinc-900"] {
-  background-color: var(--primary) !important;
-  color: var(--primary-foreground) !important;
+  background-color: var(--ink) !important;
+  color: var(--ink-foreground) !important;
 }
 
 .fill-zinc-200 { fill: var(--primary) !important; }
 .shadow-sm,
 .shadow-xl,
-.shadow-2xl { box-shadow: 0 20px 55px rgba(0, 0, 0, 0.28) !important; }
-.rounded-lg,
-.rounded-xl { border-radius: 8px !important; }
+.shadow-2xl { box-shadow: var(--shadow-card) !important; }
 
 .hover\:bg-white:hover,
 .hover\:bg-zinc-100:hover,
 .hover\:bg-zinc-200:hover {
-  background-color: var(--primary-hover) !important;
-  color: var(--primary-foreground) !important;
+  background-color: var(--ink-hover) !important;
+  color: var(--ink-foreground) !important;
 }
 
 .hover\:bg-zinc-50:hover,
 .hover\:bg-zinc-800:hover { background-color: var(--card-raised) !important; }
 .hover\:border-zinc-400:hover,
-.hover\:border-zinc-500:hover { border-color: rgba(186, 242, 119, 0.65) !important; }
+.hover\:border-zinc-500:hover { border-color: var(--border-strong) !important; }
 .hover\:text-white:hover,
 .hover\:text-zinc-100:hover,
-.hover\:text-zinc-200:hover { color: var(--primary) !important; }
+.hover\:text-zinc-200:hover { color: var(--foreground) !important; }
 
-/* Prop-firm storefront; keeps the existing forest/lime colour system. */
+/* Prop-firm storefront. */
 .prop-button,
 .prop-button-outline {
   display: inline-flex;
@@ -300,31 +335,22 @@ button[type="submit"][class*="bg-zinc-900"] {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border-radius: 7px;
-  padding: 0 22px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: 999px;
+  padding: 0 24px;
+  font-size: 14px;
+  font-weight: 500;
 }
-.prop-button { background: var(--primary); color: var(--primary-foreground); border: 1px solid var(--primary); }
-.prop-button:hover { background: var(--primary-hover); border-color: var(--primary-hover); box-shadow: 0 0 24px #baf27718; }
-.prop-button-outline { border: 1px solid #415338; background: #111a11; color: #e1ead9; }
-.prop-button-outline:hover { background: #1d2a17; border-color: #93ba70; }
-.prop-heading { font-size: clamp(2rem, 3.6vw, 3.3rem); font-weight: 500; line-height: 1.13; letter-spacing: -.055em; }
-.prop-hero { background: radial-gradient(ellipse at 80% 42%, #40632424, transparent 56%), #0b0f0d; }
-.prop-hero::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background-image: linear-gradient(#6a8d4910 1px, transparent 1px), linear-gradient(90deg, #6a8d4910 1px, transparent 1px);
-  background-size: 64px 64px; mask-image: linear-gradient(90deg, transparent 24%, black);
-}
-.prop-orbit { position: absolute; inset: -3% -9%; border-radius: 50%; border: 1px solid #baf27712; transform: rotate(-25deg); box-shadow: 0 0 0 45px #baf27704, 0 0 0 90px #baf27703; }
-.prop-terminal { transform: perspective(1200px) rotateY(-7deg) rotateX(2deg); }
-.prop-accounts { background-image: radial-gradient(ellipse at 50% 0%, #baf27709, transparent 70%); }
-.prop-step:hover { border-color: #526e40; transform: translateY(-3px); transition: transform 200ms ease, border-color 200ms ease; }
-.prop-final { background-image: radial-gradient(ellipse at 50% 120%, #baf27720, transparent 70%); }
+.prop-button { background: var(--ink); color: var(--ink-foreground); border: 1px solid var(--ink); }
+.prop-button:hover { background: var(--ink-hover); border-color: var(--ink-hover); }
+.prop-button-outline { border: 1px solid var(--border-strong); background: var(--card); color: var(--foreground); }
+.prop-button-outline:hover { background: var(--card-raised); }
+.prop-heading { font-family: var(--font-display); font-size: clamp(2rem, 3.4vw, 3rem); font-weight: 400; line-height: 1.15; letter-spacing: -0.02em; }
+.prop-hero { background: var(--background); }
+.prop-accounts { background: var(--card-deep); }
+.prop-step:hover { border-color: var(--border-strong); transform: translateY(-3px); transition: transform 200ms ease, border-color 200ms ease; }
+.prop-final { background: var(--card); box-shadow: var(--shadow-card); }
 @media (max-width: 639px) {
   .prop-header-cta { display: none; }
-  .prop-terminal { transform: none; }
-  .prop-hero-art { max-width: 480px; padding-top: 0; }
 }
 
 /* Every app control gets the same intentional motion and focus treatment. */
@@ -348,45 +374,27 @@ input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
   border-color: var(--border-strong) !important;
-  background-color: #0d1310 !important;
+  background-color: var(--input) !important;
   color: var(--foreground) !important;
 }
 
 input::placeholder,
-textarea::placeholder { color: #748078 !important; }
+textarea::placeholder { color: var(--faint) !important; }
 
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: rgba(186, 242, 119, 0.72) !important;
-  box-shadow: 0 0 0 3px rgba(186, 242, 119, 0.08) !important;
+  border-color: var(--foreground) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--foreground) 8%, transparent) !important;
 }
 
 table { border-color: var(--border); }
 
-.qd-hero-pan { animation: qd-image-drift 28s ease-in-out infinite alternate; will-change: transform; }
-.qd-tape-track { animation: qd-tape 26s linear infinite; will-change: transform; }
 .qd-fade-up { animation: qd-fade-up 700ms ease both; }
-.terminal-scan { animation: terminal-scan 7s linear infinite; }
-
-@keyframes qd-image-drift {
-  from { transform: scale(1.02) translate3d(0, 0, 0); }
-  to { transform: scale(1.08) translate3d(-1.5%, -1%, 0); }
-}
-
-@keyframes qd-tape {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
 
 @keyframes qd-fade-up {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes terminal-scan {
-  from { transform: translateY(-100%); }
-  to { transform: translateY(540%); }
 }
 
 @media (max-width: 640px) {
@@ -406,5 +414,4 @@ table { border-color: var(--border); }
   .no-print,
   .print\:hidden { display: none !important; }
   body { background: #ffffff; color: #111111; }
-  body::before { display: none; }
 }

@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import { IBM_Plex_Mono, Libre_Baskerville } from "next/font/google";
 import { EVALUATION_PLANS, PROGRAMME_RULES } from "@/lib/prop-firm";
 import { SITE_URL } from "@/lib/site";
+import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
+/** Headlines, in the Manus style; body text uses the device's own UI font (globals.css). */
+const libreBaskerville = Libre_Baskerville({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  variable: "--font-libre-baskerville",
   display: "swap",
 });
 
@@ -35,10 +37,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // The head script sets data-theme before the first paint, so React keeps the DOM's value.
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${ibmPlexMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${libreBaskerville.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-full flex flex-col">
         {children}
         <Analytics />

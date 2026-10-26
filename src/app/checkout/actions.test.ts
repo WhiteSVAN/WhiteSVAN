@@ -1,9 +1,10 @@
 import { createHmac } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ auth: vi.fn(), member: vi.fn(), user: vi.fn(), order: vi.fn(), purchase: vi.fn(), startRazorpay: vi.fn(), fetchPayment: vi.fn(), fulfil: vi.fn(), email: vi.fn() }));
+const mocks = vi.hoisted(() => ({ auth: vi.fn(), member: vi.fn(), join: vi.fn(), user: vi.fn(), order: vi.fn(), purchase: vi.fn(), startRazorpay: vi.fn(), fetchPayment: vi.fn(), fulfil: vi.fn(), email: vi.fn() }));
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/auth/dal", () => ({ requireMember: mocks.member }));
+vi.mock("@/lib/auth/join", () => ({ joinWithPassword: mocks.join }));
 vi.mock("@/lib/db", () => ({ prisma: { user: { findUnique: mocks.user }, checkoutOrder: { findFirst: mocks.order } } }));
 vi.mock("@/lib/checkout/orders", async (original) => ({ ...(await original<typeof import("@/lib/checkout/orders")>()), completePurchase: mocks.purchase, startRazorpayOrder: mocks.startRazorpay, fulfilRazorpayOrder: mocks.fulfil }));
 vi.mock("@/lib/checkout/razorpay", async (original) => ({ ...(await original<typeof import("@/lib/checkout/razorpay")>()), fetchRazorpayPayment: mocks.fetchPayment }));
@@ -15,7 +16,7 @@ import { checkout, confirmPayment } from "./actions";
 const attempt = "3e48b07d-0dca-4dd1-8b4f-22013d642b84";
 function submission(fields: Record<string, string> = {}) {
   const data = new FormData();
-  const defaults = { plan: "1l", attempt, name: "Integration Trader", phone: "9876543210", state: "Telangana", terms: "on" };
+  const defaults = { plan: "1l", attempt, phone: "9876543210", state: "Telangana" };
   for (const [key, value] of Object.entries({ ...defaults, ...fields })) data.set(key, value);
   return data;
 }
@@ -36,32 +37,51 @@ describe("checkout server action", () => {
     expect(mocks.purchase).not.toHaveBeenCalled();
     expect(mocks.user).not.toHaveBeenCalled();
   });
-  it("preserves plan-aware sign-in recovery for an expired session", async () => {
+  it("sends a form shown signed in back to sign-in once its session has expired", async () => {
     mocks.auth.mockResolvedValue(null);
-    await expect(checkout(undefined, submission())).rejects.toThrow("REDIRECT:/login?");
+    await expect(checkout(undefined, submission())).rejects.toThrow("REDIRECT:/login?next=%2Fcheckout%2F1l");
+    expect(mocks.join).not.toHaveBeenCalled();
     expect(mocks.purchase).not.toHaveBeenCalled();
+  });
+  it("signed out, creates the account and opens the evaluation in the same submission", async () => {
+    mocks.auth.mockResolvedValue(null);
+    mocks.join.mockResolvedValue({ joined: true, userId: "newcomer", email: "new@example.test", created: true });
+    mocks.user.mockResolvedValue({ email: "new@example.test", name: null });
+    await expect(checkout(undefined, submission({ plan: "5l", email: "new@example.test", password: "Trader12345", ref: "abcdef" }))).rejects.toThrow("REDIRECT:/trade/account?opened=order");
+    expect(mocks.join).toHaveBeenCalledWith({ email: "new@example.test", password: "Trader12345", referral: "abcdef" });
+    expect(mocks.member).not.toHaveBeenCalled();
+    expect(mocks.purchase).toHaveBeenCalledWith(expect.objectContaining({ userId: "newcomer", mode: "free", billing: { name: null, phone: null, state: null }, plan: expect.objectContaining({ id: "5l" }) }));
+  });
+  it("signed out, hands a refused sign-up back without the password and buys nothing", async () => {
+    mocks.auth.mockResolvedValue(null);
+    mocks.join.mockResolvedValue({ joined: false, errors: { password: ["That isn't the password for this email. Log in, or reset your password."] } });
+    const result = await checkout(undefined, submission({ email: "taken@example.test", password: "wrong-one" }));
+    expect(result?.errors?.password).toEqual(["That isn't the password for this email. Log in, or reset your password."]);
+    expect(result?.values).toEqual({ email: "taken@example.test", phone: "9876543210", state: "Telangana" });
+    expect(JSON.stringify(result)).not.toContain("wrong-one");
+    expect(mocks.purchase).not.toHaveBeenCalled();
+  });
+  it("checks the plan and attempt before creating any account", async () => {
+    mocks.auth.mockResolvedValue(null);
+    const result = await checkout(undefined, submission({ attempt: "bad", email: "new@example.test", password: "Trader12345" }));
+    expect(result?.message).toBe("Refresh checkout and try again.");
+    expect(mocks.join).not.toHaveBeenCalled();
   });
   it("rejects a missing or malformed attempt before a purchase", async () => {
     const result = await checkout(undefined, submission({ attempt: "bad" }));
     expect(result?.message).toBe("Refresh checkout and try again.");
-    expect(result?.values?.name).toBe("Integration Trader");
+    expect(result?.values?.state).toBe("Telangana");
     expect(mocks.purchase).not.toHaveBeenCalled();
   });
-  it("starts free without Razorpay keys, with the selected plan and the stable attempt key", async () => {
-    await expect(checkout(undefined, submission({ plan: "10l" }))).rejects.toThrow("REDIRECT:/checkout/complete/order");
-    expect(mocks.purchase).toHaveBeenCalledWith(expect.objectContaining({ userId: "owner", mode: "free", attemptId: attempt, plan: expect.objectContaining({ id: "10l" }) }));
+  it("starts free without Razorpay keys, asking nothing more, on the selected plan and the stable attempt key", async () => {
+    await expect(checkout(undefined, submission({ plan: "10l", phone: "", state: "" }))).rejects.toThrow("REDIRECT:/trade/account?opened=order");
+    expect(mocks.purchase).toHaveBeenCalledWith(expect.objectContaining({ userId: "owner", mode: "free", attemptId: attempt, plan: expect.objectContaining({ id: "10l" }), billing: { name: undefined, phone: null, state: null } }));
     expect(mocks.email).toHaveBeenCalledWith("owner@example.test", expect.objectContaining({ accountId: "account", payment: { kind: "free" } }));
     expect(mocks.startRazorpay).not.toHaveBeenCalled();
   });
-  it("retains billing details on validation failures without writing", async () => {
-    const result = await checkout(undefined, submission({ phone: "123" }));
-    expect(result?.errors?.phone).toBeDefined();
-    expect(result?.values?.phone).toBe("123");
-    expect(mocks.purchase).not.toHaveBeenCalled();
-  });
   it("continues to allow fully onboarded clients to start evaluations", async () => {
     mocks.member.mockResolvedValue({ id: "owner", role: "CLIENT", clientProfile: { id: "client" } });
-    await expect(checkout(undefined, submission())).rejects.toThrow("REDIRECT:/checkout/complete/order");
+    await expect(checkout(undefined, submission())).rejects.toThrow("REDIRECT:/trade/account?opened=order");
     expect(mocks.purchase).toHaveBeenCalledTimes(1);
   });
 });
@@ -79,16 +99,25 @@ describe("razorpay checkout", () => {
   const signature = createHmac("sha256", "key-secret").update("order_RZP123|pay_ABC123").digest("hex");
 
   it("creates the order and hands it to the browser to pay, opening no account yet", async () => {
+    mocks.user.mockResolvedValue({ email: "owner@example.test", name: "Integration Trader" });
     const result = await checkout(undefined, submission({ plan: "5l" }));
     expect(result?.payment).toEqual({ orderId: "order", razorpayOrderId: "order_RZP123", amount: 8_999_00, keyId: "rzp_test_key", description: "₹5L evaluation", prefill: { name: "Integration Trader", email: "owner@example.test", contact: "+919876543210" } });
-    expect(mocks.startRazorpay).toHaveBeenCalledWith(expect.objectContaining({ userId: "owner", attemptId: attempt }));
+    expect(mocks.startRazorpay).toHaveBeenCalledWith(expect.objectContaining({ userId: "owner", attemptId: attempt, billing: { name: "Integration Trader", phone: "+919876543210", state: "Telangana" } }));
     expect(mocks.purchase).not.toHaveBeenCalled();
     expect(mocks.email).not.toHaveBeenCalled();
   });
 
-  it("returns an already fulfilled retry to its completion page without opening another payment", async () => {
+  it("asks a paid checkout for the mobile and state, keeping what was typed", async () => {
+    const result = await checkout(undefined, submission({ phone: "123", state: "" }));
+    expect(result?.errors?.phone).toBeDefined();
+    expect(result?.errors?.state).toEqual(["Choose your state."]);
+    expect(result?.values?.phone).toBe("123");
+    expect(mocks.startRazorpay).not.toHaveBeenCalled();
+  });
+
+  it("returns an already fulfilled retry to its account without opening another payment", async () => {
     mocks.startRazorpay.mockResolvedValue({ orderId: "order", razorpayOrderId: "order_RZP123", amount: 8_999_00, accountId: "account" });
-    await expect(checkout(undefined, submission({ plan: "5l" }))).rejects.toThrow("REDIRECT:/checkout/complete/order");
+    await expect(checkout(undefined, submission({ plan: "5l" }))).rejects.toThrow("REDIRECT:/trade/account?opened=order");
     expect(mocks.purchase).not.toHaveBeenCalled();
     expect(mocks.email).not.toHaveBeenCalled();
   });
@@ -105,7 +134,7 @@ describe("razorpay checkout", () => {
     expect(forged?.message).toContain("couldn't verify");
     expect(mocks.fulfil).not.toHaveBeenCalled();
     expect(mocks.fetchPayment).not.toHaveBeenCalled();
-    await expect(confirmPayment({ orderId: "order", paymentId: "pay_ABC123", signature })).rejects.toThrow("REDIRECT:/checkout/complete/order");
+    await expect(confirmPayment({ orderId: "order", paymentId: "pay_ABC123", signature })).rejects.toThrow("REDIRECT:/trade/account?opened=order");
     expect(mocks.order).toHaveBeenCalledWith(expect.objectContaining({ where: { id: "order", userId: "owner", provider: { in: ["razorpay", "razorpay-test"] } } }));
     expect(mocks.fetchPayment).toHaveBeenCalledWith(expect.objectContaining({ keyId: "rzp_test_key" }), "pay_ABC123");
     expect(mocks.fulfil).toHaveBeenCalledWith(expect.objectContaining({ razorpayOrderId: "order_RZP123", paymentId: "pay_ABC123", amount: 8_999_00 }));
@@ -114,7 +143,7 @@ describe("razorpay checkout", () => {
 
   it("sends one receipt when the webhook opened the account first", async () => {
     mocks.fulfil.mockResolvedValue({ orderId: "order", accountId: "account", userId: "owner", planId: "5l", email: "owner@example.test", amount: 8_999_00, provider: "razorpay-test", opened: false });
-    await expect(confirmPayment({ orderId: "order", paymentId: "pay_ABC123", signature })).rejects.toThrow("REDIRECT:/checkout/complete/order");
+    await expect(confirmPayment({ orderId: "order", paymentId: "pay_ABC123", signature })).rejects.toThrow("REDIRECT:/trade/account?opened=order");
     expect(mocks.email).not.toHaveBeenCalled();
   });
 

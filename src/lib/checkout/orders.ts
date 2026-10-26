@@ -27,10 +27,10 @@ export async function activeAccountCount(userId: string): Promise<number> {
   return prisma.evaluationAccount.count({ where: { userId, status: "ACTIVE" } });
 }
 
-/** The details from the user's last order, to fill in their next checkout. */
-export async function lastBilling(userId: string): Promise<{ name: string; phone: string | null; state: string } | null> {
-  const order = await prisma.checkoutOrder.findFirst({ where: { userId }, orderBy: { createdAt: "desc" }, select: { billingName: true, billingPhone: true, billingState: true } });
-  return order && { name: order.billingName, phone: order.billingPhone, state: order.billingState };
+/** The mobile and state from the user's last paid order, to fill in their next one. */
+export async function lastBilling(userId: string): Promise<{ phone: string | null; state: string | null } | null> {
+  const order = await prisma.checkoutOrder.findFirst({ where: { userId, billingState: { not: null } }, orderBy: { createdAt: "desc" }, select: { billingPhone: true, billingState: true } });
+  return order && { phone: order.billingPhone, state: order.billingState };
 }
 
 /** Lock the user before counting accounts, so purchases at once can't both slip under the limit. */

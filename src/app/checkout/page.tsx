@@ -1,14 +1,11 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { RECOMMENDED_PLAN } from "@/lib/prop-firm";
 
 /**
- * Where "Get funded" and "Start your evaluation" go. Signed out, creating the account comes first,
- * with no size to pick; signed in, checkout opens on the recommended size, which the trader can
- * change there.
+ * Where "Get funded" and "Start your evaluation" go: checkout on the recommended size, signed in
+ * or not. Checkout creates the account itself, so there's no sign-up page in between.
  */
-export default async function CheckoutStartPage() {
-  const userId = (await auth())?.user?.id;
-  if (!userId) redirect(`/signup?${new URLSearchParams({ next: "/checkout" })}`);
-  redirect(`/checkout/${RECOMMENDED_PLAN.id}`);
+export default async function CheckoutStartPage({ searchParams }: { searchParams: Promise<{ ref?: string }> }) {
+  const ref = (await searchParams).ref?.slice(0, 16);
+  redirect(`/checkout/${RECOMMENDED_PLAN.id}${ref ? `?${new URLSearchParams({ ref })}` : ""}`);
 }

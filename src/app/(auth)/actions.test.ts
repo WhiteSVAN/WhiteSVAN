@@ -1,14 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ signIn: vi.fn(), findUnique: vi.fn(), create: vi.fn(), cookies: vi.fn(), set: vi.fn(), remove: vi.fn() }));
+const mocks = vi.hoisted(() => ({ signIn: vi.fn(), findUnique: vi.fn(), create: vi.fn(), cookies: vi.fn(), set: vi.fn(), remove: vi.fn(), hash: vi.fn(), referrer: vi.fn() }));
 vi.mock("@/auth", () => ({ signIn: mocks.signIn }));
 vi.mock("next-auth", () => ({ AuthError: class extends Error {} }));
 vi.mock("@/lib/db", () => ({ prisma: { user: { findUnique: mocks.findUnique, create: mocks.create } } }));
 vi.mock("next/headers", () => ({ cookies: mocks.cookies, headers: vi.fn() }));
-vi.mock("bcryptjs", () => ({ default: { hash: vi.fn().mockResolvedValue("test-hash") } }));
+vi.mock("bcryptjs", () => ({ default: { hash: mocks.hash } }));
 vi.mock("@/lib/auth/reset", () => ({ createPasswordResetToken: vi.fn(), consumePasswordResetToken: vi.fn() }));
 vi.mock("@/lib/email", () => ({ sendPasswordResetEmail: vi.fn() }));
 vi.mock("@/lib/logger", () => ({ logger: { info: vi.fn(), warn: vi.fn() } }));
+vi.mock("@/lib/auth/join", () => ({ referrerIdFor: mocks.referrer }));
 import { signInWithGoogle, signup } from "./actions";
 
 const jar = new Map<string, string>();
@@ -17,7 +18,7 @@ function form(fields: Record<string, string>) {
   for (const [key, value] of Object.entries(fields)) data.set(key, value);
   return data;
 }
-const valid = { name: "Integration Trader", email: "signup@example.test", password: "Integration123", role: "TRADER" };
+const valid = { email: "signup@example.test", password: "Integration123", role: "TRADER" };
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -27,6 +28,8 @@ beforeEach(() => {
   mocks.remove.mockImplementation((key: string) => jar.delete(key));
   mocks.findUnique.mockResolvedValue(null);
   mocks.create.mockResolvedValue({ id: "new-user" });
+  mocks.hash.mockResolvedValue("test-hash");
+  mocks.referrer.mockResolvedValue(null);
 });
 
 describe("signup continuation", () => {
@@ -37,6 +40,10 @@ describe("signup continuation", () => {
   it("uses a chosen plan when there is no valid explicit return path", async () => {
     await signup(undefined, form({ ...valid, plan: "1l", next: "https://other.example" }));
     expect(mocks.signIn).toHaveBeenCalledWith("credentials", expect.objectContaining({ redirectTo: "/checkout/1l" }));
+  });
+  it("needs only an email and a password", async () => {
+    await signup(undefined, form({ email: "new@example.test", password: "Integration123" }));
+    expect(mocks.create).toHaveBeenCalledWith(expect.objectContaining({ data: { email: "new@example.test", passwordHash: "test-hash", role: "TRADER", referredById: null } }));
   });
   it("makes every sign-up a trader (the client role is switched off) and defaults to checkout", async () => {
     await signup(undefined, form({ ...valid, role: "CLIENT", next: "/checkout" }));

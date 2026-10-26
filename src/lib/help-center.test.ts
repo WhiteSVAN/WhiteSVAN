@@ -21,10 +21,15 @@ describe("HELP_TOPICS", () => {
     expect(allAnswers).toContain(`floor starts at ${formatInr(96_000)} and locks at ${formatInr(100_000)}`);
   });
 
-  it("gives the three steps to an evaluation, with no size needed to sign up", () => {
+  it("gives the three steps to an evaluation, all on the checkout screen", () => {
     const answer = HELP_TOPICS.flatMap((t) => t.articles).find((a) => a.id === "how-to-start")?.answer ?? "";
-    expect(answer).toMatch(/^In three steps: create your account, choose your account size \(₹1L to ₹10L\) and check out/);
-    expect(answer).toContain("You don't pick a size to create your account");
+    expect(answer).toMatch(/^On one screen, in three steps: create your account \(with Google, or an email and password\), choose your account size \(₹1L to ₹10L\) and check out/);
+    expect(answer).toContain("opens on the trading platform straight away");
+  });
+
+  it("keeps rule answers short and links them to the rulebook", () => {
+    const rules = HELP_TOPICS.find((t) => t.id === "rules")!.articles;
+    for (const article of rules.filter((a) => a.id !== "tips")) expect(article.link?.href).toMatch(/^\/rules#[a-z-]+$/);
   });
 
   it("opens the funded account on a pass, with KYC before the first payout", () => {

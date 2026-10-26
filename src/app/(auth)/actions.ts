@@ -14,6 +14,7 @@ import {
   requestResetSchema,
   resetPasswordSchema,
 } from "@/lib/auth/schemas";
+import { referrerIdFor } from "@/lib/auth/join";
 import { SIGNUP_REF_COOKIE, SIGNUP_ROLE_COOKIE } from "@/lib/auth/onboarding";
 import { createPasswordResetToken, consumePasswordResetToken } from "@/lib/auth/reset";
 import { sendPasswordResetEmail } from "@/lib/email";
@@ -21,7 +22,7 @@ import { logger } from "@/lib/logger";
 
 export type AuthFormState =
   | {
-      errors?: { name?: string[]; email?: string[]; password?: string[]; role?: string[] };
+      errors?: { email?: string[]; password?: string[]; role?: string[] };
       message?: string;
       sent?: boolean;
     }
@@ -53,13 +54,12 @@ export async function authenticate(
   }
 }
 
-/** Create a trader account, then sign them in and go on to checkout (step 2 of 3). */
+/** Create a trader account from an email and a password, then sign in and go on to checkout (step 2 of 3). */
 export async function signup(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
   const parsed = signupSchema.safeParse({
-    name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
     role: "TRADER",
@@ -68,7 +68,7 @@ export async function signup(
     return { errors: parsed.error.flatten().fieldErrors };
   }
 
-  const { name, email, password, role } = parsed.data;
+  const { email, password, role } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
   if (existing) {
@@ -79,7 +79,7 @@ export async function signup(
   const passwordHash = await bcrypt.hash(password, 10);
   const referredById = await referrerIdFor(String(formData.get("ref") ?? ""));
   const created = await prisma.user.create({
-    data: { name, email, passwordHash, role, referredById },
+    data: { email, passwordHash, role, referredById },
     select: { id: true },
   });
   logger.info("auth.signup.created", { userId: created.id, email, role });
@@ -94,14 +94,6 @@ export async function signup(
     if (error instanceof AuthError) return { message: "Account created — please sign in." };
     throw error;
   }
-}
-
-/** Resolve a referral code to the referring user's id (null when unknown). */
-async function referrerIdFor(code: string): Promise<string | null> {
-  const clean = code.trim().toLowerCase();
-  if (!/^[a-z0-9]{6,16}$/.test(clean)) return null;
-  const referrer = await prisma.user.findUnique({ where: { referralCode: clean }, select: { id: true } });
-  return referrer?.id ?? null;
 }
 
 /**

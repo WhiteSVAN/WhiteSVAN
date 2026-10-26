@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { findEvaluationPlan } from "@/lib/prop-firm";
 import { openDesk } from "@/lib/trading/desk";
 import { MAX_ACTIVE_ACCOUNTS, planAmount, type Billing } from "./billing";
-import { CheckoutError, completePurchase, fulfilRazorpayOrder, startRazorpayOrder } from "./orders";
+import { CheckoutError, completePurchase, fulfilRazorpayOrder, lastBilling, startRazorpayOrder } from "./orders";
 import type { RazorpayConfig } from "./razorpay";
 
 const localDb = (() => {
@@ -19,7 +19,7 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
   const userIds: string[] = [];
   const plan = findEvaluationPlan("1l")!;
   const now = Date.UTC(2026, 9, 24, 4);
-  const billing: Billing = { name: "Checkout integration", phone: "+919876543210", state: "Telangana", terms: "on" };
+  const billing: Billing = { name: "Checkout integration", phone: "+919876543210", state: "Telangana" };
   const razorpay: RazorpayConfig = { keyId: "rzp_test_key", keySecret: "key-secret", webhookSecret: null, apiRoot: "https://razorpay.invalid/v1", testMode: true };
   /** Razorpay's order API, answering with a fresh order id for whatever amount was asked. */
   const razorpayApi = (async (_url: string, init?: RequestInit) => Response.json({ id: `order_${randomUUID().replace(/-/g, "").slice(0, 14)}`, amount: JSON.parse(String(init?.body)).amount, currency: "INR", status: "created" })) as unknown as typeof fetch;
@@ -70,6 +70,17 @@ describe.skipIf(!localDb)("checkout purchases (PostgreSQL integration)", () => {
     const order = await prisma.checkoutOrder.findUniqueOrThrow({ where: { id: results[0].orderId } });
     // A free start records nothing charged; a test purchase records the price it didn't charge.
     expect({ provider: order.provider, amount: order.amount, status: order.status }).toEqual({ provider: mode, amount: mode === "free" ? 0 : planAmount(plan), status: "PAID" });
+  });
+
+  it("records a free start without billing details, and fills a paid checkout from the last paid order", async () => {
+    const user = await makeUser();
+    const free = await completePurchase({ ...request(user), billing: { name: null, phone: null, state: null } });
+    const order = await prisma.checkoutOrder.findUniqueOrThrow({ where: { id: free.orderId } });
+    expect({ name: order.billingName, phone: order.billingPhone, state: order.billingState, email: order.billingEmail }).toEqual({ name: null, phone: null, state: null, email: user.email });
+    expect(await lastBilling(user.id)).toBeNull();
+    await completePurchase(request(user, "test"));
+    await completePurchase({ ...request(user, "test"), billing: { name: null, phone: null, state: null } });
+    expect(await lastBilling(user.id)).toEqual({ phone: "+919876543210", state: "Telangana" });
   });
 
   it("allows different attempt keys to represent intentional separate purchases", async () => {

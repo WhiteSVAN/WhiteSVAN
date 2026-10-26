@@ -10,7 +10,7 @@ export const loginSchema = z.object({
 });
 
 /** Shared password strength rule for signup and password reset. */
-const passwordField = z
+export const passwordField = z
   .string()
   .min(8, { error: "Use at least 8 characters." })
   .regex(/[a-zA-Z]/, { error: "Include at least one letter." })
@@ -18,8 +18,8 @@ const passwordField = z
 
 export const roleSchema = z.enum(["TRADER", "CLIENT"], { error: "Choose how you'll use WhiteSVAN." });
 
+/** Creating an account takes an email and a password; a name comes later, from Google or KYC. */
 export const signupSchema = z.object({
-  name: z.string().min(2, { error: "Name must be at least 2 characters." }).trim(),
   email: z.email({ error: "Enter a valid email." }).trim(),
   password: passwordField,
   role: roleSchema,
