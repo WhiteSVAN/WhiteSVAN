@@ -11,10 +11,10 @@ import { isQuoteKey, toEngineQuote, UNDERLYINGS, type MarketQuote } from "@/lib/
 
 /**
  * Contracts per poll: the account's own, the charted option, the index for the money line and an
- * option chain. Still one quote call per poll (Kite takes up to 500 contracts a call), which keeps
- * us inside 1 request a second.
+ * option chain of up to 41 strikes (zerodha/chain.ts). Still one quote call per poll (Kite takes up
+ * to 500 contracts a call), which keeps us inside 1 request a second.
  */
-export const MAX_TICK_KEYS = 40;
+export const MAX_TICK_KEYS = 120;
 
 /** The account's contracts first (they drive fills and P&L), then what the screen is showing. */
 export function tickKeys(desk: Desk, requested: readonly string[]): string[] {

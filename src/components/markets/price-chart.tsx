@@ -239,7 +239,8 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
 
   return (
     <figure className="relative m-0">
-      <div ref={container} role="img" aria-label={`${label} candlestick chart`} data-lines={lines.map((line) => `${line.title} ${(line.price / 100).toFixed(2)}`).join("; ") || undefined} className={`w-full ${derivative ? "h-[380px] sm:h-[500px]" : "h-[320px] sm:h-[420px]"}`} />
+      {/* On laptops the chart takes what the screen leaves, so the orders window below it stays in view. */}
+      <div ref={container} role="img" aria-label={`${label} candlestick chart`} data-lines={lines.map((line) => `${line.title} ${(line.price / 100).toFixed(2)}`).join("; ") || undefined} className={`w-full ${derivative ? "h-[360px] sm:h-[440px] lg:h-[clamp(300px,calc(100svh-33rem),540px)]" : "h-[300px] sm:h-[380px] lg:h-[clamp(280px,calc(100svh-33rem),520px)]"}`} />
       {legend && (
         <figcaption className="pointer-events-none absolute left-2 top-2 flex max-w-[calc(100%-6rem)] flex-wrap gap-x-3 gap-y-1 rounded bg-[var(--card)]/80 px-2 py-1 font-mono text-[10px] text-[var(--muted)] sm:text-[11px]">
           {(["open", "high", "low", "close"] as const).map((field) => (

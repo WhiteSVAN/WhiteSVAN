@@ -67,6 +67,36 @@ export function Meter({ label, value, detail, used, danger = false }: { label: s
 /** "Demo account" while it's an evaluation, "Funded account" once funded. */
 export const accountKind = (desk: Desk) => (desk.state.phase === "FUNDED" ? "Funded account" : "Demo account");
 
+/** An option's five best bids and offers side by side, best first: the ticket's order book. */
+export function MarketDepth({ quote, className = "" }: { quote: MarketQuote; className?: string }) {
+  const levels = Array.from({ length: Math.max(quote.bids.length, quote.asks.length) }, (_, index) => [quote.bids[index], quote.asks[index]] as const);
+  if (levels.length === 0) return null;
+  const quantity = (level: { quantity: number } | undefined) => (level ? level.quantity.toLocaleString("en-IN") : "");
+  return (
+    <table className={`w-full font-mono text-[11px] ${className}`}>
+      <caption className="pb-1 text-left font-sans text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Market depth</caption>
+      <thead className="text-[var(--muted)]">
+        <tr>
+          <th scope="col" className="py-1 text-left font-normal">Bid</th>
+          <th scope="col" className="py-1 pr-3 text-right font-normal">Qty</th>
+          <th scope="col" className="border-l border-[var(--border)] py-1 pl-3 text-left font-normal">Offer</th>
+          <th scope="col" className="py-1 text-right font-normal">Qty</th>
+        </tr>
+      </thead>
+      <tbody>
+        {levels.map(([bid, ask], index) => (
+          <tr key={index}>
+            <td className="py-0.5 text-[var(--primary)]">{bid ? price(bid.price) : "—"}</td>
+            <td className="py-0.5 pr-3 text-right">{quantity(bid)}</td>
+            <td className="border-l border-[var(--border)] py-0.5 pl-3 text-[var(--danger)]">{ask ? price(ask.price) : "—"}</td>
+            <td className="py-0.5 text-right">{quantity(ask)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 /**
  * The account's balance and rule meters, shared by the platform and the dashboard. A demo account
  * (the evaluation) tracks the profit target; a funded account tracks what it can pay out. A passed
@@ -203,6 +233,7 @@ export function AccountTicket({ desk, planLabel, contract, label, quote, side, o
               <p className="font-mono text-sm">{label}</p>
               <p className="mt-0.5 text-xs text-[var(--muted)]">Lot {contract.lotSize} · {bestBid !== undefined && bestAsk !== undefined ? <>bid <span className="font-mono text-[var(--primary)]">{price(bestBid)}</span> · ask <span className="font-mono text-[var(--danger)]">{price(bestAsk)}</span></> : "waiting for prices"}</p>
             </div>
+            {quote && <MarketDepth quote={quote} className="rounded-md bg-[var(--card-deep)] px-3 py-2" />}
             <div className="grid grid-cols-2 gap-2" role="group" aria-label="Side">
               {(["BUY", "SELL"] as const).map((value) => (
                 <button key={value} type="button" aria-pressed={side === value} onClick={() => onSide(value)} className={`min-h-10 rounded-md border text-sm font-medium ${side === value ? (value === "BUY" ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]" : "border-[var(--danger)] bg-[var(--danger)] text-[var(--danger-foreground)]") : "border-[var(--border-strong)] text-[var(--muted)] hover:text-[var(--foreground)]"}`}>

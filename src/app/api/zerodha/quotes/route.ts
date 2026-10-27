@@ -1,10 +1,9 @@
 import type { NextRequest } from "next/server";
 import { screenQuotes } from "@/lib/accounts/ticks";
 import { kiteJson } from "@/lib/zerodha/access";
+import { MAX_SCREEN_KEYS as MAX_KEYS } from "@/lib/zerodha/chain";
 import { fetchQuotes } from "@/lib/zerodha/client";
 import { isQuoteKey } from "@/lib/zerodha/kite";
-
-const MAX_KEYS = 40;
 
 /**
  * Quotes for the charts without an account: `?i=NFO:<charted contract>&i=NSE:NIFTY 50&i=...`, the
