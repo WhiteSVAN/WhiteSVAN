@@ -74,6 +74,41 @@ export function eventFilters(params: Params): EventFilters {
   return { ...common(params), kind: (EVENT_KINDS as readonly string[]).includes(kind ?? "") ? (kind as AccountEventKind) : undefined };
 }
 
+export const CUSTOMER_SHOWS = { paying: "Paid through Razorpay", traders: "With accounts", none: "Without accounts", admins: "Admins" } as const;
+
+export interface CustomerFilters extends Common {
+  show?: keyof typeof CUSTOMER_SHOWS;
+}
+
+/** Customers: joined between `from` and `to`, matching `q`, and one of CUSTOMER_SHOWS. */
+export function customerFilters(params: Params): CustomerFilters {
+  const show = first(params.show);
+  return { ...common(params), show: show && show in CUSTOMER_SHOWS ? (show as keyof typeof CUSTOMER_SHOWS) : undefined };
+}
+
+export const ORDER_PROVIDERS = ["razorpay", "razorpay-test", "test", "free", "demo"] as const;
+export const ORDER_STATUSES = ["PENDING", "PAID", "FAILED", "REFUNDED"] as const;
+
+export interface OrderFilters extends Common {
+  provider?: (typeof ORDER_PROVIDERS)[number];
+  status?: (typeof ORDER_STATUSES)[number];
+  /** The GST place of supply. */
+  state?: string;
+}
+
+/** Orders: placed between `from` and `to`, matching `q` (a customer, a billing contact or an order or payment id). */
+export function orderFilters(params: Params, states: readonly string[]): OrderFilters {
+  const provider = first(params.provider);
+  const status = first(params.status);
+  const state = first(params.state);
+  return {
+    ...common(params),
+    provider: (ORDER_PROVIDERS as readonly string[]).includes(provider ?? "") ? (provider as OrderFilters["provider"]) : undefined,
+    status: (ORDER_STATUSES as readonly string[]).includes(status ?? "") ? (status as OrderFilters["status"]) : undefined,
+    state: state && states.includes(state) ? state : undefined,
+  };
+}
+
 /** The UTC instants an IST date range covers: from the start of `from` to the end of `to`. */
 export function istRange(from: string | undefined, to: string | undefined): { gte?: Date; lt?: Date } {
   return {

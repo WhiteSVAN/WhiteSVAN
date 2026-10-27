@@ -40,7 +40,7 @@ export default async function AdminAccountPage({ params }: { params: Promise<{ a
   return (
     <div className="space-y-8">
       <div>
-        <Link href={`/admin/traders/${account.userId}`} className="inline-flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--foreground)]"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> {trader?.name ?? trader?.email ?? "Trader"}</Link>
+        <Link href={`/admin/customers/${account.userId}`} className="inline-flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--foreground)]"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> {trader?.name ?? trader?.email ?? "Trader"}</Link>
         <h1 className="mt-3 text-3xl tracking-[-0.03em] sm:text-4xl">{account.planLabel} {account.phase === "FUNDED" ? "funded account" : "evaluation"}</h1>
         <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--muted)]">
           <span className="font-mono text-xs">{accountNumber(account.id, account.planId)}</span>
