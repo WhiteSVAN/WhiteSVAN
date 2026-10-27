@@ -66,6 +66,10 @@ Temporal Cloud setup, worker commands and deployment instructions: [docs/tempora
   short options, spreads, or calls and puts on the same index together (across accounts too).
 - `/journal`: total P&L, win rate and trades, a P&L calendar by day with weekly totals, and a note
   for any day.
+- `/admin` (admins only, granted with `npm run db:admin -- grant <email>`): the firm overview,
+  every trader and account with Sharpe, Sortino, drawdown, win rate, profit factor and expectancy,
+  every fill (filtered, with a CSV export) and the audit log of orders, refusals, breaches and
+  passes. Read-only.
   Prices come from the firm's shared Zerodha login, so every account holder trades while an owner
   has it connected.
 - My accounts shows evaluation and funded account cards. Passing an evaluation opens its funded

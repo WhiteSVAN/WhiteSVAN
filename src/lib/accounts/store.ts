@@ -1,14 +1,16 @@
 /**
  * Demo (evaluation) and funded accounts in Postgres (server only). The engine's host snapshot is
  * stored whole in `desk`; every change is a read, a pure engine step and a write conditional on
- * `version`, so a platform poll and an order arriving together never overwrite each other. The
- * write that passes an evaluation opens its funded account in the same transaction, unless the
- * trader already has the most funded accounts open: then the pass waits to be activated.
+ * `version`, so a platform poll and an order arriving together never overwrite each other. Each
+ * save records what it added to the audit (every fill, order event, breach and pass: audit.ts) in
+ * the same transaction. The write that passes an evaluation opens its funded account with it, unless
+ * the trader already has the most funded accounts open: then the pass waits to be activated.
  */
 import { randomBytes } from "node:crypto";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { staffEmails } from "@/lib/checkout/config";
+import { auditDelta, auditIsEmpty, eventRow, fillRow, type AuditDelta, type AuditEvent, type AuditOwner } from "./audit";
 import { sendFundedAccountEmail, sendPassedWaitingEmail, sendStaffFundedNotice } from "@/lib/email";
 import { logger } from "@/lib/logger";
 import { findAccountPlan, PROGRAMME_RULES } from "@/lib/prop-firm";
@@ -96,6 +98,24 @@ async function announcePass(evaluation: StoredAccount, fundedId: string | null):
   }
 }
 
+const passesWith = (account: StoredAccount, desk: Desk) => account.phase === "EVALUATION" && account.status !== "PASSED" && desk.state.status === "PASSED";
+
+/**
+ * Save a changed desk, on condition that nobody saved since `account` was read, with what the
+ * change added to the audit and, for a pass, the funded account: all of it or nothing, when `tx` is
+ * a transaction. `saved` is false when another request saved first.
+ */
+async function saveDesk(tx: Prisma.TransactionClient, account: StoredAccount, desk: Desk, delta: AuditDelta, passes: boolean): Promise<{ saved: boolean; fundedId: string | null }> {
+  const updated = await tx.evaluationAccount.updateMany({
+    where: { id: account.id, userId: account.userId, version: account.version },
+    data: { desk: desk as unknown as Prisma.InputJsonValue, version: { increment: 1 }, status: desk.state.status, phase: desk.state.phase },
+  });
+  if (updated.count !== 1) return { saved: false, fundedId: null };
+  if (delta.fills.length) await tx.accountFill.createMany({ data: delta.fills.map((fill) => fillRow(account, fill)), skipDuplicates: true });
+  if (delta.events.length) await tx.accountEvent.createMany({ data: delta.events.map((event) => eventRow(account, event)), skipDuplicates: true });
+  return { saved: true, fundedId: passes ? await openFundedAccount(tx, account, desk.state.clock) : null };
+}
+
 /**
  * Apply a pure change to the account's desk and save it. When another request saved first, the
  * change re-runs on the newer desk. Null when the account isn't this user's.
@@ -105,17 +125,13 @@ export async function changeAccount<T>(userId: string, id: string, change: (desk
     const account = await findAccount(userId, id);
     if (!account) return null;
     const { desk, result } = change(account.desk);
-    const where = { id, userId, version: account.version };
-    const data = { desk: desk as unknown as Prisma.InputJsonValue, version: { increment: 1 }, status: desk.state.status, phase: desk.state.phase };
-    const passes = account.phase === "EVALUATION" && account.status !== "PASSED" && desk.state.status === "PASSED";
-    // The step that passes an evaluation opens its funded account with it, or neither is saved.
-    const { saved, fundedId } = passes
-      ? await prisma.$transaction(async (tx) => {
-          const updated = await tx.evaluationAccount.updateMany({ where, data });
-          return { saved: updated.count, fundedId: updated.count === 1 ? await openFundedAccount(tx, account, desk.state.clock) : null };
-        })
-      : { saved: (await prisma.evaluationAccount.updateMany({ where, data })).count, fundedId: null };
-    if (saved !== 1) continue;
+    const delta = auditDelta(account.desk, desk);
+    const passes = passesWith(account, desk);
+    // Most polls add nothing to the audit and pass nothing: one write. Anything more is one transaction.
+    const { saved, fundedId } = auditIsEmpty(delta) && !passes
+      ? await saveDesk(prisma, account, desk, delta, passes)
+      : await prisma.$transaction((tx) => saveDesk(tx, account, desk, delta, passes));
+    if (!saved) continue;
     if (passes) await announcePass(account, fundedId);
     return { account: { ...account, desk, status: desk.state.status, version: account.version + 1 }, result };
   }
@@ -145,17 +161,9 @@ export async function changeAccountForOrder<T>(
         select: SELECT,
       });
       const { desk, result } = await change(account, otherRows.map(stored));
-      const where = { id, userId, version: account.version };
-      const data = { desk: desk as unknown as Prisma.InputJsonValue, version: { increment: 1 }, status: desk.state.status, phase: desk.state.phase };
-      const passes = account.phase === "EVALUATION" && account.status !== "PASSED" && desk.state.status === "PASSED";
-      // Keep the funded-account creation in the same transaction as the conditional write.
-      const { saved, fundedId } = passes
-        ? await (async () => {
-            const updated = await tx.evaluationAccount.updateMany({ where, data });
-            return { saved: updated.count, fundedId: updated.count === 1 ? await openFundedAccount(tx, account, desk.state.clock) : null };
-          })()
-        : { saved: (await tx.evaluationAccount.updateMany({ where, data })).count, fundedId: null };
-      if (saved !== 1) return { kind: "retry" as const };
+      const passes = passesWith(account, desk);
+      const { saved, fundedId } = await saveDesk(tx, account, desk, auditDelta(account.desk, desk), passes);
+      if (!saved) return { kind: "retry" as const };
       return {
         kind: "saved" as const,
         account: { ...account, desk, status: desk.state.status, version: account.version + 1 },
@@ -170,6 +178,13 @@ export async function changeAccountForOrder<T>(
     return { account: outcome.account, result: outcome.result };
   }
   throw new AccountBusyError();
+}
+
+/** Record an order the trading policy refused before the engine saw it. Best effort: the refusal stands either way. */
+export async function recordRefusal(owner: AuditOwner, event: AuditEvent): Promise<void> {
+  await prisma.accountEvent.createMany({ data: [eventRow(owner, event)], skipDuplicates: true }).catch((error: unknown) => {
+    logger.warn("accounts.refusal_audit_failed", { accountId: owner.id, error: error instanceof Error ? error.message : String(error) });
+  });
 }
 
 /** Passed evaluations whose funded account hasn't opened yet, because the trader had the most open. */

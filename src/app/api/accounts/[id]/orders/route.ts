@@ -2,7 +2,8 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { accountJson, instrumentForToken, newOrderId, orderQuotes } from "@/lib/accounts/api";
 import { tradingNow } from "@/lib/accounts/clock";
-import { changeAccountForOrder } from "@/lib/accounts/store";
+import { refusalEvent } from "@/lib/accounts/audit";
+import { changeAccountForOrder, recordRefusal } from "@/lib/accounts/store";
 import { applyOrder, expectedPrice, orderPolicyProblem } from "@/lib/accounts/ticks";
 import { exitsProblem } from "@/lib/trading/desk";
 import { KiteError, quoteKey } from "@/lib/zerodha/kite";
@@ -37,11 +38,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const exitProblem = exitsProblem(exits, request.side, expectedPrice(request, quotes.find((quote) => quote.token === instrument.token)?.lastPrice), instrument.tickSize);
     if (exitProblem) throw new KiteError(exitProblem, 400, "InputException");
     const order = { ...request, id: newOrderId(now) };
+    let refused: string | null = null;
     const changed = await changeAccountForOrder(userId, id, (latest, others) => {
-      const problem = orderPolicyProblem(latest.desk, instrument, parsed.data.side, parsed.data.lots, others.map((item) => item.desk));
-      if (problem) throw new KiteError(problem, 400, "InputException");
+      refused = orderPolicyProblem(latest.desk, instrument, parsed.data.side, parsed.data.lots, others.map((item) => item.desk));
+      if (refused) throw new KiteError(refused, 400, "InputException");
       const result = applyOrder(latest.desk, instrument, order, quotes, tradingNow(), exits);
       return { desk: result.desk, result: result.outputs };
+    }).catch(async (error: unknown) => {
+      // A refusal never reaches the engine or the desk, so it goes to the audit here.
+      if (refused) await recordRefusal({ id, userId }, refusalEvent({ ...order, tradingSymbol: instrument.tradingSymbol }, refused, tradingNow()));
+      throw error;
     });
     return { outputs: changed?.result ?? [], desk: changed?.account.desk ?? account.desk };
   });
