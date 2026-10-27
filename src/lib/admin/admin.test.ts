@@ -5,7 +5,8 @@ import type { AccountState } from "@/lib/trading/engine";
 import { ist } from "@/lib/trading/time";
 import { assembleBook, balanceHistory, pooledDays, type AccountRow, type BookFill } from "./book";
 import { csvRupees, csvText } from "./csv";
-import { eventFilters, fillFilters, filterQuery, istRange } from "./filters";
+import { moneyReceived, orderStateLabel } from "./customers";
+import { customerFilters, eventFilters, fillFilters, filterQuery, istRange, orderFilters } from "./filters";
 import { duration, percent, ratio, signedRupees } from "./format";
 
 const r = (rupees: number) => Math.round(rupees * 100);
@@ -95,6 +96,30 @@ describe("admin filters", () => {
   it("writes filters back as a query, leaving out page 1 and empty values", () => {
     expect(filterQuery({ from: "2026-11-02", q: undefined, side: "BUY", page: 1 })).toBe("?from=2026-11-02&side=BUY");
     expect(filterQuery({ kind: "PASSED", page: 1 }, 2)).toBe("?kind=PASSED&page=2");
+  });
+});
+
+describe("billing words", () => {
+  it("counts money received only for a captured live Razorpay payment", () => {
+    expect(moneyReceived({ provider: "razorpay", status: "PAID" })).toBe(true);
+    for (const order of [{ provider: "razorpay", status: "REFUNDED" }, { provider: "razorpay", status: "PENDING" }, { provider: "razorpay-test", status: "PAID" }, { provider: "test", status: "PAID" }, { provider: "free", status: "PAID" }, { provider: "demo", status: "PAID" }] as const) {
+      expect(moneyReceived(order)).toBe(false);
+    }
+  });
+
+  it("never calls an order paid unless money moved", () => {
+    expect(orderStateLabel("razorpay", "PAID")).toBe("Paid");
+    expect(orderStateLabel("razorpay-test", "PAID")).toBe("Paid in test mode, no money");
+    expect(["free", "test", "demo"].map((provider) => orderStateLabel(provider, "PAID"))).toEqual(["Opened, no charge", "Opened, no charge", "Opened, no charge"]);
+    expect([orderStateLabel("razorpay", "PENDING"), orderStateLabel("razorpay", "FAILED"), orderStateLabel("razorpay", "REFUNDED")]).toEqual(["Awaiting payment", "Failed", "Refunded"]);
+  });
+
+  it("reads customer and order filters, dropping anything malformed", () => {
+    expect(customerFilters({ show: "paying", q: "asha" })).toMatchObject({ show: "paying", q: "asha" });
+    expect(customerFilters({ show: "everyone" }).show).toBeUndefined();
+    const states = ["Karnataka", "Telangana"];
+    expect(orderFilters({ provider: "razorpay", status: "PAID", state: "Karnataka" }, states)).toMatchObject({ provider: "razorpay", status: "PAID", state: "Karnataka" });
+    expect(orderFilters({ provider: "stripe", status: "SETTLED", state: "Atlantis" }, states)).toMatchObject({ provider: undefined, status: undefined, state: undefined });
   });
 });
 

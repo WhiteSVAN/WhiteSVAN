@@ -58,7 +58,7 @@ export default async function AdminTradesPage({ searchParams }: { searchParams: 
                 {rows.map((fill) => (
                   <tr key={fill.id} className="hover:bg-[var(--card-raised)]">
                     <td className={`${td} text-xs text-[var(--muted)]`}>{istDateTime(fill.at)}</td>
-                    <td className={td}><Link href={`/admin/traders/${fill.user.id}`} className="hover:underline">{fill.user.name ?? fill.user.email}</Link></td>
+                    <td className={td}><Link href={`/admin/customers/${fill.user.id}`} className="hover:underline">{fill.user.name ?? fill.user.email}</Link></td>
                     <td className={td}><Link href={`/admin/accounts/${fill.accountId}`} className="font-mono text-xs hover:underline">{accountNumber(fill.accountId, fill.account.planId)}</Link></td>
                     <td className={`${td} font-mono text-xs`}>{fill.tradingSymbol}</td>
                     <td className={`${td} text-xs font-medium ${fill.side === "BUY" ? "text-[var(--primary)]" : "text-[var(--danger)]"}`}>{fill.side === "BUY" ? "Buy" : "Sell"}</td>

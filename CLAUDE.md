@@ -213,21 +213,34 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   days (`state.days`) plus today so far; trade counts from `Desk.dayTrades` (fills per IST date,
   counted by `deskStep`); `settledDesk` closes a day nobody closed, for display only. Notes are
   `JournalNote` rows (one per trader and date, across accounts; saved by `saveDayNote`).
-- **Admin portal** (`/admin`, read-only; 27 Oct 2026): Overview (headline figures, accounts near a
-  limit, waiting passes, today's breaches and refusals, the best traders by Sharpe with at least
-  `RANKING_MIN_DAYS` (5) trading days, the latest audit events), Traders (sortable: P&L, days,
-  Sharpe, Sortino, max drawdown, win rate, profit factor, expectancy, last trade, flags), a trader
-  (their accounts as one book, each account, round trips, audit trail), an account (risk now, every
+- **Admin portal** (`/admin`, read-only; 27 Oct 2026): Overview (headline figures, customers and
+  money received, accounts near a limit, waiting passes, today's breaches and refusals, the best
+  traders by Sharpe with at least `RANKING_MIN_DAYS` (5) trading days, the latest audit events),
+  Customers (everyone who signed up: sign-in methods, referrals, accounts, orders, money received;
+  filter by joined date, search, and paid through live Razorpay, with or without accounts, or
+  admins), a customer
+  (`/admin/customers/<id>`: profile, every order with its billing contact and GST state, trading
+  across their accounts, each account, payout quotes on funded accounts, round trips, journal
+  notes, audit trail; `/admin/traders/<id>` redirects here), Traders (sortable: P&L, days, Sharpe,
+  Sortino, max drawdown, win rate, profit factor, expectancy, last trade, flags), Billing (every
+  checkout order with totals and a CSV at `/admin/billing/export`), an account (risk now, every
   quant figure, the closing balance against the drawdown floor, daily P&L, days, breach report,
   round trips, fills, audit trail), Trades (every fill, filtered, with a CSV export at
-  `/admin/trades/export`) and the Audit log. **Access:** `User.isAdmin`, granted and revoked only
-  with `npm run db:admin -- grant|revoke <email>` (never in the app, never from `STAFF_EMAILS` or an
-  email alone); `requireAdmin` in [src/lib/auth/dal.ts](src/lib/auth/dal.ts) reads the flag on every
-  request, sends signed-out visitors to sign in (back to `/admin`) and answers everyone else with a
-  404. The layout and every page and route check it; each view and export is logged
-  (`admin.view`, `admin.export`). Data comes from [src/lib/admin/book.ts](src/lib/admin/book.ts)
-  (the desks' engine state as last saved, never settled or written by the portal, plus the audit
-  tables); filters live in the address (`filters.ts`), so a filtered view is a link.
+  `/admin/trades/export`) and the Audit log. **Billing words** live in
+  [src/lib/admin/customers.ts](src/lib/admin/customers.ts): only a `razorpay` order that is `PAID`
+  is money received (`moneyReceived`); `orderStateLabel` calls Razorpay test mode "Paid in test
+  mode, no money" and free or staff orders "Opened, no charge". Customer queries never select
+  `passwordHash` or OAuth tokens; sign-in shows as methods only. **Access:** `User.isAdmin`,
+  granted and revoked only with `npm run db:admin -- grant|revoke <email>` (never in the app, never
+  from `STAFF_EMAILS` or an email alone) or by a migration; the founder's account was granted by
+  `20261027190000_founder_admin`, which matches the SHA-256 of the lowercased email because the
+  repository is public (never write an email into a migration). `requireAdmin` in
+  [src/lib/auth/dal.ts](src/lib/auth/dal.ts) reads the flag on every request, sends signed-out
+  visitors to sign in (back to `/admin`) and answers everyone else with a 404. The layout and
+  every page and route check it; each view and export is logged (`admin.view`, `admin.export`).
+  Data comes from [src/lib/admin/book.ts](src/lib/admin/book.ts) (the desks' engine state as last
+  saved, never settled or written by the portal, plus the audit tables) and `customers.ts`;
+  filters live in the address (`filters.ts`), so a filtered view is a link.
 - **Trade and activity audit:** every save of a desk (`saveDesk` in
   [src/lib/accounts/store.ts](src/lib/accounts/store.ts)) records what it added, in the same
   transaction: each fill as an `AccountFill` and each order placed, modified, cancelled or
@@ -529,9 +542,11 @@ metadata gates access without exposing private evidence files.
   payment-flow wording fixes from a site review (checkout stays signed in after a refused or
   closed payment, the consent line, receipts that don't claim an email went out).
 - ✅ **Admin portal (27 Oct 2026)**: `/admin` for admins only (`npm run db:admin`): firm overview,
-  traders and accounts with Sharpe, Sortino, drawdown, win rate, profit factor and expectancy,
-  every fill (filtered, CSV export) and the audit log of orders, refusals, breaches and passes,
-  written with each desk save and backfilled from the desks.
+  customers (profile, billing, trading, payouts and notes on one page), billing (every order, money
+  received apart from test and free orders, CSV export), traders and accounts with Sharpe,
+  Sortino, drawdown, win rate, profit factor and expectancy, every fill (filtered, CSV export) and
+  the audit log of orders, refusals, breaches and passes, written with each desk save and
+  backfilled from the desks.
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine
   service with Redis and a replay provider, real merchant activation and payment reconciliation,
   GST invoices/refunds, KYC and funded agreements, bank verification, payouts with TDS, then the
