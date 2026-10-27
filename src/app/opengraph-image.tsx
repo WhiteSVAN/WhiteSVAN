@@ -71,7 +71,7 @@ export default function Image() {
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${LINE}`, paddingTop: 16, fontSize: 19, color: DIM }}>
-            <div style={{ display: "flex" }}>Simulated evaluation and funded accounts</div>
+            <div style={{ display: "flex" }}>NIFTY, BANK NIFTY and SENSEX options</div>
             <div style={{ display: "flex" }}>Not investment advice</div>
           </div>
         </div>

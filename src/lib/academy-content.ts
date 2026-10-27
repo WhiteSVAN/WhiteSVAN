@@ -76,8 +76,8 @@ export const ACADEMY_LESSONS: AcademyLesson[] = [
     title: "How the evaluation and funded account work",
     summary: "What you need to pass, what passing gets you and how payouts work.",
     reading: [
-      `The evaluation is a simulated account with fixed rules: a ${R.targetPercent}% profit target over at least ${R.minimumDays} trading days, a ${R.dailyLossPercent}% daily loss limit and a ${R.maximumLossPercent}% max drawdown that trails your highest end-of-day balance until it reaches your starting balance. When you pass, your best day can be no more than ${R.consistencyPercent}% of your total profit. Every fill includes Indian trading costs, so plan your size after costs, not before.`,
-      `Passing opens your funded account. It is also simulated and keeps the same loss limits, with no profit target. You keep ${R.contractorSharePercent}% of the profit: profit equal to your max drawdown stays in the account as a buffer, and you can request a payout whenever your profit is above it, up to the cap for your account size. KYC and your funded trader agreement come before the first payout, and every request is checked against the rules.`,
+      `The evaluation is an account with fixed rules: a ${R.targetPercent}% profit target over at least ${R.minimumDays} trading days, a ${R.dailyLossPercent}% daily loss limit and a ${R.maximumLossPercent}% max drawdown that trails your highest end-of-day balance until it reaches your starting balance. When you pass, your best day can be no more than ${R.consistencyPercent}% of your total profit. Every fill includes Indian trading costs, so plan your size after costs, not before.`,
+      `Passing opens your funded account. It keeps the same loss limits, with no profit target. You keep ${R.contractorSharePercent}% of the profit: profit equal to your max drawdown stays in the account as a buffer, and you can request a payout whenever your profit is above it, up to the cap for your account size. KYC and your funded trader agreement come before the first payout, and every request is checked against the rules.`,
     ],
     checklist: [
       "Write down the profit target, daily loss limit and max drawdown for your account size.",
@@ -90,12 +90,12 @@ export const ACADEMY_LESSONS: AcademyLesson[] = [
       question: "What do you get when you pass the evaluation?",
       choices: [
         "The account balance, paid to you as cash.",
-        `A simulated funded account with an ${R.contractorSharePercent}% profit split, paid out within the rules and caps.`,
+        `A funded account with an ${R.contractorSharePercent}% profit split, paid out within the rules and caps.`,
         "A funded account with no loss limits.",
       ],
       correctChoice: 1,
       rationale:
-        "Funded accounts are simulated and keep the loss limits. Payouts follow the profit split, payout caps and rules in your funded trader agreement.",
+        "The balance is never paid out as cash, and funded accounts keep the loss limits. Payouts follow the profit split, payout caps and rules in your funded trader agreement.",
     },
   },
 ];

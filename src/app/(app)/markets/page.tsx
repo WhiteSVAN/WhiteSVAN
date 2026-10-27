@@ -33,27 +33,32 @@ export default async function MarketsPage({ searchParams }: { searchParams: Prom
   const home = chosen ? `/markets?account=${chosen.id}` : "/markets";
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="space-y-3">
+      {!session && (
         <div>
           <h1 className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Trade</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">NIFTY, BANK NIFTY and SENSEX options on live prices. Chart the index or any option, and buy or sell from the panel beside the chart.</p>
         </div>
-        {owner && session && (
-          <form action="/api/zerodha/logout" method="post" className="flex flex-wrap items-center gap-3 text-xs text-[var(--muted)]">
-            <span>Live prices are on for everyone until {sessionEnd.format(session.expiresAt)} IST</span>
-            <button type="submit" className="min-h-9 rounded-md border border-[var(--border-strong)] px-3 text-[var(--foreground)] hover:bg-[var(--card-raised)]">Disconnect</button>
-          </form>
-        )}
-      </div>
+      )}
 
       <ZerodhaNotice code={params.feed} />
       {session ? (
         <ZerodhaCharts
           key={chosen?.id ?? "charts"}
+          header={
+            <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
+              <h1 className="text-lg">Trade</h1>
+              {owner && (
+                <form action="/api/zerodha/logout" method="post" className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--muted)]">
+                  <span>Live prices are on for everyone until {sessionEnd.format(session.expiresAt)} IST</span>
+                  <button type="submit" className="min-h-8 rounded-md border border-[var(--border-strong)] px-2.5 text-[var(--foreground)] hover:bg-[var(--card-raised)]">Disconnect</button>
+                </form>
+              )}
+            </div>
+          }
           canConnect={owner}
           home={home}
-          account={chosen ? { id: chosen.id, desk: chosen.desk, planLabel: planLabel(chosen.planId) } : undefined}
+          account={chosen ? { id: chosen.id, desk: chosen.desk } : undefined}
           accounts={active.map((account) => ({ id: account.id, label: `${planLabel(account.planId)} ${kind(account)} · ${accountNumber(account.id, account.planId)}`, href: `/markets?account=${account.id}` }))}
         />
       ) : owner ? (
@@ -62,7 +67,7 @@ export default async function MarketsPage({ searchParams }: { searchParams: Prom
         <PricesOffline />
       )}
 
-      <p className="max-w-3xl text-xs leading-6 text-[var(--muted)]">Demo and funded accounts are simulated: fills follow the live order book with slippage and Indian F&amp;O charges, and no order reaches an exchange. Charts by TradingView Lightweight Charts.</p>
+      <p className="max-w-3xl text-xs leading-6 text-[var(--muted)]">Orders fill against the live order book with slippage and Indian F&amp;O charges; none reach an exchange. Charts by TradingView Lightweight Charts.</p>
     </div>
   );
 }

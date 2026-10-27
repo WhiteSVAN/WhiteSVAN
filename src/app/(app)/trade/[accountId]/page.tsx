@@ -38,17 +38,19 @@ export default async function TradePage({ params, searchParams }: { params: Prom
   const owner = isKiteOwner(config, user.email);
   const session = config ? await sharedKiteSession(config.sessionSecret) : null;
   const status = STATUS_BADGE[account.status];
+  // The account's title: the start of the platform's account bar, or a row of its own while prices are offline.
+  const heading = (
+    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+      <Link href="/dashboard" aria-label="My accounts" title="My accounts" className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--muted)] hover:bg-[var(--card-raised)] hover:text-[var(--foreground)]"><ArrowLeft className="h-4 w-4" aria-hidden="true" /></Link>
+      <h1 className="text-lg">{planLabel} {account.phase === "FUNDED" ? "funded account" : "demo account"}</h1>
+      <span className="font-mono text-[11px] text-[var(--muted)]">{accountNumber(account.id, account.planId)}</span>
+      <span className={`rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${status.className}`}>{status.text}</span>
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--foreground)]"><ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> My accounts</Link>
-        <h1 className="mt-3 text-3xl font-medium tracking-[-0.045em] sm:text-4xl">{planLabel} {account.phase === "FUNDED" ? "funded account" : "demo account"}</h1>
-        <p className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[var(--muted)]">
-          <span className="font-mono">{accountNumber(account.id, account.planId)}</span>
-          <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${status.className}`}>{status.text}</span>
-        </p>
-      </div>
+    <div className="space-y-3">
+      {!session && heading}
 
       {order && (
         <section role="status" className="terminal-card flex flex-wrap items-start justify-between gap-4 p-5">
@@ -70,7 +72,7 @@ export default async function TradePage({ params, searchParams }: { params: Prom
       <ZerodhaNotice code={feed} />
 
       {session ? (
-        <ZerodhaCharts account={{ id: account.id, desk: account.desk, planLabel }} canConnect={owner} />
+        <ZerodhaCharts header={heading} account={{ id: account.id, desk: account.desk }} canConnect={owner} />
       ) : owner ? (
         <ConnectZerodha next={`/trade/${account.id}`} />
       ) : (
@@ -87,7 +89,7 @@ export default async function TradePage({ params, searchParams }: { params: Prom
         </section>
       )}
 
-      <p className="max-w-3xl text-xs leading-6 text-[var(--muted)]">Demo and funded accounts are simulated: fills follow the live order book with slippage and Indian F&amp;O charges, and no order reaches an exchange. Charts by TradingView Lightweight Charts.</p>
+      <p className="max-w-3xl text-xs leading-6 text-[var(--muted)]">Orders fill against the live order book with slippage and Indian F&amp;O charges; none reach an exchange. Charts by TradingView Lightweight Charts.</p>
     </div>
   );
 }

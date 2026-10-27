@@ -49,7 +49,7 @@ export default async function AdminOverviewPage() {
         <StatTile label="Funded accounts" value={String(accounts.filter((account) => account.phase === "FUNDED" && account.status === "ACTIVE").length)} note={waiting.length ? `${waiting.length} waiting to activate` : undefined} />
         <StatTile label="Pass rate" value={percent(passed + failed ? passed / (passed + failed) : null, 0)} note={`${passed} passed, ${failed} failed`} />
         <StatTile label="Fills today" value={String(activity.fills)} note={`${activity.traders} ${activity.traders === 1 ? "trader" : "traders"} trading`} />
-        <StatTile label="Charges today" value={rupees(activity.charges)} note="Simulated brokerage, taxes and fees" />
+        <StatTile label="Charges today" value={rupees(activity.charges)} note="Brokerage, taxes and fees on today's fills" />
         <StatTile label="Breaches, 7 days" value={String(week.filter((event) => event.kind === "BREACH").length)} valueClass={week.some((event) => event.kind === "BREACH") ? "text-[var(--danger)]" : ""} />
         <StatTile label="Refused orders, 7 days" value={String(week.filter((event) => event.kind === "ORDER_REFUSED").length)} note="Blocked by the trading policy" />
         <StatTile label="Received" value={rupees(totals.received)} valueClass={totals.received ? "text-[var(--primary)]" : ""} note={`${totals.receivedOrders} live Razorpay ${totals.receivedOrders === 1 ? "payment" : "payments"}, all time`} />
