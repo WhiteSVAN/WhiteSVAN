@@ -11,15 +11,14 @@ import { chartLines, type Desk, type DeskNote } from "@/lib/trading/desk";
 import type { EngineOutput, OrderChanges } from "@/lib/trading/engine";
 import type { Side, Underlying } from "@/lib/trading/instruments";
 import { clockSeconds, toIst } from "@/lib/trading/time";
-import { quoteKey, UNDERLYINGS, type InstrumentList, type KiteContract, type MarketQuote, type OptionStrike } from "@/lib/zerodha/kite";
+import { quoteKey, UNDERLYINGS, type InstrumentList, type KiteContract, type MarketQuote } from "@/lib/zerodha/kite";
+import { chainWindow, DEFAULT_STRIKES_EACH_SIDE, isStrikesEachSide, nearestStrike, STRIKES_EACH_SIDE, type StrikesEachSide } from "@/lib/zerodha/chain";
 
 type Right = "CE" | "PE";
 /** What the chart shows: the index, or the option picked in the chain. */
 type Charted = "index" | "option";
 
 const UNDERLYING_ORDER: Underlying[] = ["NIFTY", "BANKNIFTY", "SENSEX"];
-/** Strikes either side of the money in the option chain. */
-const CHAIN_SIDE = 5;
 const INTERVAL_CHOICES: [Interval, string, string][] = [
   ["minute", "1m", "1-minute"],
   ["3minute", "3m", "3-minute"],
@@ -50,19 +49,6 @@ function contractLabel(contract: KiteContract): string {
 function marketHours(at: number): boolean {
   const { weekday, second } = toIst(at);
   return weekday >= 1 && weekday <= 5 && second >= clockSeconds("09:10") && second < clockSeconds("15:35");
-}
-
-/** The strike nearest the index (the money), or the chain's middle before the index has a price. */
-function nearestStrike(chain: readonly OptionStrike[], target: number | undefined): number | null {
-  if (chain.length === 0) return null;
-  if (target === undefined) return chain[Math.floor(chain.length / 2)].strike;
-  return chain.reduce((best, row) => (Math.abs(row.strike - target) < Math.abs(best - target) ? row.strike : best), chain[0].strike);
-}
-
-/** The chain's rows around the money. */
-function chainWindow(chain: readonly OptionStrike[], atm: number | null): OptionStrike[] {
-  const middle = Math.max(0, chain.findIndex((row) => row.strike === atm));
-  return chain.slice(Math.max(0, middle - CHAIN_SIDE), middle + CHAIN_SIDE + 1);
 }
 
 class ApiError extends Error {
@@ -191,6 +177,9 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
   /** The ticket's option; it follows the money until the trader picks one. */
   const [pick, setPick] = useState<{ strike: number; right: Right } | null>(null);
   const [charted, setCharted] = useState<Charted>("index");
+  /** Strikes either side of the money; the chain scrolls. */
+  const [eachSide, setEachSide] = useState<StrikesEachSide>(DEFAULT_STRIKES_EACH_SIDE);
+  const chainBox = useRef<HTMLDivElement>(null);
   const [list, setList] = useState<InstrumentList | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [history, setHistory] = useState<{ key: string; candles: Candle[] } | null>(null);
@@ -267,7 +256,7 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
 
   const spot = data ? quotes[data.index.key]?.lastPrice : undefined;
   const atm = data ? nearestStrike(data.chain, spot) : null;
-  const rows = data ? chainWindow(data.chain, atm) : [];
+  const rows = data ? chainWindow(data.chain, atm, eachSide) : [];
   const selectedRow = data && pick ? data.chain.find((row) => row.strike === pick.strike) : undefined;
   const contract = selectedRow && pick ? (pick.right === "CE" ? selectedRow.call : selectedRow.put) : null;
   const selectedKey = contract ? quoteKey(contract) : null;
@@ -282,6 +271,14 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
   const keysText = data
     ? [...new Set([...(selectedKey ? [selectedKey] : []), data.index.key, ...rows.flatMap((row) => [row.call, row.put].flatMap((item) => (item ? [quoteKey(item)] : [])))])].join("\n")
     : "";
+
+  // The money row sits mid-chain when the chain, the money or the window changes; scrolling is the trader's after that.
+  const centreKey = data ? `${data.underlying}|${data.expiry}|${atm}|${eachSide}` : "";
+  useEffect(() => {
+    const box = chainBox.current;
+    const row = box?.querySelector<HTMLElement>("[data-atm]");
+    if (box && row) box.scrollTop = row.offsetTop - box.clientHeight / 2 + row.offsetHeight / 2;
+  }, [centreKey]);
 
   useEffect(() => {
     if (token === null) return;
@@ -459,7 +456,9 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
         </p>
       )}
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
+        {/* The chart, then the orders window right under it, so both fit a laptop screen. */}
+        <div className="min-w-0 space-y-4">
         <section className="terminal-card min-w-0 overflow-hidden" aria-label={chartTitle ? `${chartTitle} chart` : "Chart"}>
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-3 py-3 sm:px-4">
             {data ? <Choice label="Chart" value={chartsOption ? "option" : "index"} options={chartChoices} onChange={setCharted} /> : <span className="text-sm text-[var(--muted)]">Loading {contractName} options…</span>}
@@ -467,13 +466,13 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
           </div>
           {data && (
             <>
-              <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 px-4 py-4 sm:px-6">
+              <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-2 px-4 py-3 sm:px-5">
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">{chartsOption ? contract.tradingSymbol : "Index"}</p>
                   <h2 className="mt-1 text-lg font-medium tracking-tight sm:text-xl">{chartTitle}</h2>
                 </div>
                 <div className="flex flex-wrap items-baseline gap-x-3" aria-live="off">
-                  <span className="font-mono text-3xl tracking-tight">{chartQuote ? price(chartQuote.lastPrice) : "—"}</span>
+                  <span className="font-mono text-2xl tracking-tight">{chartQuote ? price(chartQuote.lastPrice) : "—"}</span>
                   {chartQuote && <Change quote={chartQuote} className="text-sm" />}
                 </div>
                 {stats.length > 0 && (
@@ -505,7 +504,7 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
                 )}
               </div>
 
-              {chartsOption && chartQuote && (chartQuote.bids.length > 0 || chartQuote.asks.length > 0) && (
+              {!desk && chartsOption && chartQuote && (chartQuote.bids.length > 0 || chartQuote.asks.length > 0) && (
                 <div className="grid gap-px border-t border-[var(--border)] bg-[var(--border)] sm:grid-cols-2">
                   {([["Bids", chartQuote.bids, "text-[var(--primary)]"], ["Offers", chartQuote.asks, "text-[var(--danger)]"]] as const).map(([title, levels, tone]) => (
                     <table key={title} className="w-full bg-[var(--card-deep)] text-left font-mono text-xs">
@@ -524,27 +523,34 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
           )}
           {!data && !listError && <div className="flex h-[420px] items-center justify-center text-sm text-[var(--muted)]">Loading the chart…</div>}
         </section>
+        {desk && <AccountBlotter desk={desk} onCancel={cancelOrder} onPlace={sendOrder} onModify={modifyOrder} />}
+        </div>
 
         <div className="min-w-0 space-y-4" aria-label="Control panel">
           <section className="terminal-card overflow-hidden" aria-labelledby="chain-title">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-[var(--border)] px-4 py-3">
               <h2 id="chain-title" className="text-sm font-medium">{contractName} options{data?.expiry ? <span className="text-[var(--muted)]"> · {expiryLabel(data.expiry)}</span> : null}</h2>
               {spot !== undefined && data && <p className="font-mono text-xs text-[var(--muted)]">{data.index.label} {price(spot)}</p>}
+              <label className="flex w-full items-center justify-between gap-2 pt-1 text-[11px] text-[var(--muted)]">Strikes around the money
+                <select value={eachSide} onChange={(event) => { const next = Number(event.target.value); if (isStrikesEachSide(next)) setEachSide(next); }} className="min-h-8 rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-2 font-mono text-xs text-[var(--foreground)]">
+                  {STRIKES_EACH_SIDE.map((each) => <option key={each} value={each}>{2 * each + 1}</option>)}
+                </select>
+              </label>
             </div>
             {!data && !listError && <p className="p-4 text-xs text-[var(--muted)]">Loading the option chain…</p>}
             {data && rows.length === 0 && <p className="p-4 text-xs text-[var(--muted)]">No {contractName} options are listed today.</p>}
             {data && rows.length > 0 && (
-              <div className="overflow-x-auto">
+              <div ref={chainBox} className="relative max-h-[min(34rem,calc(100svh-12rem))] overflow-auto">
                 <table className="w-full min-w-[320px] text-xs">
                   <caption className="sr-only">{contractName} calls and puts by strike, with buy and sell. Pick a price to chart that option.</caption>
-                  <thead className="text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
+                  <thead className="sticky top-0 z-10 bg-[var(--card)] text-[10px] uppercase tracking-[0.12em] text-[var(--muted)] shadow-[0_1px_0_var(--border)]">
                     <tr><th scope="col" colSpan={2} className="px-2 py-2 text-right font-normal">Calls</th><th scope="col" className="px-1 py-2 text-center font-normal">Strike</th><th scope="col" colSpan={2} className="px-2 py-2 text-left font-normal">Puts</th></tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]">
                     {rows.map((row) => {
                       const isAtm = row.strike === atm && spot !== undefined;
                       return (
-                        <tr key={row.strike} className={isAtm ? "bg-[var(--primary)]/5" : ""}>
+                        <tr key={row.strike} data-atm={row.strike === atm ? "" : undefined} className={isAtm ? "bg-[var(--primary)]/5" : ""}>
                           <ChainCell contract={row.call} quote={row.call ? quotes[quoteKey(row.call)] : undefined} side="CE" itm={spot !== undefined && row.strike < spot} selected={pick?.strike === row.strike && pick.right === "CE"} onSelect={() => chart(row.strike, "CE")} onTrade={(value) => { select(row.strike, "CE"); trade(value); }} />
                           <th scope="row" className={`px-1 py-1 text-center font-mono text-xs font-medium ${isAtm ? "text-[var(--primary)]" : ""}`}>{strikeText.format(row.strike / 100)}{isAtm && <span className="block font-sans text-[9px] font-normal uppercase tracking-[0.12em]">ATM</span>}</th>
                           <ChainCell contract={row.put} quote={row.put ? quotes[quoteKey(row.put)] : undefined} side="PE" itm={spot !== undefined && row.strike > spot} selected={pick?.strike === row.strike && pick.right === "PE"} onSelect={() => chart(row.strike, "PE")} onTrade={(value) => { select(row.strike, "PE"); trade(value); }} />
@@ -555,7 +561,7 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
                 </table>
               </div>
             )}
-            <p className="border-t border-[var(--border)] px-4 py-2.5 text-[11px] leading-5 text-[var(--faint)]">Pick a price to chart the option; B and S put it on the ticket. Shaded: in the money.</p>
+            <p className="border-t border-[var(--border)] px-4 py-2.5 text-[11px] leading-5 text-[var(--faint)]">Pick a price to chart the option; B and S put it on the ticket. Shaded: in the money. Scroll for more strikes.</p>
           </section>
 
           {desk && account ? (
@@ -571,7 +577,6 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
           <AccountMeters desk={desk} wide />
         </section>
       )}
-      {desk && <AccountBlotter desk={desk} onCancel={cancelOrder} onPlace={sendOrder} onModify={modifyOrder} />}
       <div aria-live="polite" className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2">
         {alerts.map((alert) => (
           <p key={alert.key} role="status" className={`pointer-events-auto rounded-lg border bg-[var(--card-raised)] px-4 py-3 text-xs leading-5 shadow-lg shadow-black/40 ${alert.tone === "good" ? "border-[var(--primary)]/50" : alert.tone === "bad" ? "border-[var(--danger)]/60 text-[var(--danger)]" : "border-[var(--border-strong)]"}`}>{alert.text}</p>

@@ -156,12 +156,12 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   Trader and staff emails follow; My accounts lists both phases with the appropriate meters.
 - The trading platform `/trade/<account>` (and `/markets`, the Trade tab, for the trader's active
   account; `?account=` picks one) is **options only**: NIFTY / BANK NIFTY / SENSEX tabs, an expiry,
-  and an option chain of up to 11 strikes around the money (calls left, puts right, ATM marked, B and S
+  and an option chain of 11, 21, 31 or 41 strikes around the money (21 to start; it scrolls, centred on the money; [chain.ts](src/lib/zerodha/chain.ts)) (calls left, puts right, ATM marked, B and S
   on every option). The chart starts on the index; picking an option's price charts that option
   with its depth, and the chart selector switches back to the index. B and S select the option
   on the ticket without changing the chart. Index charts have no depth, volume or OI panes and
-  cannot be traded. On desktop, the large chart sits beside the chain and ticket, with rule meters
-  below. The ticket takes Market, Limit and Stop-loss orders, and a buy can carry a **stop-loss and
+  cannot be traded. On desktop, the chart sits beside the chain and the ticket (which shows the option's depth),
+  sized to the screen with positions, orders and trades right under it; rule meters below. The ticket takes Market, Limit and Stop-loss orders, and a buy can carry a **stop-loss and
   target**: [desk.ts](src/lib/trading/desk.ts) (`Bracket`, `exitsProblem`) places them as an SL-M
   sell and a limit sell (ids `<buy>-SL` and `<buy>-TP`) once the buy fills, cancels the other when
   one fills (one-cancels-other), cancels both when the position is closed some other way ("Position
