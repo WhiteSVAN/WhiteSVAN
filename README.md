@@ -64,14 +64,17 @@ Temporal Cloud setup, worker commands and deployment instructions: [docs/tempora
   meters, with the engine running on the server. `/markets` (the Trade tab) offers the same for the
   trader's active account. Directional bets only: buy calls or puts and sell only to close them; no
   short options, spreads, or calls and puts on the same index together (across accounts too).
-- `/journal`: total P&L, win rate and trades, a P&L calendar by day with weekly totals, and a note
-  for any day.
-- `/admin` (admins only, granted with `npm run db:admin -- grant <email>`): the firm overview,
-  every trader and account with Sharpe, Sortino, drawdown, win rate, profit factor and expectancy,
-  every fill (filtered, with a CSV export) and the audit log of orders, refusals, breaches and
-  passes. Read-only.
   Prices come from the firm's shared Zerodha login, so every account holder trades while an owner
   has it connected.
+- `/journal`: total P&L, win rate and trades, a P&L calendar by day with weekly totals, and a note
+  for any day.
+- `/admin` (admins only, granted with `npm run db:admin -- grant <email>`): the firm overview;
+  every customer, with one page each for their profile, sign-in methods, referrals, orders and
+  billing details, accounts, payout figures, journal notes and audit trail; billing (every order,
+  with money received kept apart from test-mode, staff and free orders, and a CSV export); every
+  trader and account with Sharpe, Sortino, drawdown, win rate, profit factor and expectancy; every
+  fill (filtered, with a CSV export); and the audit log of orders, refusals, breaches and passes.
+  Read-only, and it never shows passwords or sign-in tokens.
 - My accounts shows evaluation and funded account cards. Passing an evaluation opens its funded
   account once, in the same database transaction; trader and staff notifications follow.
   `/payouts` shows each funded account's buffer, profit split, cap and eligibility prerequisites, without

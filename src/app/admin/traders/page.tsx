@@ -122,7 +122,7 @@ export default async function AdminTradersPage({ searchParams }: { searchParams:
                 {shown.map((trader) => (
                   <tr key={trader.id} className="hover:bg-[var(--card-raised)]">
                     <td className={`${td} max-w-[13rem]`} title={trader.email ?? undefined}>
-                      <Link href={`/admin/traders/${trader.id}`} className="block truncate font-medium hover:underline">{trader.name ?? trader.email}</Link>
+                      <Link href={`/admin/customers/${trader.id}`} className="block truncate font-medium hover:underline">{trader.name ?? trader.email}</Link>
                       {trader.name && <p className="truncate text-[11px] text-[var(--muted)]">{trader.email}</p>}
                     </td>
                     <td className={`${td} text-xs`}>

@@ -46,7 +46,7 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: P
                   <tr key={event.id} className="align-top hover:bg-[var(--card-raised)]">
                     <td className={`${td} text-xs text-[var(--muted)]`}>{istDateTime(event.at)}</td>
                     <td className={td}><KindBadge kind={event.kind} /></td>
-                    <td className={td}><Link href={`/admin/traders/${event.user.id}`} className="hover:underline">{event.user.name ?? event.user.email}</Link></td>
+                    <td className={td}><Link href={`/admin/customers/${event.user.id}`} className="hover:underline">{event.user.name ?? event.user.email}</Link></td>
                     <td className={td}><Link href={`/admin/accounts/${event.accountId}`} className="font-mono text-xs hover:underline">{accountNumber(event.accountId, event.account.planId)}</Link></td>
                     <td className="min-w-72 px-3 py-2.5 text-sm">{eventSummary(event.kind, event.detail)}</td>
                     <td className={`${td} font-mono text-[11px] text-[var(--muted)]`}>{event.orderId ?? ""}</td>
