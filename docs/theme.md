@@ -43,6 +43,8 @@ Keep the token names, so the screens that use them don't need to change.
 | `--chart-up` / `--chart-down` | `#23894a` / `#d63a30` | `#baf277` / `#f2907e` | Candles and volume |
 | `--chart-grid` | 6% ink | 5% white | Chart grid lines |
 | `--chart-mark` | `#b07d12` | `#d8c899` | Average price and open interest on the chart |
+| `--chart-gain` / `--chart-loss` | `#34a35a` / `#ae2f29` | `#5aa95b` / `#b5413b` | Daily P&L bars in the admin portal; validated apart for colour-blind readers |
+| `--chart-line` | `#1f6f3b` | `#73a63a` | Balance lines in the admin portal |
 | `--shadow-card` | soft | deep | Card shadows |
 
 ## Type

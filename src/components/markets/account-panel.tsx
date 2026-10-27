@@ -95,7 +95,7 @@ export function AccountMeters({ desk, wide = false, passNote = "Find your funded
         {payout ? (
           <Meter label="Payout" value={`${rupees(payout.payout)} / ${rupees(rules.payoutCap)}`} detail={`${rules.profitSplitPercent}% of profit above the ${rupees(payout.buffer)} buffer · ${meters.lotsInUse} of ${meters.maxLots} lots in use`} used={payout.payout / rules.payoutCap} />
         ) : (
-          <Meter label="Profit target" value={`${rupees(Math.max(0, meters.profit))} / ${rupees(meters.profitTarget)}`} detail={`${meters.tradingDays} of ${meters.minTradingDays} trading days · ${meters.lotsInUse} of ${meters.maxLots} lots in use`} used={meters.profit / meters.profitTarget} />
+          <Meter label="Profit target" value={`${rupees(Math.max(0, meters.profit))} / ${rupees(meters.profitTarget)}`} detail={`${meters.tradingDays >= meters.minTradingDays ? `${meters.tradingDays} trading ${meters.tradingDays === 1 ? "day" : "days"}, the minimum met` : `${meters.tradingDays} of ${meters.minTradingDays} trading days`} · ${meters.lotsInUse} of ${meters.maxLots} lots in use`} used={meters.profit / meters.profitTarget} />
         )}
       </div>
       {desk.state.breach && (

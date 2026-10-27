@@ -201,6 +201,31 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   days (`state.days`) plus today so far; trade counts from `Desk.dayTrades` (fills per IST date,
   counted by `deskStep`); `settledDesk` closes a day nobody closed, for display only. Notes are
   `JournalNote` rows (one per trader and date, across accounts; saved by `saveDayNote`).
+- **Admin portal** (`/admin`, read-only; 27 Oct 2026): Overview (headline figures, accounts near a
+  limit, waiting passes, today's breaches and refusals, the best traders by Sharpe with at least
+  `RANKING_MIN_DAYS` (5) trading days, the latest audit events), Traders (sortable: P&L, days,
+  Sharpe, Sortino, max drawdown, win rate, profit factor, expectancy, last trade, flags), a trader
+  (their accounts as one book, each account, round trips, audit trail), an account (risk now, every
+  quant figure, the closing balance against the drawdown floor, daily P&L, days, breach report,
+  round trips, fills, audit trail), Trades (every fill, filtered, with a CSV export at
+  `/admin/trades/export`) and the Audit log. **Access:** `User.isAdmin`, granted and revoked only
+  with `npm run db:admin -- grant|revoke <email>` (never in the app, never from `STAFF_EMAILS` or an
+  email alone); `requireAdmin` in [src/lib/auth/dal.ts](src/lib/auth/dal.ts) reads the flag on every
+  request, sends signed-out visitors to sign in (back to `/admin`) and answers everyone else with a
+  404. The layout and every page and route check it; each view and export is logged
+  (`admin.view`, `admin.export`). Data comes from [src/lib/admin/book.ts](src/lib/admin/book.ts)
+  (the desks' engine state as last saved, never settled or written by the portal, plus the audit
+  tables); filters live in the address (`filters.ts`), so a filtered view is a link.
+- **Trade and activity audit:** every save of a desk (`saveDesk` in
+  [src/lib/accounts/store.ts](src/lib/accounts/store.ts)) records what it added, in the same
+  transaction: each fill as an `AccountFill` and each order placed, modified, cancelled or
+  rejected, breach and pass as an `AccountEvent` (`auditDelta` in
+  [src/lib/accounts/audit.ts](src/lib/accounts/audit.ts), diffing the desk before and after). The
+  orders route adds `ORDER_REFUSED` for orders the trading policy refused before the engine (such
+  as a hedge across accounts). Event keys are unique per account, so a retried write records once;
+  the migration `20261027100000_admin_audit` backfilled what the desks held with the same keys. The
+  desk keeps only its latest 200 fills and orders; these tables keep everything and are never
+  updated.
 - **Not built yet:** GST invoices and refunds, the always-on engine service with a
   licensed market-data feed, KYC, funded agreements, bank verification, payout processing and the
   copy engine. The spec is the Notion page
@@ -248,6 +273,15 @@ result. The future engine service (Node on AWS with the market-data feed) hosts 
 - `payouts.ts`: payout quote: 80% of profit above the buffer (= max drawdown), capped per request,
   available whenever eligible profit is earned, with KYC / agreement / bank / hold checks.
   There is no calendar-cycle restriction. TDS is not computed here.
+- `performance.ts`: quant performance for the admin portal. Daily returns (net P&L over the day's
+  opening balance, rebuilt from the starting balance), Sharpe and Sortino (annualized over √252
+  trading days, risk-free rate 0, days with a fill only), volatility, max drawdown (₹ and share of
+  the high), Calmar, best-day share; `pooledStats` treats a trader's accounts as one book (summed
+  net over summed opening balance by date, drawdown on the compounded index); `tradeCycles` groups
+  fills into round trips (flat to flat per contract, net of every charge) for win rate, payoff,
+  profit factor, expectancy and holding time. Ratios need two days and are null where undefined, so
+  a short record never shows a made-up figure. Payout debits, once paid, must be added back when
+  rebuilding balances.
 - Lot, tick and freeze sizes and expiries come from the contract master (`Instrument` rows). Tests
   use fixture values, not exchange values.
 - The Academy rule practice ([src/lib/academy-practice.ts](src/lib/academy-practice.ts)) runs these
@@ -365,8 +399,11 @@ Prisma schema: [prisma/schema.prisma](prisma/schema.prisma). Two groups:
   paise, provider `free`, `test`, `razorpay`, `razorpay-test` (or legacy `demo`), billing (name,
   mobile and state, the GST place of supply; nullable, since only paid orders ask for them) and
   unique provider order/payment references.
-  `JournalNote` (a trader's note on a date, `@@unique([userId, date])`). There are no payout
-  tables yet (see the TRD's data model).
+  `JournalNote` (a trader's note on a date, `@@unique([userId, date])`). `AccountFill` (every fill,
+  amounts in paise as the engine has them, IST `tradeDate`, `@@unique([accountId, fillId])`) and
+  `AccountEvent` (orders, refusals, breaches and passes, `kind` an enum, `detail` JSON,
+  `@@unique([accountId, key])`) are the append-only audit; `User.isAdmin` opens `/admin`. There
+  are no payout tables yet (see the TRD's data model).
 
 Money is `Decimal(18,2)`; prices `Decimal(18,6)`; quantity `Decimal(18,4)`. Dates that are
 calendar-only use `@db.Date`. All domain rows cascade-delete from their owner.
@@ -378,6 +415,8 @@ npm run db:up         # start Postgres (docker compose up -d)
 npm run db:migrate    # prisma migrate dev   (apply/create migrations)
 npm run db:generate   # regenerate Prisma client into src/generated/prisma
 npm run db:studio     # Prisma Studio
+npm run db:admin -- grant <email>   # admin portal access (revoke <email>, list); production: run with
+                                    # DATABASE_URL set to the production database, once per admin
 npm run dev           # Next.js dev server
 npm test              # vitest run        (tests are src/**/*.test.ts, colocated)
 npm run test:watch
@@ -477,6 +516,10 @@ metadata gates access without exposing private evidence files.
   evaluations, up to 5 funded accounts open at once and waiting passes with activation; and
   payment-flow wording fixes from a site review (checkout stays signed in after a refused or
   closed payment, the consent line, receipts that don't claim an email went out).
+- ✅ **Admin portal (27 Oct 2026)**: `/admin` for admins only (`npm run db:admin`): firm overview,
+  traders and accounts with Sharpe, Sortino, drawdown, win rate, profit factor and expectancy,
+  every fill (filtered, CSV export) and the audit log of orders, refusals, breaches and passes,
+  written with each desk save and backfilled from the desks.
 - **Next (see the Notion TRD and sprint stories):** contract master (S1-10, S2-06), the engine
   service with Redis and a replay provider, real merchant activation and payment reconciliation,
   GST invoices/refunds, KYC and funded agreements, bank verification, payouts with TDS, then the

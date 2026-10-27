@@ -19,6 +19,7 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx scripts/seed-demo.ts",
     "db:set-password": "tsx scripts/set-password.ts",
+    "db:admin": "tsx scripts/admin.ts",
     "temporal:check": "tsx scripts/temporal/check.ts",
     "temporal:smoke": "tsx scripts/temporal/check.ts --smoke",
     "temporal:worker": "tsx scripts/temporal/worker.ts",

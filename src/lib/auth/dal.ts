@@ -6,7 +6,7 @@
  * the session read within a single render pass.
  */
 import { cache } from "react";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 
@@ -70,6 +70,20 @@ export const requireTrader = cache(async () => {
   const user = await requireOnboardedUser();
   if (user.role !== "TRADER" || !user.profile) redirect("/dashboard");
   return { ...user, profile: user.profile };
+});
+
+/**
+ * A signed-in admin (User.isAdmin, granted only from the command line: npm run db:admin), for the
+ * admin portal. Signed out goes to sign-in and back to the portal's overview (the layout checks
+ * first, so the overview, not the page asked for); anyone else gets a 404, so the portal doesn't
+ * reveal itself. The flag is read on every request, not kept in the session, so a revoke is at once.
+ */
+export const requireAdmin = cache(async () => {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login?next=%2Fadmin");
+  const admin = await prisma.user.findUnique({ where: { id: session.user.id }, select: { id: true, email: true, name: true, isAdmin: true } });
+  if (!admin?.isAdmin) notFound();
+  return admin;
 });
 
 /** Session user id or null — for public pages that adapt when signed in. */
