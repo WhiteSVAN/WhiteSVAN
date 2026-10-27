@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
+import { TradingWorkspace } from "@/components/markets/trading-workspace";
 import { PriceChart } from "@/components/markets/price-chart";
-import { AccountBlotter, AccountMeters, AccountTicket, type OrderInput } from "@/components/markets/account-panel";
+import { AccountBlotter, AccountSummary, AccountTicket, OrderBook, type OrderInput, type PickedPrice } from "@/components/markets/account-panel";
 import { foldTick, type Candle, type Interval, type LiveTick } from "@/lib/market-data/candles";
 import { chartLines, type Desk, type DeskNote } from "@/lib/trading/desk";
 import type { EngineOutput, OrderChanges } from "@/lib/trading/engine";
@@ -86,11 +87,12 @@ function Change({ quote, className = "" }: { quote: MarketQuote; className?: str
   );
 }
 
-function Choice<T extends string | number>({ label, value, options, onChange }: { label: string; value: T; options: readonly (readonly [T, string])[]; onChange: (value: T) => void }) {
+/** A row of toggle buttons; an option's third entry, when given, is its full name. */
+function Choice<T extends string | number>({ label, value, options, onChange, className = "" }: { label: string; value: T; options: readonly (readonly [T, string, string?])[]; onChange: (value: T) => void; className?: string }) {
   return (
-    <div role="group" aria-label={label} className="flex flex-wrap rounded-lg border border-[var(--border)] bg-[var(--card-deep)] p-1">
-      {options.map(([option, text]) => (
-        <button key={String(option)} type="button" aria-pressed={option === value} onClick={() => onChange(option)} className={`min-h-9 rounded-md px-3 font-mono text-xs transition ${option === value ? "bg-[var(--ink)] text-[var(--ink-foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
+    <div role="group" aria-label={label} className={`flex flex-wrap rounded-lg border border-[var(--border)] bg-[var(--card-deep)] p-0.5 ${className}`}>
+      {options.map(([option, text, name]) => (
+        <button key={String(option)} type="button" aria-pressed={option === value} aria-label={name} title={name} onClick={() => onChange(option)} className={`min-h-7 whitespace-nowrap rounded-md px-2 font-mono text-[11px] transition ${option === value ? "bg-[var(--ink)] text-[var(--ink-foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
           {text}
         </button>
       ))}
@@ -98,7 +100,7 @@ function Choice<T extends string | number>({ label, value, options, onChange }: 
   );
 }
 
-const selectClass = "mt-1 min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-3 font-mono text-xs text-[var(--foreground)] sm:w-auto";
+const selectClass = "min-h-8 rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-2 font-mono text-[11px] text-[var(--foreground)]";
 
 /** The shared login ended mid-session. Owners get the login link (`loginHref`); everyone else waits for them. */
 function SessionEnded({ message, loginHref }: { message: string; loginHref: string | null }) {
@@ -115,11 +117,13 @@ function SessionEnded({ message, loginHref }: { message: string; loginHref: stri
 /** Where Buy and Sell send someone without an account. */
 function OpenEvaluation() {
   return (
-    <aside id="order-ticket" className="terminal-card flex scroll-mt-24 flex-col gap-4 p-5" aria-label="Trade">
-      <p className="terminal-label">Order ticket</p>
-      <h2 className="text-lg font-medium tracking-tight">Start an evaluation to place orders</h2>
-      <p className="text-sm leading-6 text-[var(--muted)]">Your demo account trades these options on live prices, with this ticket, positions and a full order book.</p>
-      <Link id="open-evaluation" href="/checkout" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]">Start an evaluation</Link>
+    <aside id="order-ticket" className="terminal-card flex scroll-mt-24 flex-col overflow-hidden" aria-label="Order ticket">
+      <div className="flex h-11 shrink-0 items-center border-b border-[var(--border)] px-3"><h2 className="text-sm font-medium">Order ticket</h2></div>
+      <div className="space-y-3 p-3">
+        <p className="font-medium">Start an evaluation to place orders</p>
+        <p className="text-sm leading-6 text-[var(--muted)]">Your demo account trades these options on live prices, with this ticket, positions and a full order book.</p>
+        <Link id="open-evaluation" href="/checkout" className="inline-flex min-h-10 w-full items-center justify-center rounded-full bg-[var(--ink)] px-5 text-sm font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)]">Start an evaluation</Link>
+      </div>
     </aside>
   );
 }
@@ -163,14 +167,16 @@ function newNotes(previous: readonly DeskNote[], next: readonly DeskNote[]): Des
 const withParam = (path: string, name: string, value: string) => `${path}${path.includes("?") ? "&" : "?"}${name}=${encodeURIComponent(value)}`;
 
 /**
- * Options trading on live prices for NIFTY, BANK NIFTY and SENSEX. The chart is the main view (the
- * index, or the option picked in the chain, with its depth); beside it a control panel holds the
- * option chain around the money, with Buy and Sell on every option, and the order ticket. With an
- * `account`, the account's meters and its positions, orders and trades follow, and each poll feeds
- * the account on the server. `canConnect` marks an owner, who can reconnect the price feed when it
- * ends. `home` is the page to come back to; `accounts` lets someone with several accounts switch.
+ * Options trading on live prices for NIFTY, BANK NIFTY and SENSEX, as a workspace of panels the
+ * trader can arrange (TradingWorkspace): the chart (the index, or the option picked in the chain),
+ * the option chain around the money with Buy and Sell on every option, the picked option's order
+ * book and the order ticket. With an `account`, the account bar carries its figures and rule
+ * meters, its positions, orders and trades sit under the chart, and each poll feeds the account on
+ * the server. `header` opens the account bar (the page's title). `canConnect` marks an owner, who
+ * can reconnect the price feed when it ends. `home` is the page to come back to; `accounts` lets
+ * someone with several accounts switch.
  */
-export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }: { account?: { id: string; desk: Desk; planLabel: string }; canConnect: boolean; home?: string; accounts?: { id: string; label: string; href: string }[] }) {
+export function ZerodhaCharts({ header, account, canConnect, home: homePath, accounts }: { header?: ReactNode; account?: { id: string; desk: Desk }; canConnect: boolean; home?: string; accounts?: { id: string; label: string; href: string }[] }) {
   const [underlying, setUnderlying] = useState<Underlying>("NIFTY");
   const [barInterval, setBarInterval] = useState<Interval>("5minute");
   const [expiryChoice, setExpiryChoice] = useState<string | null>(null);
@@ -225,6 +231,8 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
     return () => clearTimeout(timer);
   }, [alerts]);
   const [side, setSide] = useState<Side>("BUY");
+  /** The last price picked in the order book, for the ticket's limit. */
+  const [picked, setPicked] = useState<PickedPrice | null>(null);
   const accountId = account?.id ?? null;
 
   const data = list?.underlying === underlying ? list : null;
@@ -397,6 +405,11 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
     document.getElementById("order-ticket")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     document.getElementById(desk ? "ticket-lots" : "open-evaluation")?.focus({ preventScroll: true });
   };
+  /** A price picked in the order book becomes the ticket's limit price. */
+  const pickPrice = (paise: number) => {
+    setPicked((last) => ({ price: paise, key: (last?.key ?? 0) + 1 }));
+    setTimeout(() => document.getElementById("ticket-limit")?.focus(), 0);
+  };
   const restart = () => {
     userPicked.current = false;
     centred.current = false;
@@ -424,74 +437,55 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
   const fresh = chartQuote && polledAt !== null && marketHours(polledAt) && polledAt - (chartQuote.lastTradeAt ?? chartQuote.at) < 60_000;
   const intervalName = INTERVAL_CHOICES.find(([value]) => value === barInterval)?.[2] ?? barInterval;
   const contractName = UNDERLYINGS[underlying].contractName;
-  const chartChoices: (readonly [Charted, string])[] = [["index", data?.index.label ?? UNDERLYINGS[underlying].label], ...(contract && label ? [["option", label] as const] : [])];
+  const chartChoices: (readonly [Charted, string, string?])[] = [
+    ["index", data?.index.label ?? UNDERLYINGS[underlying].label],
+    ...(contract && label ? [["option", `${strikeText.format((contract.strike ?? 0) / 100)} ${contract.kind}`, label] as const] : []),
+  ];
   const stats: [string, string][] = chartQuote
-    ? [["Open", price(chartQuote.open)], ["High", price(chartQuote.high)], ["Low", price(chartQuote.low)], ["Prev close", price(chartQuote.previousClose)], ...(chartsOption ? [["Volume", countText.format(chartQuote.volume)], ["Open interest", chartQuote.oi !== null ? countText.format(chartQuote.oi) : "—"]] as [string, string][] : [])]
+    ? [["Open", price(chartQuote.open)], ["High", price(chartQuote.high)], ["Low", price(chartQuote.low)], ["Prev close", price(chartQuote.previousClose)], ...(chartsOption ? [["Volume", countText.format(chartQuote.volume)], ["OI", chartQuote.oi !== null ? countText.format(chartQuote.oi) : "—"]] as [string, string][] : [])]
     : [];
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3">
-        <Choice label="Index" value={underlying} options={UNDERLYING_ORDER.map((name) => [name, UNDERLYINGS[name].contractName] as const)} onChange={chooseUnderlying} />
-        {data && data.expiries.length > 0 && (
-          <label className="text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Expiry
-            <select value={data.expiry ?? ""} onChange={(event) => chooseExpiry(event.target.value)} className={`${selectClass} block`}>
-              {data.expiries.map((expiry) => <option key={expiry} value={expiry}>{expiryLabel(expiry)}</option>)}
-            </select>
-          </label>
-        )}
-        {accounts && accounts.length > 1 && account && (
-          <label className="text-[10px] uppercase tracking-[0.12em] text-[var(--muted)] sm:ml-auto">Account
-            <select value={account.id} onChange={(event) => { const next = accounts.find((item) => item.id === event.target.value); if (next) router.push(next.href); }} className={`${selectClass} block normal-case tracking-normal`}>
-              {accounts.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
-            </select>
-          </label>
-        )}
-      </div>
-
+    <div className="space-y-3">
       {listError && !data && (
-        <p role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--danger)]/40 p-4 text-sm text-[var(--danger)]">
+        <p role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--danger)]/40 p-3 text-sm text-[var(--danger)]">
           {listError}
           <button type="button" onClick={() => setReloads((count) => count + 1)} className="inline-flex items-center gap-1.5 text-xs underline"><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Try again</button>
         </p>
       )}
-
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]">
-        {/* The chart, then the orders window right under it, so both fit a laptop screen. */}
-        <div className="min-w-0 space-y-4">
-        <section className="terminal-card min-w-0 overflow-hidden" aria-label={chartTitle ? `${chartTitle} chart` : "Chart"}>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-3 py-3 sm:px-4">
-            {data ? <Choice label="Chart" value={chartsOption ? "option" : "index"} options={chartChoices} onChange={setCharted} /> : <span className="text-sm text-[var(--muted)]">Loading {contractName} options…</span>}
-            <Choice label="Candle interval" value={barInterval} options={INTERVAL_CHOICES.map(([value, short]) => [value, short] as const)} onChange={setBarInterval} />
+      <TradingWorkspace
+        header={header}
+        toolbar={accounts && accounts.length > 1 && account ? (
+          <label className="flex items-center gap-2 text-[11px] text-[var(--muted)]">Account
+            <select value={account.id} onChange={(event) => { const next = accounts.find((item) => item.id === event.target.value); if (next) router.push(next.href); }} className={selectClass}>
+              {accounts.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+            </select>
+          </label>
+        ) : undefined}
+        metrics={desk ? <AccountSummary desk={desk} /> : undefined}
+        chart={
+        <section className="ws-chart-panel terminal-card min-w-0 overflow-hidden" aria-label={chartTitle ? `${chartTitle} chart` : "Chart"}>
+          {/* One header row like every panel's: the index, what's charted, and the candle interval. */}
+          <div className="flex min-h-11 flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-[var(--border)] px-2 py-1">
+            <Choice label="Index" value={underlying} options={UNDERLYING_ORDER.map((name) => [name, UNDERLYINGS[name].contractName] as const)} onChange={chooseUnderlying} />
+            {data && <Choice label="Chart" value={chartsOption ? "option" : "index"} options={chartChoices} onChange={setCharted} />}
+            <Choice label="Candle interval" value={barInterval} options={INTERVAL_CHOICES.map(([value, short]) => [value, short] as const)} onChange={setBarInterval} className="ml-auto" />
           </div>
           {data && (
             <>
-              <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-2 px-4 py-3 sm:px-5">
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">{chartsOption ? contract.tradingSymbol : "Index"}</p>
-                  <h2 className="mt-1 text-lg font-medium tracking-tight sm:text-xl">{chartTitle}</h2>
-                </div>
-                <div className="flex flex-wrap items-baseline gap-x-3" aria-live="off">
-                  <span className="font-mono text-2xl tracking-tight">{chartQuote ? price(chartQuote.lastPrice) : "—"}</span>
-                  {chartQuote && <Change quote={chartQuote} className="text-sm" />}
-                </div>
-                {stats.length > 0 && (
-                  <dl className="grid w-full grid-cols-3 gap-x-6 gap-y-3 text-xs sm:grid-cols-6">
-                    {stats.map(([term, value]) => (
-                      <div key={term}><dt className="text-[var(--muted)]">{term}</dt><dd className="mt-1 font-mono text-sm">{value}</dd></div>
-                    ))}
-                  </dl>
-                )}
-                <p className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted)]">
-                  <span className="inline-flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${fresh ? "bg-[var(--primary)]" : "bg-[var(--faint)]"}`} aria-hidden="true" />{fresh ? "Live" : polledAt !== null && !marketHours(polledAt) ? "Market closed" : "Waiting for prices"}</span>
-                  {chartQuote && <span>Last update {clockText.format(chartQuote.lastTradeAt ?? chartQuote.at)} IST</span>}
-                  {chartsOption && <span>Lot {contract.lotSize} · tick ₹{(contract.tickSize / 100).toFixed(2)}</span>}
-                  {quoteError && <span className="text-[var(--warning)]">{quoteError}</span>}
-                </p>
+              <div className="flex flex-wrap items-baseline gap-x-4 gap-y-0.5 border-b border-[var(--border)] px-3 py-1.5 text-[11px] text-[var(--muted)]">
+                <h2 className="sr-only">{chartTitle}</h2>
+                <span className="font-mono text-sm text-[var(--foreground)]" aria-live="off">{chartQuote ? price(chartQuote.lastPrice) : "—"}</span>
+                {chartQuote && <Change quote={chartQuote} className="text-[11px]" />}
+                <span className="inline-flex items-center gap-1.5 self-center"><span className={`h-1.5 w-1.5 rounded-full ${fresh ? "bg-[var(--primary)]" : "bg-[var(--faint)]"}`} aria-hidden="true" />{fresh ? "Live" : polledAt !== null && !marketHours(polledAt) ? "Market closed" : "Waiting for prices"}</span>
+                {chartQuote && <span>Last update {clockText.format(chartQuote.lastTradeAt ?? chartQuote.at)} IST</span>}
+                {stats.map(([term, value]) => <span key={term}>{term} <span className="font-mono text-[var(--foreground)]">{value}</span></span>)}
+                {chartsOption && <span>Lot {contract.lotSize} · tick ₹{(contract.tickSize / 100).toFixed(2)}</span>}
+                {quoteError && <span className="text-[var(--warning)]">{quoteError}</span>}
               </div>
 
-              <div className="relative px-1 pt-2 sm:px-2">
-                <PriceChart key={chartsOption ? "option" : "index"} candles={candles ?? NO_CANDLES} live={liveCandle} interval={barInterval} minMove={chartsOption ? contract.tickSize / 100 : 0.05} derivative={chartsOption} label={`${chartTitle}, ${intervalName} candles`} lines={chartsOption && desk ? chartLines(desk, contract.token) : undefined} />
+              <div className="ws-chart-body relative min-h-0 px-1 pt-1">
+                <PriceChart fill key={chartsOption ? "option" : "index"} candles={candles ?? NO_CANDLES} live={liveCandle} interval={barInterval} minMove={chartsOption ? contract.tickSize / 100 : 0.05} derivative={chartsOption} label={`${chartTitle}, ${intervalName} candles`} lines={chartsOption && desk ? chartLines(desk, contract.token) : undefined} />
                 {!candles && (
                   <div className="absolute inset-0 flex items-center justify-center bg-[var(--background)]/60 text-sm text-[var(--muted)]">
                     {failed ? (
@@ -503,36 +497,27 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
                   </div>
                 )}
               </div>
-
-              {!desk && chartsOption && chartQuote && (chartQuote.bids.length > 0 || chartQuote.asks.length > 0) && (
-                <div className="grid gap-px border-t border-[var(--border)] bg-[var(--border)] sm:grid-cols-2">
-                  {([["Bids", chartQuote.bids, "text-[var(--primary)]"], ["Offers", chartQuote.asks, "text-[var(--danger)]"]] as const).map(([title, levels, tone]) => (
-                    <table key={title} className="w-full bg-[var(--card-deep)] text-left font-mono text-xs">
-                      <caption className="px-4 pb-1 pt-3 text-left font-sans text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">{title}</caption>
-                      <thead className="text-[var(--muted)]"><tr><th scope="col" className="px-4 py-1.5 font-normal">Price</th><th scope="col" className="px-4 py-1.5 text-right font-normal">Qty</th><th scope="col" className="px-4 py-1.5 text-right font-normal">Orders</th></tr></thead>
-                      <tbody>
-                        {levels.map((level) => (
-                          <tr key={level.price}><td className={`px-4 py-1.5 ${tone}`}>{price(level.price)}</td><td className="px-4 py-1.5 text-right">{level.quantity.toLocaleString("en-IN")}</td><td className="px-4 py-1.5 text-right text-[var(--muted)]">{level.orders}</td></tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  ))}
-                </div>
-              )}
             </>
           )}
-          {!data && !listError && <div className="flex h-[420px] items-center justify-center text-sm text-[var(--muted)]">Loading the chart…</div>}
+          {!data && !listError && <div className="ws-chart-body flex h-[22rem] items-center justify-center text-sm text-[var(--muted)] lg:h-auto">Loading {contractName} options…</div>}
         </section>
-        {desk && <AccountBlotter desk={desk} onCancel={cancelOrder} onPlace={sendOrder} onModify={modifyOrder} />}
-        </div>
-
-        <div className="min-w-0 space-y-4" aria-label="Control panel">
-          <section className="terminal-card overflow-hidden" aria-labelledby="chain-title">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-[var(--border)] px-4 py-3">
-              <h2 id="chain-title" className="text-sm font-medium">{contractName} options{data?.expiry ? <span className="text-[var(--muted)]"> · {expiryLabel(data.expiry)}</span> : null}</h2>
-              {spot !== undefined && data && <p className="font-mono text-xs text-[var(--muted)]">{data.index.label} {price(spot)}</p>}
-              <label className="flex w-full items-center justify-between gap-2 pt-1 text-[11px] text-[var(--muted)]">Strikes around the money
-                <select value={eachSide} onChange={(event) => { const next = Number(event.target.value); if (isStrikesEachSide(next)) setEachSide(next); }} className="min-h-8 rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-2 font-mono text-xs text-[var(--foreground)]">
+        }
+        chain={
+          <section className="ws-chain-panel terminal-card overflow-hidden" aria-labelledby="chain-title">
+            <div className="flex h-11 items-center justify-between gap-3 border-b border-[var(--border)] px-3">
+              <h2 id="chain-title" className="text-sm font-medium">{contractName} options</h2>
+              {spot !== undefined && data && <p className="truncate font-mono text-[11px] text-[var(--muted)]">{data.index.label} {price(spot)}</p>}
+            </div>
+            <div className="flex items-center gap-3 border-b border-[var(--border)] px-3 py-2 text-[11px] text-[var(--muted)]">
+              {data && data.expiries.length > 0 && (
+                <label className="flex min-w-0 flex-1 items-center gap-2">Expiry
+                  <select value={data.expiry ?? ""} onChange={(event) => chooseExpiry(event.target.value)} className={`${selectClass} min-w-0 flex-1`}>
+                    {data.expiries.map((expiry) => <option key={expiry} value={expiry}>{expiryLabel(expiry)}</option>)}
+                  </select>
+                </label>
+              )}
+              <label className="ml-auto flex shrink-0 items-center gap-2" title="Strikes around the money">Strikes
+                <select value={eachSide} onChange={(event) => { const next = Number(event.target.value); if (isStrikesEachSide(next)) setEachSide(next); }} className={selectClass}>
                   {STRIKES_EACH_SIDE.map((each) => <option key={each} value={each}>{2 * each + 1}</option>)}
                 </select>
               </label>
@@ -540,7 +525,7 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
             {!data && !listError && <p className="p-4 text-xs text-[var(--muted)]">Loading the option chain…</p>}
             {data && rows.length === 0 && <p className="p-4 text-xs text-[var(--muted)]">No {contractName} options are listed today.</p>}
             {data && rows.length > 0 && (
-              <div ref={chainBox} className="relative max-h-[min(34rem,calc(100svh-12rem))] overflow-auto">
+              <div ref={chainBox} className="chain-scroll relative max-h-[34rem] overflow-auto">
                 <table className="w-full min-w-[320px] text-xs">
                   <caption className="sr-only">{contractName} calls and puts by strike, with buy and sell. Pick a price to chart that option.</caption>
                   <thead className="sticky top-0 z-10 bg-[var(--card)] text-[10px] uppercase tracking-[0.12em] text-[var(--muted)] shadow-[0_1px_0_var(--border)]">
@@ -561,22 +546,13 @@ export function ZerodhaCharts({ account, canConnect, home: homePath, accounts }:
                 </table>
               </div>
             )}
-            <p className="border-t border-[var(--border)] px-4 py-2.5 text-[11px] leading-5 text-[var(--faint)]">Pick a price to chart the option; B and S put it on the ticket. Shaded: in the money. Scroll for more strikes.</p>
+            <p className="border-t border-[var(--border)] px-3 py-2 text-[11px] leading-4 text-[var(--faint)]">Pick a price to chart the option; B and S put it on the ticket. Shaded: in the money.</p>
           </section>
-
-          {desk && account ? (
-            <AccountTicket desk={desk} planLabel={account.planLabel} contract={contract} label={label} quote={quote} side={side} onSide={setSide} onPlace={sendOrder} />
-          ) : (
-            <OpenEvaluation />
-          )}
-        </div>
-      </div>
-
-      {desk && (
-        <section className="terminal-card space-y-4 p-5" aria-label="Account rules">
-          <AccountMeters desk={desk} wide />
-        </section>
-      )}
+        }
+        book={<OrderBook quote={quote} label={label} onPrice={desk && account ? pickPrice : undefined} />}
+        ticket={desk && account ? <AccountTicket desk={desk} contract={contract} label={label} quote={quote} side={side} onSide={setSide} onPlace={sendOrder} picked={picked} /> : <OpenEvaluation />}
+        orders={desk ? <AccountBlotter desk={desk} onCancel={cancelOrder} onPlace={sendOrder} onModify={modifyOrder} /> : undefined}
+      />
       <div aria-live="polite" className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2">
         {alerts.map((alert) => (
           <p key={alert.key} role="status" className={`pointer-events-auto rounded-lg border bg-[var(--card-raised)] px-4 py-3 text-xs leading-5 shadow-lg shadow-black/40 ${alert.tone === "good" ? "border-[var(--primary)]/50" : alert.tone === "bad" ? "border-[var(--danger)]/60 text-[var(--danger)]" : "border-[var(--border-strong)]"}`}>{alert.text}</p>

@@ -390,6 +390,87 @@ button[type="submit"][class*="bg-zinc-900"] {
   .prop-header-theme { display: none; }
 }
 
+/*
+ * The trading platform's workspace (src/components/markets/trading-workspace.tsx). Its pages use
+ * the whole window; on laptops and desktops the workspace fills the screen below where it starts
+ * (--workspace-top), and its panels sit in a grid arranged as the trader picks
+ * (src/lib/trade-layout.ts): data-arrangement is auto, three, two or stacked, data-chart left or
+ * right, and data-orders, data-meters and data-expanded show or hide parts. Panels scroll inside
+ * themselves, so their edges line up. Phones stack the panels. Layout never touches trading state.
+ */
+.app-shell:has([data-workspace]) .app-frame { max-width: none; }
+.app-shell:has([data-workspace]) main.app-frame { padding-top: 1rem; padding-bottom: 1rem; }
+.workspace [hidden] { display: none !important; }
+.workspace .terminal-card { border-radius: 0.6rem; }
+.workspace[data-meters="off"] .ws-meter { display: none; }
+/* The unlayered `font: inherit` on controls further down outranks Tailwind's text utilities; the workspace's compact controls keep their sizes. */
+.workspace :is(button, input, select, textarea, summary) { font: revert-layer; }
+.workspace :is(.ws-side, .ws-right, .chain-scroll, .blotter-body) { scrollbar-width: thin; }
+.ws-chart-canvas { height: 22rem; }
+.ws-splitter:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.ws-chain-panel > :not(.chain-scroll), .ws-chart-panel > :not(.ws-chart-body) { flex-shrink: 0; }
+
+@media (min-width: 64rem) {
+  .app-shell:has([data-workspace]) .app-frame { padding-inline: 1rem; }
+  .workspace { height: calc(100svh - var(--workspace-top, 9rem) - 1rem); min-height: 38rem; }
+  .workspace[data-arrangement="stacked"] { min-height: 55rem; }
+  .workspace-grid { flex: 1 1 0; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .ws-main { display: flex; flex-direction: column; min-height: 0; grid-area: main; }
+  .ws-chart { flex: 1 1 0; min-height: 20rem; }
+  .ws-chart-panel, .ws-chain-panel { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+  .ws-chart-body { flex: 1 1 0; }
+  .ws-price-chart, .ws-chart-canvas { height: 100%; min-height: 0; }
+  .ws-orders { flex: none; height: min(var(--orders-height), max(8.75rem, calc(100% - 20.75rem))); min-height: 8.75rem; }
+  .ws-orders .account-blotter { height: 100%; display: flex; flex-direction: column; }
+  .ws-orders .account-blotter > :not(.blotter-body) { flex-shrink: 0; }
+  .ws-orders .blotter-body { flex: 1 1 0; min-height: 0; max-height: none; }
+  .workspace[data-orders="off"] .ws-splitter { display: none; }
+  .ws-chain { grid-area: chain; min-height: 0; }
+  .chain-scroll { flex: 1 1 0; min-height: 0; max-height: none; }
+  .ws-side { grid-area: side; min-height: 0; overflow-y: auto; }
+
+  /* Two columns, and three columns too until there is room for them (80rem picked, 85rem automatic). */
+  .workspace:is([data-arrangement="two"], [data-arrangement="three"], [data-arrangement="auto"]) .workspace-grid { grid-template-columns: minmax(0, 1fr) 24rem; grid-template-areas: "main right"; }
+  .workspace:is([data-arrangement="two"], [data-arrangement="three"], [data-arrangement="auto"])[data-chart="right"] .workspace-grid { grid-template-columns: 24rem minmax(0, 1fr); grid-template-areas: "right main"; }
+  .ws-right { display: flex; flex-direction: column; gap: 0.75rem; grid-area: right; min-height: 0; overflow-y: auto; }
+  .ws-chain { flex: none; height: 26rem; }
+  .ws-side { overflow: visible; flex: none; }
+
+  .workspace[data-arrangement="stacked"] .workspace-grid { grid-template-columns: 21rem 20rem minmax(0, 1fr); grid-template-rows: minmax(20rem, 1.2fr) minmax(20rem, 1fr); grid-template-areas: "chart chart chart" "chain side orders"; }
+  .workspace[data-arrangement="stacked"][data-orders="off"] .workspace-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "chart chart" "chain side"; }
+  .workspace[data-arrangement="stacked"] :is(.ws-main, .ws-right) { display: contents; }
+  .workspace[data-arrangement="stacked"] .ws-chart { grid-area: chart; }
+  .workspace[data-arrangement="stacked"] .ws-orders { grid-area: orders; height: auto; min-height: 0; }
+  .workspace[data-arrangement="stacked"] .ws-splitter { display: none; }
+  .workspace[data-arrangement="stacked"] .ws-chain { height: auto; }
+  .workspace[data-arrangement="stacked"] .ws-side { overflow-y: auto; }
+}
+
+/* Three columns: the chart and orders, the option chain, then the order book and ticket. Picked, from 80rem; automatic, from 85rem. */
+@media (min-width: 80rem) {
+  .workspace[data-arrangement="three"] .workspace-grid { grid-template-columns: minmax(0, 1fr) 21rem 20rem; grid-template-areas: "main chain side"; }
+  .workspace[data-arrangement="three"][data-chart="right"] .workspace-grid { grid-template-columns: 20rem 21rem minmax(0, 1fr); grid-template-areas: "side chain main"; }
+  .workspace[data-arrangement="three"] .ws-right { display: contents; }
+  .workspace[data-arrangement="three"] .ws-chain { height: auto; }
+  .workspace[data-arrangement="three"] .ws-side { overflow-y: auto; }
+}
+
+@media (min-width: 85rem) {
+  .workspace[data-arrangement="auto"] .workspace-grid { grid-template-columns: minmax(0, 1fr) 21rem 20rem; grid-template-areas: "main chain side"; }
+  .workspace[data-arrangement="auto"][data-chart="right"] .workspace-grid { grid-template-columns: 20rem 21rem minmax(0, 1fr); grid-template-areas: "side chain main"; }
+  .workspace[data-arrangement="auto"] .ws-right { display: contents; }
+  .workspace[data-arrangement="auto"] .ws-chain { height: auto; }
+  .workspace[data-arrangement="auto"] .ws-side { overflow-y: auto; }
+}
+
+@media (min-width: 64rem) {
+  .workspace[data-expanded] .workspace-grid { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: minmax(0, 1fr); grid-template-areas: "main" !important; }
+  .workspace[data-expanded] .ws-main { display: flex; }
+  .workspace[data-expanded] .ws-chart { grid-area: auto; }
+  .workspace[data-expanded] :is(.ws-orders, .ws-splitter, .ws-right) { display: none; }
+}
+
+
 /* Every app control gets the same intentional motion and focus treatment. */
 button,
 a[class*="rounded"],

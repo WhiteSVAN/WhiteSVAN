@@ -64,43 +64,151 @@ export function Meter({ label, value, detail, used, danger = false }: { label: s
   );
 }
 
-/** "Demo account" while it's an evaluation, "Funded account" once funded. */
-export const accountKind = (desk: Desk) => (desk.state.phase === "FUNDED" ? "Funded account" : "Demo account");
-
-/** An option's five best bids and offers side by side, best first: the ticket's order book. */
-export function MarketDepth({ quote, className = "" }: { quote: MarketQuote; className?: string }) {
-  const levels = Array.from({ length: Math.max(quote.bids.length, quote.asks.length) }, (_, index) => [quote.bids[index], quote.asks[index]] as const);
-  if (levels.length === 0) return null;
-  const quantity = (level: { quantity: number } | undefined) => (level ? level.quantity.toLocaleString("en-IN") : "");
+/**
+ * The order book of the option on the ticket: its five best bids and offers, laid out as Kite shows
+ * market depth, with a bar for the size at each price and the totals. With `onPrice`, picking a
+ * price puts it on the ticket as the limit price.
+ */
+export function OrderBook({ quote, label, onPrice }: { quote: MarketQuote | undefined; label: string | null; onPrice?: (price: number) => void }) {
+  const bids = quote?.bids ?? [];
+  const asks = quote?.asks ?? [];
+  const rows = Math.max(bids.length, asks.length);
+  const largest = Math.max(1, ...bids.map((level) => level.quantity), ...asks.map((level) => level.quantity));
+  const total = (levels: readonly { quantity: number }[]) => levels.reduce((sum, level) => sum + level.quantity, 0).toLocaleString("en-IN");
+  const cell = "px-2 py-1";
+  const priceOf = (level: { price: number }, toneClass: string) => (onPrice
+    ? <button type="button" onClick={() => onPrice(level.price)} aria-label={`Use ${price(level.price)} as the limit price`} className={`-mx-1 rounded px-1 ${toneClass} hover:bg-[var(--card-raised)]`}>{price(level.price)}</button>
+    : <span className={toneClass}>{price(level.price)}</span>);
+  const size = (level: { quantity: number } | undefined, bar: string) => (
+    <td className={`${cell} relative text-right`}>
+      {level && <span aria-hidden="true" className={`absolute inset-y-0.5 right-0 rounded-sm ${bar}`} style={{ width: `${((level.quantity / largest) * 100).toFixed(1)}%` }} />}
+      <span className="relative">{level ? level.quantity.toLocaleString("en-IN") : ""}</span>
+    </td>
+  );
   return (
-    <table className={`w-full font-mono text-[11px] ${className}`}>
-      <caption className="pb-1 text-left font-sans text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Market depth</caption>
-      <thead className="text-[var(--muted)]">
-        <tr>
-          <th scope="col" className="py-1 text-left font-normal">Bid</th>
-          <th scope="col" className="py-1 pr-3 text-right font-normal">Qty</th>
-          <th scope="col" className="border-l border-[var(--border)] py-1 pl-3 text-left font-normal">Offer</th>
-          <th scope="col" className="py-1 text-right font-normal">Qty</th>
-        </tr>
-      </thead>
-      <tbody>
-        {levels.map(([bid, ask], index) => (
-          <tr key={index}>
-            <td className="py-0.5 text-[var(--primary)]">{bid ? price(bid.price) : "—"}</td>
-            <td className="py-0.5 pr-3 text-right">{quantity(bid)}</td>
-            <td className="border-l border-[var(--border)] py-0.5 pl-3 text-[var(--danger)]">{ask ? price(ask.price) : "—"}</td>
-            <td className="py-0.5 text-right">{quantity(ask)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <section className="terminal-card flex flex-col overflow-hidden" aria-labelledby="book-title">
+      <div className="flex h-11 shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] px-3">
+        <h2 id="book-title" className="text-sm font-medium">Order book</h2>
+        {label && <span className="truncate font-mono text-[11px] text-[var(--muted)]">{label}</span>}
+      </div>
+      {!label ? <p className="p-3 text-xs text-[var(--muted)]">Pick an option from the chain to see its order book.</p>
+        : rows === 0 ? <p className="p-3 text-xs text-[var(--muted)]">Waiting for the order book.</p>
+        : (
+          <table className="w-full font-mono text-[11px] tabular-nums">
+            <caption className="sr-only">The five best bids and offers for {label}.{onPrice ? " Pick a price to use it as your limit price." : ""}</caption>
+            <thead className="text-[var(--muted)]">
+              <tr>
+                <th scope="col" className={`${cell} text-left font-normal`}>Bid</th>
+                <th scope="col" className={`${cell} text-right font-normal`}>Orders</th>
+                <th scope="col" className={`${cell} text-right font-normal`}>Qty</th>
+                <th scope="col" className={`${cell} border-l border-[var(--border)] text-left font-normal`}>Offer</th>
+                <th scope="col" className={`${cell} text-right font-normal`}>Orders</th>
+                <th scope="col" className={`${cell} text-right font-normal`}>Qty</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: rows }, (_, index) => {
+                const bid = bids[index];
+                const ask = asks[index];
+                return (
+                  <tr key={index}>
+                    <td className={cell}>{bid ? priceOf(bid, "text-[var(--primary)]") : "—"}</td>
+                    <td className={`${cell} text-right text-[var(--muted)]`}>{bid?.orders ?? ""}</td>
+                    {size(bid, "bg-[var(--primary)]/15")}
+                    <td className={`${cell} border-l border-[var(--border)]`}>{ask ? priceOf(ask, "text-[var(--danger)]") : "—"}</td>
+                    <td className={`${cell} text-right text-[var(--muted)]`}>{ask?.orders ?? ""}</td>
+                    {size(ask, "bg-[var(--danger)]/15")}
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot className="border-t border-[var(--border)] text-[var(--muted)]">
+              <tr>
+                <td colSpan={2} className={cell}>Total</td>
+                <td className={`${cell} text-right text-[var(--foreground)]`}>{total(bids)}</td>
+                <td colSpan={2} className={`${cell} border-l border-[var(--border)]`}>Total</td>
+                <td className={`${cell} text-right text-[var(--foreground)]`}>{total(asks)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        )}
+    </section>
+  );
+}
+
+/** The breach report or the pass, under an account's figures. A passed evaluation says what comes next (`passNote`). */
+function AccountNotices({ desk, passNote }: { desk: Desk; passNote: string | null }) {
+  return (
+    <>
+      {desk.state.breach && (
+        <p role="alert" className="rounded-md border border-[var(--danger)]/40 p-3 text-xs leading-5 text-[var(--danger)]">
+          {desk.state.breach.rules.map((rule) => (rule === "DAILY_LOSS" ? "Daily loss limit" : "Max drawdown")).join(" and ")} hit on {desk.state.breach.date} at equity {rupees(desk.state.breach.equity)}. The account is closed to new orders.
+        </p>
+      )}
+      {desk.state.status === "PASSED" && (
+        <p role="status" className="rounded-md border border-[var(--primary)]/40 p-3 text-xs leading-5 text-[var(--primary)]">Passed on {desk.state.passedOn}.{passNote && ` ${passNote}`}</p>
+      )}
+    </>
+  );
+}
+
+/** One figure in the platform's account bar. */
+function Figure({ label, value, className = "" }: { label: string; value: string; className?: string }) {
+  return <div><dt className="text-[10px] text-[var(--muted)]">{label}</dt><dd className={`mt-0.5 font-mono text-xs tabular-nums ${className}`}>{value}</dd></div>;
+}
+
+/** A rule meter in the platform's account bar: its figure and a thin bar of how much is used; the detail is in its title. */
+function BarMeter({ label, value, detail, used, danger = false }: { label: string; value: string; detail: string; used: number; danger?: boolean }) {
+  const width = `${Math.min(100, Math.max(0, used * 100)).toFixed(1)}%`;
+  return (
+    <div className="ws-meter min-w-[8.5rem]" title={detail}>
+      <dt className="text-[10px] text-[var(--muted)]">{label}</dt>
+      <dd className="mt-0.5 font-mono text-xs tabular-nums">
+        {value}<span className="sr-only">. {detail}</span>
+        <span aria-hidden="true" className="mt-1 block h-1 overflow-hidden rounded-full bg-[var(--border)]"><span className={`block h-full rounded-full ${danger ? "bg-[var(--danger)]" : "bg-[var(--primary)]"}`} style={{ width }} /></span>
+      </dd>
+    </div>
   );
 }
 
 /**
- * The account's balance and rule meters, shared by the platform and the dashboard. A demo account
- * (the evaluation) tracks the profit target; a funded account tracks what it can pay out. A passed
- * evaluation says what comes next (`passNote`): My accounts says it about its own funded account.
+ * The account in one line above the trading platform, as prop platforms show it: the balance, open
+ * and today's P&L, then the rule meters (daily loss, max drawdown, and the profit target or the
+ * payout), with the breach report or the pass below. The meters carry `ws-meter`, so the layout menu
+ * can hide them.
+ */
+export function AccountSummary({ desk }: { desk: Desk }) {
+  const meters = riskMeters(desk.state);
+  const { rules } = desk.state;
+  const payout = desk.state.phase === "FUNDED" ? payoutAmounts(rules, Math.max(0, meters.balance - rules.startingBalance)) : null;
+  const today = meters.todayNet + meters.unrealised;
+  const room = Math.max(0, meters.roomToFloor);
+  const days = meters.tradingDays >= meters.minTradingDays ? `${meters.tradingDays} trading ${meters.tradingDays === 1 ? "day" : "days"}, the minimum met` : `${meters.tradingDays} of ${meters.minTradingDays} trading days`;
+  const lots = `${meters.lotsInUse} of ${meters.maxLots} lots in use`;
+  return (
+    <>
+      <dl aria-label="Account" className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        <Figure label="Balance" value={rupees(meters.balance)} />
+        <Figure label="Open P&L" value={signed(meters.unrealised)} className={tone(meters.unrealised)} />
+        <Figure label="Today" value={signed(today)} className={tone(today)} />
+        <BarMeter label="Daily loss" value={`${rupees(meters.dailyLossUsed)} / ${rupees(meters.dailyLossLimit)}`} detail={`${rupees(meters.dailyLossLeft)} left today, counting open P&L`} used={meters.dailyLossUsed / meters.dailyLossLimit} danger />
+        <BarMeter label="Max drawdown" value={`${rupees(room)} room`} detail={`Floor ${rupees(meters.maxLossFloor)}`} used={1 - room / rules.maxLoss} danger />
+        {payout ? (
+          <BarMeter label="Payout" value={`${rupees(payout.payout)} / ${rupees(rules.payoutCap)}`} detail={`${rules.profitSplitPercent}% of profit above the ${rupees(payout.buffer)} buffer · ${lots}`} used={payout.payout / rules.payoutCap} />
+        ) : (
+          <BarMeter label="Profit target" value={`${rupees(Math.max(0, meters.profit))} / ${rupees(meters.profitTarget)}`} detail={`${days} · ${lots}`} used={meters.profit / meters.profitTarget} />
+        )}
+      </dl>
+      {(desk.state.breach || desk.state.status === "PASSED") && <div className="basis-full space-y-2"><AccountNotices desk={desk} passNote="Find your funded account in My accounts." /></div>}
+    </>
+  );
+}
+
+/**
+ * The account's balance and rule meters, for My accounts, the admin pages and the platform while
+ * prices are offline. A demo account (the evaluation) tracks the profit target; a funded account
+ * tracks what it can pay out. A passed evaluation says what comes next (`passNote`): My accounts
+ * says it about its own funded account.
  */
 export function AccountMeters({ desk, wide = false, passNote = "Find your funded account in My accounts." }: { desk: Desk; wide?: boolean; passNote?: string | null }) {
   const meters = riskMeters(desk.state);
@@ -128,23 +236,23 @@ export function AccountMeters({ desk, wide = false, passNote = "Find your funded
           <Meter label="Profit target" value={`${rupees(Math.max(0, meters.profit))} / ${rupees(meters.profitTarget)}`} detail={`${meters.tradingDays >= meters.minTradingDays ? `${meters.tradingDays} trading ${meters.tradingDays === 1 ? "day" : "days"}, the minimum met` : `${meters.tradingDays} of ${meters.minTradingDays} trading days`} · ${meters.lotsInUse} of ${meters.maxLots} lots in use`} used={meters.profit / meters.profitTarget} />
         )}
       </div>
-      {desk.state.breach && (
-        <p role="alert" className="rounded-md border border-[var(--danger)]/40 p-3 text-xs leading-5 text-[var(--danger)]">
-          {desk.state.breach.rules.map((rule) => (rule === "DAILY_LOSS" ? "Daily loss limit" : "Max drawdown")).join(" and ")} hit on {desk.state.breach.date} at equity {rupees(desk.state.breach.equity)}. The account is closed to new orders.
-        </p>
-      )}
-      {desk.state.status === "PASSED" && (
-        <p role="status" className="rounded-md border border-[var(--primary)]/40 p-3 text-xs leading-5 text-[var(--primary)]">Passed on {desk.state.passedOn}.{passNote && ` ${passNote}`}</p>
-      )}
+      <AccountNotices desk={desk} passNote={passNote} />
     </>
   );
 }
 
+/** A price picked in the order book for the ticket's limit; `key` counts the picks, so picking the same price again still applies. */
+export interface PickedPrice {
+  price: number;
+  key: number;
+}
+
 /**
- * The order ticket for the selected option (`label` names it), under the account's name and
- * status. The side is the caller's, so the option chain's Buy and Sell can set it.
+ * The order ticket for the selected option (`label` names it), with the account's status. The side
+ * is the caller's, so the option chain's Buy and Sell can set it; a price picked in the order book
+ * (`picked`) becomes the limit price.
  */
-export function AccountTicket({ desk, planLabel, contract, label, quote, side, onSide, onPlace }: { desk: Desk; planLabel: string; contract: KiteContract | null; label: string | null; quote: MarketQuote | undefined; side: Side; onSide: (side: Side) => void; onPlace: (order: OrderInput) => Promise<EngineOutput[]> }) {
+export function AccountTicket({ desk, contract, label, quote, side, onSide, onPlace, picked = null }: { desk: Desk; contract: KiteContract | null; label: string | null; quote: MarketQuote | undefined; side: Side; onSide: (side: Side) => void; onPlace: (order: OrderInput) => Promise<EngineOutput[]>; picked?: PickedPrice | null }) {
   const [type, setType] = useState<OrderType>("MARKET");
   const [lots, setLots] = useState(1);
   const [limitInput, setLimitInput] = useState("");
@@ -154,6 +262,13 @@ export function AccountTicket({ desk, planLabel, contract, label, quote, side, o
   const [targetInput, setTargetInput] = useState("");
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState<{ tone: "good" | "bad" | "info"; text: string } | null>(null);
+  // A new pick from the order book sets the limit price, turning a market order into a limit order.
+  const [pickApplied, setPickApplied] = useState(picked?.key ?? 0);
+  if (picked && picked.key !== pickApplied) {
+    setPickApplied(picked.key);
+    setLimitInput((picked.price / 100).toFixed(2));
+    if (type === "MARKET") setType("LIMIT");
+  }
 
   const { rules } = desk.state;
   const status = STATUS_BADGE[desk.state.status];
@@ -212,57 +327,56 @@ export function AccountTicket({ desk, planLabel, contract, label, quote, side, o
     }
   };
 
-  const field = "mt-1 min-h-10 w-full rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-3 font-mono text-sm text-[var(--foreground)]";
+  const field = "mt-1 min-h-9 w-full rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-2.5 font-mono text-sm text-[var(--foreground)]";
   const bestBid = quote?.bids[0]?.price;
   const bestAsk = quote?.asks[0]?.price;
 
   return (
-    <aside id="order-ticket" className="terminal-card flex scroll-mt-24 flex-col gap-5 p-5" aria-label="Account and order ticket">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="terminal-label">{accountKind(desk)}</p>
-          <p className="mt-1 text-sm font-medium">{planLabel} · {rules.maxLots} lot{rules.maxLots === 1 ? "" : "s"}</p>
-        </div>
-        <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${status.className}`}>{status.text}</span>
+    <aside id="order-ticket" className="terminal-card flex scroll-mt-24 flex-col overflow-hidden" aria-label="Order ticket">
+      <div className="flex h-11 shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] px-3">
+        <h2 className="text-sm font-medium">Order ticket</h2>
+        <span className={`rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${status.className}`}>{status.text}</span>
       </div>
 
-      <div className="border-t border-[var(--border)] pt-4">
+      <div className="p-3">
         {contract ? (
           <form onSubmit={(event) => { event.preventDefault(); void submit(); }} className="space-y-3">
             <div>
               <p className="font-mono text-sm">{label}</p>
               <p className="mt-0.5 text-xs text-[var(--muted)]">Lot {contract.lotSize} · {bestBid !== undefined && bestAsk !== undefined ? <>bid <span className="font-mono text-[var(--primary)]">{price(bestBid)}</span> · ask <span className="font-mono text-[var(--danger)]">{price(bestAsk)}</span></> : "waiting for prices"}</p>
             </div>
-            {quote && <MarketDepth quote={quote} className="rounded-md bg-[var(--card-deep)] px-3 py-2" />}
             <div className="grid grid-cols-2 gap-2" role="group" aria-label="Side">
               {(["BUY", "SELL"] as const).map((value) => (
-                <button key={value} type="button" aria-pressed={side === value} onClick={() => onSide(value)} className={`min-h-10 rounded-md border text-sm font-medium ${side === value ? (value === "BUY" ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]" : "border-[var(--danger)] bg-[var(--danger)] text-[var(--danger-foreground)]") : "border-[var(--border-strong)] text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
+                <button key={value} type="button" aria-pressed={side === value} onClick={() => onSide(value)} className={`min-h-9 rounded-md border text-sm font-medium ${side === value ? (value === "BUY" ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]" : "border-[var(--danger)] bg-[var(--danger)] text-[var(--danger-foreground)]") : "border-[var(--border-strong)] text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
                   {value === "BUY" ? "Buy" : "Sell"}
                 </button>
               ))}
             </div>
-            <div className="flex flex-wrap rounded-lg border border-[var(--border)] bg-[var(--card-deep)] p-1" role="group" aria-label="Order type">
+            <div className="flex flex-wrap rounded-lg border border-[var(--border)] bg-[var(--card-deep)] p-0.5" role="group" aria-label="Order type">
               {ORDER_TYPES.map(([value, text]) => (
                 <button key={value} type="button" aria-pressed={type === value} onClick={() => setType(value)} className={`min-h-8 flex-1 whitespace-nowrap rounded-md px-2 font-mono text-xs ${type === value ? "bg-[var(--card-raised)] text-[var(--foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`}>{text}</button>
               ))}
             </div>
-            <label className="block text-xs text-[var(--muted)]">Lots ({lots * contract.lotSize} units)
-              <input id="ticket-lots" type="number" min={1} max={rules.maxLots} step={1} value={lots} onChange={(event) => setLots(Math.min(rules.maxLots, Math.max(1, Math.round(Number(event.target.value) || 1))))} className={field} />
-            </label>
-            {withLimit && (
-              <label className="block text-xs text-[var(--muted)]">Limit price (₹)
-                <input inputMode="decimal" value={limitInput} onChange={(event) => setLimitInput(event.target.value)} placeholder={quote ? price(quote.lastPrice) : ""} aria-invalid={Boolean(limitInput && limitProblem)} className={field} />
-                {limitInput && limitProblem && <span className="mt-1 block text-[var(--danger)]">{limitProblem}</span>}
+            <div className="grid grid-cols-2 gap-2">
+              {/* Lots sit beside a limit price; a stop-loss order puts its trigger and limit together below. */}
+              <label className={`block text-xs text-[var(--muted)] ${withLimit && !withTrigger ? "" : "col-span-2"}`}>Lots, up to {rules.maxLots} ({lots * contract.lotSize} units)
+                <input id="ticket-lots" type="number" min={1} max={rules.maxLots} step={1} value={lots} onChange={(event) => setLots(Math.min(rules.maxLots, Math.max(1, Math.round(Number(event.target.value) || 1))))} className={field} />
               </label>
-            )}
-            {withTrigger && (
-              <label className="block text-xs text-[var(--muted)]">Trigger price (₹)
-                <input inputMode="decimal" value={triggerInput} onChange={(event) => setTriggerInput(event.target.value)} placeholder={quote ? price(quote.lastPrice) : ""} aria-invalid={Boolean(triggerInput && triggerProblem)} className={field} />
-                {triggerInput && triggerProblem && <span className="mt-1 block text-[var(--danger)]">{triggerProblem}</span>}
-              </label>
-            )}
+              {withTrigger && (
+                <label className="block text-xs text-[var(--muted)]">Trigger (₹)
+                  <input inputMode="decimal" value={triggerInput} onChange={(event) => setTriggerInput(event.target.value)} placeholder={quote ? price(quote.lastPrice) : ""} aria-invalid={Boolean(triggerInput && triggerProblem)} className={field} />
+                  {triggerInput && triggerProblem && <span className="mt-1 block text-[var(--danger)]">{triggerProblem}</span>}
+                </label>
+              )}
+              {withLimit && (
+                <label className="block text-xs text-[var(--muted)]">Limit (₹)
+                  <input id="ticket-limit" inputMode="decimal" value={limitInput} onChange={(event) => setLimitInput(event.target.value)} placeholder={quote ? price(quote.lastPrice) : ""} aria-invalid={Boolean(limitInput && limitProblem)} className={field} />
+                  {limitInput && limitProblem && <span className="mt-1 block text-[var(--danger)]">{limitProblem}</span>}
+                </label>
+              )}
+            </div>
             {side === "BUY" && (
-              <fieldset className="rounded-md border border-[var(--border)] p-3">
+              <fieldset className="rounded-md border border-[var(--border)] p-2.5">
                 <legend className="sr-only">Stop-loss and target</legend>
                 <label className="flex items-center gap-2 text-xs">
                   <input id="ticket-exits" type="checkbox" checked={exitsOn} onChange={(event) => setExitsOn(event.target.checked)} className="h-4 w-4 accent-[var(--primary)]" />
@@ -284,7 +398,7 @@ export function AccountTicket({ desk, planLabel, contract, label, quote, side, o
                 )}
               </fieldset>
             )}
-            <button type="submit" disabled={!ready} className={`min-h-11 w-full rounded-lg text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${side === "BUY" ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]" : "bg-[var(--danger)] text-[var(--danger-foreground)] hover:opacity-90"}`}>
+            <button type="submit" disabled={!ready} className={`min-h-10 w-full rounded-lg text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${side === "BUY" ? "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]" : "bg-[var(--danger)] text-[var(--danger-foreground)] hover:opacity-90"}`}>
               {pending ? "Placing…" : action}
             </button>
             <p aria-live="polite" className={`min-h-5 text-xs leading-5 ${result?.tone === "bad" ? "text-[var(--danger)]" : result?.tone === "good" ? "text-[var(--primary)]" : "text-[var(--muted)]"}`}>{result?.text}</p>
@@ -294,7 +408,7 @@ export function AccountTicket({ desk, planLabel, contract, label, quote, side, o
         )}
       </div>
 
-      <p className="border-t border-[var(--border)] pt-3 text-xs leading-5 text-[var(--muted)]">Simulated fills against the live order book, with slippage and charges. Buy calls or puts; sell only to close. Keep this page open while you hold positions: orders, stops and the 15:20 square-off run while it&apos;s open.</p>
+      <p className="mt-auto border-t border-[var(--border)] px-3 py-2.5 text-[11px] leading-4 text-[var(--muted)]">Fills follow the live order book, with slippage and charges. Buy calls or puts; sell only to close. Keep this page open while you hold positions: orders, stops and the 15:20 square-off run while it&apos;s open.</p>
     </aside>
   );
 }
@@ -432,7 +546,7 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
     ["orders", "Orders", orders.length],
     ["trades", "Trades", desk.fills.length],
   ];
-  const cell = "px-4 py-2.5";
+  const cell = "px-3 py-2";
   const head = `${cell} font-normal text-[var(--muted)]`;
   const action = "rounded border border-[var(--border-strong)] px-2 py-1 font-sans hover:bg-[var(--card-raised)] disabled:opacity-40";
   const sideText = (side: Side) => <span className={side === "BUY" ? "text-[var(--primary)]" : "text-[var(--danger)]"}>{side === "BUY" ? "Buy" : "Sell"}</span>;
@@ -446,16 +560,16 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
   };
 
   return (
-    <section className="terminal-card overflow-hidden" aria-label="Positions, orders and trades">
-      <div className="flex gap-1 overflow-x-auto border-b border-[var(--border)] px-3 pt-2" role="tablist" aria-label="Positions, orders and trades">
+    <section className="account-blotter terminal-card overflow-hidden" aria-label="Positions, orders and trades">
+      <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-[var(--border)] px-2" role="tablist" aria-label="Positions, orders and trades">
         {tabs.map(([value, label, count]) => (
-          <button key={value} type="button" role="tab" aria-selected={tab === value} onClick={() => setTab(value)} className={`min-h-10 shrink-0 border-b-2 px-3 text-xs font-medium ${tab === value ? "border-[var(--primary)] text-[var(--foreground)]" : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
+          <button key={value} type="button" role="tab" aria-selected={tab === value} onClick={() => setTab(value)} className={`h-[43px] shrink-0 border-b-2 px-3 text-xs font-medium ${tab === value ? "border-[var(--primary)] text-[var(--foreground)]" : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"}`}>
             {label} <span className="font-mono text-[var(--faint)]">{count}</span>
           </button>
         ))}
       </div>
       {error && <p role="alert" className="border-b border-[var(--border)] px-4 py-2 text-xs text-[var(--danger)]">{error}</p>}
-      <div className="max-h-[28rem] overflow-auto" role="tabpanel">
+      <div className="blotter-body max-h-[28rem] overflow-auto" role="tabpanel">
         {tab === "positions" && (
           <>
             <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-[var(--border)] px-4 py-3">
@@ -471,7 +585,7 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
               <button type="button" disabled={!active || open.length === 0 || exiting} onClick={() => void exitAll()} className="min-h-9 rounded-md border border-[var(--danger)]/60 px-3 text-xs font-medium text-[var(--danger)] hover:bg-[var(--danger)]/10 disabled:cursor-not-allowed disabled:opacity-40">{exiting ? "Exiting…" : "Exit all"}</button>
             </div>
             {positions.length === 0 ? <p className="p-5 text-xs text-[var(--muted)]">No positions today. Buy an option from the chain to open one.</p> : (
-              <table className="w-full min-w-[820px] text-left font-mono text-xs">
+              <table className="w-full min-w-[640px] text-left font-mono text-xs">
                 <thead><tr>{["Contract", "Net qty", "Bought", "Sold", "LTP", "Stop / target", "P&L", ""].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
                 <tbody className="divide-y divide-[var(--border)]">
                   {positions.map((position) => {
@@ -481,12 +595,12 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
                     return (
                       <tr key={position.token} className={position.quantity === 0 ? "text-[var(--muted)]" : ""}>
                         <td className={cell}>{position.tradingSymbol}</td>
-                        <td className={`${cell} ${position.quantity > 0 ? "text-[var(--primary)]" : position.quantity < 0 ? "text-[var(--danger)]" : ""}`}>{position.quantity > 0 ? "+" : ""}{position.quantity}{lots !== null && position.quantity !== 0 ? <span className="text-[var(--faint)]"> ({lots} lot{Math.abs(lots) === 1 ? "" : "s"})</span> : null}</td>
+                        <td className={`${cell} ${position.quantity > 0 ? "text-[var(--primary)]" : position.quantity < 0 ? "text-[var(--danger)]" : ""}`}>{position.quantity > 0 ? "+" : ""}{position.quantity}{lots !== null && position.quantity !== 0 ? <>{" "}<span className="whitespace-nowrap text-[var(--faint)]">({lots} lot{Math.abs(lots) === 1 ? "" : "s"})</span></> : null}</td>
                         <td className={cell}>{position.buyQuantity > 0 ? `${position.buyQuantity} @ ${average(position.buyValue, position.buyQuantity)}` : "—"}</td>
                         <td className={cell}>{position.sellQuantity > 0 ? `${position.sellQuantity} @ ${average(position.sellValue, position.sellQuantity)}` : "—"}</td>
                         <td className={cell}>{price(position.mark)}</td>
                         <td className={`${cell} whitespace-nowrap`}>{exitsText(position.token)}</td>
-                        <td className={`${cell} ${tone(pnl)}`}>{signed(pnl)}</td>
+                        <td className={`${cell} whitespace-nowrap ${tone(pnl)}`}>{signed(pnl)}</td>
                         <td className={`${cell} text-right`}>{exit && <button type="button" disabled={!active} onClick={() => run(onPlace(exit))} className={action}>Exit</button>}</td>
                       </tr>
                     );
@@ -500,7 +614,7 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
         {tab === "orders" && (
           <>
             {orders.length === 0 ? <p className="border-b border-[var(--border)] p-5 text-xs text-[var(--muted)]">No working orders. Limit and stop-loss orders wait here until they fill.</p> : (
-              <table className="w-full min-w-[680px] text-left font-mono text-xs">
+              <table className="w-full min-w-[600px] text-left font-mono text-xs">
                 <caption className="px-4 pb-1 pt-3 text-left font-sans text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Working</caption>
                 <thead><tr>{["Placed", "Contract", "Side", "Type", "Lots", "Limit", "Trigger", ""].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
                 <tbody className="divide-y divide-[var(--border)]">
@@ -525,7 +639,7 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
               </table>
             )}
             {history.length > 0 && (
-              <table className="w-full min-w-[760px] text-left font-mono text-xs">
+              <table className="w-full min-w-[640px] text-left font-mono text-xs">
                 <caption className="px-4 pb-1 pt-3 text-left font-sans text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">History</caption>
                 <thead><tr>{["Time", "Contract", "Side", "Type", "Qty", "Price", "Avg", "Status"].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
                 <tbody className="divide-y divide-[var(--border)]">

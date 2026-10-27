@@ -155,13 +155,25 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   it waits. The funded account starts afresh with no profit target and the plan's current rules.
   Trader and staff emails follow; My accounts lists both phases with the appropriate meters.
 - The trading platform `/trade/<account>` (and `/markets`, the Trade tab, for the trader's active
-  account; `?account=` picks one) is **options only**: NIFTY / BANK NIFTY / SENSEX tabs, an expiry,
-  and an option chain of 11, 21, 31 or 41 strikes around the money (21 to start; it scrolls, centred on the money; [chain.ts](src/lib/zerodha/chain.ts)) (calls left, puts right, ATM marked, B and S
-  on every option). The chart starts on the index; picking an option's price charts that option
-  with its depth, and the chart selector switches back to the index. B and S select the option
-  on the ticket without changing the chart. Index charts have no depth, volume or OI panes and
-  cannot be traded. On desktop, the chart sits beside the chain and the ticket (which shows the option's depth),
-  sized to the screen with positions, orders and trades right under it; rule meters below. The ticket takes Market, Limit and Stop-loss orders, and a buy can carry a **stop-loss and
+  account; `?account=` picks one) is **options only**: NIFTY / BANK NIFTY / SENSEX tabs (in the
+  chart's header), an expiry, and an option chain of 11, 21, 31 or 41 strikes around the money (21 to start; it scrolls, centred on the money; [chain.ts](src/lib/zerodha/chain.ts)) (calls left, puts right, ATM marked, B and S
+  on every option). The chart starts on the index; picking an option's price charts that option,
+  and the chart selector switches back to the index. B and S select the option
+  on the ticket without changing the chart. Index charts have no volume or OI panes and
+  cannot be traded. On laptops and desktops the platform is a **workspace** that fills the window,
+  Topstep-style ([trading-workspace.tsx](src/components/markets/trading-workspace.tsx), `.workspace`
+  in globals.css): an account bar (the page's title, then balance, open and today's P&L and the
+  three rule meters as thin bars, with any breach or pass notice), then the chart with the
+  positions, orders and trades window under it (a splitter between them: drag, or arrow keys), the
+  option chain, and the **order book** (the picked option's five best bids and offers, Kite-style,
+  with size bars and totals; picking a price makes it the ticket's limit) above the ticket. Every
+  panel opens with the same 44px header row and scrolls inside itself, so edges line up. **Layout**
+  (the account bar's menu, saved in the browser by [src/lib/trade-layout.ts](src/lib/trade-layout.ts)):
+  Automatic (two columns below 1360px, three from there), Three columns (from 1280px), Two columns
+  or Chart on top; the chart left or right; the order book, the orders window and the rule meters on
+  or off; and Expand chart (Escape restores). Phones stack the panels. The global unlayered
+  `font: inherit` on controls outranks Tailwind's text utilities, so buttons elsewhere ignore their
+  `text-*` sizes; the workspace sets `font: revert-layer` on its controls. The ticket takes Market, Limit and Stop-loss orders, and a buy can carry a **stop-loss and
   target**: [desk.ts](src/lib/trading/desk.ts) (`Bracket`, `exitsProblem`) places them as an SL-M
   sell and a limit sell (ids `<buy>-SL` and `<buy>-TP`) once the buy fills, cancels the other when
   one fills (one-cancels-other), cancels both when the position is closed some other way ("Position

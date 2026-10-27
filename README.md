@@ -56,12 +56,15 @@ Temporal Cloud setup, worker commands and deployment instructions: [docs/tempora
 - Themes: White and Dark, in the Manus style, following the device until a visitor picks one (the
   header toggle, the footer and the account menu). Every colour is a token in
   `src/app/globals.css`; [docs/theme.md](docs/theme.md) lists them for touch-ups.
-- `/trade/<account>`: the options trading platform for an evaluation or funded account: an option chain
-  with Buy and Sell on every strike, an index chart first (switch to an option's chart and depth),
-  the order ticket (Market, Limit, Stop-loss, and a stop-loss and target on any buy, each cancelling
-  the other), the position's average, stop-loss and target drawn on the chart, fill alerts,
-  today's positions with realised and open P&L, orders you can modify or cancel, trades, and the rule
-  meters, with the engine running on the server. `/markets` (the Trade tab) offers the same for the
+- `/trade/<account>`: the options trading platform for an evaluation or funded account, a workspace
+  that fills the screen: an account bar with the balance, P&L and rule meters; the chart (the index
+  first, or any option) with today's positions, orders and trades under it; an option chain with Buy
+  and Sell on every strike; the option's order book (pick a price for a limit order); and the order
+  ticket (Market, Limit, Stop-loss, and a stop-loss and target on any buy, each cancelling the
+  other). The position's average, stop-loss and target are drawn on the chart, fills pop up as
+  alerts, and the engine runs on the server. Layout, saved in the browser: three columns, two
+  columns or the chart on top, the chart left or right, panels on or off, and an expanded chart.
+  `/markets` (the Trade tab) offers the same for the
   trader's active account. Directional bets only: buy calls or puts and sell only to close them; no
   short options, spreads, or calls and puts on the same index together (across accounts too).
 - `/journal`: total P&L, win rate and trades, a P&L calendar by day with weekly totals, and a note
