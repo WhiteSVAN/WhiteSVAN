@@ -125,7 +125,7 @@ export function RuleBook() {
                 </tbody>
               </table>
             </div>
-            <p className="mt-4 text-sm text-[var(--muted)]">Account sizes are simulated balances. Every size has the same rules; only the amounts change.</p>
+            <p className="mt-4 text-sm text-[var(--muted)]">Every size has the same rules; only the amounts change.</p>
             <Link href={`/checkout/${plan.id}`} className="prop-button mt-6">Start the {plan.label} evaluation <ArrowRight size={16} aria-hidden="true" /></Link>
           </section>
         </div>

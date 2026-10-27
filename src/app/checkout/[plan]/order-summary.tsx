@@ -30,7 +30,7 @@ export function OrderSummary({ plan, mode }: { plan: EvaluationPlan; mode: Check
         {summary.map(([term, value]) => <div key={term} className="flex justify-between gap-4 py-3"><dt className="text-[var(--muted)]">{term}</dt><dd className="font-mono text-xs sm:text-sm">{value}</dd></div>)}
       </dl>
       <Link href="/rules" target="_blank" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-[var(--primary)]">Every rule, in plain words <ArrowRight size={14} aria-hidden="true" /></Link>
-      <p className="mt-6 flex gap-2.5 text-xs leading-5 text-[var(--muted)]"><ShieldCheck size={14} className="mt-0.5 shrink-0" aria-hidden="true" />Evaluation and funded accounts are simulated. No deposit, no real money traded. Payouts on funded accounts are real.</p>
+      <p className="mt-6 flex gap-2.5 text-xs leading-5 text-[var(--muted)]"><ShieldCheck size={14} className="mt-0.5 shrink-0" aria-hidden="true" />No deposit, and no real money traded. Payouts on funded accounts are real.</p>
     </aside>
   );
 }
