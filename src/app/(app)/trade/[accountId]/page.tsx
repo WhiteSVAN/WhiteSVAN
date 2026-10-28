@@ -88,8 +88,6 @@ export default async function TradePage({ params, searchParams }: { params: Prom
           </aside>
         </section>
       )}
-
-      <p className="max-w-3xl text-xs leading-6 text-[var(--muted)]">Orders fill against the live order book with slippage and Indian F&amp;O charges; none reach an exchange. Charts by TradingView Lightweight Charts.</p>
     </div>
   );
 }

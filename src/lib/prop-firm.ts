@@ -212,7 +212,7 @@ export const RULE_GROUPS: readonly RuleGroup[] = [
         label: "Costs",
         figure: () => "Included",
         plain: () => "Every fill pays what it would at a broker, so your results are realistic.",
-        exact: "Each fill includes brokerage, STT, exchange transaction charges, the SEBI fee, stamp duty and GST, from the current rate schedule. Orders fill against the five best bids and offers, with one tick of slippage.",
+        exact: "Each fill includes brokerage, STT, exchange transaction charges, the SEBI fee, stamp duty and GST, from the current rate schedule.",
       },
     ],
   },

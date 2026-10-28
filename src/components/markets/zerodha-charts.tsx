@@ -6,10 +6,11 @@ import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import { TradingWorkspace } from "@/components/markets/trading-workspace";
 import { PriceChart } from "@/components/markets/price-chart";
-import { AccountBlotter, AccountSummary, AccountTicket, OrderBook, type OrderInput, type PickedPrice } from "@/components/markets/account-panel";
+import { AccountBlotter, AccountSummary, AccountTicket, OrderBook, type ExitsInput, type OrderInput, type PickedPrice } from "@/components/markets/account-panel";
+import type { ChartAction, ChartTrading } from "@/components/markets/chart-orders";
 import { foldTick, type Candle, type Interval, type LiveTick } from "@/lib/market-data/candles";
-import { chartLines, type Desk, type DeskNote } from "@/lib/trading/desk";
-import type { EngineOutput, OrderChanges } from "@/lib/trading/engine";
+import { chartLines, exitRole, positionExits, type Desk, type DeskNote } from "@/lib/trading/desk";
+import { netQuantity, type EngineOutput, type OrderChanges } from "@/lib/trading/engine";
 import type { Side, Underlying } from "@/lib/trading/instruments";
 import { clockSeconds, toIst } from "@/lib/trading/time";
 import { quoteKey, UNDERLYINGS, type InstrumentList, type KiteContract, type MarketQuote } from "@/lib/zerodha/kite";
@@ -231,6 +232,8 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
     return () => clearTimeout(timer);
   }, [alerts]);
   const [side, setSide] = useState<Side>("BUY");
+  /** The ticket's size, which orders placed from the chart use too. */
+  const [lots, setLots] = useState(1);
   /** The last price picked in the order book, for the ticket's limit. */
   const [picked, setPicked] = useState<PickedPrice | null>(null);
   const accountId = account?.id ?? null;
@@ -389,6 +392,19 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
     }
   }, [accountId, sessionEnded, setDesk]);
 
+  /** Set, move or remove a held option's stop-loss and target. */
+  const setExits = useCallback(async (token: number, exits: ExitsInput): Promise<EngineOutput[]> => {
+    if (!accountId) return [];
+    try {
+      const body = await getJson<{ outputs: EngineOutput[]; desk: Desk }>(`/api/accounts/${accountId}/exits`, undefined, { method: "POST", body: { token, ...exits } });
+      setDesk(body.desk);
+      return body.outputs;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) sessionEnded(error.message);
+      throw error;
+    }
+  }, [accountId, sessionEnded, setDesk]);
+
   /** Put an option from the chain on the ticket. */
   const select = (strike: number, right: Right) => {
     userPicked.current = true;
@@ -428,6 +444,65 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
 
   if (ended) return <SessionEnded message={ended} loginHref={canConnect ? `/api/zerodha/login?${new URLSearchParams({ next: home })}` : null} />;
 
+  /**
+   * Trading on the charted option's chart: drag its stop-loss, target and working orders, cancel
+   * them, close the position, and order at a price. A refused request's message shows on the chart;
+   * what the account does shows in the activity alerts.
+   */
+  function chartTrading(account: Desk, option: KiteContract, last: number | undefined): ChartTrading {
+    const attempt = async (task: Promise<unknown>): Promise<string | null> => {
+      try {
+        await task;
+        return null;
+      } catch (error) {
+        return error instanceof Error ? error.message : "That didn't go through. Try again.";
+      }
+    };
+    const position = account.state.positions.find((item) => item.instrument.token === option.token);
+    const held = position ? netQuantity(position) : 0;
+    const exits = positionExits(account, option.token);
+    const size = `${lots} lot${lots === 1 ? "" : "s"}`;
+    const toTicket = (at: number): ChartAction => ({ label: `Use ${price(at)} on the ticket`, run: async () => { pickPrice(at); return null; } });
+    return {
+      actions: (at) => {
+        if (last === undefined || at === last) return [toTicket(at)];
+        const below = at < last;
+        const actions: ChartAction[] = [
+          below
+            ? { label: `Buy ${size} at ${price(at)} limit`, run: () => attempt(sendOrder({ token: option.token, side: "BUY", lots, type: "LIMIT", limitPrice: at })) }
+            : { label: `Buy ${size} at ${price(at)} stop`, run: () => attempt(sendOrder({ token: option.token, side: "BUY", lots, type: "SL", triggerPrice: at, limitPrice: at })) },
+        ];
+        if (held >= option.lotSize) {
+          actions.push(below
+            ? { label: `${exits.stop ? "Move stop-loss to" : "Stop-loss at"} ${price(at)}`, run: () => attempt(setExits(option.token, { stopLoss: at })) }
+            : { label: `${exits.target ? "Move target to" : "Target at"} ${price(at)}`, run: () => attempt(setExits(option.token, { target: at })) });
+        }
+        actions.push(toTicket(at));
+        return actions;
+      },
+      move: (line, to) => {
+        const order = account.state.orders.find((item) => item.id === line.orderId);
+        if (!order) return Promise.resolve("This order isn't working any more.");
+        const role = exitRole(order.id);
+        if (role) return attempt(setExits(order.token, role === "stop" ? { stopLoss: to } : { target: to }));
+        // A stop-limit order keeps the gap between its trigger and its limit.
+        const changes: OrderChanges = order.type === "LIMIT" ? { limitPrice: to }
+          : order.type === "SL" && order.triggerPrice !== undefined && order.limitPrice !== undefined ? { triggerPrice: to, limitPrice: order.limitPrice + to - order.triggerPrice }
+            : { triggerPrice: to };
+        return attempt(modifyOrder(order.id, changes));
+      },
+      cancel: (line) => {
+        const role = line.orderId ? exitRole(line.orderId) : null;
+        if (line.orderId && role) return attempt(setExits(option.token, role === "stop" ? { stopLoss: null } : { target: null }));
+        if (line.orderId) return attempt(cancelOrder(line.orderId));
+        return held >= option.lotSize
+          ? attempt(sendOrder({ token: option.token, side: "SELL", lots: Math.floor(held / option.lotSize), type: "MARKET" }))
+          : Promise.resolve("There is no position to close.");
+      },
+      addExit: (role, at) => attempt(setExits(option.token, role === "stop" ? { stopLoss: at } : { target: at })),
+    };
+  }
+
   const quote = selectedKey ? quotes[selectedKey] : undefined;
   const label = contract ? contractLabel(contract) : null;
   const chartQuote = chartedKey ? quotes[chartedKey] : undefined;
@@ -441,6 +516,7 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
     ["index", data?.index.label ?? UNDERLYINGS[underlying].label],
     ...(contract && label ? [["option", `${strikeText.format((contract.strike ?? 0) / 100)} ${contract.kind}`, label] as const] : []),
   ];
+  const trading = chartsOption && desk?.state.status === "ACTIVE" ? chartTrading(desk, contract, quote?.lastPrice) : undefined;
   const stats: [string, string][] = chartQuote
     ? [["Open", price(chartQuote.open)], ["High", price(chartQuote.high)], ["Low", price(chartQuote.low)], ["Prev close", price(chartQuote.previousClose)], ...(chartsOption ? [["Volume", countText.format(chartQuote.volume)], ["OI", chartQuote.oi !== null ? countText.format(chartQuote.oi) : "—"]] as [string, string][] : [])]
     : [];
@@ -485,7 +561,7 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
               </div>
 
               <div className="ws-chart-body relative min-h-0 px-1 pt-1">
-                <PriceChart fill key={chartsOption ? "option" : "index"} candles={candles ?? NO_CANDLES} live={liveCandle} interval={barInterval} minMove={chartsOption ? contract.tickSize / 100 : 0.05} derivative={chartsOption} label={`${chartTitle}, ${intervalName} candles`} lines={chartsOption && desk ? chartLines(desk, contract.token) : undefined} />
+                <PriceChart fill key={chartsOption ? "option" : "index"} candles={candles ?? NO_CANDLES} live={liveCandle} interval={barInterval} minMove={chartsOption ? contract.tickSize / 100 : 0.05} derivative={chartsOption} label={`${chartTitle}, ${intervalName} candles`} lines={chartsOption && desk ? chartLines(desk, contract.token) : undefined} trading={trading} />
                 {!candles && (
                   <div className="absolute inset-0 flex items-center justify-center bg-[var(--background)]/60 text-sm text-[var(--muted)]">
                     {failed ? (
@@ -550,8 +626,8 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
           </section>
         }
         book={<OrderBook quote={quote} label={label} onPrice={desk && account ? pickPrice : undefined} />}
-        ticket={desk && account ? <AccountTicket desk={desk} contract={contract} label={label} quote={quote} side={side} onSide={setSide} onPlace={sendOrder} picked={picked} /> : <OpenEvaluation />}
-        orders={desk ? <AccountBlotter desk={desk} onCancel={cancelOrder} onPlace={sendOrder} onModify={modifyOrder} /> : undefined}
+        ticket={desk && account ? <AccountTicket desk={desk} contract={contract} label={label} quote={quote} side={side} onSide={setSide} lots={lots} onLots={setLots} onPlace={sendOrder} picked={picked} /> : <OpenEvaluation />}
+        orders={desk ? <AccountBlotter desk={desk} onCancel={cancelOrder} onPlace={sendOrder} onModify={modifyOrder} onExits={setExits} /> : undefined}
       />
       <div aria-live="polite" className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2">
         {alerts.map((alert) => (

@@ -2,14 +2,15 @@
 
 /*
  * Candlestick chart, with volume and open-interest panes for futures and options, for candles from
- * any data source.
+ * any data source. With `trading`, its lines can be dragged, cancelled and added (ChartOrders).
  *
  * TradingView Lightweight Charts™
  * Copyright (c) 2025 TradingView, Inc. https://www.tradingview.com/ (Apache-2.0)
  * The chart keeps TradingView's attribution logo, which meets the licence's link requirement.
  */
-import { useEffect, useRef, useState } from "react";
-import type { AutoscaleInfo, CandlestickData, HistogramData, IChartApi, ISeriesApi, LineData, UTCTimestamp } from "lightweight-charts";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { AutoscaleInfo, CandlestickData, CreatePriceLineOptions, HistogramData, IChartApi, IPriceLine, ISeriesApi, LineData, UTCTimestamp } from "lightweight-charts";
+import { ChartOrders, lineKey, type ChartTrading } from "@/components/markets/chart-orders";
 import { chartSeconds, type Candle, type Interval } from "@/lib/market-data/candles";
 import type { ChartLine } from "@/lib/trading/desk";
 import { onThemeChange } from "@/lib/theme";
@@ -112,15 +113,29 @@ export interface PriceChartProps {
   label: string;
   /** Prices to mark across the chart: a position's average, its stop-loss and target, working orders. */
   lines?: readonly ChartLine[];
+  /** Trade from the chart: move and cancel the lines' orders, add a stop-loss or target, order at a price. */
+  trading?: ChartTrading;
   /** Fill the workspace panel instead of using the standalone chart height. */
   fill?: boolean;
 }
 
-export function PriceChart({ candles, live, interval, minMove, derivative, label, lines = [], fill = false }: PriceChartProps) {
+const NO_LINES: readonly ChartLine[] = [];
+
+export function PriceChart({ candles, live, interval, minMove, derivative, label, lines = NO_LINES, trading, fill = false }: PriceChartProps) {
   const container = useRef<HTMLDivElement>(null);
   const [handles, setHandles] = useState<Handles | null>(null);
   const [hovered, setHovered] = useState<Legend | null>(null);
   const [palette, setPalette] = useState<Palette | null>(null);
+  /** The lines drawn, by lineKey, so a change moves a line instead of drawing it again. */
+  const drawn = useRef(new Map<string, IPriceLine>());
+  /** Prices a line was moved to on the chart, kept until the account answers. */
+  const [pending, setPending] = useState<Record<string, number>>({});
+  const onPending = useCallback((key: string, price: number | null) => setPending((current) => {
+    const next = { ...current };
+    if (price === null) delete next[key];
+    else next[key] = price;
+    return next;
+  }), []);
 
   useEffect(() => {
     let created: Handles | null = null;
@@ -203,14 +218,28 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
     }
   }, [handles, palette, live]);
 
-  // Compared by value: the lines are rebuilt on every poll, but only redrawn when they change.
+  // Compared by value: the lines are rebuilt on every poll, but only redrawn when they change. On a
+  // trading chart the labels carry the titles.
   const linesKey = JSON.stringify(lines);
+  const pendingKey = JSON.stringify(pending);
+  const titled = !trading;
   useEffect(() => {
     if (!handles || !palette) return;
-    const marked = JSON.parse(linesKey) as ChartLine[];
-    const prices = marked.map((line) => line.price / 100);
-    const drawn = marked.map((line, index) => handles.candles.createPriceLine({ price: prices[index], color: palette.lines[line.tone], lineWidth: 1, lineStyle: DASHED, axisLabelVisible: true, title: line.title }));
+    const moved = JSON.parse(pendingKey) as Record<string, number>;
+    const shown = new Map((JSON.parse(linesKey) as ChartLine[]).map((line) => [lineKey(line), { ...line, price: moved[lineKey(line)] ?? line.price }]));
+    for (const [key, line] of drawn.current) {
+      if (shown.has(key)) continue;
+      handles.candles.removePriceLine(line);
+      drawn.current.delete(key);
+    }
+    for (const [key, line] of shown) {
+      const options: CreatePriceLineOptions = { price: line.price / 100, color: palette.lines[line.tone], lineWidth: 1, lineStyle: DASHED, axisLabelVisible: true, title: titled ? line.title : "" };
+      const existing = drawn.current.get(key);
+      if (existing) existing.applyOptions(options);
+      else drawn.current.set(key, handles.candles.createPriceLine(options));
+    }
     // The price scale stretches to keep every line in view, so a far stop-loss or target still shows.
+    const prices = [...shown.values()].map((line) => line.price / 100);
     handles.candles.applyOptions({
       autoscaleInfoProvider: (original: () => AutoscaleInfo | null) => {
         const info = original();
@@ -218,10 +247,12 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
         return { ...info, priceRange: { minValue: Math.min(info.priceRange.minValue, ...prices), maxValue: Math.max(info.priceRange.maxValue, ...prices) } };
       },
     });
-    return () => {
-      for (const line of drawn) handles.candles.removePriceLine(line);
-    };
-  }, [handles, palette, linesKey]);
+  }, [handles, palette, linesKey, pendingKey, titled]);
+  // A new chart starts with none drawn.
+  useEffect(() => {
+    const marked = drawn.current;
+    return () => marked.clear();
+  }, [handles]);
 
   useEffect(() => {
     if (!handles) return;
@@ -230,6 +261,7 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
   }, [handles, interval, minMove]);
 
   const newest = live ?? candles[candles.length - 1] ?? null;
+  const tick = Math.max(1, Math.round(minMove * 100));
   const legend: Legend | null = hovered ?? (newest && {
     open: newest.open / 100,
     high: newest.high / 100,
@@ -241,8 +273,9 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
 
   return (
     <figure className={`relative m-0 ${fill ? "ws-price-chart" : ""}`}>
-      {/* On laptops the chart takes what the screen leaves, so the orders window below it stays in view. */}
-      <div ref={container} role="img" aria-label={`${label} candlestick chart`} data-lines={lines.map((line) => `${line.title} ${(line.price / 100).toFixed(2)}`).join("; ") || undefined} className={`w-full ${fill ? "ws-chart-canvas" : derivative ? "h-[360px] sm:h-[440px] lg:h-[clamp(300px,calc(100svh-33rem),540px)]" : "h-[300px] sm:h-[380px] lg:h-[clamp(280px,calc(100svh-33rem),520px)]"}`} />
+      {/* On laptops the chart takes what the screen leaves, so the orders window below it stays in view.
+          Isolated, so the chart's own layers stay under the legend and the trading labels. */}
+      <div ref={container} role="img" aria-label={`${label} candlestick chart`} data-lines={lines.map((line) => `${line.title} ${(line.price / 100).toFixed(2)}`).join("; ") || undefined} className={`isolate w-full ${fill ? "ws-chart-canvas" : derivative ? "h-[360px] sm:h-[440px] lg:h-[clamp(300px,calc(100svh-33rem),540px)]" : "h-[300px] sm:h-[380px] lg:h-[clamp(280px,calc(100svh-33rem),520px)]"}`} />
       {legend && (
         <figcaption className="pointer-events-none absolute left-2 top-2 flex max-w-[calc(100%-6rem)] flex-wrap gap-x-3 gap-y-1 rounded bg-[var(--card)]/80 px-2 py-1 font-mono text-[10px] text-[var(--muted)] sm:text-[11px]">
           {(["open", "high", "low", "close"] as const).map((field) => (
@@ -252,6 +285,7 @@ export function PriceChart({ candles, live, interval, minMove, derivative, label
           {derivative && legend.oi !== null && <span>OI <span className="text-[var(--chart-mark)]">{countText.format(legend.oi)}</span></span>}
         </figcaption>
       )}
+      {trading && handles && palette && <ChartOrders chart={handles.chart} series={handles.candles} drawn={drawn} lines={lines} colors={palette.lines} pending={pending} onPending={onPending} tick={tick} last={newest ? newest.close : null} trading={trading} />}
     </figure>
   );
 }
