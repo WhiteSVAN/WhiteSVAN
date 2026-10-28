@@ -3,7 +3,7 @@
  * poll fetches one batch of quotes, which becomes the engine's books for the account's contracts,
  * followed by a clock event that runs the 15:20 square-off and the 15:30 day close.
  */
-import { deskQuoteKeys, deskStep, type Desk, type Exits } from "@/lib/trading/desk";
+import { deskQuoteKeys, deskStep, setPositionExits, type Desk, type ExitChanges, type Exits } from "@/lib/trading/desk";
 import { netQuantity, type EngineOutput, type OrderChanges, type OrderRequest } from "@/lib/trading/engine";
 import { isOption, type Instrument, type Side } from "@/lib/trading/instruments";
 import type { Quote } from "@/lib/trading/matching";
@@ -99,4 +99,12 @@ export function applyModify(desk: Desk, orderId: string, changes: OrderChanges, 
   const quote = order ? books.get(order.token) : undefined;
   const marked = quote ? deskStep(desk, { kind: "quote", at: now, quote }, books).desk : desk;
   return deskStep(marked, { kind: "modify", at: now, orderId, changes }, books);
+}
+
+/** A held position's new stop-loss and target against a fresh quote for its contract; new exit orders take ids from `id`. */
+export function applyExits(desk: Desk, token: number, changes: ExitChanges, quotes: readonly MarketQuote[], now: number, id: string): { desk: Desk; outputs: EngineOutput[] } {
+  const books = engineBooks(quotes);
+  const quote = books.get(token);
+  const marked = quote ? deskStep(desk, { kind: "quote", at: now, quote }, books).desk : desk;
+  return setPositionExits(marked, token, changes, id, now, books);
 }

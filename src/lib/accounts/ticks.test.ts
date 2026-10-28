@@ -3,7 +3,7 @@ import { findEvaluationPlan } from "@/lib/prop-firm";
 import { openDesk } from "@/lib/trading/desk";
 import { ist } from "@/lib/trading/time";
 import { contractInstrument, type KiteContract, type MarketQuote } from "@/lib/zerodha/kite";
-import { applyModify, applyOrder, applyTick, engineBooks, MAX_TICK_KEYS, orderPolicyProblem, screenQuotes, tickKeys } from "./ticks";
+import { applyExits, applyModify, applyOrder, applyTick, engineBooks, MAX_TICK_KEYS, orderPolicyProblem, screenQuotes, tickKeys } from "./ticks";
 
 // Fixture values, not exchange values.
 const FUT: KiteContract = { token: 13238786, exchange: "NFO", tradingSymbol: "NIFTY26OCTFUT", underlying: "NIFTY", kind: "FUT", expiry: "2026-10-27", strike: null, lotSize: 75, tickSize: 10 };
@@ -64,6 +64,19 @@ describe("account ticks", () => {
     expect(moved.outputs.map((output) => output.kind)).toEqual(["modified", "fill"]);
     expect(moved.desk.orderBook?.[0]).toMatchObject({ id: "L1", status: "COMPLETE", limitPrice: r(25_000) + 10, averagePrice: r(25_000) + 10 });
     expect(applyModify(moved.desk, "L1", { limitPrice: r(24_950) }, later, ist("2026-10-16 10:05:02")).outputs).toEqual([expect.objectContaining({ kind: "rejected", reason: "UNKNOWN_ORDER" })]);
+  });
+
+  it("sets and moves a held option's stop-loss and target against a fresh quote", () => {
+    const CALL: KiteContract = { ...FUT, token: 13238800, tradingSymbol: "NIFTY26OCT25000CE", kind: "CE", strike: r(25_000), tickSize: 5 };
+    const at = (time: string) => quote("NFO:NIFTY26OCT25000CE", CALL.token, `2026-10-16 ${time}`, 120);
+    const bought = applyOrder(opened(), contractInstrument(CALL), { id: "O1", token: CALL.token, side: "BUY", lots: 2, type: "MARKET" }, [at("10:00:00")], ist("2026-10-16 10:00:01")).desk;
+    // The quote from 10:00 is a minute old by now: the fresh one comes with the change.
+    const set = applyExits(bought, CALL.token, { stop: r(100), target: r(150) }, [at("10:01:00")], ist("2026-10-16 10:01:01"), "X1");
+    expect(set.outputs.map((output) => output.kind)).toEqual(["accepted", "accepted"]);
+    expect(set.desk.state.orders.map((order) => [order.id, order.quantity])).toEqual([["X1-SL", 150], ["X1-TP", 150]]);
+    const moved = applyExits(set.desk, CALL.token, { stop: r(110), target: null }, [at("10:02:00")], ist("2026-10-16 10:02:01"), "X2");
+    expect(moved.outputs.map((output) => output.kind)).toEqual(["modified", "cancelled"]);
+    expect(moved.desk.state.orders.map((order) => [order.id, order.triggerPrice])).toEqual([["X1-SL", r(110)]]);
   });
 
   describe("trading policy", () => {

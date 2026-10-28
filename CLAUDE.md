@@ -33,6 +33,10 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
 > spreads, and no calls and puts on the same index together, in one account or across a trader's
 > accounts. A basic journal only: total P&L, a P&L calendar and notes on days.
 >
+> Founder direction (28 Oct 2026): **keep what traders read minimal.** No negative or mechanical
+> words in product copy, such as slippage or orders not reaching an exchange; say only what the
+> trader needs. The disclosures (site footer, the FAQ on real money, checkout consent, emails) stay.
+>
 > Founder direction (26 Oct 2026): **White and Dark themes in the Manus style** (replacing the
 > forest/lime grading; the founder will touch them up in Manus Studio, so every colour stays a
 > token: see Themes below). **Rules live only in the rules section**, written so new and
@@ -173,19 +177,27 @@ evaluation accounts' own basic journal (P&L calendar and day notes, below).
   or Chart on top; the chart left or right; the order book, the orders window and the rule meters on
   or off; and Expand chart (Escape restores). Phones stack the panels. The global unlayered
   `font: inherit` on controls outranks Tailwind's text utilities, so buttons elsewhere ignore their
-  `text-*` sizes; the workspace sets `font: revert-layer` on its controls. The ticket takes Market, Limit and Stop-loss orders, and a buy can carry a **stop-loss and
-  target**: [desk.ts](src/lib/trading/desk.ts) (`Bracket`, `exitsProblem`) places them as an SL-M
-  sell and a limit sell (ids `<buy>-SL` and `<buy>-TP`) once the buy fills, cancels the other when
-  one fills (one-cancels-other), cancels both when the position is closed some other way ("Position
-  closed") and trims them when part of it is sold. This runs in `deskStep` after every event, inside
-  the same write, so polls, orders, cancels and the square-off all keep it. The option chart marks the
-  position's average price, the stop-loss, the target and working orders (`chartLines`), and fills,
-  stops and targets pop up as alerts. The engine runs on the server:
-  each poll (`/api/accounts/<id>/tick`,
+  `text-*` sizes; the workspace sets `font: revert-layer` on its controls. The ticket takes Market, Limit and Stop-loss orders. **Stop-loss and target**
+  ([desk.ts](src/lib/trading/desk.ts), `positionExits`): a position has at most one of each, an
+  SL-M sell and a limit sell for the whole position (ids ending `-SL` and `-TP`). A buy can carry
+  them (`Bracket`, `exitsProblem`): once it fills they replace the position's own. Or they are set,
+  moved or removed any time after (`setPositionExits`, `positionExitsProblem`: stop-loss below the
+  last price, target above): from Positions (Add / Edit), Modify on an exit in Orders, or the chart.
+  One cancels the other, both go when the position is closed some other way ("Position closed"),
+  and they follow the position as it grows or shrinks. This runs in `deskStep` after every event,
+  inside the same write, so polls, orders, cancels and the square-off all keep it. **Chart
+  trading** ([chart-orders.tsx](src/components/markets/chart-orders.tsx), on the charted option):
+  labels on the position's average, stop-loss, target and working orders (`chartLines`); drag one
+  to move it (or focus it, arrow keys and Enter), × cancels it or closes the position, SL and TP on
+  the position add them (drag out, or click then the chart), and right-click or the + by the price
+  scale offers a buy limit or stop at that price, the stop-loss or target, or the price on the
+  ticket (with the ticket's lots). Fills, stops and targets pop up as alerts. The engine runs on the
+  server: each poll (`/api/accounts/<id>/tick`,
   up to `MAX_TICK_KEYS` = 40 contracts in one Kite call, with full depth only for the selected
   option and the account's own; `screenQuotes`) feeds the account. Orders go to
-  `/api/accounts/<id>/orders` (with `stopLoss` and `target` in paise for a buy), and modify (PATCH)
-  and cancel (DELETE) to `/orders/<orderId>`.
+  `/api/accounts/<id>/orders` (with `stopLoss` and `target` in paise for a buy), modify (PATCH)
+  and cancel (DELETE) to `/orders/<orderId>`, and a held option's exits to `/exits` (`stopLoss`
+  and `target` in paise, null to remove).
   **Order policy** (`orderPolicyProblem` in [src/lib/accounts/ticks.ts](src/lib/accounts/ticks.ts),
   checked before the engine): options only; buy to open, sell only to close what you hold; no
   calls and puts on the same index together, counting working buys and the trader's other active

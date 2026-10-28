@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { dayPositions, dayTotals, exitRole, exitsProblem, type Desk, type OrderRecord } from "@/lib/trading/desk";
+import { Fragment, useState } from "react";
+import { dayPositions, dayTotals, exitRole, exitsProblem, positionExits, positionExitsProblem, type Desk, type ExitChanges, type OrderRecord } from "@/lib/trading/desk";
 import { riskMeters, type EngineOutput, type OrderChanges, type OrderType, type WorkingOrder } from "@/lib/trading/engine";
 import type { Instrument, Side } from "@/lib/trading/instruments";
 import { parseRupees } from "@/lib/trading/money";
@@ -21,6 +21,12 @@ export interface OrderInput {
   /** A buy's stop-loss trigger and target, placed as sell orders once it fills. */
   stopLoss?: number;
   target?: number;
+}
+
+/** New exits for an option held, in paise: a price sets or moves one, null removes it, and one left out stays. */
+export interface ExitsInput {
+  stopLoss?: number | null;
+  target?: number | null;
 }
 
 /** "Stop-loss" or "Target" for a buy's exit orders, after the order type. */
@@ -249,12 +255,12 @@ export interface PickedPrice {
 
 /**
  * The order ticket for the selected option (`label` names it), with the account's status. The side
- * is the caller's, so the option chain's Buy and Sell can set it; a price picked in the order book
- * (`picked`) becomes the limit price.
+ * and lots are the caller's, so the option chain's Buy and Sell can set the side and orders from the
+ * chart use the same size; a price picked in the order book or on the chart (`picked`) becomes the
+ * limit price.
  */
-export function AccountTicket({ desk, contract, label, quote, side, onSide, onPlace, picked = null }: { desk: Desk; contract: KiteContract | null; label: string | null; quote: MarketQuote | undefined; side: Side; onSide: (side: Side) => void; onPlace: (order: OrderInput) => Promise<EngineOutput[]>; picked?: PickedPrice | null }) {
+export function AccountTicket({ desk, contract, label, quote, side, onSide, lots, onLots, onPlace, picked = null }: { desk: Desk; contract: KiteContract | null; label: string | null; quote: MarketQuote | undefined; side: Side; onSide: (side: Side) => void; lots: number; onLots: (lots: number) => void; onPlace: (order: OrderInput) => Promise<EngineOutput[]>; picked?: PickedPrice | null }) {
   const [type, setType] = useState<OrderType>("MARKET");
-  const [lots, setLots] = useState(1);
   const [limitInput, setLimitInput] = useState("");
   const [triggerInput, setTriggerInput] = useState("");
   const [exitsOn, setExitsOn] = useState(false);
@@ -360,7 +366,7 @@ export function AccountTicket({ desk, contract, label, quote, side, onSide, onPl
             <div className="grid grid-cols-2 gap-2">
               {/* Lots sit beside a limit price; a stop-loss order puts its trigger and limit together below. */}
               <label className={`block text-xs text-[var(--muted)] ${withLimit && !withTrigger ? "" : "col-span-2"}`}>Lots, up to {rules.maxLots} ({lots * contract.lotSize} units)
-                <input id="ticket-lots" type="number" min={1} max={rules.maxLots} step={1} value={lots} onChange={(event) => setLots(Math.min(rules.maxLots, Math.max(1, Math.round(Number(event.target.value) || 1))))} className={field} />
+                <input id="ticket-lots" type="number" min={1} max={rules.maxLots} step={1} value={lots} onChange={(event) => onLots(Math.min(rules.maxLots, Math.max(1, Math.round(Number(event.target.value) || 1))))} className={field} />
               </label>
               {withTrigger && (
                 <label className="block text-xs text-[var(--muted)]">Trigger (₹)
@@ -393,7 +399,7 @@ export function AccountTicket({ desk, contract, label, quote, side, onSide, onPl
                       </label>
                     </div>
                     {exitsError && <p className="mt-2 text-xs text-[var(--danger)]">{exitsError}</p>}
-                    <p className="mt-2 text-[11px] leading-4 text-[var(--faint)]">Both go in as sell orders once the buy fills. When one fills, the other is cancelled.</p>
+                    <p className="mt-2 text-[11px] leading-4 text-[var(--faint)]">When one fills, the other is cancelled.</p>
                   </>
                 )}
               </fieldset>
@@ -408,7 +414,7 @@ export function AccountTicket({ desk, contract, label, quote, side, onSide, onPl
         )}
       </div>
 
-      <p className="mt-auto border-t border-[var(--border)] px-3 py-2.5 text-[11px] leading-4 text-[var(--muted)]">Fills follow the live order book, with slippage and charges. Buy calls or puts; sell only to close. Keep this page open while you hold positions: orders, stops and the 15:20 square-off run while it&apos;s open.</p>
+      <p className="mt-auto border-t border-[var(--border)] px-3 py-2.5 text-[11px] leading-4 text-[var(--muted)]">Buy calls or puts; sell only to close. Keep this page open while you hold positions.</p>
     </aside>
   );
 }
@@ -499,13 +505,76 @@ function OrderEditor({ order, instrument, maxLots, onModify, onClose }: { order:
 }
 
 /**
- * The account's book in three tabs: today's positions with their P&L (open and closed, Exit and
- * Exit all), orders (working ones to modify or cancel, then the history) and trades (fills).
+ * The stop-loss and target of an option held, inline under its row in Positions or in place of an
+ * exit in Orders. A new price sets or moves one; an emptied box removes it. `lastPrice` is the
+ * latest price the account has seen; the server checks against a fresh one.
  */
-export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: Desk; onCancel: (orderId: string) => Promise<void>; onPlace: (order: OrderInput) => Promise<EngineOutput[]>; onModify: (orderId: string, changes: OrderChanges) => Promise<EngineOutput[]> }) {
+function ExitsEditor({ desk, token, lastPrice, onExits, onClose }: { desk: Desk; token: number; lastPrice: number | undefined; onExits: (token: number, exits: ExitsInput) => Promise<EngineOutput[]>; onClose: () => void }) {
+  const working = positionExits(desk, token);
+  const instrument = desk.instruments.find((item) => item.token === token);
+  const [stopInput, setStopInput] = useState(working.stop?.triggerPrice !== undefined ? (working.stop.triggerPrice / 100).toFixed(2) : "");
+  const [targetInput, setTargetInput] = useState(working.target?.limitPrice !== undefined ? (working.target.limitPrice / 100).toFixed(2) : "");
+  const [pending, setPending] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const stop = stopInput.trim() ? parseRupees(stopInput, 7) : null;
+  const target = targetInput.trim() ? parseRupees(targetInput, 7) : null;
+  const changes: ExitChanges = {
+    ...(stopInput.trim() ? (stop !== working.stop?.triggerPrice ? { stop } : {}) : working.stop ? { stop: null } : {}),
+    ...(targetInput.trim() ? (target !== working.target?.limitPrice ? { target } : {}) : working.target ? { target: null } : {}),
+  };
+  const problem = stopInput.trim() && stop === null ? "Enter the stop-loss in rupees."
+    : targetInput.trim() && target === null ? "Enter the target in rupees."
+      : positionExitsProblem(desk, token, changes, lastPrice);
+
+  const save = async () => {
+    if (changes.stop === undefined && changes.target === undefined) return onClose();
+    setPending(true);
+    setMessage(null);
+    try {
+      const rejected = rejectionOf(await onExits(token, { ...(changes.stop !== undefined ? { stopLoss: changes.stop } : {}), ...(changes.target !== undefined ? { target: changes.target } : {}) }));
+      if (rejected) setMessage(rejected);
+      else onClose();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "That didn't go through. Try again.");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const input = "mt-1 block min-h-9 w-28 rounded-md border border-[var(--border-strong)] bg-[var(--card-deep)] px-2 font-mono text-xs text-[var(--foreground)]";
+  return (
+    <tr className="bg-[var(--card-raised)]">
+      <td colSpan={8} className="px-4 py-3">
+        <form onSubmit={(event) => { event.preventDefault(); void save(); }} aria-label="Stop-loss and target" className="flex flex-wrap items-end gap-3 font-sans text-xs">
+          <p className="w-full text-[var(--muted)]">Stop-loss and target · <span className="font-mono text-[var(--foreground)]">{instrument?.tradingSymbol ?? token}</span>{lastPrice !== undefined && <> · last <span className="font-mono text-[var(--foreground)]">{price(lastPrice)}</span></>}</p>
+          <label className="text-[var(--muted)]">Stop-loss (₹)
+            <input inputMode="decimal" value={stopInput} onChange={(event) => setStopInput(event.target.value)} aria-invalid={Boolean(problem && stopInput)} className={input} />
+          </label>
+          <label className="text-[var(--muted)]">Target (₹)
+            <input inputMode="decimal" value={targetInput} onChange={(event) => setTargetInput(event.target.value)} aria-invalid={Boolean(problem && targetInput)} className={input} />
+          </label>
+          <button type="submit" disabled={pending || Boolean(problem)} className="min-h-9 rounded-md bg-[var(--ink)] px-4 font-medium text-[var(--ink-foreground)] hover:bg-[var(--ink-hover)] disabled:cursor-not-allowed disabled:opacity-50">{pending ? "Saving…" : "Save"}</button>
+          <button type="button" onClick={onClose} className="min-h-9 rounded-md border border-[var(--border-strong)] px-3 hover:bg-[var(--card-deep)]">Back</button>
+          {(message ?? problem) && <p role="alert" className="w-full text-[var(--danger)]">{message ?? problem}</p>}
+          <p className="w-full text-[11px] leading-4 text-[var(--faint)]">When one fills, the other is cancelled. Empty a box to remove it.</p>
+        </form>
+      </td>
+    </tr>
+  );
+}
+
+/**
+ * The account's book in three tabs: today's positions with their P&L (open and closed, Exit and
+ * Exit all, and the stop-loss and target to set or change), orders (working ones to modify or
+ * cancel, then the history) and trades (fills).
+ */
+export function AccountBlotter({ desk, onCancel, onPlace, onModify, onExits }: { desk: Desk; onCancel: (orderId: string) => Promise<void>; onPlace: (order: OrderInput) => Promise<EngineOutput[]>; onModify: (orderId: string, changes: OrderChanges) => Promise<EngineOutput[]>; onExits: (token: number, exits: ExitsInput) => Promise<EngineOutput[]> }) {
   const [tab, setTab] = useState<Tab>("positions");
   const [error, setError] = useState<string | null>(null);
+  /** The working order being modified. */
   const [editing, setEditing] = useState<string | null>(null);
+  /** The position whose stop-loss and target are being set. */
+  const [protecting, setProtecting] = useState<number | null>(null);
   const [exiting, setExiting] = useState(false);
   const today = desk.state.day?.date ?? toIst(desk.state.clock).date;
   const positions = dayPositions(desk, today);
@@ -592,17 +661,25 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
                     const pnl = position.realised + position.unrealised;
                     const lots = position.lotSize ? position.quantity / position.lotSize : null;
                     const exit = exitOrder(position.token, position.quantity);
+                    const protectable = active && position.lotSize !== null && position.quantity >= position.lotSize;
+                    const exits = exitsText(position.token);
                     return (
-                      <tr key={position.token} className={position.quantity === 0 ? "text-[var(--muted)]" : ""}>
+                      <Fragment key={position.token}>
+                      <tr className={position.quantity === 0 ? "text-[var(--muted)]" : ""}>
                         <td className={cell}>{position.tradingSymbol}</td>
                         <td className={`${cell} ${position.quantity > 0 ? "text-[var(--primary)]" : position.quantity < 0 ? "text-[var(--danger)]" : ""}`}>{position.quantity > 0 ? "+" : ""}{position.quantity}{lots !== null && position.quantity !== 0 ? <>{" "}<span className="whitespace-nowrap text-[var(--faint)]">({lots} lot{Math.abs(lots) === 1 ? "" : "s"})</span></> : null}</td>
                         <td className={cell}>{position.buyQuantity > 0 ? `${position.buyQuantity} @ ${average(position.buyValue, position.buyQuantity)}` : "—"}</td>
                         <td className={cell}>{position.sellQuantity > 0 ? `${position.sellQuantity} @ ${average(position.sellValue, position.sellQuantity)}` : "—"}</td>
                         <td className={cell}>{price(position.mark)}</td>
-                        <td className={`${cell} whitespace-nowrap`}>{exitsText(position.token)}</td>
+                        <td className={`${cell} whitespace-nowrap`}>
+                          {exits}
+                          {protectable && <button type="button" aria-expanded={protecting === position.token} aria-label={`${exits === "—" ? "Add a" : "Change the"} stop-loss and target for ${position.tradingSymbol}`} onClick={() => { setError(null); setProtecting(protecting === position.token ? null : position.token); }} className={`${action} ml-2`}>{exits === "—" ? "Add" : "Edit"}</button>}
+                        </td>
                         <td className={`${cell} whitespace-nowrap ${tone(pnl)}`}>{signed(pnl)}</td>
                         <td className={`${cell} text-right`}>{exit && <button type="button" disabled={!active} onClick={() => run(onPlace(exit))} className={action}>Exit</button>}</td>
                       </tr>
+                      {protectable && protecting === position.token && <ExitsEditor desk={desk} token={position.token} lastPrice={position.mark} onExits={onExits} onClose={() => setProtecting(null)} />}
+                      </Fragment>
                     );
                   })}
                 </tbody>
@@ -619,7 +696,9 @@ export function AccountBlotter({ desk, onCancel, onPlace, onModify }: { desk: De
                 <thead><tr>{["Placed", "Contract", "Side", "Type", "Lots", "Limit", "Trigger", ""].map((label) => <th key={label} scope="col" className={head}>{label}</th>)}</tr></thead>
                 <tbody className="divide-y divide-[var(--border)]">
                   {orders.map((order) => editing === order.id ? (
-                    <OrderEditor key={order.id} order={order} instrument={instrumentFor(order.token)} maxLots={desk.state.rules.maxLots} onModify={onModify} onClose={() => setEditing(null)} />
+                    exitRole(order.id)
+                      ? <ExitsEditor key={order.id} desk={desk} token={order.token} lastPrice={desk.state.positions.find((item) => item.instrument.token === order.token)?.mark} onExits={onExits} onClose={() => setEditing(null)} />
+                      : <OrderEditor key={order.id} order={order} instrument={instrumentFor(order.token)} maxLots={desk.state.rules.maxLots} onModify={onModify} onClose={() => setEditing(null)} />
                   ) : (
                     <tr key={order.id}>
                       <td className={cell}>{clockText.format(order.placedAt)}</td>
