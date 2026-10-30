@@ -12,7 +12,7 @@ import { toIst } from "@/lib/trading/time";
 import { createSharedLoads } from "@/lib/zerodha/throttle";
 import { KiteError, UNDERLYINGS, quoteKey, type DerivativesExchange, type MarketQuote } from "@/lib/zerodha/kite";
 import type { GfdlConfig } from "./config";
-import { GFDL_INDEX, gfdlQuote, historyRequest, indexUnderlying, instrumentsRequest, isObject, parseGfdlCandles, parseGfdlContracts, results, type GfdlContract } from "./gfdl";
+import { expiriesRequest, GFDL_INDEX, gfdlQuote, historyRequest, indexUnderlying, instrumentsRequest, isObject, nearestExpiries, parseGfdlCandles, parseGfdlContracts, results, type GfdlContract } from "./gfdl";
 
 const CONNECT_MS = 10_000;
 const REPLY_MS = 15_000;
@@ -20,6 +20,8 @@ const REPLY_MS = 15_000;
 const MAX_SUBSCRIBED = 95;
 /** How long a quote call waits for the first push of a contract it just subscribed. */
 const FIRST_PUSH_MS = 1_500;
+/** Option expiries loaded per underlying: the nearest few, which is what traders pick from. */
+const EXPIRIES_LOADED = 4;
 /** GetLastQuoteArray takes up to 25 contracts. */
 const SNAPSHOT_MAX = 25;
 const HISTORY_KEEP_MS = 15_000;
@@ -101,6 +103,7 @@ function onMessage(data: unknown) {
   if (type === "RequestError") {
     // Such as "Access Denied. Key already in use by other session.": a key serves one connection at a time.
     logger.error("gfdl.request_error", { message: typeof message.Message === "string" ? message.Message : null });
+    if (typeof message.Message === "string" && /already in use/i.test(message.Message)) feed.socket?.close();
     const failed = feed.pending.shift();
     if (failed) {
       clearTimeout(failed.timer);
@@ -140,6 +143,12 @@ function connect(config: GfdlConfig): Promise<WebSocket> {
       try {
         message = JSON.parse(String(event.data));
       } catch {}
+      if (isObject(message) && message.MessageType === "RequestError") {
+        clearTimeout(timer);
+        reject(new KiteError(`The price feed is busy${typeof message.Message === "string" ? `: ${message.Message}` : "."}`, 429, "GfdlBusy"));
+        socket.close();
+        return;
+      }
       if (!isObject(message) || message.MessageType !== "AuthenticateResult") return;
       clearTimeout(timer);
       if (message.Complete !== true) {
@@ -207,12 +216,16 @@ export function gfdlContracts(config: GfdlConfig, exchange: DerivativesExchange,
   const loading = (async () => {
     if (!(await allowedExchanges(config)).has(exchange)) return [];
     const underlyings = (Object.keys(UNDERLYINGS) as Underlying[]).filter((name) => UNDERLYINGS[name].exchange === exchange);
+    const today = toIst(now).date;
     const lists = await Promise.all(underlyings.map(async (underlying) => {
-      const body = instrumentsRequest(exchange, underlying);
-      const reply = await request(config, body, replyTo("InstrumentsResult", body, ["Exchange", "Product"]));
-      return parseGfdlContracts(reply, exchange, underlying);
+      const asked = expiriesRequest(exchange, underlying);
+      const expiries = nearestExpiries(await request(config, asked, replyTo("ExpiryDatesResult", asked, ["Exchange", "Product"])), today, EXPIRIES_LOADED);
+      return Promise.all(expiries.map(async (expiry) => {
+        const body = instrumentsRequest(exchange, underlying, expiry);
+        return parseGfdlContracts(await request(config, body, replyTo("InstrumentsResult", body, ["Exchange", "Product", "Expiry"])), exchange, underlying);
+      }));
     }));
-    const contracts = lists.flat();
+    const contracts = lists.flat(2);
     for (const contract of contracts) {
       feed.byKey.set(quoteKey(contract), contract);
       feed.byToken.set(contract.token, contract);

@@ -75,8 +75,21 @@ export function results(body: unknown, what: string): Json[] {
   return rows.filter(isObject);
 }
 
-export function instrumentsRequest(exchange: DerivativesExchange, underlying: Underlying) {
-  return { MessageType: "GetInstruments", Exchange: exchange, InstrumentType: OPTION_TYPE[exchange], Product: GFDL_INDEX[underlying].product, DetailedInfo: "true" };
+export function instrumentsRequest(exchange: DerivativesExchange, underlying: Underlying, expiry?: string) {
+  return { MessageType: "GetInstruments", Exchange: exchange, InstrumentType: OPTION_TYPE[exchange], Product: GFDL_INDEX[underlying].product, ...(expiry ? { Expiry: expiry } : {}), DetailedInfo: "true" };
+}
+
+export function expiriesRequest(exchange: DerivativesExchange, underlying: Underlying) {
+  return { MessageType: "GetExpiryDates", Exchange: exchange, InstrumentType: OPTION_TYPE[exchange], Product: GFDL_INDEX[underlying].product };
+}
+
+/** The `count` nearest option expiries from `today` (IST, `YYYY-MM-DD`), in GFDL's own spelling (`05NOV2026`). */
+export function nearestExpiries(body: unknown, today: string, count: number): string[] {
+  return results(body, "expiries")
+    .map((row) => String(row.Value))
+    .filter((value) => /^\d{2}[A-Za-z]{3}\d{4}$/.test(value) && gfdlDate(value) >= today)
+    .sort((a, b) => gfdlDate(a).localeCompare(gfdlDate(b)))
+    .slice(0, count);
 }
 
 /** One underlying's options from GetInstruments (DetailedInfo, for the exchange token). Throws only when the reply isn't a list. */

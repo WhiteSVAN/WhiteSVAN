@@ -314,7 +314,7 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
     let current: Candle | null = candles?.[candles.length - 1] ?? null;
     const keys = keysText.split("\n");
     const poll = async () => {
-      let delay = marketHours(Date.now()) ? 2_000 : 20_000;
+      let delay = marketHours(Date.now()) ? 1_000 : 20_000;
       if (!document.hidden) {
         lastPoll.current = Date.now();
         try {
