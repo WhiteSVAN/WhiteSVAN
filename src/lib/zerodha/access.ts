@@ -6,6 +6,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { gfdlConfig } from "@/lib/gfdl/config";
 import { errorFields, logger } from "@/lib/logger";
 import { isKiteOwner, kiteConfig, type KiteConfig } from "./config";
 import { dropKiteSession, PRICES_OFFLINE, sharedKiteSession } from "./connection";
@@ -70,14 +71,22 @@ export async function kiteFailure(name: string, error: unknown, context: KiteCon
   return Response.json({ error: "upstream", message }, { status: 502, headers: NO_STORE });
 }
 
+/** What the Kite calls run with while Global Datafeeds is the price feed (they hand over before using it). */
+export const GFDL_CONTEXT: KiteContext = {
+  config: { apiKey: "", apiSecret: "", sessionSecret: "", ownerEmails: [], apiRoot: "", loginUrl: "" },
+  accessToken: "gfdl",
+};
+
 /** A JSON route over the shared Kite login for any signed-in user: 404 with Zerodha off, 401 signed out or offline, then {@link kiteFailure}. */
 export async function kiteJson(name: string, run: (context: KiteContext) => Promise<unknown>): Promise<Response> {
   const config = kiteConfig();
-  if (!config) return Response.json({ error: "not_found" }, { status: 404, headers: NO_STORE });
+  const gfdl = gfdlConfig() !== null;
+  if (!config && !gfdl) return Response.json({ error: "not_found" }, { status: 404, headers: NO_STORE });
   if (!(await auth())?.user?.id) return Response.json({ error: "signed_out", message: "Sign in to load prices." }, { status: 401, headers: NO_STORE });
-  const session = await sharedKiteSession(config.sessionSecret);
+  // With Global Datafeeds on, no Kite login is needed: the calls in client.ts don't use it.
+  const session = gfdl ? GFDL_CONTEXT : config ? await sharedKiteSession(config.sessionSecret) : null;
   if (!session) return Response.json({ error: "session", message: PRICES_OFFLINE }, { status: 401, headers: NO_STORE });
-  const context = { config, accessToken: session.accessToken };
+  const context = { config: config ?? GFDL_CONTEXT.config, accessToken: session.accessToken };
   try {
     return Response.json(await run(context), { headers: NO_STORE });
   } catch (error) {

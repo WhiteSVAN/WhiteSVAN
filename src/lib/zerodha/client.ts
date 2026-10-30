@@ -3,7 +3,12 @@
  * signed-in user, so quote and historical calls go through throttle.ts to stay inside Kite's
  * limits: 1 quote request and 3 historical requests a second. Market data only: the same login
  * can trade the firm's real account, so never add order, portfolio or funds calls here.
+ *
+ * Parked while GFDL_API_KEY is set: the market-data calls below hand over to Global Datafeeds
+ * (src/lib/gfdl) and Kite isn't called. Unset the key to bring Kite back.
  */
+import { gfdlConfig } from "@/lib/gfdl/config";
+import { gfdlCandles, gfdlContracts, gfdlIndexToken, gfdlQuotes } from "@/lib/gfdl/feed";
 import { LOOKBACK_DAYS, type Candle, type Interval } from "@/lib/market-data/candles";
 import type { Underlying } from "@/lib/trading/instruments";
 import { toIst } from "@/lib/trading/time";
@@ -114,6 +119,8 @@ export async function endSession(config: KiteConfig, accessToken: string): Promi
  * Screens opening the same chart within a few seconds share one fetch.
  */
 export function fetchCandles(config: KiteConfig, accessToken: string, instrumentToken: number, interval: Interval, withOi: boolean, now: number): Promise<Candle[]> {
+  const gfdl = gfdlConfig();
+  if (gfdl) return gfdlCandles(gfdl, instrumentToken, interval, withOi, now);
   const key = `${instrumentToken}|${interval}|${withOi ? "oi" : ""}`;
   return throttle.history(key, interval === "day" ? DAY_HISTORY_KEEP_MS : HISTORY_KEEP_MS, async () => {
     const lists: Candle[][] = [];
@@ -127,6 +134,8 @@ export function fetchCandles(config: KiteConfig, accessToken: string, instrument
 
 /** Quotes with five-level depth. The screens polling in the same second share one Kite call. */
 export function fetchQuotes(config: KiteConfig, accessToken: string, keys: readonly string[]): Promise<MarketQuote[]> {
+  const gfdl = gfdlConfig();
+  if (gfdl) return gfdlQuotes(gfdl, keys);
   let quotes = throttle.quotes.get(accessToken);
   if (!quotes) {
     // A new login: the old token's quotes go with it.
@@ -148,6 +157,7 @@ const indexTokens = new Map<Underlying, number>();
 const contractLists = new Map<string, Promise<KiteContract[]>>();
 
 export async function indexToken(config: KiteConfig, accessToken: string, underlying: Underlying): Promise<number> {
+  if (gfdlConfig()) return gfdlIndexToken(underlying);
   const known = indexTokens.get(underlying);
   if (known) return known;
   const keys = Object.values(UNDERLYINGS).map((item) => item.indexKey);
@@ -165,6 +175,8 @@ export async function indexToken(config: KiteConfig, accessToken: string, underl
 
 /** Today's NIFTY, BANK NIFTY or SENSEX futures and options on one exchange. */
 export function fetchContracts(config: KiteConfig, accessToken: string, exchange: DerivativesExchange, now: number): Promise<KiteContract[]> {
+  const gfdl = gfdlConfig();
+  if (gfdl) return gfdlContracts(gfdl, exchange, now);
   const cacheKey = `${exchange}:${toIst(now).date}`;
   const cached = contractLists.get(cacheKey);
   if (cached) return cached;

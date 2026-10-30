@@ -12,6 +12,7 @@ import { requireUser } from "@/lib/auth/dal";
 import { accountNumber } from "@/lib/checkout/billing";
 import { settlement } from "@/lib/checkout/settlement";
 import { prisma } from "@/lib/db";
+import { gfdlConfig } from "@/lib/gfdl/config";
 import { findAccountPlan } from "@/lib/prop-firm";
 import { isKiteOwner, kiteConfig } from "@/lib/zerodha/config";
 import { PRICES_OFFLINE, sharedKiteSession } from "@/lib/zerodha/connection";
@@ -36,7 +37,9 @@ export default async function TradePage({ params, searchParams }: { params: Prom
   const planLabel = plan?.label ?? account.planId;
   const config = kiteConfig();
   const owner = isKiteOwner(config, user.email);
-  const session = config ? await sharedKiteSession(config.sessionSecret) : null;
+  // Global Datafeeds, while GFDL_API_KEY is set, needs no Kite login (the trial carries SENSEX only).
+  const gfdl = gfdlConfig() !== null;
+  const session = gfdl || (config ? await sharedKiteSession(config.sessionSecret) : null);
   const status = STATUS_BADGE[account.status];
   // The account's title: the start of the platform's account bar, or a row of its own while prices are offline.
   const heading = (
@@ -72,7 +75,7 @@ export default async function TradePage({ params, searchParams }: { params: Prom
       <ZerodhaNotice code={feed} />
 
       {session ? (
-        <ZerodhaCharts header={heading} account={{ id: account.id, desk: account.desk }} canConnect={owner} />
+        <ZerodhaCharts header={heading} account={{ id: account.id, desk: account.desk }} canConnect={owner && !gfdl} startOn={gfdl ? "SENSEX" : undefined} />
       ) : owner ? (
         <ConnectZerodha next={`/trade/${account.id}`} />
       ) : (

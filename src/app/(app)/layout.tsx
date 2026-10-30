@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SvanLogo } from "@/components/svan-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { requireUser } from "@/lib/auth/dal";
+import { gfdlConfig } from "@/lib/gfdl/config";
 import { kiteConfig } from "@/lib/zerodha/config";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { AccountMenu } from "./account-menu";
@@ -16,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await requireUser();
   const nav = [
     { href: "/dashboard", label: "My accounts" },
-    ...(kiteConfig() ? [{ href: "/markets", label: "Trade" }] : []),
+    ...(kiteConfig() || gfdlConfig() ? [{ href: "/markets", label: "Trade" }] : []),
     { href: "/journal", label: "Journal" },
   ];
 

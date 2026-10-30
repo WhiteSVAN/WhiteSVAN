@@ -4,6 +4,7 @@ import { ConnectZerodha, PricesOffline } from "@/components/markets/connect-zero
 import { ZerodhaCharts } from "@/components/markets/zerodha-charts";
 import { ZerodhaNotice } from "@/components/markets/zerodha-notice";
 import { tradingNow } from "@/lib/accounts/clock";
+import { gfdlConfig } from "@/lib/gfdl/config";
 import { loadAccounts } from "@/lib/accounts/store";
 import { requireUser } from "@/lib/auth/dal";
 import { accountNumber } from "@/lib/checkout/billing";
@@ -23,9 +24,11 @@ const sessionEnd = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", 
 export default async function MarketsPage({ searchParams }: { searchParams: Promise<{ feed?: string; account?: string }> }) {
   const user = await requireUser();
   const config = kiteConfig();
-  if (!config) notFound();
+  // Global Datafeeds, while GFDL_API_KEY is set, needs no Kite login (the trial carries SENSEX only).
+  const gfdl = gfdlConfig() !== null;
+  if (!config && !gfdl) notFound();
   const owner = isKiteOwner(config, user.email);
-  const [session, accounts, params] = await Promise.all([sharedKiteSession(config.sessionSecret), loadAccounts(user.id, tradingNow()), searchParams]);
+  const [session, accounts, params] = await Promise.all([!gfdl && config ? sharedKiteSession(config.sessionSecret) : null, loadAccounts(user.id, tradingNow()), searchParams]);
   const active = accounts.filter((account) => account.status === "ACTIVE");
   const chosen = active.find((account) => account.id === params.account) ?? active[0] ?? null;
   const planLabel = (planId: string) => findAccountPlan(planId)?.label ?? planId;
@@ -34,7 +37,7 @@ export default async function MarketsPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="space-y-3">
-      {!session && (
+      {!session && !gfdl && (
         <div>
           <h1 className="text-3xl font-medium tracking-[-0.045em] sm:text-4xl">Trade</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">NIFTY, BANK NIFTY and SENSEX options on live prices. Chart the index or any option, and buy or sell from the panel beside the chart.</p>
@@ -42,13 +45,15 @@ export default async function MarketsPage({ searchParams }: { searchParams: Prom
       )}
 
       <ZerodhaNotice code={params.feed} />
-      {session ? (
+      {session || gfdl ? (
         <ZerodhaCharts
           key={chosen?.id ?? "charts"}
+          startOn={gfdl ? "SENSEX" : undefined}
           header={
             <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
               <h1 className="text-lg">Trade</h1>
-              {owner && (
+              {owner && gfdl && <span className="text-[11px] text-[var(--muted)]">Prices: Global Datafeeds trial (SENSEX options; the index line is the near-month future)</span>}
+              {owner && session && (
                 <form action="/api/zerodha/logout" method="post" className="flex flex-wrap items-center gap-2 text-[11px] text-[var(--muted)]">
                   <span>Live prices are on for everyone until {sessionEnd.format(session.expiresAt)} IST</span>
                   <button type="submit" className="min-h-8 rounded-md border border-[var(--border-strong)] px-2.5 text-[var(--foreground)] hover:bg-[var(--card-raised)]">Disconnect</button>
@@ -56,7 +61,7 @@ export default async function MarketsPage({ searchParams }: { searchParams: Prom
               )}
             </div>
           }
-          canConnect={owner}
+          canConnect={owner && !gfdl}
           home={home}
           account={chosen ? { id: chosen.id, desk: chosen.desk } : undefined}
           accounts={active.map((account) => ({ id: account.id, label: `${planLabel(account.planId)} ${kind(account)} · ${accountNumber(account.id, account.planId)}`, href: `/markets?account=${account.id}` }))}
