@@ -2,7 +2,7 @@
  * The Global Datafeeds connection (server only): one WebSocket per server instance, authenticated
  * with GFDL_API_KEY. Requests (instrument lists, candles) wait for their reply; quotes come from
  * SubscribeRealtime pushes (about one a second per contract that changes), kept in memory, so
- * screens polling cost no calls; a contract's first quote is a GetLastQuoteArray snapshot. The trial allows 1,800 calls an hour and 100 subscribed contracts: the contracts
+ * screens polling cost no calls; a contract's first quote is a GetLastQuoteArray snapshot. Contracts load on demand: an underlying's expiry list, then each expiry's options the first time a screen asks. The trial allows 1,800 calls an hour and 100 subscribed contracts: the contracts
  * no screen has asked for longest are unsubscribed past that.
  */
 import type { Candle, Interval } from "@/lib/market-data/candles";
@@ -12,7 +12,7 @@ import { toIst } from "@/lib/trading/time";
 import { createSharedLoads } from "@/lib/zerodha/throttle";
 import { KiteError, UNDERLYINGS, quoteKey, type DerivativesExchange, type MarketQuote } from "@/lib/zerodha/kite";
 import type { GfdlConfig } from "./config";
-import { expiriesRequest, GFDL_INDEX, gfdlQuote, historyRequest, indexUnderlying, instrumentsRequest, isObject, nearestExpiries, parseGfdlCandles, parseGfdlContracts, results, type GfdlContract } from "./gfdl";
+import { expiriesRequest, GFDL_INDEX, gfdlDate, gfdlQuote, historyRequest, indexUnderlying, instrumentsRequest, isObject, nearestExpiries, parseGfdlCandles, parseGfdlContracts, results, symbolExpiry, type GfdlContract } from "./gfdl";
 
 const CONNECT_MS = 10_000;
 const REPLY_MS = 15_000;
@@ -20,8 +20,10 @@ const REPLY_MS = 15_000;
 const MAX_SUBSCRIBED = 95;
 /** How long a quote call waits for the first push of a contract it just subscribed. */
 const FIRST_PUSH_MS = 1_500;
-/** Option expiries loaded per underlying: the nearest few, which is what traders pick from. */
-const EXPIRIES_LOADED = 4;
+/** Expiries the chain offers per underlying. */
+const EXPIRIES_LISTED = 8;
+/** How many of the nearest expiries a token nobody has loaded yet is looked for in. */
+const TOKEN_SEARCH_EXPIRIES = 4;
 /** GetLastQuoteArray takes up to 25 contracts. */
 const SNAPSHOT_MAX = 25;
 const HISTORY_KEEP_MS = 15_000;
@@ -51,8 +53,9 @@ interface Feed {
   /** When the connection last sent anything (its heartbeat comes every 2 seconds). */
   heardAt: number;
   subscribed: Map<string, Subscription>;
-  /** Contracts by quote key and by token, per exchange and IST date. */
-  contracts: Map<string, Promise<GfdlContract[]>>;
+  /** Expiries by underlying and IST date, and options by underlying and expiry, as they load. */
+  expiryLists: Map<string, Promise<string[]>>;
+  chains: Map<string, Promise<GfdlContract[]>>;
   byKey: Map<string, GfdlContract>;
   byToken: Map<number, GfdlContract>;
   exchanges: Promise<Set<string>> | null;
@@ -60,15 +63,16 @@ interface Feed {
 }
 
 // On globalThis so every route in a server process shares one connection, however it was bundled.
-const shared = globalThis as unknown as { gfdlFeed?: Feed };
-const feed: Feed = (shared.gfdlFeed ??= {
+const shared = globalThis as unknown as { gfdlFeedV2?: Feed };
+const feed: Feed = (shared.gfdlFeedV2 ??= {
   socket: null,
   ready: null,
   pending: [],
   quotes: new Map(),
   heardAt: 0,
   subscribed: new Map(),
-  contracts: new Map(),
+  expiryLists: new Map(),
+  chains: new Map(),
   byKey: new Map(),
   byToken: new Map(),
   exchanges: null,
@@ -208,34 +212,77 @@ function allowedExchanges(config: GfdlConfig): Promise<Set<string>> {
   return feed.exchanges;
 }
 
-/** Today's NIFTY, BANK NIFTY or SENSEX options on one exchange; none on an exchange the key can't read. */
-export function gfdlContracts(config: GfdlConfig, exchange: DerivativesExchange, now: number): Promise<GfdlContract[]> {
-  const cacheKey = `${exchange}:${toIst(now).date}`;
-  const cached = feed.contracts.get(cacheKey);
+/** An underlying's option expiries from today, nearest first, in GFDL's spelling (`05NOV2026`); none when the key can't read its exchange. */
+function expiryList(config: GfdlConfig, underlying: Underlying, now: number): Promise<string[]> {
+  const today = toIst(now).date;
+  const key = `${underlying}:${today}`;
+  const cached = feed.expiryLists.get(key);
   if (cached) return cached;
+  const exchange = UNDERLYINGS[underlying].exchange;
   const loading = (async () => {
     if (!(await allowedExchanges(config)).has(exchange)) return [];
-    const underlyings = (Object.keys(UNDERLYINGS) as Underlying[]).filter((name) => UNDERLYINGS[name].exchange === exchange);
-    const today = toIst(now).date;
-    const lists = await Promise.all(underlyings.map(async (underlying) => {
-      const asked = expiriesRequest(exchange, underlying);
-      const expiries = nearestExpiries(await request(config, asked, replyTo("ExpiryDatesResult", asked, ["Exchange", "Product"])), today, EXPIRIES_LOADED);
-      return Promise.all(expiries.map(async (expiry) => {
-        const body = instrumentsRequest(exchange, underlying, expiry);
-        return parseGfdlContracts(await request(config, body, replyTo("InstrumentsResult", body, ["Exchange", "Product", "Expiry"])), exchange, underlying);
-      }));
-    }));
-    const contracts = lists.flat(2);
+    const asked = expiriesRequest(exchange, underlying);
+    return nearestExpiries(await request(config, asked, replyTo("ExpiryDatesResult", asked, ["Exchange", "Product"])), today, EXPIRIES_LISTED);
+  })();
+  feed.expiryLists.set(key, loading);
+  loading.catch(() => feed.expiryLists.delete(key));
+  return loading;
+}
+
+/** One expiry's options for an underlying, loaded the first time anything asks for them. */
+function expiryContracts(config: GfdlConfig, underlying: Underlying, expiry: string): Promise<GfdlContract[]> {
+  const key = `${underlying}:${expiry}`;
+  const cached = feed.chains.get(key);
+  if (cached) return cached;
+  const exchange = UNDERLYINGS[underlying].exchange;
+  const loading = (async () => {
+    const body = instrumentsRequest(exchange, underlying, expiry);
+    const contracts = parseGfdlContracts(await request(config, body, replyTo("InstrumentsResult", body, ["Exchange", "Product", "Expiry"])), exchange, underlying);
     for (const contract of contracts) {
       feed.byKey.set(quoteKey(contract), contract);
       feed.byToken.set(contract.token, contract);
     }
     return contracts;
   })();
-  for (const key of feed.contracts.keys()) if (key.startsWith(`${exchange}:`)) feed.contracts.delete(key);
-  feed.contracts.set(cacheKey, loading);
-  loading.catch(() => feed.contracts.delete(cacheKey));
+  feed.chains.set(key, loading);
+  loading.catch(() => feed.chains.delete(key));
   return loading;
+}
+
+/** An underlying's expiries (IST dates) and the options of one: `asked` when it is listed, else the nearest. */
+export async function gfdlChain(config: GfdlConfig, underlying: Underlying, asked: string | null, now: number): Promise<{ expiries: string[]; expiry: string | null; contracts: GfdlContract[] }> {
+  const list = await expiryList(config, underlying, now);
+  const dates = list.map(gfdlDate);
+  const pick = list[Math.max(0, asked ? dates.indexOf(asked) : 0)];
+  return { expiries: dates, expiry: pick ? gfdlDate(pick) : null, contracts: pick ? await expiryContracts(config, underlying, pick) : [] };
+}
+
+/** For keys this instance hasn't seen, load the expiries they name (a trading symbol carries its expiry). */
+async function resolveKeys(config: GfdlConfig, keys: readonly string[], now: number) {
+  const loads = new Map<string, Promise<GfdlContract[]>>();
+  for (const key of keys) {
+    if (!/^(?:NFO|BFO):/.test(key) || feed.byKey.has(key)) continue;
+    const named = symbolExpiry(key.slice(4));
+    if (!named) continue;
+    const list = await expiryList(config, named.underlying, now);
+    const expiry = named.date ? list.find((item) => gfdlDate(item) === named.date) : list.filter((item) => gfdlDate(item).startsWith(named.month)).at(-1);
+    if (expiry && !loads.has(`${named.underlying}:${expiry}`)) loads.set(`${named.underlying}:${expiry}`, expiryContracts(config, named.underlying, expiry));
+  }
+  await Promise.all(loads.values());
+}
+
+/** The option with this token: from what this instance has loaded, else from the nearest expiries, one at a time. */
+export async function gfdlContractForToken(config: GfdlConfig, token: number, now: number): Promise<GfdlContract | null> {
+  const known = feed.byToken.get(token);
+  if (known) return known;
+  for (const underlying of Object.keys(UNDERLYINGS) as Underlying[]) {
+    for (const expiry of (await expiryList(config, underlying, now)).slice(0, TOKEN_SEARCH_EXPIRIES)) {
+      await expiryContracts(config, underlying, expiry);
+      const found = feed.byToken.get(token);
+      if (found) return found;
+    }
+  }
+  return null;
 }
 
 export const gfdlIndexToken = (underlying: Underlying): number => GFDL_INDEX[underlying].token;
@@ -255,11 +302,6 @@ function indexTarget(underlying: Underlying): Target {
 }
 
 const contractTarget = (contract: GfdlContract): Target => ({ key: quoteKey(contract), token: contract.token, identifier: contract.identifier, exchange: contract.exchange, index: false });
-
-/** Load the day's contracts for the exchanges `keys` name, when this instance hasn't yet. */
-async function ensureContracts(config: GfdlConfig, exchanges: Iterable<DerivativesExchange>, now: number) {
-  await Promise.all([...new Set(exchanges)].map((exchange) => gfdlContracts(config, exchange, now)));
-}
 
 /** Subscribe what isn't yet; returns those. */
 function subscribe(socket: WebSocket, targets: readonly Target[], now: number): Target[] {
@@ -297,8 +339,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 /** Quotes for Kite-style keys (`BFO:SENSEX26N0575000CE`, `BSE:SENSEX`); keys the feed doesn't carry are left out. */
 export async function gfdlQuotes(config: GfdlConfig, keys: readonly string[]): Promise<MarketQuote[]> {
   const now = Date.now();
-  const options = keys.filter((key) => /^(?:NFO|BFO):/.test(key));
-  if (options.some((key) => !feed.byKey.has(key))) await ensureContracts(config, options.map((key) => key.slice(0, 3) as DerivativesExchange), now);
+  await resolveKeys(config, keys, now);
   const allowed = await allowedExchanges(config);
   const targets: Target[] = [];
   for (const key of keys) {
@@ -323,8 +364,7 @@ export async function gfdlQuotes(config: GfdlConfig, keys: readonly string[]): P
 /** The interval's lookback of candles up to `now`; screens opening the same chart within seconds share one request. */
 export async function gfdlCandles(config: GfdlConfig, token: number, interval: Interval, withOi: boolean, now: number): Promise<Candle[]> {
   const underlying = (Object.keys(GFDL_INDEX) as Underlying[]).find((name) => GFDL_INDEX[name].token === token);
-  if (!underlying && !feed.byToken.has(token)) await ensureContracts(config, ["NFO", "BFO"], now);
-  const contract = feed.byToken.get(token);
+  const contract = underlying ? null : await gfdlContractForToken(config, token, now);
   const target = underlying ? indexTarget(underlying) : contract ? contractTarget(contract) : null;
   if (!target || !(await allowedExchanges(config)).has(target.exchange)) {
     throw new KiteError("This price feed doesn't carry that contract yet.", 400, "InputException");

@@ -14,7 +14,7 @@ import { netQuantity, type EngineOutput, type OrderChanges } from "@/lib/trading
 import type { Side, Underlying } from "@/lib/trading/instruments";
 import { clockSeconds, toIst } from "@/lib/trading/time";
 import { quoteKey, UNDERLYINGS, type InstrumentList, type KiteContract, type MarketQuote } from "@/lib/zerodha/kite";
-import { chainWindow, DEFAULT_STRIKES_EACH_SIDE, isStrikesEachSide, nearestStrike, STRIKES_EACH_SIDE, type StrikesEachSide } from "@/lib/zerodha/chain";
+import { CHAIN_ROWS, chainWindow, DEFAULT_CHAIN_ROWS, isChainRows, nearestStrike, type ChainRows } from "@/lib/zerodha/chain";
 
 type Right = "CE" | "PE";
 /** What the chart shows: the index, or the option picked in the chain. */
@@ -185,7 +185,7 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
   const [pick, setPick] = useState<{ strike: number; right: Right } | null>(null);
   const [charted, setCharted] = useState<Charted>("index");
   /** Strikes either side of the money; the chain scrolls. */
-  const [eachSide, setEachSide] = useState<StrikesEachSide>(DEFAULT_STRIKES_EACH_SIDE);
+  const [chainRows, setChainRows] = useState<ChainRows>(DEFAULT_CHAIN_ROWS);
   const chainBox = useRef<HTMLDivElement>(null);
   const [list, setList] = useState<InstrumentList | null>(null);
   const [listError, setListError] = useState<string | null>(null);
@@ -267,7 +267,7 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
 
   const spot = data ? quotes[data.index.key]?.lastPrice : undefined;
   const atm = data ? nearestStrike(data.chain, spot) : null;
-  const rows = data ? chainWindow(data.chain, atm, eachSide) : [];
+  const rows = data ? chainWindow(data.chain, atm, chainRows) : [];
   const selectedRow = data && pick ? data.chain.find((row) => row.strike === pick.strike) : undefined;
   const contract = selectedRow && pick ? (pick.right === "CE" ? selectedRow.call : selectedRow.put) : null;
   const selectedKey = contract ? quoteKey(contract) : null;
@@ -284,7 +284,7 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
     : "";
 
   // The money row sits mid-chain when the chain, the money or the window changes; scrolling is the trader's after that.
-  const centreKey = data ? `${data.underlying}|${data.expiry}|${atm}|${eachSide}` : "";
+  const centreKey = data ? `${data.underlying}|${data.expiry}|${atm}|${chainRows}` : "";
   useEffect(() => {
     const box = chainBox.current;
     const row = box?.querySelector<HTMLElement>("[data-atm]");
@@ -593,8 +593,8 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
                 </label>
               )}
               <label className="ml-auto flex shrink-0 items-center gap-2" title="Strikes around the money">Strikes
-                <select value={eachSide} onChange={(event) => { const next = Number(event.target.value); if (isStrikesEachSide(next)) setEachSide(next); }} className={selectClass}>
-                  {STRIKES_EACH_SIDE.map((each) => <option key={each} value={each}>{2 * each + 1}</option>)}
+                <select value={chainRows} onChange={(event) => { const next = Number(event.target.value); if (isChainRows(next)) setChainRows(next); }} className={selectClass}>
+                  {CHAIN_ROWS.map((count) => <option key={count} value={count}>{count}</option>)}
                 </select>
               </label>
             </div>

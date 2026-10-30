@@ -51,6 +51,23 @@ export interface GfdlContract extends KiteContract {
 
 const MONTHS: Record<string, string> = { JAN: "01", FEB: "02", MAR: "03", APR: "04", MAY: "05", JUN: "06", JUL: "07", AUG: "08", SEP: "09", OCT: "10", NOV: "11", DEC: "12" };
 
+/** Weekly symbols' month codes: 1-9, then O, N, D. */
+const WEEK_MONTHS: Record<string, string> = { "1": "01", "2": "02", "3": "03", "4": "04", "5": "05", "6": "06", "7": "07", "8": "08", "9": "09", O: "10", N: "11", D: "12" };
+
+/**
+ * The underlying and expiry an exchange trading symbol names: a weekly `SENSEX26N0575000CE`
+ * (5 Nov 2026), or a monthly `SENSEX26NOV75000CE` (its month only: the expiry is that month's last).
+ */
+export function symbolExpiry(symbol: string): { underlying: Underlying; date: string | null; month: string } | null {
+  const weekly = /^(NIFTY|BANKNIFTY|SENSEX)(\d{2})([1-9OND])(\d{2})\d+(?:CE|PE)$/.exec(symbol);
+  if (weekly) {
+    const month = `20${weekly[2]}-${WEEK_MONTHS[weekly[3]]}`;
+    return { underlying: weekly[1] as Underlying, date: `${month}-${weekly[4]}`, month };
+  }
+  const monthly = /^(NIFTY|BANKNIFTY|SENSEX)(\d{2})(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\d+(?:CE|PE)$/.exec(symbol);
+  return monthly ? { underlying: monthly[1] as Underlying, date: null, month: `20${monthly[2]}-${MONTHS[monthly[3]]}` } : null;
+}
+
 /** `05Nov2026` or `05NOV2026` as `2026-11-05`. */
 export function gfdlDate(value: unknown): string {
   const match = typeof value === "string" ? /^(\d{2})([A-Za-z]{3})(\d{4})$/.exec(value) : null;

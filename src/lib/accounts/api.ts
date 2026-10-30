@@ -4,7 +4,7 @@
  */
 import { randomBytes } from "node:crypto";
 import { auth } from "@/auth";
-import { fetchContracts, fetchQuotes } from "@/lib/zerodha/client";
+import { contractForToken, fetchQuotes } from "@/lib/zerodha/client";
 import { GFDL_CONTEXT, kiteFailure, NO_STORE } from "@/lib/zerodha/access";
 import type { KiteConfig } from "@/lib/zerodha/config";
 // Kite, commented out while Global Datafeeds is the price feed (30 Oct 2026):
@@ -41,11 +41,8 @@ export async function accountJson(name: string, accountId: string, run: (context
 
 /** Today's contract for a token, as an engine instrument; null when it isn't one of ours. */
 export async function instrumentForToken(config: KiteConfig, accessToken: string, token: number, now: number): Promise<Instrument | null> {
-  for (const exchange of ["NFO", "BFO"] as const) {
-    const contract = (await fetchContracts(config, accessToken, exchange, now)).find((item) => item.token === token);
-    if (contract) return contractInstrument(contract);
-  }
-  return null;
+  const contract = await contractForToken(config, accessToken, token, now);
+  return contract ? contractInstrument(contract) : null;
 }
 
 /** Quotes for an order, through the shared quote calls; one retry if Kite or the queue turns it away. */

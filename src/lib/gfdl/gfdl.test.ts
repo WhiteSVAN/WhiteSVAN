@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { gfdlConfig, GFDL_TRIAL_KEY, GFDL_TRIAL_URL } from "./config";
-import { gfdlDate, gfdlQuote, historyRequest, indexUnderlying, instrumentsRequest, nearestExpiries, parseGfdlCandles, parseGfdlContracts } from "./gfdl";
+import { gfdlDate, gfdlQuote, historyRequest, indexUnderlying, instrumentsRequest, nearestExpiries, parseGfdlCandles, parseGfdlContracts, symbolExpiry } from "./gfdl";
 
 // Shapes from the trial key's replies on 30 Oct 2026.
 const instruments = {
@@ -35,6 +35,13 @@ describe("GFDL parsing", () => {
   it("asks for an exchange's index options by its own type name", () => {
     expect(instrumentsRequest("BFO", "SENSEX")).toMatchObject({ Exchange: "BFO", InstrumentType: "IO", Product: "SENSEX" });
     expect(instrumentsRequest("NFO", "BANKNIFTY")).toMatchObject({ Exchange: "NFO", InstrumentType: "OPTIDX", Product: "BANKNIFTY" });
+  });
+
+  it("reads the expiry a trading symbol names", () => {
+    expect(symbolExpiry("SENSEX26N0575000CE")).toEqual({ underlying: "SENSEX", date: "2026-11-05", month: "2026-11" });
+    expect(symbolExpiry("NIFTY2610624000PE")).toEqual({ underlying: "NIFTY", date: "2026-01-06", month: "2026-01" });
+    expect(symbolExpiry("BANKNIFTY26DEC52000CE")).toEqual({ underlying: "BANKNIFTY", date: null, month: "2026-12" });
+    expect(symbolExpiry("SENSEX-I")).toBeNull();
   });
 
   it("picks the nearest expiries from today, in GFDL's spelling", () => {

@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { kiteJson } from "@/lib/zerodha/access";
-import { fetchContracts, indexToken } from "@/lib/zerodha/client";
+import { fetchOptionChain, indexToken } from "@/lib/zerodha/client";
 import { contractsFor, isUnderlying, UNDERLYINGS, type InstrumentList } from "@/lib/zerodha/kite";
 import { toIst } from "@/lib/trading/time";
 
@@ -14,10 +14,10 @@ export async function GET(request: NextRequest) {
   }
   return kiteJson("instruments", async ({ config, accessToken }): Promise<InstrumentList> => {
     const now = Date.now();
-    const { label, indexKey, exchange } = UNDERLYINGS[underlying];
-    const [token, contracts] = await Promise.all([indexToken(config, accessToken, underlying), fetchContracts(config, accessToken, exchange, now)]);
-    const { expiries, chain } = contractsFor(contracts, underlying, toIst(now).date);
-    const expiry = asked && expiries.includes(asked) ? asked : expiries[0] ?? null;
-    return { underlying, index: { key: indexKey, token, label }, expiries, expiry, chain: expiry ? chain(expiry) : [] };
+    const { label, indexKey } = UNDERLYINGS[underlying];
+    // Only the expiry on screen loads (the expiry list is small); others load when picked.
+    const [token, loaded] = await Promise.all([indexToken(config, accessToken, underlying), fetchOptionChain(config, accessToken, underlying, asked, now)]);
+    const { chain } = contractsFor(loaded.contracts, underlying, toIst(now).date);
+    return { underlying, index: { key: indexKey, token, label }, expiries: loaded.expiries, expiry: loaded.expiry, chain: loaded.expiry ? chain(loaded.expiry) : [] };
   });
 }
