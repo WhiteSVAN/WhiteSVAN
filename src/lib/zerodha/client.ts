@@ -6,11 +6,11 @@
  * call sites don't change; they are unused.
  */
 import { gfdlConfig } from "@/lib/gfdl/config";
-import { gfdlCandles, gfdlContracts, gfdlIndexToken, gfdlQuotes } from "@/lib/gfdl/feed";
+import { gfdlCandles, gfdlChain, gfdlContractForToken, gfdlIndexToken, gfdlQuotes } from "@/lib/gfdl/feed";
 import type { Candle, Interval } from "@/lib/market-data/candles";
 import type { Underlying } from "@/lib/trading/instruments";
 import type { KiteConfig } from "./config";
-import type { DerivativesExchange, KiteContract, MarketQuote } from "./kite";
+import type { KiteContract, MarketQuote } from "./kite";
 
 /** The interval's lookback of candles up to `now`, with open interest for options. */
 export function fetchCandles(_config: KiteConfig, _accessToken: string, instrumentToken: number, interval: Interval, withOi: boolean, now: number): Promise<Candle[]> {
@@ -27,9 +27,14 @@ export async function indexToken(_config: KiteConfig, _accessToken: string, unde
   return gfdlIndexToken(underlying);
 }
 
-/** Today's NIFTY, BANK NIFTY or SENSEX options on one exchange. */
-export function fetchContracts(_config: KiteConfig, _accessToken: string, exchange: DerivativesExchange, now: number): Promise<KiteContract[]> {
-  return gfdlContracts(gfdlConfig(), exchange, now);
+/** An underlying's expiries and one expiry's options (the one asked for, or the nearest), loaded on demand. */
+export function fetchOptionChain(_config: KiteConfig, _accessToken: string, underlying: Underlying, expiry: string | null, now: number): Promise<{ expiries: string[]; expiry: string | null; contracts: KiteContract[] }> {
+  return gfdlChain(gfdlConfig(), underlying, expiry, now);
+}
+
+/** The option with this token, loading its expiry when this server hasn't yet. */
+export function contractForToken(_config: KiteConfig, _accessToken: string, token: number, now: number): Promise<KiteContract | null> {
+  return gfdlContractForToken(gfdlConfig(), token, now);
 }
 
 // ---------------------------------------------------------------------------------------------
