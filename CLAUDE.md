@@ -326,6 +326,13 @@ result. The future engine service (Node on AWS with the market-data feed) hosts 
 
 ## Zerodha charts (the firm's shared Kite login) and market data
 
+> **30 Oct 2026: Global Datafeeds is the price feed; Kite is commented out** (founder's instruction).
+> [src/lib/gfdl/](src/lib/gfdl/) holds one WebSocket per server instance (SubscribeRealtime pushes, GetLastQuoteArray,
+> GetInstruments, GetHistory); `src/lib/zerodha/client.ts` calls it, with the Kite code commented out below, and the
+> Kite login routes answer 404. The trial key in `src/lib/gfdl/config.ts` (public repo, founder's call) is BFO only
+> (SENSEX options; the index line is the near-month future; best bid/offer only), allows one connection at a time and
+> expires 30 Oct 2026 23:59 IST; `GFDL_API_KEY` overrides it. The section below describes the parked Kite setup.
+
 `/markets` (signed-in, the **Trade** tab; the UI never names Zerodha) shows NIFTY, BANK NIFTY and
 SENSEX options for every signed-in user, from the firm's Zerodha account through Kite Connect: the
 option chain, candles from 1 minute to 1 day, live quotes and option depth. The index is charted

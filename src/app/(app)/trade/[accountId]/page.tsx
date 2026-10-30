@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpen, CircleCheck, X } from "lucide-react";
-import { AccountMeters } from "@/components/markets/account-panel";
+import { ArrowLeft, CircleCheck, X } from "lucide-react";
 import { STATUS_BADGE } from "@/components/markets/account-status";
-import { ConnectZerodha } from "@/components/markets/connect-zerodha";
 import { ZerodhaCharts } from "@/components/markets/zerodha-charts";
 import { ZerodhaNotice } from "@/components/markets/zerodha-notice";
 import { findAccount } from "@/lib/accounts/store";
@@ -12,16 +10,18 @@ import { requireUser } from "@/lib/auth/dal";
 import { accountNumber } from "@/lib/checkout/billing";
 import { settlement } from "@/lib/checkout/settlement";
 import { prisma } from "@/lib/db";
-import { gfdlConfig } from "@/lib/gfdl/config";
 import { findAccountPlan } from "@/lib/prop-firm";
-import { isKiteOwner, kiteConfig } from "@/lib/zerodha/config";
-import { PRICES_OFFLINE, sharedKiteSession } from "@/lib/zerodha/connection";
+// Kite, commented out while Global Datafeeds is the price feed (30 Oct 2026):
+// import { AccountMeters } from "@/components/markets/account-panel";
+// import { ConnectZerodha } from "@/components/markets/connect-zerodha";
+// import { isKiteOwner, kiteConfig } from "@/lib/zerodha/config";
+// import { PRICES_OFFLINE, sharedKiteSession } from "@/lib/zerodha/connection";
 
 export const metadata: Metadata = { title: "Trading platform · WhiteSVAN", robots: { index: false } };
 
 /**
- * One account's trading platform (a demo account, or a funded one), on the firm's shared Kite
- * login. While the login is down, traders see their account and wait; owners get the Kite login card.
+ * One account's trading platform (a demo account, or a funded one), on Global Datafeeds prices
+ * (the trial carries SENSEX options, so it opens on SENSEX).
  * Checkout lands here with `?opened=<order>`, which shows the welcome.
  */
 export default async function TradePage({ params, searchParams }: { params: Promise<{ accountId: string }>; searchParams: Promise<{ feed?: string; opened?: string }> }) {
@@ -35,11 +35,10 @@ export default async function TradePage({ params, searchParams }: { params: Prom
     : null;
   const plan = findAccountPlan(account.planId);
   const planLabel = plan?.label ?? account.planId;
-  const config = kiteConfig();
-  const owner = isKiteOwner(config, user.email);
-  // Global Datafeeds, while GFDL_API_KEY is set, needs no Kite login (the trial carries SENSEX only).
-  const gfdl = gfdlConfig() !== null;
-  const session = gfdl || (config ? await sharedKiteSession(config.sessionSecret) : null);
+  // Kite, commented out while Global Datafeeds is the price feed (30 Oct 2026):
+  // const config = kiteConfig();
+  // const owner = isKiteOwner(config, user.email);
+  // const session = config ? await sharedKiteSession(config.sessionSecret) : null;
   const status = STATUS_BADGE[account.status];
   // The account's title: the start of the platform's account bar, or a row of its own while prices are offline.
   const heading = (
@@ -53,8 +52,6 @@ export default async function TradePage({ params, searchParams }: { params: Prom
 
   return (
     <div className="space-y-3">
-      {!session && heading}
-
       {order && (
         <section role="status" className="terminal-card flex flex-wrap items-start justify-between gap-4 p-5">
           <div className="flex gap-3">
@@ -74,23 +71,8 @@ export default async function TradePage({ params, searchParams }: { params: Prom
 
       <ZerodhaNotice code={feed} />
 
-      {session ? (
-        <ZerodhaCharts header={heading} account={{ id: account.id, desk: account.desk }} canConnect={owner && !gfdl} startOn={gfdl ? "SENSEX" : undefined} />
-      ) : owner ? (
-        <ConnectZerodha next={`/trade/${account.id}`} />
-      ) : (
-        <section className="grid items-start gap-6 lg:grid-cols-[1.2fr_.8fr]">
-          <div className="terminal-card p-6 sm:p-8">
-            <p className="terminal-label">Trading platform</p>
-            <h2 className="mt-3 text-2xl font-medium tracking-tight">Live prices are offline</h2>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--muted)]">{PRICES_OFFLINE} Your account, balance and rules stay as they are.</p>
-            <Link href="/academy?tab=evaluations#academy-content" className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg border border-[var(--border-strong)] px-5 text-sm hover:border-[var(--primary)] hover:text-[var(--primary)]"><BookOpen className="h-4 w-4" aria-hidden="true" /> Practise the rules meanwhile</Link>
-          </div>
-          <aside className="terminal-card space-y-5 p-5" aria-label="Account">
-            <AccountMeters desk={account.desk} />
-          </aside>
-        </section>
-      )}
+      <ZerodhaCharts header={heading} account={{ id: account.id, desk: account.desk }} canConnect={false} startOn="SENSEX" />
+      {/* Kite, commented out while Global Datafeeds is the price feed (30 Oct 2026): the Kite login card for owners and "Live prices are offline" (with the account's meters) for traders. */}
     </div>
   );
 }

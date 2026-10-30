@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gfdlConfig, GFDL_TRIAL_URL } from "./config";
+import { gfdlConfig, GFDL_TRIAL_KEY, GFDL_TRIAL_URL } from "./config";
 import { gfdlDate, gfdlQuote, historyRequest, indexUnderlying, instrumentsRequest, parseGfdlCandles, parseGfdlContracts } from "./gfdl";
 
 // Shapes from the trial key's replies on 30 Oct 2026.
@@ -20,8 +20,8 @@ const realtime = {
 };
 
 describe("GFDL parsing", () => {
-  it("is on only with a key, on the trial endpoint unless told otherwise", () => {
-    expect(gfdlConfig({})).toBeNull();
+  it("runs on the trial key and endpoint unless told otherwise", () => {
+    expect(gfdlConfig({})).toEqual({ apiKey: GFDL_TRIAL_KEY, url: GFDL_TRIAL_URL });
     expect(gfdlConfig({ GFDL_API_KEY: " key " })).toEqual({ apiKey: "key", url: GFDL_TRIAL_URL });
     expect(gfdlConfig({ GFDL_API_KEY: "key", GFDL_WS_URL: "wss://example.test/" })?.url).toBe("wss://example.test/");
   });
