@@ -1,15 +1,14 @@
 /**
  * JSON routes over one of the signed-in trader's evaluation accounts (server only). Prices come
- * from Global Datafeeds (the Kite login is commented out).
+ * from the firm's shared Kite login, so every account holder trades while it is connected; without
+ * it the routes answer 401 with {@link PRICES_OFFLINE}.
  */
 import { randomBytes } from "node:crypto";
 import { auth } from "@/auth";
-import { contractForToken, fetchQuotes } from "@/lib/zerodha/client";
-import { GFDL_CONTEXT, kiteFailure, NO_STORE } from "@/lib/zerodha/access";
-import type { KiteConfig } from "@/lib/zerodha/config";
-// Kite, commented out while Global Datafeeds is the price feed (30 Oct 2026):
-// import { kiteConfig } from "@/lib/zerodha/config";
-// import { PRICES_OFFLINE, sharedKiteSession } from "@/lib/zerodha/connection";
+import { fetchContracts, fetchQuotes } from "@/lib/zerodha/client";
+import { kiteFailure, NO_STORE } from "@/lib/zerodha/access";
+import { kiteConfig, type KiteConfig } from "@/lib/zerodha/config";
+import { PRICES_OFFLINE, sharedKiteSession } from "@/lib/zerodha/connection";
 import { contractInstrument, KiteError, type MarketQuote } from "@/lib/zerodha/kite";
 import type { Instrument } from "@/lib/trading/instruments";
 import { AccountBusyError, findAccount, type StoredAccount } from "./store";
@@ -26,11 +25,10 @@ export async function accountJson(name: string, accountId: string, run: (context
   if (!userId) return Response.json({ error: "signed_out", message: "Sign in to trade." }, { status: 401, headers: NO_STORE });
   const account = await findAccount(userId, accountId);
   if (!account) return Response.json({ error: "not_found" }, { status: 404, headers: NO_STORE });
-  // Kite, commented out while Global Datafeeds is the price feed (30 Oct 2026):
-  // const config = kiteConfig();
-  // const session = config ? await sharedKiteSession(config.sessionSecret) : null;
-  // if (!config || !session) return Response.json({ error: "session", message: PRICES_OFFLINE }, { status: 401, headers: NO_STORE });
-  const context = GFDL_CONTEXT;
+  const config = kiteConfig();
+  const session = config ? await sharedKiteSession(config.sessionSecret) : null;
+  if (!config || !session) return Response.json({ error: "session", message: PRICES_OFFLINE }, { status: 401, headers: NO_STORE });
+  const context = { config, accessToken: session.accessToken };
   try {
     return Response.json(await run({ userId, account, ...context }), { headers: NO_STORE });
   } catch (error) {
@@ -41,8 +39,11 @@ export async function accountJson(name: string, accountId: string, run: (context
 
 /** Today's contract for a token, as an engine instrument; null when it isn't one of ours. */
 export async function instrumentForToken(config: KiteConfig, accessToken: string, token: number, now: number): Promise<Instrument | null> {
-  const contract = await contractForToken(config, accessToken, token, now);
-  return contract ? contractInstrument(contract) : null;
+  for (const exchange of ["NFO", "BFO"] as const) {
+    const contract = (await fetchContracts(config, accessToken, exchange, now)).find((item) => item.token === token);
+    if (contract) return contractInstrument(contract);
+  }
+  return null;
 }
 
 /** Quotes for an order, through the shared quote calls; one retry if Kite or the queue turns it away. */

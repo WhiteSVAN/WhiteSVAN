@@ -8,8 +8,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { errorFields, logger } from "@/lib/logger";
 import { isKiteOwner, kiteConfig, type KiteConfig } from "./config";
-import { dropKiteSession, PRICES_OFFLINE } from "./connection";
-// import { sharedKiteSession } from "./connection"; // Kite, commented out while Global Datafeeds is the price feed (30 Oct 2026)
+import { dropKiteSession, PRICES_OFFLINE, sharedKiteSession } from "./connection";
 import { KiteError } from "./kite";
 
 export interface KiteOwner {
@@ -71,21 +70,14 @@ export async function kiteFailure(name: string, error: unknown, context: KiteCon
   return Response.json({ error: "upstream", message }, { status: 502, headers: NO_STORE });
 }
 
-/** What the market-data calls run with: Global Datafeeds needs no Kite login, so these are blanks. */
-export const GFDL_CONTEXT: KiteContext = {
-  config: { apiKey: "", apiSecret: "", sessionSecret: "", ownerEmails: [], apiRoot: "", loginUrl: "" },
-  accessToken: "gfdl",
-};
-
-/** A JSON market-data route for any signed-in user: 401 signed out, then {@link kiteFailure}. */
+/** A JSON route over the shared Kite login for any signed-in user: 404 with Zerodha off, 401 signed out or offline, then {@link kiteFailure}. */
 export async function kiteJson(name: string, run: (context: KiteContext) => Promise<unknown>): Promise<Response> {
+  const config = kiteConfig();
+  if (!config) return Response.json({ error: "not_found" }, { status: 404, headers: NO_STORE });
   if (!(await auth())?.user?.id) return Response.json({ error: "signed_out", message: "Sign in to load prices." }, { status: 401, headers: NO_STORE });
-  // Kite, commented out while Global Datafeeds is the price feed (30 Oct 2026):
-  // const config = kiteConfig();
-  // if (!config) return Response.json({ error: "not_found" }, { status: 404, headers: NO_STORE });
-  // const session = await sharedKiteSession(config.sessionSecret);
-  // if (!session) return Response.json({ error: "session", message: PRICES_OFFLINE }, { status: 401, headers: NO_STORE });
-  const context = GFDL_CONTEXT;
+  const session = await sharedKiteSession(config.sessionSecret);
+  if (!session) return Response.json({ error: "session", message: PRICES_OFFLINE }, { status: 401, headers: NO_STORE });
+  const context = { config, accessToken: session.accessToken };
   try {
     return Response.json(await run(context), { headers: NO_STORE });
   } catch (error) {

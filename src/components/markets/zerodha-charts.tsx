@@ -14,7 +14,7 @@ import { netQuantity, type EngineOutput, type OrderChanges } from "@/lib/trading
 import type { Side, Underlying } from "@/lib/trading/instruments";
 import { clockSeconds, toIst } from "@/lib/trading/time";
 import { quoteKey, UNDERLYINGS, type InstrumentList, type KiteContract, type MarketQuote } from "@/lib/zerodha/kite";
-import { CHAIN_ROWS, chainWindow, DEFAULT_CHAIN_ROWS, isChainRows, nearestStrike, type ChainRows } from "@/lib/zerodha/chain";
+import { chainWindow, DEFAULT_STRIKES_EACH_SIDE, isStrikesEachSide, nearestStrike, STRIKES_EACH_SIDE, type StrikesEachSide } from "@/lib/zerodha/chain";
 
 type Right = "CE" | "PE";
 /** What the chart shows: the index, or the option picked in the chain. */
@@ -175,17 +175,17 @@ const withParam = (path: string, name: string, value: string) => `${path}${path.
  * meters, its positions, orders and trades sit under the chart, and each poll feeds the account on
  * the server. `header` opens the account bar (the page's title). `canConnect` marks an owner, who
  * can reconnect the price feed when it ends. `home` is the page to come back to; `accounts` lets
- * someone with several accounts switch. `startOn` picks the first index tab (SENSEX on a feed that carries only it).
+ * someone with several accounts switch.
  */
-export function ZerodhaCharts({ header, account, canConnect, home: homePath, accounts, startOn }: { header?: ReactNode; account?: { id: string; desk: Desk }; canConnect: boolean; home?: string; accounts?: { id: string; label: string; href: string }[]; startOn?: Underlying }) {
-  const [underlying, setUnderlying] = useState<Underlying>(startOn ?? "NIFTY");
+export function ZerodhaCharts({ header, account, canConnect, home: homePath, accounts }: { header?: ReactNode; account?: { id: string; desk: Desk }; canConnect: boolean; home?: string; accounts?: { id: string; label: string; href: string }[] }) {
+  const [underlying, setUnderlying] = useState<Underlying>("NIFTY");
   const [barInterval, setBarInterval] = useState<Interval>("5minute");
   const [expiryChoice, setExpiryChoice] = useState<string | null>(null);
   /** The ticket's option; it follows the money until the trader picks one. */
   const [pick, setPick] = useState<{ strike: number; right: Right } | null>(null);
   const [charted, setCharted] = useState<Charted>("index");
   /** Strikes either side of the money; the chain scrolls. */
-  const [chainRows, setChainRows] = useState<ChainRows>(DEFAULT_CHAIN_ROWS);
+  const [eachSide, setEachSide] = useState<StrikesEachSide>(DEFAULT_STRIKES_EACH_SIDE);
   const chainBox = useRef<HTMLDivElement>(null);
   const [list, setList] = useState<InstrumentList | null>(null);
   const [listError, setListError] = useState<string | null>(null);
@@ -267,7 +267,7 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
 
   const spot = data ? quotes[data.index.key]?.lastPrice : undefined;
   const atm = data ? nearestStrike(data.chain, spot) : null;
-  const rows = data ? chainWindow(data.chain, atm, chainRows) : [];
+  const rows = data ? chainWindow(data.chain, atm, eachSide) : [];
   const selectedRow = data && pick ? data.chain.find((row) => row.strike === pick.strike) : undefined;
   const contract = selectedRow && pick ? (pick.right === "CE" ? selectedRow.call : selectedRow.put) : null;
   const selectedKey = contract ? quoteKey(contract) : null;
@@ -284,7 +284,7 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
     : "";
 
   // The money row sits mid-chain when the chain, the money or the window changes; scrolling is the trader's after that.
-  const centreKey = data ? `${data.underlying}|${data.expiry}|${atm}|${chainRows}` : "";
+  const centreKey = data ? `${data.underlying}|${data.expiry}|${atm}|${eachSide}` : "";
   useEffect(() => {
     const box = chainBox.current;
     const row = box?.querySelector<HTMLElement>("[data-atm]");
@@ -314,7 +314,7 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
     let current: Candle | null = candles?.[candles.length - 1] ?? null;
     const keys = keysText.split("\n");
     const poll = async () => {
-      let delay = marketHours(Date.now()) ? 1_000 : 20_000;
+      let delay = marketHours(Date.now()) ? 2_000 : 20_000;
       if (!document.hidden) {
         lastPoll.current = Date.now();
         try {
@@ -593,8 +593,8 @@ export function ZerodhaCharts({ header, account, canConnect, home: homePath, acc
                 </label>
               )}
               <label className="ml-auto flex shrink-0 items-center gap-2" title="Strikes around the money">Strikes
-                <select value={chainRows} onChange={(event) => { const next = Number(event.target.value); if (isChainRows(next)) setChainRows(next); }} className={selectClass}>
-                  {CHAIN_ROWS.map((count) => <option key={count} value={count}>{count}</option>)}
+                <select value={eachSide} onChange={(event) => { const next = Number(event.target.value); if (isStrikesEachSide(next)) setEachSide(next); }} className={selectClass}>
+                  {STRIKES_EACH_SIDE.map((each) => <option key={each} value={each}>{2 * each + 1}</option>)}
                 </select>
               </label>
             </div>
