@@ -175,10 +175,10 @@ const withParam = (path: string, name: string, value: string) => `${path}${path.
  * meters, its positions, orders and trades sit under the chart, and each poll feeds the account on
  * the server. `header` opens the account bar (the page's title). `canConnect` marks an owner, who
  * can reconnect the price feed when it ends. `home` is the page to come back to; `accounts` lets
- * someone with several accounts switch.
+ * someone with several accounts switch. `startOn` picks the first index tab (SENSEX on a feed that carries only it).
  */
-export function ZerodhaCharts({ header, account, canConnect, home: homePath, accounts }: { header?: ReactNode; account?: { id: string; desk: Desk }; canConnect: boolean; home?: string; accounts?: { id: string; label: string; href: string }[] }) {
-  const [underlying, setUnderlying] = useState<Underlying>("NIFTY");
+export function ZerodhaCharts({ header, account, canConnect, home: homePath, accounts, startOn }: { header?: ReactNode; account?: { id: string; desk: Desk }; canConnect: boolean; home?: string; accounts?: { id: string; label: string; href: string }[]; startOn?: Underlying }) {
+  const [underlying, setUnderlying] = useState<Underlying>(startOn ?? "NIFTY");
   const [barInterval, setBarInterval] = useState<Interval>("5minute");
   const [expiryChoice, setExpiryChoice] = useState<string | null>(null);
   /** The ticket's option; it follows the money until the trader picks one. */
